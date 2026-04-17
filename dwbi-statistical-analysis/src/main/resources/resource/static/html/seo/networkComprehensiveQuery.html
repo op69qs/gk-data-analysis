@@ -1,0 +1,249 @@
+<link rel="stylesheet" href="/statisticalAnalysis/static/css/systemManagement/systemManagement.css"/>
+<link rel="stylesheet" type="text/css" href="/statisticalAnalysis/static/css/forecast_analysis.css"/>
+<div id="bread">统计分析 > 综合查询 > <span style="color:#1f5ec4;font-weight: bold;">网络综合查询</span></div>
+<div id="containerId" class="layui-container" style="width:100%; margin-top:15px;height:90%;">
+        <div class="layui-row" style="margin-top: 15px;">
+            <div class="layui-col-md2 layui-col-lg2">
+                <span>周期：</span>
+                <input id="period" class="easyui-combobox" style="width:200px;"
+                       data-options="
+                   prompt:'请选择周期',
+                   valueField:'value',
+                   textField:'label',
+                   data:
+                   [
+                   {'value':'3','label':'日'},{'value':'4','label':'月'},{'value':'5','label':'年'}
+                   ],onChange:function(current, old){if(current!=old){changeTimeElement(current);}}
+            "/>
+            </div>
+            <div class="layui-col-md2 layui-col-lg2" style="width: 350px;">
+                <span>时间：</span>
+                <span>
+                <input id="startTime" class="Wdate" placeholder="请选择起始时间"
+                       onfocus="WdatePicker({readOnly : false,dateFmt : 'yyyy-MM-dd',isShowWeek : true,isShowClear: false, maxDate : '%y-%M-%d'});"/>
+            </span>
+                <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;—</span>
+            </div>
+            <div class="layui-col-md2 layui-col-lg2" style="width: 350px;">
+            <span>
+                <input id="endTime" class="Wdate" placeholder="请选择结束时间"
+                       onfocus="WdatePicker({readOnly : false,dateFmt : 'yyyy-MM-dd',isShowWeek : true,isShowClear: false, maxDate : '%y-%M-%d'});"/>
+            </span>
+            </div>
+        </div>
+
+    <div class="layui-row" style="margin-top: 15px;">
+        <div class="layui-col-md2 layui-col-lg2">
+            <span>平台：</span>
+            <input id="platform" class="easyui-combobox" style="width:200px;"
+                   data-options="
+                   prompt:'请选择平台',
+                   valueField:'value',
+                   textField:'label',
+                   url:'./statisticalAnalysis/comprehensiveQuery/getPlatformData?type=network',
+                   onChange:function(current, old){if(current!=old){getIndicatorsData(current);}}
+                    "/>
+        </div>
+        <div class="layui-col-md2 layui-col-lg2">
+            <span>指标：</span>
+            <input id="indicators" class="easyui-combobox" style="width:210px;" data-options="prompt:'请选择指标'"
+            />
+        </div>
+        <div class="layui-col-md2 layui-col-lg2">
+            <span>资源：</span>
+            <input id="resources" class="easyui-combobox" style="width:210px;"
+                   data-options="
+                   prompt:'请选择资源',
+                   valueField:'value',
+                   textField:'label',
+                   url:'./statisticalAnalysis/comprehensiveQuery/getNetworkResourceData'"
+            />
+        </div>
+        <div class="layui-col-md4 layui-col-lg4" style="margin-right: 20px" align="right">
+            <a class="easyui-linkbutton" onclick="queryData()" style="weight:50%;height: 100%">查询</a>
+            <a class="easyui-linkbutton" onclick="exportData()" style="weight:50%;height: 100%">导出</a>
+            <a class="easyui-linkbutton" onclick="resetData()" style="weight:50%;height: 100%">重置</a>
+        </div>
+    </div>
+<!--    <div class="layui-row" style="margin-top: 15px;margin-right: 20px" align="right">-->
+<!--        <div class="layui-col-md12 layui-col-lg12" style="margin-right: 20px" align="right">-->
+<!--            <a class="easyui-linkbutton" onclick="queryData()" style="weight:50%;height: 100%">查询</a>-->
+<!--            <a class="easyui-linkbutton" onclick="exportData()" style="weight:50%;height: 100%">导出</a>-->
+<!--            <a class="easyui-linkbutton" onclick="resetData()" style="weight:50%;height: 100%">重置</a>-->
+<!--        </div>-->
+<!--    </div>-->
+    <div class="layui-row" style="margin-top: 15px;">
+        <div id="tableData"></div>
+    </div>
+</div>
+<script>
+    $(function () {
+        setTimeout(function () {
+            initTabeleData();
+            getIndicatorsData();
+        }, 100);
+    });
+
+    //初始化表格
+    function initTabeleData(param) {
+        //查询表格数据
+        $('#tableData').datagrid({
+            url: './statisticalAnalysis/comprehensiveQuery/getComprehensiveQueryData',
+            toolbar: '#toolbar',
+            singleSelect: true,
+            pagination: true,
+            pageIndex: 1,//页索引
+            pageList: [10, 20, 50, 100],
+            pageSize: 10,
+            queryParams: param || {},
+            columns: [[
+                {field: "dateTime", title: "时间", width: 250},
+                {field: "index_name", title: "指标名称", width: 300},
+                {field: "platfrom_name", title: "平台", width: 100},
+                {field: "resource_desc", title: "资源", width: 350},
+                {field: "resource_ip", title: "资源IP", width: 200},
+                {field: "index_value", title: "数值", width: 300, align: 'center'}
+            ]]
+        });
+    }
+
+    //查询
+    function queryData() {
+        var param = {
+            type: 'network',
+            indicators: $('#indicators').textbox('getValue'),
+            period: $('#period').combobox('getValue'),
+            startTime: $('#startTime').val(),
+            endTime: $('#endTime').val(),
+            platform: $('#platform').combobox('getValue'),
+            resources: $('#resources').textbox('getValue')
+        };
+        //查询校验
+        if (param.indicators == '') { //请选择指标
+            layer.msg("请选择指标!");
+            return;
+        }
+        if (param.period == '') { //请选择周期
+            layer.msg("请选择周期!");
+            return;
+        }
+        if (param.startTime == '' && param.endTime == '') { //请选择日期
+            layer.msg("请选择时间!");
+            return;
+        }
+        if (param.startTime != '' && param.endTime != '' && param.startTime > param.endTime) {
+            $("#startTime,#endTime").val("");
+            layer.msg("起始时间不能大于结束时间，请重新选择!");
+            return;
+        }
+        getservice('./statisticalAnalysis/comprehensiveQuery/getComprehensiveQueryDataCheckNum', param).done(function (res) {
+            if(res.code != null && res.code == '-1'){
+                layer.msg(res.msg);
+            }else{
+                initTabeleData(param);
+            }
+        });
+    }
+
+    //重置
+    function resetData() {
+        $("#indicators").combobox("setValue", "");
+        $("#period").combobox("setValue", "");
+        $("#startTime ").val("");
+        $("#endTime").val("");
+        $("#platform").combobox("setValue", "");
+        $("#resources").combobox("setValue", "");
+        $('#tableData').datagrid('loadData', {total: 0, rows: []});
+    }
+
+    //选择指标动态获取指标下拉选
+    function getIndicatorsData(value) {
+        if (value == '' || value == null) {
+            $("#indicators").combobox("setValue", "");
+        }
+        var params = {
+            type: "network",
+            platform: value
+        };
+        getservice('./statisticalAnalysis/comprehensiveQuery/getNetworkIndicatorsData', params).done(function (res) {
+            $("#indicators").combobox({
+                valueField: 'value',
+                textField: 'label',
+                data: res
+            });
+        });
+    }
+
+    // 导出
+    function exportData() {
+        var param = {
+            type: 'network',
+            indicators: $('#indicators').textbox('getValue'),
+            period: $('#period').combobox('getValue'),
+            startTime: $('#startTime').val(),
+            endTime: $('#endTime').val(),
+            platform: $('#platform').combobox('getValue'),
+            resources: $('#resources').textbox('getValue')
+        };
+        //查询校验
+        if (param.period == '') { //请选择周期
+            layer.msg("请选择周期!");
+            return;
+        }
+        if (param.startTime == '' && param.endTime == '') { //请选择日期
+            layer.msg("请选择时间!");
+            return;
+        }
+        if (param.startTime != '' && param.endTime != '' && param.startTime > param.endTime) {
+            $("#startTime,#endTime").val("");
+            layer.msg("起始时间不能大于结束时间，请重新选择!");
+            return;
+        }
+        var params = "type=" + param.type + "&indicators=" + param.indicators + "&platform=" + param.platform + "&resources=" + param.resources + "&period=" + param.period + "&startTime=" + param.startTime + "&endTime=" + param.endTime
+        window.location.href = './statisticalAnalysis/comprehensiveQuery/exportXls?' + params;
+    }
+
+    //动态切换时间插件、下拉选
+    function changeTimeElement(value) {
+        //情况时间控件值
+        if (value == '') { //无值
+            $("#startTime,#endTime").val("");
+            $("#startTime,#endTime").attr("disabled", true);
+        } else { //日、月、年
+            $("#startTime,#endTime").val("");
+            $("#startTime,#endTime").attr("disabled", false);
+            console.log(value);
+            var dateFormatter = ("3" == value) ? "yyyy-MM-dd" : (("4" == value) ? "%y-%M" : "yyyy");
+            var maxDateFormatter = ("3" == value) ? "%y-%M-%d" : (("4" == value) ? "%y-%M" : "%y");
+            $("#startTime,#endTime").attr("onfocus", "WdatePicker({readOnly : false,dateFmt : '" + dateFormatter + "',isShowWeek : true,isShowClear: false, maxDate : '" + maxDateFormatter + "'})");
+        }
+    }
+
+    //调用后端接口方法
+    function getservice(url, param) {
+        return $.ajax({
+            type: 'POST',
+            url: url,
+            dataType: "json",
+            headers: {Authorization: localStorage.token},
+            data: param || {}
+        });
+    }
+
+    var xhrOnProgress = function (fun) {
+        xhrOnProgress.onprogress = fun; //绑定监听
+        //使用闭包实现监听绑
+        return function () {
+            //通过$.ajaxSettings.xhr();获得XMLHttpRequest对象
+            var xhr = $.ajaxSettings.xhr();
+            //判断监听函数是否为函数
+            if (typeof xhrOnProgress.onprogress !== 'function')
+                return xhr;
+            //如果有监听函数并且xhr对象支持绑定时就把监听函数绑定上去
+            if (xhrOnProgress.onprogress && xhr.upload) {
+                xhr.upload.onprogress = xhrOnProgress.onprogress;
+            }
+            return xhr;
+        }
+    }
+</script>

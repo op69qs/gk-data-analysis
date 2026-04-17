@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fixedReport.dao.mapper.fixedReport.ReportTndustryMapper">
+    <select id="getTndustryTaxData" resultType="java.util.HashMap">
+        ${params.sqlCol} from  adm.`trs_mth_income_industry` a
+        where a.D_ACCT = '${params.D_ACCT}'
+        <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
+        AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
+    </if>
+        <if test="params.S_TRECODE!=null and params.S_TRECODE!='' ">
+            AND S_TRECODE = ${params.S_TRECODE}
+        </if>
+        <if test="params.S_BELONGFLAG!=null and params.S_BELONGFLAG!='' ">
+            AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
+        </if>
+        ${params.orderBy}
+        LIMIT ${params.page},${params.rows}
+    </select>
+    <select id="getTndustryTaxDataAll" resultType="java.util.HashMap">
+        ${params.sqlCol} from  adm.`trs_mth_income_industry` a
+        where a.D_ACCT = '${params.D_ACCT}'
+        <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
+            AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
+        </if>
+        <if test="params.S_TRECODE!=null and params.S_TRECODE!='' ">
+            AND S_TRECODE = ${params.S_TRECODE}
+        </if>
+        <if test="params.S_BELONGFLAG!=null and params.S_BELONGFLAG!='' ">
+            AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
+        </if>
+        ${params.orderBy}
+    </select>
+    <select id="countTndustryTaxData" resultType="java.lang.Integer">
+        select count(1) from (
+        ${params.sqlCol} from  adm.`trs_mth_income_industry` a
+        where a.D_ACCT = '${params.D_ACCT}'
+        <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
+            AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
+        </if>
+        <if test="params.S_TRECODE!=null and params.S_TRECODE!='' ">
+            AND S_TRECODE = ${params.S_TRECODE}
+        </if>
+        <if test="params.S_BELONGFLAG!=null and params.S_BELONGFLAG!='' ">
+            AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
+        </if>
+        ${params.orderBy}
+        )v
+    </select>
+
+    <select id="getTndustryTaxData1" resultType="java.util.HashMap">
+        /*取每组分数高的前两个*/
+        ${params.sqlCol}
+        FROM
+        (
+        SELECT    *    ,
+        IF(@p=INDUSTRY_NAME,
+        CASE
+        WHEN @s=ENTERPRISE_CODE THEN @r
+        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
+        END,
+        @r:=1 ) AS rank,
+        @p:=INDUSTRY_NAME,
+        @s:=ENTERPRISE_CODE
+        FROM (SELECT
+        INDUSTRY_NAME
+        ,D_ACCT
+        ,ENTERPRISE_CODE
+        ,ENTERPRISE_NAME
+        ,SUM(F_AMT_101) /${params.UNIT}          AS F_AMT_101
+        ,(SUM(F_AMT_101)-SUM(F_AMT_101_YEAR)) /SUM(F_AMT_101_YEAR)   AS F_AMT_101_YEAR
+        ,SUM(F_AMT_10101) /${params.UNIT}        AS F_AMT_10101
+        ,(SUM(F_AMT_10101)-SUM(F_AMT_10101_YEAR)) /SUM(F_AMT_10101_YEAR)  AS F_AMT_10101_YEAR
+        ,SUM(F_AMT_1010101)  /${params.UNIT}     AS F_AMT_1010101
+        ,(SUM(F_AMT_1010101)-SUM(F_AMT_1010101_YEAR))/SUM(F_AMT_1010101_YEAR) AS F_AMT_1010101_YEAR
+        ,SUM(F_AMT_1010104)/${params.UNIT}       AS F_AMT_1010104
+        ,(SUM(F_AMT_1010104)-SUM(F_AMT_1010104_YEAR))/SUM(F_AMT_1010104_YEAR) AS F_AMT_1010104_YEAR
+        ,SUM(F_AMT_10102) /${params.UNIT}        AS F_AMT_10102
+        ,(SUM(F_AMT_10102)-SUM(F_AMT_10102_YEAR))/ SUM(F_AMT_10102_YEAR)  AS F_AMT_10102_YEAR
+        ,SUM(F_AMT_1010201)  /${params.UNIT}     AS F_AMT_1010201
+        ,(SUM(F_AMT_1010201)-SUM(F_AMT_1010201_YEAR))/SUM(F_AMT_1010201_YEAR)  AS F_AMT_1010201_YEAR
+        ,SUM(F_AMT_10104) /${params.UNIT}        AS F_AMT_10104
+        ,(SUM(F_AMT_10104)-SUM(F_AMT_10104_YEAR))/SUM(F_AMT_10104_YEAR)    AS F_AMT_10104_YEAR
+        ,SUM(F_AMT_10106)  /${params.UNIT}       AS F_AMT_10106
+        ,(SUM(F_AMT_10106)-SUM(F_AMT_10106_YEAR)  )/SUM(F_AMT_10106_YEAR)  AS F_AMT_10106_YEAR
+        ,SUM(F_AMT_10107)  /${params.UNIT}       AS F_AMT_10107
+        ,(SUM(F_AMT_10107)-SUM(F_AMT_10107_YEAR) )/SUM(F_AMT_10107_YEAR)   AS F_AMT_10107_YEAR
+        ,SUM(F_AMT_10109) /${params.UNIT}        AS F_AMT_10109
+        ,(SUM(F_AMT_10109)-SUM(F_AMT_10109_YEAR))/SUM(F_AMT_10109_YEAR)    AS F_AMT_10109_YEAR
+        ,SUM(F_AMT_10110) /${params.UNIT}        AS F_AMT_10110
+        ,(SUM(F_AMT_10110)-SUM(F_AMT_10110_YEAR) )/SUM(F_AMT_10110_YEAR)   AS F_AMT_10110_YEAR
+        ,SUM(F_AMT_10111)/${params.UNIT}         AS F_AMT_10111
+        ,(SUM(F_AMT_10111)-SUM(F_AMT_10111_YEAR))/SUM(F_AMT_10111_YEAR)    AS F_AMT_10111_YEAR
+        ,SUM(F_AMT_10112) /${params.UNIT}        AS F_AMT_10112
+        ,(SUM(F_AMT_10112)-SUM(F_AMT_10112_YEAR) )/SUM(F_AMT_10112_YEAR)   AS F_AMT_10112_YEAR
+        ,SUM(F_AMT_10113)/${params.UNIT}         AS F_AMT_10113
+        ,(SUM(F_AMT_10113)-SUM(F_AMT_10113_YEAR))/SUM(F_AMT_10113_YEAR)    AS F_AMT_10113_YEAR
+        ,SUM(F_AMT_10116) /${params.UNIT}        AS F_AMT_10116
+        ,(SUM(F_AMT_10116)-SUM(F_AMT_10116_YEAR) )/SUM(F_AMT_10116_YEAR)   AS F_AMT_10116_YEAR
+        ,SUM(F_AMT_10115)   /${params.UNIT}      AS F_AMT_10115
+        ,(SUM(F_AMT_10115)-SUM(F_AMT_10115_YEAR))/SUM(F_AMT_10115_YEAR)    AS F_AMT_10115_YEAR
+        ,SUM(F_AMT_10114) /${params.UNIT}        AS F_AMT_10114
+        ,(SUM(F_AMT_10114)-SUM(F_AMT_10114_YEAR))/SUM(F_AMT_10114_YEAR)    AS F_AMT_10114_YEAR
+        ,SUM(F_AMT_10117)/${params.UNIT}         AS F_AMT_10117
+        ,(SUM(F_AMT_10117)-SUM(F_AMT_10117_YEAR))/SUM(F_AMT_10117_YEAR)   AS F_AMT_10117_YEAR
+        ,SUM(F_AMT_10118)  /${params.UNIT}       AS F_AMT_10118
+        ,(SUM(F_AMT_10118)-SUM(F_AMT_10118_YEAR))/SUM(F_AMT_10118_YEAR)   AS F_AMT_10118_YEAR
+        ,SUM(F_AMT_10119) /${params.UNIT}        AS F_AMT_10119
+        ,(SUM(F_AMT_10119)-SUM(F_AMT_10119_YEAR))/SUM(F_AMT_10119_YEAR)   AS F_AMT_10119_YEAR
+        ,SUM(F_AMT_10121)/${params.UNIT}         AS F_AMT_10121
+        ,(SUM(F_AMT_10121)-SUM(F_AMT_10121_YEAR))/SUM(F_AMT_10121_YEAR)   AS F_AMT_10121_YEAR
+        ,SUM(F_AMT_10120)/${params.UNIT}        AS F_AMT_10120
+        ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
+        ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
+        ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
+        from   adm.`trs_mth_income_industry` a
+        where a.D_ACCT = '${params.D_ACCT}'
+        <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
+            AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
+        </if>
+        <if test="params.S_TRECODE!=null and params.S_TRECODE!='' ">
+            AND S_TRECODE = ${params.S_TRECODE}
+        </if>
+        <if test="params.S_BELONGFLAG!=null and params.S_BELONGFLAG!='' ">
+            AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
+        </if>
+        group by INDUSTRY_NAME
+        ,ENTERPRISE_CODE
+        ${params.orderBy} desc
+        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
+        ORDER BY INDUSTRY_NAME,F_AMT_101
+        )s
+        where 1=1
+        <if test="params.ENTERPRISESUM!=null and params.ENTERPRISESUM!='' ">
+            AND rank <![CDATA[  <= ]]>  '${params.ENTERPRISESUM}'
+        </if>
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="countTndustryTaxData1" resultType="java.lang.Integer">
+        select count(1) from (
+        /*取每组分数高的前两个*/
+        ${params.sqlCol}
+        FROM
+        (
+        SELECT    *    ,
+        IF(@p=INDUSTRY_NAME,
+        CASE
+        WHEN @s=ENTERPRISE_CODE THEN @r
+        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
+        END,
+        @r:=1 ) AS rank,
+        @p:=INDUSTRY_NAME,
+        @s:=ENTERPRISE_CODE
+        FROM (SELECT
+        INDUSTRY_NAME
+        ,D_ACCT
+        ,ENTERPRISE_CODE
+        ,ENTERPRISE_NAME
+        ,SUM(F_AMT_101) /${params.UNIT}          AS F_AMT_101
+        ,(SUM(F_AMT_101)-SUM(F_AMT_101_YEAR)) /SUM(F_AMT_101_YEAR)   AS F_AMT_101_YEAR
+        ,SUM(F_AMT_10101) /${params.UNIT}        AS F_AMT_10101
+        ,(SUM(F_AMT_10101)-SUM(F_AMT_10101_YEAR)) /SUM(F_AMT_10101_YEAR)  AS F_AMT_10101_YEAR
+        ,SUM(F_AMT_1010101)  /${params.UNIT}     AS F_AMT_1010101
+        ,(SUM(F_AMT_1010101)-SUM(F_AMT_1010101_YEAR))/SUM(F_AMT_1010101_YEAR) AS F_AMT_1010101_YEAR
+        ,SUM(F_AMT_1010104)/${params.UNIT}       AS F_AMT_1010104
+        ,(SUM(F_AMT_1010104)-SUM(F_AMT_1010104_YEAR))/SUM(F_AMT_1010104_YEAR) AS F_AMT_1010104_YEAR
+        ,SUM(F_AMT_10102) /${params.UNIT}        AS F_AMT_10102
+        ,(SUM(F_AMT_10102)-SUM(F_AMT_10102_YEAR))/ SUM(F_AMT_10102_YEAR)  AS F_AMT_10102_YEAR
+        ,SUM(F_AMT_1010201)  /${params.UNIT}     AS F_AMT_1010201
+        ,(SUM(F_AMT_1010201)-SUM(F_AMT_1010201_YEAR))/SUM(F_AMT_1010201_YEAR)  AS F_AMT_1010201_YEAR
+        ,SUM(F_AMT_10104) /${params.UNIT}        AS F_AMT_10104
+        ,(SUM(F_AMT_10104)-SUM(F_AMT_10104_YEAR))/SUM(F_AMT_10104_YEAR)    AS F_AMT_10104_YEAR
+        ,SUM(F_AMT_10106)  /${params.UNIT}       AS F_AMT_10106
+        ,(SUM(F_AMT_10106)-SUM(F_AMT_10106_YEAR)  )/SUM(F_AMT_10106_YEAR)  AS F_AMT_10106_YEAR
+        ,SUM(F_AMT_10107)  /${params.UNIT}       AS F_AMT_10107
+        ,(SUM(F_AMT_10107)-SUM(F_AMT_10107_YEAR) )/SUM(F_AMT_10107_YEAR)   AS F_AMT_10107_YEAR
+        ,SUM(F_AMT_10109) /${params.UNIT}        AS F_AMT_10109
+        ,(SUM(F_AMT_10109)-SUM(F_AMT_10109_YEAR))/SUM(F_AMT_10109_YEAR)    AS F_AMT_10109_YEAR
+        ,SUM(F_AMT_10110) /${params.UNIT}        AS F_AMT_10110
+        ,(SUM(F_AMT_10110)-SUM(F_AMT_10110_YEAR) )/SUM(F_AMT_10110_YEAR)   AS F_AMT_10110_YEAR
+        ,SUM(F_AMT_10111)/${params.UNIT}         AS F_AMT_10111
+        ,(SUM(F_AMT_10111)-SUM(F_AMT_10111_YEAR))/SUM(F_AMT_10111_YEAR)    AS F_AMT_10111_YEAR
+        ,SUM(F_AMT_10112) /${params.UNIT}        AS F_AMT_10112
+        ,(SUM(F_AMT_10112)-SUM(F_AMT_10112_YEAR) )/SUM(F_AMT_10112_YEAR)   AS F_AMT_10112_YEAR
+        ,SUM(F_AMT_10113)/${params.UNIT}         AS F_AMT_10113
+        ,(SUM(F_AMT_10113)-SUM(F_AMT_10113_YEAR))/SUM(F_AMT_10113_YEAR)    AS F_AMT_10113_YEAR
+        ,SUM(F_AMT_10116) /${params.UNIT}        AS F_AMT_10116
+        ,(SUM(F_AMT_10116)-SUM(F_AMT_10116_YEAR) )/SUM(F_AMT_10116_YEAR)   AS F_AMT_10116_YEAR
+        ,SUM(F_AMT_10115)   /${params.UNIT}      AS F_AMT_10115
+        ,(SUM(F_AMT_10115)-SUM(F_AMT_10115_YEAR))/SUM(F_AMT_10115_YEAR)    AS F_AMT_10115_YEAR
+        ,SUM(F_AMT_10114) /${params.UNIT}        AS F_AMT_10114
+        ,(SUM(F_AMT_10114)-SUM(F_AMT_10114_YEAR))/SUM(F_AMT_10114_YEAR)    AS F_AMT_10114_YEAR
+        ,SUM(F_AMT_10117)/${params.UNIT}         AS F_AMT_10117
+        ,(SUM(F_AMT_10117)-SUM(F_AMT_10117_YEAR))/SUM(F_AMT_10117_YEAR)   AS F_AMT_10117_YEAR
+        ,SUM(F_AMT_10118)  /${params.UNIT}       AS F_AMT_10118
+        ,(SUM(F_AMT_10118)-SUM(F_AMT_10118_YEAR))/SUM(F_AMT_10118_YEAR)   AS F_AMT_10118_YEAR
+        ,SUM(F_AMT_10119) /${params.UNIT}        AS F_AMT_10119
+        ,(SUM(F_AMT_10119)-SUM(F_AMT_10119_YEAR))/SUM(F_AMT_10119_YEAR)   AS F_AMT_10119_YEAR
+        ,SUM(F_AMT_10121)/${params.UNIT}         AS F_AMT_10121
+        ,(SUM(F_AMT_10121)-SUM(F_AMT_10121_YEAR))/SUM(F_AMT_10121_YEAR)   AS F_AMT_10121_YEAR
+        ,SUM(F_AMT_10120)/${params.UNIT}        AS F_AMT_10120
+        ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
+        ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
+        ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
+        from   adm.`trs_mth_income_industry` a
+        where a.D_ACCT = '${params.D_ACCT}'
+        <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
+            AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
+        </if>
+        <if test="params.S_TRECODE!=null and params.S_TRECODE!='' ">
+            AND S_TRECODE = ${params.S_TRECODE}
+        </if>
+        <if test="params.S_BELONGFLAG!=null and params.S_BELONGFLAG!='' ">
+            AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
+        </if>
+        group by INDUSTRY_NAME
+        ,ENTERPRISE_CODE
+        ${params.orderBy} desc
+        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
+        ORDER BY INDUSTRY_NAME,F_AMT_101
+        )s
+        where 1=1
+        <if test="params.ENTERPRISESUM!=null and params.ENTERPRISESUM!='' ">
+            AND rank <![CDATA[  <= ]]>  '${params.ENTERPRISESUM}'
+        </if>
+
+        )v
+    </select>
+
+    <select id="getTndustryTaxData1All" resultType="java.util.HashMap">
+        /*取每组分数高的前两个*/
+        ${params.sqlCol}
+        FROM
+        (
+        SELECT    *    ,
+        IF(@p=INDUSTRY_NAME,
+        CASE
+        WHEN @s=ENTERPRISE_CODE THEN @r
+        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
+        END,
+        @r:=1 ) AS rank,
+        @p:=INDUSTRY_NAME,
+        @s:=ENTERPRISE_CODE
+        FROM (SELECT
+        INDUSTRY_NAME
+        ,D_ACCT
+        ,ENTERPRISE_CODE
+        ,ENTERPRISE_NAME
+        ,SUM(F_AMT_101) /${params.UNIT}          AS F_AMT_101
+        ,(SUM(F_AMT_101)-SUM(F_AMT_101_YEAR)) /SUM(F_AMT_101_YEAR)   AS F_AMT_101_YEAR
+        ,SUM(F_AMT_10101) /${params.UNIT}        AS F_AMT_10101
+        ,(SUM(F_AMT_10101)-SUM(F_AMT_10101_YEAR)) /SUM(F_AMT_10101_YEAR)  AS F_AMT_10101_YEAR
+        ,SUM(F_AMT_1010101)  /${params.UNIT}     AS F_AMT_1010101
+        ,(SUM(F_AMT_1010101)-SUM(F_AMT_1010101_YEAR))/SUM(F_AMT_1010101_YEAR) AS F_AMT_1010101_YEAR
+        ,SUM(F_AMT_1010104)/${params.UNIT}       AS F_AMT_1010104
+        ,(SUM(F_AMT_1010104)-SUM(F_AMT_1010104_YEAR))/SUM(F_AMT_1010104_YEAR) AS F_AMT_1010104_YEAR
+        ,SUM(F_AMT_10102) /${params.UNIT}        AS F_AMT_10102
+        ,(SUM(F_AMT_10102)-SUM(F_AMT_10102_YEAR))/ SUM(F_AMT_10102_YEAR)  AS F_AMT_10102_YEAR
+        ,SUM(F_AMT_1010201)  /${params.UNIT}     AS F_AMT_1010201
+        ,(SUM(F_AMT_1010201)-SUM(F_AMT_1010201_YEAR))/SUM(F_AMT_1010201_YEAR)  AS F_AMT_1010201_YEAR
+        ,SUM(F_AMT_10104) /${params.UNIT}        AS F_AMT_10104
+        ,(SUM(F_AMT_10104)-SUM(F_AMT_10104_YEAR))/SUM(F_AMT_10104_YEAR)    AS F_AMT_10104_YEAR
+        ,SUM(F_AMT_10106)  /${params.UNIT}       AS F_AMT_10106
+        ,(SUM(F_AMT_10106)-SUM(F_AMT_10106_YEAR)  )/SUM(F_AMT_10106_YEAR)  AS F_AMT_10106_YEAR
+        ,SUM(F_AMT_10107)  /${params.UNIT}       AS F_AMT_10107
+        ,(SUM(F_AMT_10107)-SUM(F_AMT_10107_YEAR) )/SUM(F_AMT_10107_YEAR)   AS F_AMT_10107_YEAR
+        ,SUM(F_AMT_10109) /${params.UNIT}        AS F_AMT_10109
+        ,(SUM(F_AMT_10109)-SUM(F_AMT_10109_YEAR))/SUM(F_AMT_10109_YEAR)    AS F_AMT_10109_YEAR
+        ,SUM(F_AMT_10110) /${params.UNIT}        AS F_AMT_10110
+        ,(SUM(F_AMT_10110)-SUM(F_AMT_10110_YEAR) )/SUM(F_AMT_10110_YEAR)   AS F_AMT_10110_YEAR
+        ,SUM(F_AMT_10111)/${params.UNIT}         AS F_AMT_10111
+        ,(SUM(F_AMT_10111)-SUM(F_AMT_10111_YEAR))/SUM(F_AMT_10111_YEAR)    AS F_AMT_10111_YEAR
+        ,SUM(F_AMT_10112) /${params.UNIT}        AS F_AMT_10112
+        ,(SUM(F_AMT_10112)-SUM(F_AMT_10112_YEAR) )/SUM(F_AMT_10112_YEAR)   AS F_AMT_10112_YEAR
+        ,SUM(F_AMT_10113)/${params.UNIT}         AS F_AMT_10113
+        ,(SUM(F_AMT_10113)-SUM(F_AMT_10113_YEAR))/SUM(F_AMT_10113_YEAR)    AS F_AMT_10113_YEAR
+        ,SUM(F_AMT_10116) /${params.UNIT}        AS F_AMT_10116
+        ,(SUM(F_AMT_10116)-SUM(F_AMT_10116_YEAR) )/SUM(F_AMT_10116_YEAR)   AS F_AMT_10116_YEAR
+        ,SUM(F_AMT_10115)   /${params.UNIT}      AS F_AMT_10115
+        ,(SUM(F_AMT_10115)-SUM(F_AMT_10115_YEAR))/SUM(F_AMT_10115_YEAR)    AS F_AMT_10115_YEAR
+        ,SUM(F_AMT_10114) /${params.UNIT}        AS F_AMT_10114
+        ,(SUM(F_AMT_10114)-SUM(F_AMT_10114_YEAR))/SUM(F_AMT_10114_YEAR)    AS F_AMT_10114_YEAR
+        ,SUM(F_AMT_10117)/${params.UNIT}         AS F_AMT_10117
+        ,(SUM(F_AMT_10117)-SUM(F_AMT_10117_YEAR))/SUM(F_AMT_10117_YEAR)   AS F_AMT_10117_YEAR
+        ,SUM(F_AMT_10118)  /${params.UNIT}       AS F_AMT_10118
+        ,(SUM(F_AMT_10118)-SUM(F_AMT_10118_YEAR))/SUM(F_AMT_10118_YEAR)   AS F_AMT_10118_YEAR
+        ,SUM(F_AMT_10119) /${params.UNIT}        AS F_AMT_10119
+        ,(SUM(F_AMT_10119)-SUM(F_AMT_10119_YEAR))/SUM(F_AMT_10119_YEAR)   AS F_AMT_10119_YEAR
+        ,SUM(F_AMT_10121)/${params.UNIT}         AS F_AMT_10121
+        ,(SUM(F_AMT_10121)-SUM(F_AMT_10121_YEAR))/SUM(F_AMT_10121_YEAR)   AS F_AMT_10121_YEAR
+        ,SUM(F_AMT_10120)/${params.UNIT}        AS F_AMT_10120
+        ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
+        ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
+        ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
+        from   adm.`trs_mth_income_industry` a
+        where a.D_ACCT = '${params.D_ACCT}'
+        <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
+            AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
+        </if>
+        <if test="params.S_TRECODE!=null and params.S_TRECODE!='' ">
+            AND S_TRECODE = ${params.S_TRECODE}
+        </if>
+        <if test="params.S_BELONGFLAG!=null and params.S_BELONGFLAG!='' ">
+            AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
+        </if>
+        group by INDUSTRY_NAME
+        ,ENTERPRISE_CODE
+        ${params.orderBy} desc
+        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
+        ORDER BY INDUSTRY_NAME,F_AMT_101
+        )s
+        where 1=1
+        <if test="params.ENTERPRISESUM!=null and params.ENTERPRISESUM!='' ">
+            AND rank <![CDATA[  <= ]]>  '${params.ENTERPRISESUM}'
+        </if>
+    </select>
+
+    <select id="getColALL"  resultType="java.util.HashMap">
+         select distinct CENTER_ID,CHECK_COL,CHECK_COL_NAME FROM   dmcode.`cm_report_title` a
+         where  center_id='001' and a.CHECK_COL in (${params.tableCol})
+         ORDER BY SUBJECT ,CHECK_COL
+    </select>
+    <select id="getColHeB"  resultType="java.util.HashMap">
+         select distinct subject as id,subject_name  as name FROM   dmcode.`cm_report_title` a
+         where  center_id='001' and a.CHECK_COL in (${params.tableCol})
+         ORDER BY SUBJECT
+    </select>
+    <select id="getColHeBF"  resultType="java.util.HashMap">
+         select distinct CENTER_ID,CHECK_COL,CHECK_COL_NAME  FROM   dmcode.`cm_report_title` a
+         where  center_id='001' and a.CHECK_COL in (${params.tableCol})
+          and  SUBJECT <![CDATA[ > ]]>  0
+         ORDER BY SUBJECT
+    </select>
+    <select id="getAllSubject" resultType="map">
+    SELECT DISTINCT SUBJECT_CODE as  id,SUBJECT_DSCR as  name
+    FROM dmcode.cm_industry_subject  a
+    </select>
+
+
+    <select id="getTndustryTaxDataEnter" resultType="java.util.HashMap">
+        ${params.sqlCol}
+        FROM
+        (
+        SELECT    *    ,
+        IF(@p=INDUSTRY_NAME,
+        CASE
+        WHEN @s=ENTERPRISE_CODE THEN @r
+        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
+        END,
+        @r:=1 ) AS rank,
+        @p:=INDUSTRY_NAME,
+        @s:=ENTERPRISE_CODE
+        FROM (SELECT
+        INDUSTRY_NAME
+        ,ENTERPRISE_CODE
+        ,ENTERPRISE_NAME
+        ,SUM(F_AMT_101) /${params.UNIT}          AS F_AMT_101
+        ,(SUM(F_AMT_101)-SUM(F_AMT_101_YEAR)) /SUM(F_AMT_101_YEAR)   AS F_AMT_101_YEAR
+        ,SUM(F_AMT_10101) /${params.UNIT}        AS F_AMT_10101
+        ,(SUM(F_AMT_10101)-SUM(F_AMT_10101_YEAR)) /SUM(F_AMT_10101_YEAR)  AS F_AMT_10101_YEAR
+        ,SUM(F_AMT_1010101)  /${params.UNIT}     AS F_AMT_1010101
+        ,(SUM(F_AMT_1010101)-SUM(F_AMT_1010101_YEAR))/SUM(F_AMT_1010101_YEAR) AS F_AMT_1010101_YEAR
+        ,SUM(F_AMT_1010104)/${params.UNIT}       AS F_AMT_1010104
+        ,(SUM(F_AMT_1010104)-SUM(F_AMT_1010104_YEAR))/SUM(F_AMT_1010104_YEAR) AS F_AMT_1010104_YEAR
+        ,SUM(F_AMT_10102) /${params.UNIT}        AS F_AMT_10102
+        ,(SUM(F_AMT_10102)-SUM(F_AMT_10102_YEAR))/ SUM(F_AMT_10102_YEAR)  AS F_AMT_10102_YEAR
+        ,SUM(F_AMT_1010201)  /${params.UNIT}     AS F_AMT_1010201
+        ,(SUM(F_AMT_1010201)-SUM(F_AMT_1010201_YEAR))/SUM(F_AMT_1010201_YEAR)  AS F_AMT_1010201_YEAR
+        ,SUM(F_AMT_10104) /${params.UNIT}        AS F_AMT_10104
+        ,(SUM(F_AMT_10104)-SUM(F_AMT_10104_YEAR))/SUM(F_AMT_10104_YEAR)    AS F_AMT_10104_YEAR
+        ,SUM(F_AMT_10106)  /${params.UNIT}       AS F_AMT_10106
+        ,(SUM(F_AMT_10106)-SUM(F_AMT_10106_YEAR)  )/SUM(F_AMT_10106_YEAR)  AS F_AMT_10106_YEAR
+        ,SUM(F_AMT_10107)  /${params.UNIT}       AS F_AMT_10107
+        ,(SUM(F_AMT_10107)-SUM(F_AMT_10107_YEAR) )/SUM(F_AMT_10107_YEAR)   AS F_AMT_10107_YEAR
+        ,SUM(F_AMT_10109) /${params.UNIT}        AS F_AMT_10109
+        ,(SUM(F_AMT_10109)-SUM(F_AMT_10109_YEAR))/SUM(F_AMT_10109_YEAR)    AS F_AMT_10109_YEAR
+        ,SUM(F_AMT_10110) /${params.UNIT}        AS F_AMT_10110
+        ,(SUM(F_AMT_10110)-SUM(F_AMT_10110_YEAR) )/SUM(F_AMT_10110_YEAR)   AS F_AMT_10110_YEAR
+        ,SUM(F_AMT_10111)/${params.UNIT}         AS F_AMT_10111
+        ,(SUM(F_AMT_10111)-SUM(F_AMT_10111_YEAR))/SUM(F_AMT_10111_YEAR)    AS F_AMT_10111_YEAR
+        ,SUM(F_AMT_10112) /${params.UNIT}        AS F_AMT_10112
+        ,(SUM(F_AMT_10112)-SUM(F_AMT_10112_YEAR) )/SUM(F_AMT_10112_YEAR)   AS F_AMT_10112_YEAR
+        ,SUM(F_AMT_10113)/${params.UNIT}         AS F_AMT_10113
+        ,(SUM(F_AMT_10113)-SUM(F_AMT_10113_YEAR))/SUM(F_AMT_10113_YEAR)    AS F_AMT_10113_YEAR
+        ,SUM(F_AMT_10116) /${params.UNIT}        AS F_AMT_10116
+        ,(SUM(F_AMT_10116)-SUM(F_AMT_10116_YEAR) )/SUM(F_AMT_10116_YEAR)   AS F_AMT_10116_YEAR
+        ,SUM(F_AMT_10115)   /${params.UNIT}      AS F_AMT_10115
+        ,(SUM(F_AMT_10115)-SUM(F_AMT_10115_YEAR))/SUM(F_AMT_10115_YEAR)    AS F_AMT_10115_YEAR
+        ,SUM(F_AMT_10114) /${params.UNIT}        AS F_AMT_10114
+        ,(SUM(F_AMT_10114)-SUM(F_AMT_10114_YEAR))/SUM(F_AMT_10114_YEAR)    AS F_AMT_10114_YEAR
+        ,SUM(F_AMT_10117)/${params.UNIT}         AS F_AMT_10117
+        ,(SUM(F_AMT_10117)-SUM(F_AMT_10117_YEAR))/SUM(F_AMT_10117_YEAR)   AS F_AMT_10117_YEAR
+        ,SUM(F_AMT_10118)  /${params.UNIT}       AS F_AMT_10118
+        ,(SUM(F_AMT_10118)-SUM(F_AMT_10118_YEAR))/SUM(F_AMT_10118_YEAR)   AS F_AMT_10118_YEAR
+        ,SUM(F_AMT_10119) /${params.UNIT}        AS F_AMT_10119
+        ,(SUM(F_AMT_10119)-SUM(F_AMT_10119_YEAR))/SUM(F_AMT_10119_YEAR)   AS F_AMT_10119_YEAR
+        ,SUM(F_AMT_10121)/${params.UNIT}         AS F_AMT_10121
+        ,(SUM(F_AMT_10121)-SUM(F_AMT_10121_YEAR))/SUM(F_AMT_10121_YEAR)   AS F_AMT_10121_YEAR
+        ,SUM(F_AMT_10120)/${params.UNIT}        AS F_AMT_10120
+        ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
+        ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
+        ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
+        FROM   adm.`trs_mth_income_industry` a
+        where a.D_ACCT between  '${params.D_ACCT_START}' and   '${params.D_ACCT_START}'
+        <if test="params.ENTERPRISE_CODE!=null and params.ENTERPRISE_CODE!='' ">
+            AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
+        </if>
+        <if test="params.S_TRECODE!=null and params.S_TRECODE!='' ">
+            AND S_TRECODE = ${params.S_TRECODE}
+        </if>
+        <if test="params.S_BELONGFLAG!=null and params.S_BELONGFLAG!='' ">
+            AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
+        </if>
+        GROUP BY INDUSTRY_NAME  ,ENTERPRISE_CODE
+        ${params.orderBy}  DESC
+        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
+        ${params.orderBy}
+        )s
+        LIMIT ${params.page},${params.rows}
+    </select>
+    <select id="countTndustryTaxDataEnter" resultType="java.lang.Integer">
+        select count(1) from (
+        ${params.sqlCol}
+        FROM
+        (
+        SELECT    *    ,
+        IF(@p=INDUSTRY_NAME,
+        CASE
+        WHEN @s=ENTERPRISE_CODE THEN @r
+        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
+        END,
+        @r:=1 ) AS rank,
+        @p:=INDUSTRY_NAME,
+        @s:=ENTERPRISE_CODE
+        FROM (SELECT
+        INDUSTRY_NAME
+        ,ENTERPRISE_CODE
+        ,ENTERPRISE_NAME
+        ,SUM(F_AMT_101) /${params.UNIT}          AS F_AMT_101
+        ,(SUM(F_AMT_101)-SUM(F_AMT_101_YEAR)) /SUM(F_AMT_101_YEAR)   AS F_AMT_101_YEAR
+        ,SUM(F_AMT_10101) /${params.UNIT}        AS F_AMT_10101
+        ,(SUM(F_AMT_10101)-SUM(F_AMT_10101_YEAR)) /SUM(F_AMT_10101_YEAR)  AS F_AMT_10101_YEAR
+        ,SUM(F_AMT_1010101)  /${params.UNIT}     AS F_AMT_1010101
+        ,(SUM(F_AMT_1010101)-SUM(F_AMT_1010101_YEAR))/SUM(F_AMT_1010101_YEAR) AS F_AMT_1010101_YEAR
+        ,SUM(F_AMT_1010104)/${params.UNIT}       AS F_AMT_1010104
+        ,(SUM(F_AMT_1010104)-SUM(F_AMT_1010104_YEAR))/SUM(F_AMT_1010104_YEAR) AS F_AMT_1010104_YEAR
+        ,SUM(F_AMT_10102) /${params.UNIT}        AS F_AMT_10102
+        ,(SUM(F_AMT_10102)-SUM(F_AMT_10102_YEAR))/ SUM(F_AMT_10102_YEAR)  AS F_AMT_10102_YEAR
+        ,SUM(F_AMT_1010201)  /${params.UNIT}     AS F_AMT_1010201
+        ,(SUM(F_AMT_1010201)-SUM(F_AMT_1010201_YEAR))/SUM(F_AMT_1010201_YEAR)  AS F_AMT_1010201_YEAR
+        ,SUM(F_AMT_10104) /${params.UNIT}        AS F_AMT_10104
+        ,(SUM(F_AMT_10104)-SUM(F_AMT_10104_YEAR))/SUM(F_AMT_10104_YEAR)    AS F_AMT_10104_YEAR
+        ,SUM(F_AMT_10106)  /${params.UNIT}       AS F_AMT_10106
+        ,(SUM(F_AMT_10106)-SUM(F_AMT_10106_YEAR)  )/SUM(F_AMT_10106_YEAR)  AS F_AMT_10106_YEAR
+        ,SUM(F_AMT_10107)  /${params.UNIT}       AS F_AMT_10107
+        ,(SUM(F_AMT_10107)-SUM(F_AMT_10107_YEAR) )/SUM(F_AMT_10107_YEAR)   AS F_AMT_10107_YEAR
+        ,SUM(F_AMT_10109) /${params.UNIT}        AS F_AMT_10109
+        ,(SUM(F_AMT_10109)-SUM(F_AMT_10109_YEAR))/SUM(F_AMT_10109_YEAR)    AS F_AMT_10109_YEAR
+        ,SUM(F_AMT_10110) /${params.UNIT}        AS F_AMT_10110
+        ,(SUM(F_AMT_10110)-SUM(F_AMT_10110_YEAR) )/SUM(F_AMT_10110_YEAR)   AS F_AMT_10110_YEAR
+        ,SUM(F_AMT_10111)/${params.UNIT}         AS F_AMT_10111
+        ,(SUM(F_AMT_10111)-SUM(F_AMT_10111_YEAR))/SUM(F_AMT_10111_YEAR)    AS F_AMT_10111_YEAR
+        ,SUM(F_AMT_10112) /${params.UNIT}        AS F_AMT_10112
+        ,(SUM(F_AMT_10112)-SUM(F_AMT_10112_YEAR) )/SUM(F_AMT_10112_YEAR)   AS F_AMT_10112_YEAR
+        ,SUM(F_AMT_10113)/${params.UNIT}         AS F_AMT_10113
+        ,(SUM(F_AMT_10113)-SUM(F_AMT_10113_YEAR))/SUM(F_AMT_10113_YEAR)    AS F_AMT_10113_YEAR
+        ,SUM(F_AMT_10116) /${params.UNIT}        AS F_AMT_10116
+        ,(SUM(F_AMT_10116)-SUM(F_AMT_10116_YEAR) )/SUM(F_AMT_10116_YEAR)   AS F_AMT_10116_YEAR
+        ,SUM(F_AMT_10115)   /${params.UNIT}      AS F_AMT_10115
+        ,(SUM(F_AMT_10115)-SUM(F_AMT_10115_YEAR))/SUM(F_AMT_10115_YEAR)    AS F_AMT_10115_YEAR
+        ,SUM(F_AMT_10114) /${params.UNIT}        AS F_AMT_10114
+        ,(SUM(F_AMT_10114)-SUM(F_AMT_10114_YEAR))/SUM(F_AMT_10114_YEAR)    AS F_AMT_10114_YEAR
+        ,SUM(F_AMT_10117)/${params.UNIT}         AS F_AMT_10117
+        ,(SUM(F_AMT_10117)-SUM(F_AMT_10117_YEAR))/SUM(F_AMT_10117_YEAR)   AS F_AMT_10117_YEAR
+        ,SUM(F_AMT_10118)  /${params.UNIT}       AS F_AMT_10118
+        ,(SUM(F_AMT_10118)-SUM(F_AMT_10118_YEAR))/SUM(F_AMT_10118_YEAR)   AS F_AMT_10118_YEAR
+        ,SUM(F_AMT_10119) /${params.UNIT}        AS F_AMT_10119
+        ,(SUM(F_AMT_10119)-SUM(F_AMT_10119_YEAR))/SUM(F_AMT_10119_YEAR)   AS F_AMT_10119_YEAR
+        ,SUM(F_AMT_10121)/${params.UNIT}         AS F_AMT_10121
+        ,(SUM(F_AMT_10121)-SUM(F_AMT_10121_YEAR))/SUM(F_AMT_10121_YEAR)   AS F_AMT_10121_YEAR
+        ,SUM(F_AMT_10120)/${params.UNIT}        AS F_AMT_10120
+        ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
+        ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
+        ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
+        FROM   adm.`trs_mth_income_industry` a
+        where a.D_ACCT between  '${params.D_ACCT_START}' and   '${params.D_ACCT_START}'
+        <if test="params.ENTERPRISE_CODE!=null and params.ENTERPRISE_CODE!='' ">
+            AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
+        </if>
+        <if test="params.S_TRECODE!=null and params.S_TRECODE!='' ">
+            AND S_TRECODE = ${params.S_TRECODE}
+        </if>
+        <if test="params.S_BELONGFLAG!=null and params.S_BELONGFLAG!='' ">
+            AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
+        </if>
+        GROUP BY INDUSTRY_NAME  ,ENTERPRISE_CODE
+        ${params.orderBy}  DESC
+        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
+        ${params.orderBy}
+        )s
+
+        )v
+    </select>
+    <select id="getTndustryTaxAll" resultType="java.util.HashMap">
+        ${params.sqlCol} from  adm.`trs_mth_income_industry` a
+        where a.D_ACCT='${params.D_ACCT}'
+        <if test="params.ENTERPRISE_CODE!=null and params.ENTERPRISE_CODE!='' ">
+            AND ENTERPRISE_CODE  ${params.enterpriseCodees}
+        </if>
+    </select>
+
+</mapper>

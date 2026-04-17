@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionUserMapper">
+
+
+    <select id="getInspectionUserPage" resultType="java.util.HashMap">
+        SELECT
+        t.*, (
+        SELECT
+        NAME
+        FROM
+        inspection.cm_guoku_talentpool a
+        WHERE
+        a.UUID = t.INSPECTION_GROUP_USER
+        ) AS USER_NAME,
+        (
+        SELECT
+        e.ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration e
+        WHERE
+        e.ENUM_TYPE_ID = '7'
+        AND e.ENUM_ID = t.INSPECTION_GROUP_DUTIES
+        ) as DUTIES_DSCR
+        FROM
+        inspection.inspection_group_user t
+        WHERE
+        1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND t.ID = #{params.ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_ID!=null and params.INSPECTION_GROUP_ID !='' ">
+            AND t.INSPECTION_GROUP_ID = #{params.INSPECTION_GROUP_ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_USER!=null and params.INSPECTION_GROUP_USER!='' ">
+            AND t.INSPECTION_GROUP_USER = #{params.INSPECTION_GROUP_USER}
+        </if>
+        <if test="params.INSPECTION_GROUP_DUTIES!=null and params.INSPECTION_GROUP_DUTIES!='' ">
+            AND t.INSPECTION_GROUP_DUTIES = #{params.INSPECTION_GROUP_DUTIES}
+        </if>
+        order by t.INSPECTION_GROUP_DUTIES
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="getInspectionUserData" resultType="java.util.Map">
+        SELECT
+        t.*, (
+        SELECT
+        NAME
+        FROM
+        inspection.cm_guoku_talentpool a
+        WHERE
+        a.UUID = t.INSPECTION_GROUP_USER
+        ) AS USER_NAME,
+        (
+        SELECT
+        e.ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration e
+        WHERE
+        e.ENUM_TYPE_ID = '7'
+        AND e.ENUM_ID = t.INSPECTION_GROUP_DUTIES
+        ) as DUTIES_DSCR
+        FROM
+        inspection.inspection_group_user t
+        WHERE
+        1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND t.ID = #{params.ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_ID!=null and params.INSPECTION_GROUP_ID !='' ">
+            AND t.INSPECTION_GROUP_ID = #{params.INSPECTION_GROUP_ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_USER!=null and params.INSPECTION_GROUP_USER!='' ">
+            AND t.INSPECTION_GROUP_USER = #{params.INSPECTION_GROUP_USER}
+        </if>
+        <if test="params.INSPECTION_GROUP_DUTIES!=null and params.INSPECTION_GROUP_DUTIES!='' ">
+            AND t.INSPECTION_GROUP_DUTIES = #{params.INSPECTION_GROUP_DUTIES}
+        </if>
+        order by t.INSPECTION_GROUP_DUTIES
+    </select>
+
+    <select id="getInspectionUserCount" resultType="java.lang.Integer">
+        SELECT
+        count(1)
+        FROM
+        inspection.inspection_group_user t
+        WHERE
+        1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND t.ID = #{params.ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_ID!=null and params.INSPECTION_GROUP_ID !='' ">
+            AND t.INSPECTION_GROUP_ID = #{params.INSPECTION_GROUP_ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_USER!=null and params.INSPECTION_GROUP_USER!='' ">
+            AND t.INSPECTION_GROUP_USER = #{params.INSPECTION_GROUP_USER}
+        </if>
+        <if test="params.INSPECTION_GROUP_DUTIES!=null and params.INSPECTION_GROUP_DUTIES!='' ">
+            AND t.INSPECTION_GROUP_DUTIES = #{params.INSPECTION_GROUP_DUTIES}
+        </if>
+    </select>
+
+    <insert id="addInspectionUser" >
+        INSERT INTO inspection.inspection_group_user
+        VALUES
+        (
+        #{params.ID},
+        #{params.INSPECTION_GROUP_ID},
+        #{params.INSPECTION_GROUP_USER},
+        #{params.INSPECTION_GROUP_DUTIES}
+        )
+    </insert>
+
+    <update id="editInspectionUser">
+        UPDATE inspection.inspection_group_user SET
+        <if test=" params.INSPECTION_GROUP_ID != null and params.INSPECTION_GROUP_ID != ''">
+            INSPECTION_GROUP_ID = #{params.INSPECTION_GROUP_ID},
+        </if>
+        <if test=" params.INSPECTION_GROUP_USER != null and params.INSPECTION_GROUP_USER != ''">
+            INSPECTION_GROUP_USER = #{params.INSPECTION_GROUP_USER},
+        </if>
+        <if test=" params.INSPECTION_GROUP_DUTIES != null and params.INSPECTION_GROUP_DUTIES != ''">
+            INSPECTION_GROUP_DUTIES = #{params.INSPECTION_GROUP_DUTIES},
+        </if>
+        ID = #{params.ID}
+        WHERE ID = #{params.ID}
+    </update>
+
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        t.*,k.*, (
+        SELECT
+        NAME
+        FROM
+        inspection.cm_guoku_talentpool a
+        WHERE
+        a.UUID = t.INSPECTION_GROUP_USER
+        ) AS USER_NAME,
+        (
+        SELECT
+        e.ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration e
+        WHERE
+        e.ENUM_TYPE_ID = '7'
+        AND e.ENUM_ID = t.INSPECTION_GROUP_DUTIES
+        ) as DUTIES_DSCR
+        FROM
+        inspection.inspection_group_user t
+        JOIN inspection.inspection_group i
+        ON t.INSPECTION_GROUP_ID = i.INSPECTION_GROUP_ID
+        JOIN inspection.inspection_task k
+        ON i.INSPECTION_TASK_ID = k.INSPECTION_TASK_ID
+        WHERE t.INSPECTION_GROUP_USER = #{params.INSPECTION_GROUP_USER}
+        AND (
+        (
+        #{params.END_TIME} <![CDATA[>=]]> k.INSPECTION_TASK_BEGINTIME
+        AND #{params.END_TIME} <![CDATA[<=]]> k.INSPECTION_TASK_ENDTIME
+        )
+        OR (
+        #{params.BEGIN_TIME} <![CDATA[<]]> k.INSPECTION_TASK_BEGINTIME
+                 AND #{params.END_TIME} <![CDATA[>]]> k.INSPECTION_TASK_ENDTIME
+        )
+        OR (
+        #{params.BEGIN_TIME} <![CDATA[>=]]> k.INSPECTION_TASK_BEGINTIME
+        AND #{params.BEGIN_TIME} <![CDATA[<=]]> k.INSPECTION_TASK_ENDTIME
+        )
+        )
+    </select>
+
+    <delete id="delInspectionUser" >
+        DELETE
+        FROM
+        inspection.inspection_group_user
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_ID!=null and params.INSPECTION_GROUP_ID != ''">
+            AND INSPECTION_GROUP_ID = #{params.INSPECTION_GROUP_ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_USER!=null and params.INSPECTION_GROUP_USER != ''">
+            AND INSPECTION_GROUP_USER = #{params.INSPECTION_GROUP_USER}
+        </if>
+    </delete>
+
+    <select id="getUserData" resultType="java.util.Map">
+        SELECT
+        a.UUID,
+        NAME,
+        GUOKU_ID,
+        GUOKU_DSCR,
+        SEX,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 5
+        AND ENUM_ID = SEX
+        ) AS SEX_DSCR,
+        BIRTHDAY,
+        AGE,
+        NATION,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 2
+        AND ENUM_ID = NATION
+        ) AS NATION_DSCR,
+        POLITICS,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 10
+        AND ENUM_ID = POLITICS
+        ) AS POLITICS_DSCR,
+        MAJOR,
+        EDUCATION,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 1
+        AND ENUM_ID = EDUCATION
+        ) AS EDUCATION_DSCR,
+        DUTIES,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 4
+        AND ENUM_ID = DUTIES
+        ) AS ZHIWU_DSCR,
+        CUR_POSITION,
+        PHONE,
+        WORK_LIFE,
+        EXPERTISE,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 3
+        AND ENUM_ID = EXPERTISE
+        ) AS EXPERTISE_DSCR,
+        TITLE,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 14
+        AND ENUM_ID = TITLE
+        ) AS TITLE_DSCR,
+        LAWCERT,
+        CASE
+        WHEN LAWCERT = '0' THEN
+        '是'
+        ELSE
+        '否'
+        END AS LAWCERT_DSCR,
+        LAWCERT_NO,
+        CHECK_NO,
+        CHIEF,
+        CASE
+        WHEN CHIEF = '0' THEN
+        '是'
+        ELSE
+        '否'
+        END AS CHIEF_DSCR,
+        MEMO,
+        STATE,
+        LAST_TIME,
+        LAST_USER,
+        t.*, (
+        SELECT
+        e.ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration e
+        WHERE
+        e.ENUM_TYPE_ID = '7'
+        AND e.ENUM_ID = t.INSPECTION_GROUP_DUTIES
+        ) AS DUTIES_DSCR,
+        g.INSPECTION_GROUP_NAME,
+        g.INSPECTED_GUOKU_ID,
+        (
+        SELECT
+        guoku_dscr
+        FROM
+        dmcode.`cm_guoku_dimnsn` c
+        WHERE
+        c.GUOKU_ID = g.INSPECTED_GUOKU_ID
+        ) AS INSPECTED_GUOKU_DSCR
+        FROM
+        inspection.cm_guoku_talentpool a,
+        inspection.inspection_group_user t,
+        inspection.inspection_group g
+        WHERE
+        a.UUID = t.INSPECTION_GROUP_USER
+        AND t.INSPECTION_GROUP_ID = g.INSPECTION_GROUP_ID
+        <if test="params.ID!=null and params.ID != ''">
+            AND t.ID = #{params.ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_ID!=null and params.INSPECTION_GROUP_ID !='' ">
+            AND t.INSPECTION_GROUP_ID = #{params.INSPECTION_GROUP_ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_USER!=null and params.INSPECTION_GROUP_USER!='' ">
+            AND t.INSPECTION_GROUP_USER = #{params.INSPECTION_GROUP_USER}
+        </if>
+        <if test="params.INSPECTION_GROUP_DUTIES!=null and params.INSPECTION_GROUP_DUTIES!='' ">
+            AND t.INSPECTION_GROUP_DUTIES = #{params.INSPECTION_GROUP_DUTIES}
+        </if>
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID!='' ">
+            AND g.INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        </if>
+        order by
+        t.INSPECTION_GROUP_ID,
+        t.INSPECTION_GROUP_DUTIES,
+        a.GUOKU_ID,
+        a.DUTIES
+    </select>
+
+    <select id="getDuties" resultType="java.lang.String">
+        SELECT
+            GROUP_CONCAT(u.INSPECTION_GROUP_DUTIES) as duties
+        FROM
+            inspection.inspection_group t,
+            inspection.inspection_group_user u
+        WHERE
+            t.INSPECTION_GROUP_ID = u.INSPECTION_GROUP_ID
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID!='' ">
+            AND t.INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        </if>
+        <if test="params.INSPECTION_GROUP_ID!=null and params.INSPECTION_GROUP_ID!='' ">
+            AND t.INSPECTION_GROUP_ID = #{params.INSPECTION_GROUP_ID}
+        </if>
+    </select>
+
+    <select id="getUserBySysId" resultType="java.util.Map">
+        SELECT
+        a.*, e.realname
+        FROM
+        inspection.inspection_group_user a
+        JOIN inspection.inspection_group b ON a.INSPECTION_GROUP_ID = b.INSPECTION_GROUP_ID
+        JOIN inspection.inspection_task c ON b.INSPECTION_TASK_ID = c.INSPECTION_TASK_ID
+        JOIN inspection.inspection_sysuser_talentpool_relation d ON a.INSPECTION_GROUP_USER = d.TALENTPOOL_ID
+        JOIN `jeecg-boot-os`.sys_user e ON d.SYS_USERID = e.id
+        WHERE 1=1
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID!='' ">
+            AND c.INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        </if>
+        <if test="params.id!=null and params.id!='' ">
+            AND e.id = #{params.id}
+        </if>
+    </select>
+
+    <select id="getRoleBySysId" resultType="java.util.Map">
+        SELECT
+        a.realname,
+        a.id AS sys_id,
+        c.UUID AS tal_id,
+        h.role_name,
+        h.id AS role_id,
+        c.NAME
+        FROM
+        `jeecg-boot-os`.sys_user a
+        LEFT JOIN inspection.inspection_sysuser_talentpool_relation b ON b.SYS_USERID = a.id
+        LEFT JOIN inspection.cm_guoku_talentpool c ON b.TALENTPOOL_ID = c.UUID
+        LEFT JOIN `jeecg-boot-os`.sys_user_role g ON a.id = g.user_id
+        LEFT JOIN `jeecg-boot-os`.sys_role h ON g.role_id = h.id
+        WHERE
+        1 = 1
+        <if test="params.id!=null and params.id!='' ">
+            AND a.id = #{params.id}
+        </if>
+        <if test="params.TALENTPOOL_ID!=null and params.TALENTPOOL_ID!='' ">
+            AND c.UUID = #{params.TALENTPOOL_ID}
+        </if>
+    </select>
+
+</mapper>

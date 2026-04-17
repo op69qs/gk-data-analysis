@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.system.mapper.SysUserMapper">
+
+	<!-- 根据用户名查询 -->
+	<select id="getUserByName" resultType="org.jeecg.modules.system.entity.SysUser">
+		select a.*,
+			(SELECT
+					   b.guoku_dscr
+				   FROM
+					   dmcode.`cm_guoku_dimnsn` b
+				   WHERE b.guoku_id = a.guoku_id) AS guokuDscr,
+			GROUP_CONCAT(c.`id` SEPARATOR ',') AS roleId,
+			GROUP_CONCAT(c.`role_name` SEPARATOR ',') AS roleName
+		FROM
+			`jeecg-boot-os`.`sys_user` a
+			JOIN
+			`jeecg-boot-os`.`sys_user_role` b ON a.id = b.`user_id`
+			JOIN
+			`jeecg-boot-os`.`sys_role` c ON b.`role_id` = c.`id`
+		where a.username = #{username}
+			  and a.del_flag = '0'
+		GROUP BY a.`id`
+	</select>
+	<select id="getUserList" resultType="map">
+		SELECT
+		a.id
+		,username
+		,realname,
+		salt,
+		avatar,
+		CASE
+		WHEN sex = '2'
+		THEN '2'
+		ELSE '1'
+		END AS  sex,
+		CASE
+		WHEN sex = '1'
+		THEN '男'
+		ELSE '女'
+		END AS sex_dictText,
+		email,
+		phone,
+		org_code,
+		guoku_id AS guokuid,
+		(SELECT
+		b.guoku_dscr
+		FROM
+		dmcode.`cm_guoku_dimnsn` b
+		WHERE b.guoku_id = a.guoku_id) AS guokuDscr,
+		(SELECT GROUP_CONCAT(b.guoku_dscr) FROM  dmcode.`cm_guoku_dimnsn` b  WHERE guoku_id IN (SELECT  guoku_id  FROM   `jeecg-boot-os`.t_sc_user_guoku_relation  WHERE  login_id=a.id))  AS viewableGuokuDscr,
+		(SELECT  GROUP_CONCAT(guoku_id)  FROM   `jeecg-boot-os`.t_sc_user_guoku_relation  WHERE  login_id=a.id) AS viewableguoku,
+		CASE
+		WHEN STATUS = '1'
+		THEN '正常'
+		ELSE '解冻'
+		END AS status_dictText,
+		STATUS,
+		del_flag,
+		CASE
+		WHEN activiti_sync = '1'
+		THEN '1'
+		ELSE  '0'
+		END AS  activitiSync,
+		CASE
+		WHEN activiti_sync = '1'
+		THEN '同步'
+		ELSE '不同步'
+		END AS activiti_sync_dictText,
+		IFNULL( DATE_FORMAT(a.`birthday`, '%Y-%m-%d'), '' ) AS birthday,
+		GROUP_CONCAT(c.id SEPARATOR "，") AS roleId,
+		GROUP_CONCAT(c.role_name SEPARATOR "，") AS roleName
+		FROM `jeecg-boot-os`.`sys_user` a
+		LEFT JOIN
+		`jeecg-boot-os`.`sys_user_role` b
+		ON a.id = b.user_id
+		LEFT JOIN
+		`jeecg-boot-os`.`sys_role` c
+		ON b.role_id = c.id
+		WHERE del_flag = '0'
+		<if test="params.username!=null and params.username != ''">
+			AND a.username like  '%${params.username}%'
+		</if>
+		<if test="params.sex!=null and params.sex != ''">
+			AND a.sex = '${params.sex}'
+		</if>
+		<if test="params.email!=null and params.email!='' ">
+			AND email like '%${params.email}%'
+		</if>
+		<if test="params.status!=null and params.status != ''">
+			AND a.status = '${params.status}'
+		</if>
+		<if test="params.phone!=null and params.phone!='' ">
+			AND phone like '%${params.phone}%'
+		</if>
+		GROUP BY a.id
+        ORDER BY a.update_time DESC
+		LIMIT ${params.page},${params.rows}
+	</select>
+	<select id="getUserListCount" resultType="int">
+		SELECT count(1)    FROM `jeecg-boot-os`.`sys_user` a
+		where del_flag = '0'
+		<if test="params.username!=null and params.username != ''">
+			AND a.username like  '%${params.username}%'
+		</if>
+		<if test="params.sex!=null and params.sex != ''">
+			AND a.sex = '${params.sex}'
+		</if>
+		<if test="params.email!=null and params.email!='' ">
+			AND email like '%${params.email}%'
+		</if>
+		<if test="params.status!=null and params.status != ''">
+			AND a.status = '${params.status}'
+		</if>
+		<if test="params.phone!=null and params.phone!='' ">
+			AND phone like '%${params.phone}%'
+		</if>
+	</select>
+    <select id="getUserById" resultType="org.jeecg.modules.system.entity.SysUser">
+        select * from sys_user where del_flag = '0' and id = '${id}'
+    </select>
+
+	<!-- 根据部门Id查询 -->
+	<select id="getUserByDepId" resultType="org.jeecg.modules.system.entity.SysUser">
+		select * from sys_user where del_flag = '0' and id in (select user_id from sys_user_depart where dep_id=#{departId})
+		<if test="username!=null and username!=''">
+			and username = #{username}
+		</if>
+	</select>
+
+	<!-- 根据角色Id查询 -->
+	<select id="getUserByRoleId" resultType="org.jeecg.modules.system.entity.SysUser">
+		select * from sys_user where del_flag = '0' and id in (select user_id from sys_user_role where role_id=#{roleId})
+		<if test="username!=null and username!=''">
+			and username = #{username}
+		</if>
+	</select>
+	
+	<!--  修改用户部门code -->
+	<update id="updateUserDepart">
+		UPDATE sys_user SET org_code = #{orgCode} where username = #{username}
+	</update>
+
+	<!-- 根据手机号查询 -->
+	<select id="getUserByPhone"  resultType="org.jeecg.modules.system.entity.SysUser">
+		select * from  sys_user  where phone = #{phone} and del_flag = '0'
+	</select>
+	
+	<!-- 根据邮箱查询用户信息 -->
+	<select id="getUserByEmail" resultType="org.jeecg.modules.system.entity.SysUser">
+	select * from  sys_user  where email = #{email} and del_flag = '0'
+	</select>
+	<insert id="addUserGuoku">
+		insert into `jeecg-boot-os`.`t_sc_user_guoku_relation` (
+		login_id,
+		guoku_id
+		)
+		values(
+		#{params.userRelationID},
+		#{params.viewableGuoku}
+		)
+	</insert>
+	<delete id="DelUserGuoku">
+		delete from `jeecg-boot-os`.`t_sc_user_guoku_relation` where login_id='${params.userRelationID}'
+	</delete>
+
+    <!-- 同步更新时间 -->
+    <update id="updateUserUpdateTime">
+        UPDATE sys_user SET update_time = create_time where id = #{login_id}
+    </update>
+</mapper>

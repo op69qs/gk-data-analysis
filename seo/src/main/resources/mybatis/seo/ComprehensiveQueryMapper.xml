@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.seo.dao.mapper.ComprehensiveQueryMapper">
+
+    <select id="getTableName" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            (
+                SELECT
+                    t.FIRST_CLASSIFY id,
+                    a.depart_name name,
+                    a.depart_name dscr,
+                    '' AS pid,
+                    '0' isleaf,
+                    '1' AS disabled,
+                    a.depart_name table_en
+                FROM
+                    EDW.`fm_trs_guoku_base_table` t,
+                    `jeecg-boot-os`.sys_depart a
+                WHERE
+                    t.FIRST_CLASSIFY = a.id
+                UNION
+                    SELECT
+                        t.SECOND_CLASSIFY id,
+                        t.SECOND_CLASSIFY name,
+                        t.SECOND_CLASSIFY dscr,
+                        t.FIRST_CLASSIFY AS pid,
+                        '0' isleaf,
+                        '1' AS disabled,
+                        t.SECOND_CLASSIFY table_en
+                    FROM
+                        EDW.`fm_trs_guoku_base_table` t
+                    WHERE
+                        t.SECOND_CLASSIFY IS NOT NULL
+                    UNION
+                        SELECT DISTINCT
+                            CONCAT(
+                                t.DATABASE_ID,
+                                '▲',
+                                t.TABLE_SIGN,
+                                '▲',
+                                IFNULL(t.FOR_SKIP, '')
+                            ) id,
+                            t.TABLE_NAME name,
+                            t.TABLE_WORD dscr,
+                            t.SECOND_CLASSIFY pid,
+                            '1' isleaf,
+                            '0' AS disabled,
+                            t.TABLE_SIGN table_en
+                        FROM
+                            EDW.`fm_trs_guoku_base_table` t
+                        WHERE
+                            t.STATE = 0
+                        AND t.SECOND_CLASSIFY IS NOT NULL
+            ) a
+        WHERE
+            a.id IS NOT NULL
+        AND a.`name` IS NOT NULL
+    </select>
+
+    <select id="getColumn" resultType="java.util.Map">
+        SELECT CONCAT(TABLE_SIGN,'.',FIELD_SIGN,'▲',INPUT_TYPE)as FIELD_SIGN,FIELD_NAME,FIELD_SIGN as FIELD_EN , FOR_SKIP as FOR_SKIP FROM
+        EDW.`fm_trs_guoku_base_table`
+        where 1=1
+        <if test="params.TABLE_SIGN!=null and params.TABLE_SIGN != ''">
+            AND TABLE_SIGN = #{params.TABLE_SIGN}
+        </if>
+        <if test="params.DATABASE_ID!=null and params.DATABASE_ID != ''">
+            AND DATABASE_ID = #{params.DATABASE_ID}
+        </if>
+        <if test="params.TABLE_NAME!=null and params.TABLE_NAME != ''">
+            AND TABLE_NAME like '%${params.TABLE_NAME}%'
+        </if>
+    </select>
+
+    <select id="getType" resultType="java.util.Map">
+        SELECT
+        a.DBNAME,b.TYPE
+        FROM
+        seo.seo_datasource_database a,
+        seo.seo_datasource b
+        WHERE
+        a.SOURCE_ID = b.ID
+        AND a.ID =  #{params.ID}
+    </select>
+
+    <select id="getSchemeMain" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_main
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_NAME!=null and params.SCHEME_NAME != ''">
+            AND SCHEME_NAME like '%${params.SCHEME_NAME}%'
+        </if>
+        <if test="params.CREATE_USER!=null and params.CREATE_USER != ''">
+            AND CREATE_USER = #{params.CREATE_USER}
+        </if>
+        <if test="params.BEGIN_TIME !=null and params.BEGIN_TIME != ''">
+            AND CREATE_TIME <![CDATA[>=]]> #{params.BEGIN_TIME}
+        </if>
+        <if test="params.END_TIME !=null and params.END_TIME != ''">
+            AND CREATE_TIME <![CDATA[<=]]> #{params.END_TIME}
+        </if>
+        order by CREATE_TIME DESC
+    </select>
+
+    <select id="checkScheme" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_main
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID != #{params.ID}
+        </if>
+        <if test="params.SCHEME_NAME!=null and params.SCHEME_NAME != ''">
+            AND SCHEME_NAME = #{params.SCHEME_NAME}
+        </if>
+    </select>
+
+    <select id="getSchemeMainPage" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_main
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_NAME!=null and params.SCHEME_NAME != ''">
+            AND SCHEME_NAME like '%${params.SCHEME_NAME}%'
+        </if>
+        <if test="params.CREATE_USER!=null and params.CREATE_USER != ''">
+            AND CREATE_USER = #{params.CREATE_USER}
+        </if>
+        <if test="params.BEGIN_TIME !=null and params.BEGIN_TIME != ''">
+            AND CREATE_TIME <![CDATA[>=]]> #{params.BEGIN_TIME}
+        </if>
+        <if test="params.END_TIME !=null and params.END_TIME != ''">
+            AND CREATE_TIME <![CDATA[<=]]> #{params.END_TIME}
+        </if>
+        order by CREATE_TIME DESC
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="countMain" resultType="java.lang.Integer">
+        SELECT count(*) FROM
+        seo.seo_scheme_main
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_NAME!=null and params.SCHEME_NAME != ''">
+            AND SCHEME_NAME like '%${params.SCHEME_NAME}%'
+        </if>
+        <if test="params.CREATE_USER!=null and params.CREATE_USER != ''">
+            AND CREATE_USER = #{params.CREATE_USER}
+        </if>
+        <if test="params.BEGIN_TIME !=null and params.BEGIN_TIME != ''">
+            AND CREATE_TIME <![CDATA[>=]]> #{params.BEGIN_TIME}
+        </if>
+        <if test="params.END_TIME !=null and params.END_TIME != ''">
+            AND CREATE_TIME <![CDATA[<=]]> #{params.END_TIME}
+        </if>
+    </select>
+
+    <insert id="addSchemeMain" >
+        INSERT INTO seo.seo_scheme_main
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_NAME},
+        #{params.SCHEME_SQL},
+        #{params.SCHEME_COUNT},
+        #{params.CREATE_TIME},
+        #{params.UPDATE_TIME},
+        #{params.UPDATE_USER},
+        #{params.CREATE_USER},
+        #{params.SCHEME_MEMO},
+        #{params.TABLE_ID},
+        #{params.TABLE_NAME},
+        #{params.IS_COUNT},
+        #{params.INDEX_VALUE},
+        #{params.TIME_COLUMN},
+        #{params.DIMENSION_COLUMN},
+        #{params.DIMENSION_ID}
+        )
+    </insert>
+
+    <update id="editSchemeMain">
+        UPDATE seo.seo_scheme_main SET
+        <if test=" params.SCHEME_NAME != null and params.SCHEME_NAME != ''">
+            SCHEME_NAME = #{params.SCHEME_NAME},
+        </if>
+        <if test=" params.SCHEME_SQL != null and params.SCHEME_SQL != ''">
+            SCHEME_SQL = #{params.SCHEME_SQL},
+        </if>
+        <if test=" params.SCHEME_COUNT != null and params.SCHEME_COUNT != ''">
+            SCHEME_COUNT = #{params.SCHEME_COUNT},
+        </if>
+        <if test=" params.UPDATE_TIME != null and params.UPDATE_TIME != ''">
+            UPDATE_TIME = #{params.UPDATE_TIME},
+        </if>
+        <if test=" params.SCHEME_MEMO != null and params.SCHEME_MEMO != ''">
+            SCHEME_MEMO = #{params.SCHEME_MEMO},
+        </if>
+        <if test=" params.UPDATE_USER != null and params.UPDATE_USER != ''">
+            UPDATE_USER = #{params.UPDATE_USER},
+        </if>
+        <if test=" params.TABLE_ID != null and params.TABLE_ID != ''">
+            TABLE_ID = #{params.TABLE_ID},
+        </if>
+        <if test=" params.TABLE_NAME != null and params.TABLE_NAME != ''">
+            TABLE_NAME = #{params.TABLE_NAME},
+        </if>
+        <if test=" params.IS_COUNT != null and params.IS_COUNT != ''">
+            IS_COUNT = #{params.IS_COUNT},
+        </if>
+        <if test=" params.INDEX_VALUE != null ">
+            INDEX_VALUE = #{params.INDEX_VALUE},
+        </if>
+        <if test=" params.TIME_COLUMN != null">
+            TIME_COLUMN = #{params.TIME_COLUMN},
+        </if>
+        <if test=" params.DIMENSION_COLUMN != null">
+            DIMENSION_COLUMN = #{params.DIMENSION_COLUMN},
+        </if>
+        <if test=" params.DIMENSION_ID != null">
+            DIMENSION_ID = #{params.DIMENSION_ID},
+        </if>
+        ID = #{params.ID}
+        WHERE ID = #{params.ID}
+    </update>
+
+    <delete id="delSchemeMain" >
+        DELETE
+        FROM
+        seo.seo_scheme_main
+        WHERE 1 = 1
+        AND ID = #{params.ID}
+    </delete>
+
+    <select id="getSchemeTable" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_table
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.TABLE_NAME!=null and params.TABLE_NAME != ''">
+            AND TABLE_NAME like '%${params.TABLE_NAME}%'
+        </if>
+        <if test="params.TABLE_DESC!=null and params.TABLE_DESC != ''">
+            AND TABLE_DESC like '%${params.TABLE_DESC}%'
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </select>
+
+    <insert id="addSchemeTable" >
+        INSERT INTO seo.seo_scheme_table
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_ID},
+        #{params.TABLE_NAME},
+        #{params.TABLE_DESC},
+        #{params.TABLE_USE}
+        )
+    </insert>
+
+    <delete id="delSchemeTable" >
+        DELETE
+        FROM
+        seo.seo_scheme_table
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </delete>
+
+    <select id="getSchemeColumn" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_column
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.COLUMN_NAME!=null and params.COLUMN_NAME != ''">
+            AND COLUMN_NAME like '%${params.COLUMN_NAME}%'
+        </if>
+        <if test="params.COLUMN_DESC!=null and params.COLUMN_DESC != ''">
+            AND COLUMN_DESC like '%${params.COLUMN_DESC}%'
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+        <if test="params.TABLE_ID!=null and params.TABLE_ID != ''">
+            AND TABLE_ID = #{params.TABLE_ID}
+        </if>
+    </select>
+
+    <insert id="addSchemeColumn" >
+        INSERT INTO seo.seo_scheme_column
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_ID},
+        #{params.TABLE_ID},
+        #{params.COLUMN_NAME},
+        #{params.COLUMN_DESC}
+        )
+    </insert>
+
+    <delete id="delSchemeColumn" >
+        DELETE
+        FROM
+        seo.seo_scheme_column
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+        <if test="params.TABLE_ID!=null and params.TABLE_ID != ''">
+            AND TABLE_ID = #{params.TABLE_ID}
+        </if>
+    </delete>
+
+    <select id="getSchemeWhere" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_where
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.WHERE_MEMO!=null and params.WHERE_MEMO != ''">
+            AND WHERE_MEMO like '%${params.WHERE_MEMO}%'
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </select>
+
+    <insert id="addSchemeWhere" >
+        INSERT INTO seo.seo_scheme_where
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_ID},
+        #{params.WHERE_LEFT},
+        #{params.WHERE_MIDDLE},
+        #{params.WHERE_RIGHT},
+        #{params.WHERE_MEMO},
+        #{params.WHERE_TYPE},
+        #{params.DATA_TYPE}
+        )
+    </insert>
+
+    <delete id="delSchemeWhere" >
+        DELETE
+        FROM
+        seo.seo_scheme_where
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </delete>
+
+    <select id="getSchemeOrder" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_order
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.ORDER_MEMO!=null and params.ORDER_MEMO != ''">
+            AND ORDER_MEMO like '%${params.ORDER_MEMO}%'
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </select>
+
+    <insert id="addSchemeOrder" >
+        INSERT INTO seo.seo_scheme_order
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_ID},
+        #{params.ORDER_DSCR}
+        )
+    </insert>
+
+    <delete id="delSchemeOrder" >
+        DELETE
+        FROM
+        seo.seo_scheme_order
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </delete>
+
+    <select id="getRelationMain" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_relation_main
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </select>
+
+    <insert id="addRelationMain" >
+        INSERT INTO seo.seo_scheme_relation_main
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_ID},
+        #{params.RELATION}
+        )
+    </insert>
+
+    <delete id="delRelationMain" >
+        DELETE
+        FROM
+        seo.seo_scheme_relation_main
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </delete>
+
+    <select id="getRelationSub" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_relation_sub
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+        <if test="params.RELATION_ID!=null and params.RELATION_ID != ''">
+            AND RELATION_ID = #{params.RELATION_ID}
+        </if>
+    </select>
+
+    <insert id="addRelationSub" >
+        INSERT INTO seo.seo_scheme_relation_sub
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_ID},
+        #{params.RELATION_ID},
+        #{params.RELATION_LEFT},
+        #{params.RELATION_MIDDLE},
+        #{params.RELATION_RIGHT}
+        )
+    </insert>
+
+    <delete id="delRelationSub" >
+        DELETE
+        FROM
+        seo.seo_scheme_relation_sub
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+        <if test="params.RELATION_ID!=null and params.RELATION_ID != ''">
+            AND RELATION_ID = #{params.RELATION_ID}
+        </if>
+    </delete>
+
+    <select id="getSchemeIndication" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_scheme_indication
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.INDICATION_NAME!=null and params.INDICATION_NAME != ''">
+            AND INDICATION_NAME like '%${params.INDICATION_NAME}%'
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </select>
+
+    <insert id="addSchemeIndication" >
+        INSERT INTO seo.seo_scheme_indication
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_ID},
+        #{params.INDICATION_NAME},
+        #{params.COUNT_TYPE},
+        #{params.COUNT_COLUMN},
+        #{params.COLUMN_CN}
+        )
+    </insert>
+
+    <delete id="delSchemeIndication" >
+        DELETE
+        FROM
+        seo.seo_scheme_indication
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.SCHEME_ID!=null and params.SCHEME_ID != ''">
+            AND SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+    </delete>
+
+    <select id="executeSql" resultType="java.util.Map">
+         ${params.sql}
+    </select>
+
+    <select id="countSql" resultType="java.lang.Integer">
+        ${params.countSql}
+    </select>
+
+</mapper>

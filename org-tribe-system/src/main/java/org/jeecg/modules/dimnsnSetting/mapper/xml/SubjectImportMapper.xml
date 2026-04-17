@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.dimnsnSetting.mapper.SubjectImportManagerMapper">
+
+    <resultMap id="SubjectImport" type="org.jeecg.modules.dimnsnSetting.model.SubjectImport">
+        <result column="SUBJECT_CODE_4" jdbcType="VARCHAR" property="SUBJECT_CODE_4"/>
+        <result column="SUBJECT_DSCR_4" jdbcType="VARCHAR" property="SUBJECT_DSCR_4"/>
+        <result column="BUDGET_TYPE" jdbcType="VARCHAR" property="BUDGET_TYPE"/>
+        <result column="S_BDGSBTVSION" jdbcType="VARCHAR" property="S_BDGSBTVSION"/>
+        <result column="FLITTING_FLAG" jdbcType="VARCHAR" property="FLITTING_FLAG"/>
+        <result column="T_SUBJECT_CODE_3" jdbcType="VARCHAR" property="T_SUBJECT_CODE_3"/>
+        <result column="STAT_CODE_4" jdbcType="VARCHAR" property="STAT_CODE_4"/>
+        <result column="T_SUBJECT_TYPE" jdbcType="VARCHAR" property="T_SUBJECT_TYPE"/>
+    </resultMap>
+
+    <select id="getPage" resultType="java.util.HashMap">
+        SELECT
+        a.T_SUBJECT_CODE_3,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '32'
+        AND enum_id = a.T_SUBJECT_TYPE
+        ) AS T_SUBJECT_TYPE,
+        a.STAT_CODE_4,
+        a.SUBJECT_CODE_4,
+        a.SUBJECT_DSCR_4,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '33'
+        AND enum_id = a.BUDGET_TYPE
+        ) AS BUDGET_TYPE,
+        a.S_BDGSBTVSION,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '34'
+        AND enum_id = a.FLITTING_FLAG
+        ) AS FLITTING_FLAG,
+        ADD_USER,
+        ADD_DATE
+        FROM
+        `ods`.cm_guoku_subject_import a
+        WHERE
+        1 = 1
+        <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
+            and a.S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        </if>
+        <if test=" params.BUDGET_TYPE != null and params.BUDGET_TYPE != ''">
+            and a.BUDGET_TYPE = #{params.BUDGET_TYPE}
+        </if>
+        <if test=" params.SUBJECT_CODE_4 != null and params.SUBJECT_CODE_4 != ''">
+            and a.SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4}
+        </if>
+        <if test=" params.SUBJECT_DSCR_4 != null and params.SUBJECT_DSCR_4 != ''">
+            and a.SUBJECT_DSCR_4 like '%${params.SUBJECT_DSCR_4}%'
+        </if>
+        <if test=" params.T_SUBJECT_TYPE != null and params.T_SUBJECT_TYPE != ''">
+            and a.T_SUBJECT_TYPE = #{params.T_SUBJECT_TYPE}
+        </if>
+        ORDER BY a.S_BDGSBTVSION desc,SUBJECT_CODE_4 asc
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM  `ods`.cm_guoku_subject_import  a
+        where 1=1
+        <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
+            and a.S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        </if>
+        <if test=" params.BUDGET_TYPE != null and params.BUDGET_TYPE != ''">
+            and a.BUDGET_TYPE = #{params.BUDGET_TYPE}
+        </if>
+        <if test=" params.SUBJECT_CODE_4 != null and params.SUBJECT_CODE_4 != ''">
+            and a.SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4}
+        </if>
+        <if test=" params.SUBJECT_DSCR_4 != null and params.SUBJECT_DSCR_4 != ''">
+            and a.SUBJECT_DSCR_4 like '%${params.SUBJECT_DSCR_4}%'
+        </if>
+        <if test=" params.T_SUBJECT_TYPE != null and params.T_SUBJECT_TYPE != ''">
+            and a.T_SUBJECT_TYPE = #{params.T_SUBJECT_TYPE}
+        </if>
+    </select>
+
+    <select id="getAll" resultType="java.util.HashMap">
+        SELECT
+        a.T_SUBJECT_CODE_3,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '32'
+        AND enum_id = a.T_SUBJECT_TYPE
+        ) AS T_SUBJECT_TYPE,
+        a.STAT_CODE_4,
+        a.SUBJECT_CODE_4,
+        a.SUBJECT_DSCR_4,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '33'
+        AND enum_id = a.BUDGET_TYPE
+        ) AS BUDGET_TYPE,
+        a.S_BDGSBTVSION,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '34'
+        AND enum_id = a.FLITTING_FLAG
+        ) AS FLITTING_FLAG,
+        ADD_USER,
+        ADD_DATE
+        FROM
+        `ods`.cm_guoku_subject_import a
+        WHERE
+        1 = 1
+        <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
+            and a.S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        </if>
+        <if test=" params.BUDGET_TYPE != null and params.BUDGET_TYPE != ''">
+            and a.BUDGET_TYPE = #{params.BUDGET_TYPE}
+        </if>
+        <if test=" params.SUBJECT_CODE_4 != null and params.SUBJECT_CODE_4 != ''">
+            and a.SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4}
+        </if>
+        <if test=" params.SUBJECT_DSCR_4 != null and params.SUBJECT_DSCR_4 != ''">
+            and a.SUBJECT_DSCR_4 like '%${params.SUBJECT_DSCR_4}%'
+        </if>
+        <if test=" params.T_SUBJECT_TYPE != null and params.T_SUBJECT_TYPE != ''">
+            and a.T_SUBJECT_TYPE = #{params.T_SUBJECT_TYPE}
+        </if>
+        ORDER BY a.S_BDGSBTVSION desc,SUBJECT_CODE_4 asc
+    </select>
+
+    <select id="getExport" resultMap="SubjectImport">
+        SELECT
+        a.T_SUBJECT_CODE_3,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '32'
+        AND enum_id = a.T_SUBJECT_TYPE
+        ) AS T_SUBJECT_TYPE,
+        a.STAT_CODE_4,
+        a.SUBJECT_CODE_4,
+        a.SUBJECT_DSCR_4,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '33'
+        AND enum_id = a.BUDGET_TYPE
+        ) AS BUDGET_TYPE,
+        a.S_BDGSBTVSION,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '34'
+        AND enum_id = a.FLITTING_FLAG
+        ) AS FLITTING_FLAG,
+        ADD_USER,
+        ADD_DATE
+        FROM
+        `ods`.cm_guoku_subject_import a
+        WHERE
+        1 = 1
+        <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
+            and a.S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        </if>
+        <if test=" params.BUDGET_TYPE != null and params.BUDGET_TYPE != ''">
+            and a.BUDGET_TYPE = #{params.BUDGET_TYPE}
+        </if>
+        <if test=" params.SUBJECT_CODE_4 != null and params.SUBJECT_CODE_4 != ''">
+            and a.SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4}
+        </if>
+        <if test=" params.SUBJECT_DSCR_4 != null and params.SUBJECT_DSCR_4 != ''">
+            and a.SUBJECT_DSCR_4 like '%${params.SUBJECT_DSCR_4}%'
+        </if>
+        <if test=" params.T_SUBJECT_TYPE != null and params.T_SUBJECT_TYPE != ''">
+            and a.T_SUBJECT_TYPE = #{params.T_SUBJECT_TYPE}
+        </if>
+        ORDER BY a.S_BDGSBTVSION desc,SUBJECT_CODE_4 asc
+    </select>
+
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM  `ods`.cm_guoku_subject_import  a
+        where 1=1
+        <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
+            and a.S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        </if>
+        <if test=" params.SUBJECT_CODE_4 != null and params.SUBJECT_CODE_4 != ''">
+            and a.SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4}
+        </if>
+    </select>
+
+    <insert id="add">
+        INSERT INTO  `ods`.cm_guoku_subject_import
+        VALUES
+            (
+             #{params.T_SUBJECT_CODE_3},
+             #{params.T_SUBJECT_TYPE},
+             #{params.STAT_CODE_4},
+             #{params.STAT_DSCR_4},
+             #{params.SUBJECT_CODE_4},
+             #{params.SUBJECT_DSCR_4},
+             #{params.BUDGET_TYPE},
+             #{params.S_BDGSBTVSION},
+             #{params.FLITTING_FLAG},
+             #{params.ADD_USER},
+             #{params.ADD_DATE}
+            )
+    </insert>
+
+    <update id="edit">
+        UPDATE  `ods`.cm_guoku_subject_import SET
+        <if test=" params.T_SUBJECT_CODE_3 != null">
+            T_SUBJECT_CODE_3 = #{params.T_SUBJECT_CODE_3},
+        </if>
+        <if test=" params.T_SUBJECT_TYPE != null">
+            T_SUBJECT_TYPE = #{params.T_SUBJECT_TYPE},
+        </if>
+        <if test=" params.STAT_CODE_4 != null">
+            STAT_CODE_4 = #{params.STAT_CODE_4},
+        </if>
+        <if test=" params.SUBJECT_DSCR_4 != null">
+            SUBJECT_DSCR_4 = #{params.SUBJECT_DSCR_4},
+        </if>
+        <if test=" params.BUDGET_TYPE != null">
+            BUDGET_TYPE = #{params.BUDGET_TYPE},
+        </if>
+        <if test=" params.FLITTING_FLAG != null">
+            FLITTING_FLAG = #{params.FLITTING_FLAG},
+        </if>
+        SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4},
+        S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        WHERE S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        and SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4}
+    </update>
+
+    <update id="editStat">
+        UPDATE  `ods`.cm_guoku_subject_import SET
+        <if test=" params.STAT_DSCR_4 != null">
+            STAT_DSCR_4 = #{params.STAT_DSCR_4},
+        </if>
+        STAT_CODE_4 = #{params.STAT_CODE_4},
+        S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        WHERE S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        and STAT_CODE_4 = #{params.STAT_CODE_4}
+    </update>
+
+    <update id="editT">
+        UPDATE  `ods`.cm_guoku_subject_import SET
+        <if test=" params.T_SUBJECT_CODE_3 != null">
+            T_SUBJECT_CODE_3 = #{params.T_SUBJECT_CODE_3},
+        </if>
+        <if test=" params.T_SUBJECT_TYPE != null">
+            T_SUBJECT_TYPE = #{params.T_SUBJECT_TYPE},
+        </if>
+        S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        WHERE S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        and STAT_CODE_4 = #{params.STAT_CODE_4}
+    </update>
+
+    <delete id="del" >
+        DELETE
+        FROM
+        `ods`.cm_guoku_subject_import
+        WHERE 1 = 1
+        <if test="params.SUBJECT_CODE_4!=null and params.SUBJECT_CODE_4 != ''">
+            AND SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4}
+        </if>
+        <if test="params.S_BDGSBTVSION!=null and params.S_BDGSBTVSION != ''">
+            AND S_BDGSBTVSION = #{params.S_BDGSBTVSION}
+        </if>
+    </delete>
+
+    <select id="callProc">
+        CALL `ods`.`p_cm_guoku_subject_import`(#{params.S_BDGSBTVSION});
+    </select>
+
+</mapper>

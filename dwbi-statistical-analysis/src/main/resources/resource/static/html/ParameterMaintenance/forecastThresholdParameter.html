@@ -1,0 +1,237 @@
+<link rel="stylesheet" href="/statisticalAnalysis/static/css/systemManagement/systemManagement.css"/>
+<div id="bread">参数维护 > <span style="color:#1f5ec4;font-weight: bold;">预测阈值设置</span></div>
+<div class="layui-container" style="width:100%; margin-top:15px;height:90%;">
+    <div class="layui-row">
+        <div class="layui-col-md2 layui-col-lg2">
+            <span>指标：</span>
+            <input id="indicators" class="easyui-combobox" style="width:200px;"
+                   data-options="
+                   prompt:'请选择指标',
+                   valueField:'value',
+                   textField:'label',
+                   url: './statisticalAnalysis/forecastThresholdParameter/getMonitorIndexData'
+                    "/>
+        </div>
+        <div class="layui-col-md2 layui-col-lg2">
+            <span>业务类型：</span>
+            <input id="business_type" class="easyui-combobox"
+                   data-options="
+                   prompt:'请选择业务类型',
+                   valueField:'value',
+                   textField:'label',
+                   data: [{'value':'devOps','label':'运维'},{'value':'network','label':'网络'}]
+                    "/>
+        </div>&nbsp;&nbsp;&nbsp;&nbsp;
+        <div class="layui-col-md2 layui-col-lg2">
+            <a class="easyui-linkbutton" onclick="queryData()" style="weight:50%;height: 100%">查询</a>
+            <a class="easyui-linkbutton" onclick="resetData()" style="weight:50%;height: 100%">重置</a>
+        </div>
+    </div>
+    <div class="layui-row" style="margin-top: 15px;">
+        <a class="easyui-linkbutton" onclick="openDialogPage(0,'')"
+           style="weight:50%;height: 100%;font-size: 17px;background-color: #33638B;color: #ffffff;">新增</a>
+        <a class="easyui-linkbutton" onclick="getForecastValues()"
+           style="weight:50%;height: 100%;font-size: 17px;background-color: #33638B;color: #ffffff;">执行预测(测试)</a>
+    </div>
+    <div class="layui-row" style="margin-top: 5px;">
+        <div id="tableData"></div>
+    </div>
+</div>
+<script>
+    $(function () {
+        setTimeout(function () {
+            queryData();
+        }, 100);
+    });
+
+    function getForecastValues() {
+        $.ajax({
+            type: 'post',
+            url: './statisticalAnalysis/forecastThresholdParameter/getForecastValues',
+            data: {},
+            dataType: "json",
+            beforeSend: ajaxLoading,
+            success: function (result) {
+                ajaxLoadEnd();
+                $.messager.alert('提示', result.msg, 'info');
+            }
+        });
+    }
+
+
+    //展示页面表格数据
+    function queryData() {
+        $('#tableData').datagrid({
+            url: './statisticalAnalysis/forecastThresholdParameter/getThresholdData',
+            toolbar: '#toolbar',
+            singleSelect: true,
+            pagination: true,
+            maxHeight: 600,
+            pageIndex:1,//页索引
+            pageList: [10, 20, 50, 100],
+            pageSize: 10,
+            queryParams: {
+                indicators: $('#indicators').combobox('getValue'),
+                business_type: $('#business_type').combobox('getValue')
+            },
+            columns: [[
+                {field: "index_name", title: "监测器指标名称", width: 250},
+                {
+                    field: "business_type", title: "业务类型", width: 200, align: 'center',
+                    formatter: function (value) {
+                        if (value == 'devOps') {
+                            return '运维';
+                        } else if (value == 'network') {
+                            return "网络";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                {
+                    field: "data_type", title: "数据类型", width: 200, align: 'center',
+                    formatter: function (value) {
+                        if (value == '1') {
+                            return '业务数据';
+                        } else if (value == '2') {
+                            return "告警数据";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                {field: "resource_name", title: "资源名称", width: 250},
+                {field: "threshold_parameter", title: "阈值设置", width: 450},
+                {field: "description", title: "说明", width: 450},
+                {
+                    field: "操作", title: "操作", width: 180, align: 'center',
+                    formatter: function (value, row, index) {
+                        return "<a href='javascript:void(0)' class='tableButton' onclick='openDialogPage(1," + JSON.stringify(row) + ")'>编辑</a>&nbsp; &nbsp;<a href='javascript:void(0)' class='tableButton' onclick='delThreshold(" + JSON.stringify(row) + ")'>删除</a>"
+                    }
+                }
+            ]]
+        });
+    }
+
+    //新增、编辑页面
+    function openDialogPage(flag, rows) {
+        $('<div id="viewData"></div>').dialog({
+            width: '40%',
+            height: 500,
+            modal: true,
+            title: '0' == flag ? '新增' : '编辑',
+            closed: false,
+            cache: false,
+            href: '/statisticalAnalysis/static/html/ParameterMaintenance/thresholdParameterView.html',
+            onClose: function () {
+                $('#viewData').dialog('destroy');
+            },
+            buttons: [
+                {
+                    text: '取消',
+                    handler: function () {
+                        $("#viewData").dialog("destroy");
+                    }
+                }
+                , {
+                    id: 'saveBtn',
+                    text: '确定',
+                    handler: function () {
+                        saveData(flag, rows);
+                    }
+                }
+            ]
+        });
+        if (flag == '1') { //编辑回显数据
+            var resource_id = rows.resource;
+            $('#viewData').dialog({
+                onLoad: function (){
+                    setTimeout(function () {
+                        if (rows) {
+                            $('#indicators_view').combobox('setValue', rows.index_id);
+                            $('#business_type_view').combobox('setValue', rows.business_type);
+                            $('#data_type_view').combobox('setValue', rows.data_type);
+                            $('#threshold_type_view').combobox('setValue', rows.threshold_type);
+                            $('#operator_view').combobox('setValue', rows.operator);
+                            $('#operator_value_view').textbox('setValue', rows.operator_value);
+                            $('#description_view').textbox('setValue', rows.description);
+                            $('#resources_view').combobox('setValue', rows.resource);
+                            $('#resource_init').textbox('setValue', rows.resource);
+                            $('#resource_init').textbox('setValue', rows.resource);
+                        }
+                    },500);
+                }
+            });
+        }
+    }
+
+    //删除
+    function delThreshold(rows) {
+        var param = {
+            ID: rows.id,
+            userName: localStorage.userName
+        };
+        $.messager.confirm('提示', '你确定要删除吗?', function () {
+            $.ajax({
+                type: 'post',
+                url: './statisticalAnalysis/forecastThresholdParameter/deleteThresholdData',
+                data: param,
+                dataType: "json",
+                beforeSend: ajaxLoading,
+                success: function (result) {
+                    ajaxLoadEnd();
+                    $.messager.alert('提示', result.msg, 'info', function () {
+                        $('#viewData').dialog('destroy');
+                        $('#tableData').datagrid('load');
+                    });
+                }
+            });
+        })
+    }
+
+    //重置
+    function resetData() {
+        $("#indicators").textbox("setValue", "");
+        $("#business_type").combobox("setValue", "");
+        queryData();
+    }
+
+    //开启loadding
+    function ajaxLoading() {
+        $("<div class=\"datagrid-mask\"></div>").css({
+            display: "block",
+            width: "100%",
+            height: $(window).height(),
+            'z-index': 99999
+        }).appendTo("body");
+        $("<div class=\"datagrid-mask-msg\"></div>").html("正在处理，请稍候。。。").appendTo("body").css({
+            display: "block",
+            left: ($(document.body).outerWidth(true) - 190) / 2,
+            top: ($(window).height() - 45) / 2,
+            'z-index': 999999
+        });
+    }
+
+    //关闭loadding
+    function ajaxLoadEnd() {
+        $(".datagrid-mask").remove();
+        $(".datagrid-mask-msg").remove();
+    }
+
+    var xhrOnProgress = function (fun) {
+        xhrOnProgress.onprogress = fun; //绑定监听
+        //使用闭包实现监听绑
+        return function () {
+            //通过$.ajaxSettings.xhr();获得XMLHttpRequest对象
+            var xhr = $.ajaxSettings.xhr();
+            //判断监听函数是否为函数
+            if (typeof xhrOnProgress.onprogress !== 'function')
+                return xhr;
+            //如果有监听函数并且xhr对象支持绑定时就把监听函数绑定上去
+            if (xhrOnProgress.onprogress && xhr.upload) {
+                xhr.upload.onprogress = xhrOnProgress.onprogress;
+            }
+            return xhr;
+        }
+    }
+</script>

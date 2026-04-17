@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionPostSVTaskMapper">
+
+
+    <select id="getInspectionTaskPage" resultType="java.util.HashMap">
+        SELECT
+        a.*,
+        (
+        SELECT
+        t.guoku_dscr
+        FROM
+        dmcode.cm_guoku_dimnsn t
+        WHERE
+        a.INSPECTED_GUOKU_ID = t.guoku_id
+        ) AS INSPECTED_GUOKU_DSCR,
+        (
+        SELECT
+        c.ENUM_DSCR
+        FROM
+        `enumset`.`cm_guoku_enumeration` c
+        WHERE
+        c.ENUM_TYPE_ID = '12'
+        AND c.ENUM_ID = a.INSPECTION_TASK_TYPE
+        ) AS INSPECTION_TASK_TYPE_DSCR,
+        (
+        SELECT
+        c.ENUM_DSCR
+        FROM
+        `enumset`.`cm_guoku_enumeration` c
+        WHERE
+        c.ENUM_TYPE_ID = '13'
+        AND c.ENUM_ID = a.INSPECTION_TASK_STATE
+        ) AS IINSPECTION_TASK_STATE_DSCR,
+        a.IS_LOCK_GROUP AS IS_LOCK,
+        a.INSPECTION_TASK_BEGINTIME  AS TASK_TIME
+        FROM
+        inspection.`inspection_task_postsv` a
+        WHERE
+        1 = 1
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID != ''">
+            AND a.INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        </if>
+        <if test="params.INSPECTION_TASK_YEAR!=null and params.INSPECTION_TASK_YEAR!='' ">
+            AND a.INSPECTION_TASK_YEAR = #{params.INSPECTION_TASK_YEAR}
+        </if>
+        <if test="params.INSPECTION_TASK_TYPE!=null and params.INSPECTION_TASK_TYPE!='' ">
+            AND a.INSPECTION_TASK_TYPE = #{params.INSPECTION_TASK_TYPE}
+        </if>
+        <if test="params.INSPECTION_TASK_NAME!=null and params.INSPECTION_TASK_NAME!='' ">
+            AND a.INSPECTION_TASK_NAME like '%${params.INSPECTION_TASK_NAME}%'
+        </if>
+        <if test="params.INSPECTION_GUOKU!=null and params.INSPECTION_GUOKU!='' ">
+            AND a.INSPECTION_GUOKU = #{params.INSPECTION_GUOKU}
+        </if>
+        <if test='params.guoku_id == "2400000000" '>
+            <if test="params.INSPECTED_GUOKU_ID!=null and params.INSPECTED_GUOKU_ID!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.INSPECTED_GUOKU_ID}
+            </if>
+        </if>
+        <if test='params.guoku_id != "2400000000" '>
+            <if test="params.guoku_id!=null and params.guoku_id!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.guoku_id}
+            </if>
+        </if>
+        <if test="params.INSPECTION_TASK_STATE!=null and params.INSPECTION_TASK_STATE!='' ">
+            AND a.INSPECTION_TASK_STATE = #{params.INSPECTION_TASK_STATE}
+        </if>
+        <if test="params.INSPECTION_TASK_BEGINTIME!=null and params.INSPECTION_TASK_BEGINTIME!='' ">
+            AND a.INSPECTION_TASK_BEGINTIME <![CDATA[>=]]> #{params.INSPECTION_TASK_BEGINTIME}
+        </if>
+        <if test="params.INSPECTION_TASK_ENDTIME!=null and params.INSPECTION_TASK_ENDTIME!='' ">
+            AND a.INSPECTION_TASK_BEGINTIME <![CDATA[<=]]> #{params.INSPECTION_TASK_ENDTIME}
+        </if>
+        <if test="params.INSPECTION_PLAN_ID!=null and params.INSPECTION_PLAN_ID!='' ">
+            AND a.INSPECTION_PLAN_ID = #{params.INSPECTION_PLAN_ID}
+        </if>
+        <if test="params.IS_LOCK_MAIN!=null and params.IS_LOCK_MAIN!='' ">
+            AND a.IS_LOCK_MAIN = #{params.IS_LOCK_MAIN}
+        </if>
+        <if test="params.IS_LOCK_GROUP!=null and params.IS_LOCK_GROUP!='' ">
+            AND a.IS_LOCK_GROUP = #{params.IS_LOCK_GROUP}
+        </if>
+        <if test="params.BOOKORG_ID!=null and params.BOOKORG_ID!='' ">
+            AND a.BOOKORG_ID = #{params.BOOKORG_ID}
+        </if>
+        <if test="params.BOOKORG_DSCR!=null and params.BOOKORG_DSCR!='' ">
+            AND a.BOOKORG_DSCR like '%${params.BOOKORG_DSCR}%'
+        </if>
+        <if test="params.CHECK_ORG!=null and params.CHECK_ORG!='' ">
+            AND a.CHECK_ORG = #{params.CHECK_ORG}
+        </if>
+        <if test="params.CHECK_ORG_DSCR!=null and params.CHECK_ORG_DSCR!='' ">
+            AND a.CHECK_ORG_DSCR like '%${params.CHECK_ORG_DSCR}%'
+        </if>
+        <if test="params.CHECKED_ORG!=null and params.CHECKED_ORG!='' ">
+            AND a.CHECKED_ORG = #{params.CHECKED_ORG}
+        </if>
+        <if test="params.CHECKED_ORG_DSCR!=null and params.CHECKED_ORG_DSCR!='' ">
+            AND a.CHECKED_ORG_DSCR like '%${params.CHECKED_ORG_DSCR}%'
+        </if>
+        order by CAST(a.CREATE_TIME AS DATE) DESC
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="getInspectionTaskData" resultType="java.util.Map">
+        SELECT
+        a.*,
+        (
+        SELECT
+        t.guoku_dscr
+        FROM
+        dmcode.cm_guoku_dimnsn t
+        WHERE
+        a.INSPECTED_GUOKU_ID = t.guoku_id
+        ) AS INSPECTED_GUOKU_DSCR,
+        (
+        SELECT
+        c.ENUM_DSCR
+        FROM
+        `enumset`.`cm_guoku_enumeration` c
+        WHERE
+        c.ENUM_TYPE_ID = '12'
+        AND c.ENUM_ID = a.INSPECTION_TASK_TYPE
+        ) AS INSPECTION_TASK_TYPE_DSCR,
+        (
+        SELECT
+        c.ENUM_DSCR
+        FROM
+        `enumset`.`cm_guoku_enumeration` c
+        WHERE
+        c.ENUM_TYPE_ID = '13'
+        AND c.ENUM_ID = a.INSPECTION_TASK_STATE
+        ) AS IINSPECTION_TASK_STATE_DSCR,
+        a.IS_LOCK_GROUP AS IS_LOCK,
+        a.INSPECTION_TASK_BEGINTIME  AS TASK_TIME
+        FROM
+        inspection.`inspection_task_postsv` a
+        WHERE
+        1 = 1
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID != ''">
+            AND a.INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        </if>
+        <if test="params.INSPECTION_TASK_YEAR!=null and params.INSPECTION_TASK_YEAR!='' ">
+            AND a.INSPECTION_TASK_YEAR = #{params.INSPECTION_TASK_YEAR}
+        </if>
+        <if test="params.INSPECTION_TASK_TYPE!=null and params.INSPECTION_TASK_TYPE!='' ">
+            AND a.INSPECTION_TASK_TYPE = #{params.INSPECTION_TASK_TYPE}
+        </if>
+        <if test="params.INSPECTION_TASK_NAME!=null and params.INSPECTION_TASK_NAME!='' ">
+            AND a.INSPECTION_TASK_NAME like '%${params.INSPECTION_TASK_NAME}%'
+        </if>
+        <if test="params.INSPECTION_GUOKU!=null and params.INSPECTION_GUOKU!='' ">
+            AND a.INSPECTION_GUOKU = #{params.INSPECTION_GUOKU}
+        </if>
+        <if test='params.guoku_id == "2400000000" '>
+            <if test="params.INSPECTED_GUOKU_ID!=null and params.INSPECTED_GUOKU_ID!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.INSPECTED_GUOKU_ID}
+            </if>
+        </if>
+        <if test='params.guoku_id != "2400000000" '>
+            <if test="params.guoku_id!=null and params.guoku_id!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.guoku_id}
+            </if>
+        </if>
+        <if test="params.INSPECTION_TASK_STATE!=null and params.INSPECTION_TASK_STATE!='' ">
+            AND a.INSPECTION_TASK_STATE = #{params.INSPECTION_TASK_STATE}
+        </if>
+        <if test="params.INSPECTION_TASK_BEGINTIME!=null and params.INSPECTION_TASK_BEGINTIME!='' ">
+            AND a.INSPECTION_TASK_BEGINTIME <![CDATA[>=]]> #{params.INSPECTION_TASK_BEGINTIME}
+        </if>
+        <if test="params.INSPECTION_TASK_ENDTIME!=null and params.INSPECTION_TASK_ENDTIME!='' ">
+            AND a.INSPECTION_TASK_BEGINTIME <![CDATA[<=]]> #{params.INSPECTION_TASK_ENDTIME}
+        </if>
+        <if test="params.INSPECTION_PLAN_ID!=null and params.INSPECTION_PLAN_ID!='' ">
+            AND a.INSPECTION_PLAN_ID = #{params.INSPECTION_PLAN_ID}
+        </if>
+        <if test="params.IS_LOCK_MAIN!=null and params.IS_LOCK_MAIN!='' ">
+            AND a.IS_LOCK_MAIN = #{params.IS_LOCK_MAIN}
+        </if>
+        <if test="params.IS_LOCK_GROUP!=null and params.IS_LOCK_GROUP!='' ">
+            AND a.IS_LOCK_GROUP = #{params.IS_LOCK_GROUP}
+        </if>
+        <if test="params.IS_FINISH!=null and params.IS_FINISH!='' ">
+            AND a.IS_FINISH = #{params.IS_FINISH}
+        </if>
+        <if test="params.CHECK_ORG!=null and params.CHECK_ORG!='' ">
+            AND a.CHECK_ORG = #{params.CHECK_ORG}
+        </if>
+        <if test="params.CHECK_ORG_DSCR!=null and params.CHECK_ORG_DSCR!='' ">
+            AND a.CHECK_ORG_DSCR like '%${params.CHECK_ORG_DSCR}%'
+        </if>
+        <if test="params.CHECKED_ORG!=null and params.CHECKED_ORG!='' ">
+            AND a.CHECKED_ORG = #{params.CHECKED_ORG}
+        </if>
+        <if test="params.CHECKED_ORG_DSCR!=null and params.CHECKED_ORG_DSCR!='' ">
+            AND a.CHECKED_ORG_DSCR like '%${params.CHECKED_ORG_DSCR}%'
+        </if>
+        order by a.CREATE_TIME DESC
+    </select>
+
+    <select id="getInspectionTaskCount" resultType="java.lang.Integer">
+        SELECT
+        count(1)
+        FROM
+        inspection.`inspection_task_postsv` a
+        WHERE
+        1 = 1
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID != ''">
+            AND a.INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        </if>
+        <if test="params.INSPECTION_TASK_YEAR!=null and params.INSPECTION_TASK_YEAR!='' ">
+            AND a.INSPECTION_TASK_YEAR = #{params.INSPECTION_TASK_YEAR}
+        </if>
+        <if test="params.INSPECTION_TASK_TYPE!=null and params.INSPECTION_TASK_TYPE!='' ">
+            AND a.INSPECTION_TASK_TYPE = #{params.INSPECTION_TASK_TYPE}
+        </if>
+        <if test="params.INSPECTION_TASK_NAME!=null and params.INSPECTION_TASK_NAME!='' ">
+            AND a.INSPECTION_TASK_NAME like '%${params.INSPECTION_TASK_NAME}%'
+        </if>
+        <if test="params.INSPECTION_GUOKU!=null and params.INSPECTION_GUOKU!='' ">
+            AND a.INSPECTION_GUOKU = #{params.INSPECTION_GUOKU}
+        </if>
+        <if test='params.guoku_id == "2400000000" '>
+            <if test="params.INSPECTED_GUOKU_ID!=null and params.INSPECTED_GUOKU_ID!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.INSPECTED_GUOKU_ID}
+            </if>
+        </if>
+        <if test='params.guoku_id != "2400000000" '>
+            <if test="params.guoku_id!=null and params.guoku_id!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.guoku_id}
+            </if>
+        </if>
+        <if test="params.INSPECTION_TASK_STATE!=null and params.INSPECTION_TASK_STATE!='' ">
+            AND a.INSPECTION_TASK_STATE = #{params.INSPECTION_TASK_STATE}
+        </if>
+        <if test="params.INSPECTION_TASK_BEGINTIME!=null and params.INSPECTION_TASK_BEGINTIME!='' ">
+            AND a.INSPECTION_TASK_BEGINTIME <![CDATA[>=]]> #{params.INSPECTION_TASK_BEGINTIME}
+        </if>
+        <if test="params.INSPECTION_TASK_ENDTIME!=null and params.INSPECTION_TASK_ENDTIME!='' ">
+            AND a.INSPECTION_TASK_BEGINTIME <![CDATA[<=]]> #{params.INSPECTION_TASK_ENDTIME}
+        </if>
+        <if test="params.INSPECTION_PLAN_ID!=null and params.INSPECTION_PLAN_ID!='' ">
+            AND a.INSPECTION_PLAN_ID = #{params.INSPECTION_PLAN_ID}
+        </if>
+        <if test="params.IS_LOCK_MAIN!=null and params.IS_LOCK_MAIN!='' ">
+            AND a.IS_LOCK_MAIN = #{params.IS_LOCK_MAIN}
+        </if>
+        <if test="params.IS_LOCK_GROUP!=null and params.IS_LOCK_GROUP!='' ">
+            AND a.IS_LOCK_GROUP = #{params.IS_LOCK_GROUP}
+        </if>
+        <if test="params.IS_FINISH!=null and params.IS_FINISH!='' ">
+            AND a.IS_FINISH = #{params.IS_FINISH}
+        </if>
+        <if test="params.CHECK_ORG!=null and params.CHECK_ORG!='' ">
+            AND a.CHECK_ORG = #{params.CHECK_ORG}
+        </if>
+        <if test="params.CHECK_ORG_DSCR!=null and params.CHECK_ORG_DSCR!='' ">
+            AND a.CHECK_ORG_DSCR like '%${params.CHECK_ORG_DSCR}%'
+        </if>
+        <if test="params.CHECKED_ORG!=null and params.CHECKED_ORG!='' ">
+            AND a.CHECKED_ORG = #{params.CHECKED_ORG}
+        </if>
+        <if test="params.CHECKED_ORG_DSCR!=null and params.CHECKED_ORG_DSCR!='' ">
+            AND a.CHECKED_ORG_DSCR like '%${params.CHECKED_ORG_DSCR}%'
+        </if>
+    </select>
+
+    <update id="editInspectionTask">
+        UPDATE inspection.inspection_task SET
+        <if test=" params.INSPECTION_TASK_YEAR != null and params.INSPECTION_TASK_YEAR != ''">
+            INSPECTION_TASK_YEAR = #{params.INSPECTION_TASK_YEAR},
+        </if>
+        <if test=" params.INSPECTION_TASK_TYPE != null and params.INSPECTION_TASK_TYPE != ''">
+            INSPECTION_TASK_TYPE = #{params.INSPECTION_TASK_TYPE},
+        </if>
+        <if test=" params.INSPECTION_TASK_NAME != null and params.INSPECTION_TASK_NAME != ''">
+            INSPECTION_TASK_NAME = #{params.INSPECTION_TASK_NAME},
+        </if>
+        <if test=" params.INSPECTION_TASK_BEGINTIME != null and params.INSPECTION_TASK_BEGINTIME != ''">
+            INSPECTION_TASK_BEGINTIME = #{params.INSPECTION_TASK_BEGINTIME},
+        </if>
+        <if test=" params.INSPECTION_TASK_ENDTIME != null and params.INSPECTION_TASK_ENDTIME != ''">
+            INSPECTION_TASK_ENDTIME = #{params.INSPECTION_TASK_ENDTIME},
+        </if>
+        <if test=" params.INSPECTION_GUOKU != null and params.INSPECTION_GUOKU != ''">
+            INSPECTION_GUOKU = #{params.INSPECTION_GUOKU},
+        </if>
+        <if test=" params.INSPECTED_GUOKU_ID != null and params.INSPECTED_GUOKU_ID != ''">
+            INSPECTED_GUOKU_ID = #{params.INSPECTED_GUOKU_ID},
+        </if>
+        <if test=" params.INSPECTION_TASK_STATE != null and params.INSPECTION_TASK_STATE != ''">
+            INSPECTION_TASK_STATE = #{params.INSPECTION_TASK_STATE},
+        </if>
+        <if test=" params.INSPECTION_PLAN_ID != null and params.INSPECTION_PLAN_ID != ''">
+            INSPECTION_PLAN_ID = #{params.INSPECTION_PLAN_ID},
+        </if>
+        <if test=" params.IS_LOCK_MAIN != null and params.IS_LOCK_MAIN != ''">
+            IS_LOCK_MAIN = #{params.IS_LOCK_MAIN},
+        </if>
+        <if test=" params.IS_LOCK_GROUP != null and params.IS_LOCK_GROUP != ''">
+            IS_LOCK_GROUP = #{params.IS_LOCK_GROUP},
+        </if>
+        <if test=" params.IS_FINISH != null and params.IS_FINISH != ''">
+            IS_FINISH = #{params.IS_FINISH},
+        </if>
+        <if test=" params.BOOKORG_ID != null and params.BOOKORG_ID != ''">
+            BOOKORG_ID = #{params.BOOKORG_ID},
+        </if>
+        <if test=" params.BOOKORG_DSCR != null and params.BOOKORG_DSCR != ''">
+            BOOKORG_DSCR = #{params.BOOKORG_DSCR},
+        </if>
+        <if test=" params.UPDATE_TIME != null and params.UPDATE_TIME != ''">
+            UPDATE_TIME = #{params.UPDATE_TIME},
+        </if>
+        INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        WHERE INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+    </update>
+
+    <update id="editTaskLock">
+        UPDATE inspection.inspection_task SET
+        <if test=" params.IS_LOCK_MAIN != null and params.IS_LOCK_MAIN != ''">
+            IS_LOCK_MAIN = #{params.IS_LOCK_MAIN},
+        </if>
+        <if test=" params.IS_LOCK_GROUP != null and params.IS_LOCK_GROUP != ''">
+            IS_LOCK_GROUP = #{params.IS_LOCK_GROUP},
+        </if>
+        <if test=" params.UPDATE_TIME != null and params.UPDATE_TIME != ''">
+            UPDATE_TIME = #{params.UPDATE_TIME},
+        </if>
+        INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        WHERE INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+    </update>
+
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        inspection.inspection_task a
+        WHERE
+        1 = 1
+        and a.INSPECTION_TASK_STATE = '1'
+        <if test=" params.INSPECTION_TASK_ID != null and params.INSPECTION_TASK_ID != '' ">
+            AND a.INSPECTION_TASK_ID != #{params.INSPECTION_TASK_ID}
+        </if>
+        <if test=" params.INSPECTION_TASK_NAME != null and params.INSPECTION_TASK_NAME != '' ">
+            AND a.INSPECTION_TASK_NAME = #{params.INSPECTION_TASK_NAME}
+        </if>
+    </select>
+
+    <delete id="delInspectionTask" >
+        DELETE
+        FROM
+        inspection.inspection_task
+        WHERE 1 = 1
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID != ''">
+            AND INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        </if>
+    </delete>
+
+    <select id="getGKbyBook" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        dmcode.cm_guoku_bookorg a
+        WHERE
+        1 = 1
+        <if test="params.bookorgcode !=null and params.bookorgcode != ''">
+            AND a.bookorgcode = #{params.bookorgcode}
+        </if>
+        <if test="params.guoku_id !=null and params.guoku_id != ''">
+            AND a.guoku_id = #{params.guoku_id}
+        </if>
+    </select>
+
+    <select id="getPeriod" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        inspection.inspection_routine_period a
+        WHERE
+        1 = 1
+        <if test="params.TYPE_ID !=null and params.TYPE_ID != ''">
+            AND a.TYPE_ID = #{params.TYPE_ID}
+        </if>
+        <if test="params.month !=null and params.month != ''">
+            AND (left(a.STAR_DATE,2) <![CDATA[>=]]> #{params.month} or #{params.month} <![CDATA[<=]]> left(a.END_DATE,2))
+        </if>
+        order by  cast(a.PERIOD_CODE as SIGNED)
+    </select>
+
+</mapper>

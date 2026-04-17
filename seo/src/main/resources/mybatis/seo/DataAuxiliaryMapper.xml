@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.seo.dao.mapper.DataAuxiliaryMapper">
+
+    <!--    获取数据表一级分类下拉选-->
+    <select id="getFirstClassifySelection" resultType="hashmap">
+        SELECT a.id  AS id,a.depart_name AS name FROM `jeecg-boot-os`.sys_depart a WHERE org_type = '1'
+    </select>
+
+
+    <!--    获取数据表二级分类下拉选-->
+    <select id="getSecondClassifySelection" resultType="hashmap">
+        SELECT
+            DISTINCT
+            r.SECOND_CLASSIFY id,
+            r.SECOND_CLASSIFY name
+        FROM
+            edw.`fm_trs_guoku_base_table` r
+        WHERE
+            r.FIRST_CLASSIFY = #{params.FIRST_CLASSIFY}
+        and r.SECOND_CLASSIFY is not null
+    </select>
+
+    <!--    获取数据配置的数据源下拉选-->
+    <select id="getDataSourceSelection" resultType="hashmap">
+        SELECT a.ID AS id,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS name FROM seo.`seo_datasource` a
+    </select>
+
+    <!--    根据数据源查询数据源下的数据库下拉选-->
+    <select id="getDataBaseSelection" resultType="hashmap">
+        SELECT b.ID AS id,b.DBNAME AS name FROM seo.`seo_datasource_database` b
+        WHERE b.SOURCE_ID = #{params.SOURCE_ID} AND b.STATE = '0'
+    </select>
+
+    <!--    根据数据源和数据库查询数据库下的数据表下拉选-->
+    <select id="getDataTableSelection" resultType="hashmap">
+        <!--  数据库类型为Mysql，用Mysql数据库的查询方法 -->
+        <if test="params.BASE_TYPE == 'Mysql'">
+            SELECT TABLE_NAME AS id,TABLE_NAME AS name FROM information_schema.TABLES WHERE TABLE_SCHEMA = #{params.DATABASE}
+        </if>
+        <!--  数据库类型为DB2，用DB2数据库的查询方法 -->
+        <if test="params.BASE_TYPE == 'DB2'">
+            SELECT TABNAME AS id,TABNAME AS name FROM SYSCAT.TABLES WHERE TABSCHEMA = #{params.DATABASE}
+        </if>
+        <!--  数据库类型为Clickhouse，用Clickhouse数据库的查询方法 -->
+        <if test="params.BASE_TYPE == 'Clickhouse'">
+            SELECT name AS id,name AS name FROM system.tables WHERE database = #{params.DATABASE}
+        </if>
+    </select>
+
+    <!--    根据选择的数据表据查询该数据表/字段注释-->
+    <select id="getDataTableComments" resultType="hashmap">
+        <!--  数据库类型为Mysql，用Mysql数据库的查询方法 -->
+        <if test="params.BASE_TYPE == 'Mysql'">
+            SELECT TABLE_NAME AS columnName,TABLE_COMMENT AS columnComment FROM information_schema.TABLES WHERE
+            TABLE_SCHEMA = #{params.DATABASE} AND TABLE_NAME = #{params.TABLE_SIGN}
+            UNION
+            SELECT
+            COLUMN_NAME AS columnName,
+            CASE COLUMN_COMMENT
+            WHEN NULL THEN
+            COLUMN_NAME
+            WHEN '' THEN
+            COLUMN_NAME
+            ELSE
+            COLUMN_COMMENT
+            END AS columnComment
+            FROM
+            information_schema.COLUMNS WHERE
+            TABLE_SCHEMA = #{params.DATABASE} AND TABLE_NAME = #{params.TABLE_SIGN}
+        </if>
+        <!--  数据库类型为DB2，用DB2数据库的查询方法 -->
+        <if test="params.BASE_TYPE == 'DB2'">
+            SELECT TABNAME AS columnName,REMARKS AS columnComment FROM SYSCAT.TABLES WHERE TABSCHEMA = #{params.DATABASE} AND TABNAME = #{params.TABLE_SIGN}
+            UNION
+            SELECT
+            COLNAME AS columnName,
+            WHEN REMARKS IS NULL THEN
+            COLNAME
+            WHEN REMARKS = '' THEN
+            COLNAME
+            ELSE
+            REMARKS
+            END AS columnComment
+            FROM
+            SYSCAT. COLUMNS WHERE TABSCHEMA = #{params.DATABASE} AND TABNAME = #{params.TABLE_SIGN}
+        </if>
+        <!--  数据库类型为Clickhouse，用Clickhouse数据库的查询方法 -->
+        <if test="params.BASE_TYPE == 'Clickhouse'">
+            SELECT name AS columnName,'' AS columnComment FROM system.tables WHERE database = #{params.DATABASE} AND name = #{params.TABLE_SIGN}
+            UNION ALL
+            SELECT
+            name AS columnName,
+            CASE
+            WHEN default_expression IS NULL THEN
+            columnName
+            WHEN default_expression = '' THEN
+            columnName
+            ELSE
+            default_expression end AS columnComment
+            FROM
+            system.columns WHERE database = #{params.DATABASE} AND table = #{params.TABLE_SIGN}
+        </if>
+    </select>
+
+    <!--    根据数据源主键查询数据源的信息-->
+    <select id="getDataSourceInfo" resultType="hashmap">
+            SELECT a.ID AS SOURE_ID,b.ID as DATABASE_ID,a.TYPE,b.DBNAME
+            FROM seo.`seo_datasource` a
+            LEFT JOIN seo.`seo_datasource_database` b ON a.ID = b.SOURCE_ID AND b.ID = #{params.DATABASE_ID}
+            WHERE a.ID = #{params.SOURCE_ID}
+    </select>
+
+</mapper>

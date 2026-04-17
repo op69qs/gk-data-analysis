@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionSupplementMapper">
+    <!-- author: Samer -->
+
+    <!-- 获取检查记录 -->
+    <select id="getSupplementLedgerInfo" resultType="java.util.Map">
+        SELECT
+        a.`LEDGER_ID`,
+        a.QUESTION_ID_1,
+        a.QUESTION_DSCR_1,
+        a.QUESTION_ID_2,
+        a.QUESTION_DSCR_2,
+        a.QUESTION_ID_2,
+        a.QUESTION_DSCR_2,
+        a.QUESTION_ID,
+        a.QUESTION_DSCR,
+        a.`QUESTION_CONTENT`,
+        b.`RULE_FILE_NO`,
+        CONCAT('《', b.`RULE_FILE_NAME`, '》') AS RULE_FILE_NAME,
+        b.`RULE_FILE_CONTENT` AS concent,
+        a.IS_REFORM,
+        CASE WHEN a.IS_REFORM = '0' THEN '已整改'
+        WHEN a.IS_REFORM = '1' THEN '整改中'
+        WHEN a.IS_REFORM = '2' THEN '未整改'
+        END AS IS_REFORM_DSCR,
+        a.REFORM_SCHEME,
+        a.FINISH_DATE,
+        CONCAT(a.QUESTION_CONTENT) AS IS_MERGE
+        FROM
+        `inspection`.`inspection_supplement_ledger` a
+        LEFT JOIN
+        `inspection`.`inspection_supplement_ledger_rule`  b
+        ON a.`LEDGER_ID` = b.`LEDGER_ID`
+        WHERE
+            1=1
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.TASK_ID =#{params.TASK_ID}
+        </if>
+        <if test=' params.QUESTION_CONTENT != null and params.QUESTION_CONTENT != "" '>
+            AND a.QUESTION_CONTENT LIKE '%${params.QUESTION_CONTENT}%'
+        </if>
+        <if test=' params.RULE_FILE_CONTENT != null and params.RULE_FILE_CONTENT != "" '>
+            AND b.`RULE_FILE_CONTENT` LIKE '%${params.RULE_FILE_CONTENT}%'
+        </if>
+        <if test=' params.IS_REFORM != null and params.IS_REFORM != "" '>
+            AND a.`IS_REFORM` IN (${params.IS_REFORM})
+        </if>
+        ORDER BY a.`QUESTION_CONTENT`,a.ADD_DATE
+    </select>
+
+    <!-- 编辑检查补录信息 -->
+    <update id="editSupplementTask">
+        UPDATE
+        `inspection`.`inspection_supplement_task`
+        SET
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            TASK_ID = #{params.TASK_ID},
+        </if>
+        <if test=' params.TASK_NAME != null and params.TASK_NAME != "" '>
+            TASK_NAME = #{params.TASK_NAME},
+        </if>
+        <if test=' params.TASK_TYPE != null and params.TASK_TYPE != "" '>
+            TASK_TYPE = #{params.TASK_TYPE},
+        </if>
+        <if test=' params.TASK_DSCR != null and params.TASK_DSCR != "" '>
+            TASK_DSCR = #{params.TASK_DSCR},
+        </if>
+        <if test=' params.TASK_YEAR != null and params.TASK_YEAR != "" '>
+            TASK_YEAR = #{params.TASK_YEAR},
+        </if>
+        <if test=' params.START_DATE != null and params.START_DATE != "" '>
+            START_DATE = #{params.START_DATE},
+        </if>
+        <if test=' params.END_DATE != null and params.END_DATE != "" '>
+            END_DATE = #{params.END_DATE},
+        </if>
+        <if test=' params.CHECK_ORG != null and params.CHECK_ORG != "" '>
+            CHECK_ORG = #{params.CHECK_ORG},
+        </if>
+        <if test=' params.CHECK_ORG_DSCR != null and params.CHECK_ORG_DSCR != "" '>
+            CHECK_ORG_DSCR = #{params.CHECK_ORG_DSCR},
+        </if>
+        <if test=' params.OTHER_ORG_DSCR != null and params.OTHER_ORG_DSCR != "" '>
+            OTHER_ORG_DSCR = #{params.OTHER_ORG_DSCR},
+        </if>
+        <if test=' params.ADD_DATE != null and params.ADD_DATE != "" '>
+            ADD_DATE = #{params.ADD_DATE},
+        </if>
+        <if test=' params.ADD_USERID != null and params.ADD_USERID != "" '>
+            ADD_USERID = #{params.ADD_USERID},
+        </if>
+        <if test=' params.MODIFY_DATE != null and params.MODIFY_DATE != "" '>
+            MODIFY_DATE = #{params.MODIFY_DATE},
+        </if>
+        <if test=' params.MODIFY_USERID != null and params.MODIFY_USERID != "" '>
+            MODIFY_USERID = #{params.MODIFY_USERID},
+        </if>
+        TASK_ID = #{params.TASK_ID}
+        WHERE
+        TASK_ID = #{params.TASK_ID}
+    </update>
+
+
+    <!-- 获取检查补录任务信息 -->
+    <select id="getSupplementTask" resultType="java.util.Map">
+        SELECT
+        a.*,
+        CONCAT(
+        DATE_FORMAT(a.START_DATE,'%m-%d'),
+        '至' ,
+        DATE_FORMAT(a.END_DATE,'%m-%d')
+        ) AS EFFECTIVE_DATE
+        FROM
+        `inspection`.`inspection_supplement_task` a
+        WHERE
+        1=1
+        <if test=' params.TASK_YEAR != null and params.TASK_YEAR != "" '>
+            AND a.TASK_YEAR = #{params.TASK_YEAR}
+        </if>
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.TASK_ID =#{params.TASK_ID}
+        </if>
+        <if test=' params.TASK_NAME != null and params.TASK_NAME != "" '>
+            AND a.TASK_NAME LIKE '%${params.TASK_NAME}%'
+        </if>
+        <if test=' params.TASK_TYPE != null and params.TASK_TYPE != "" '>
+            AND a.TASK_TYPE = #{params.TASK_TYPE}
+        </if>
+        <if test=' params.page != null and params.page != "" and params.rows != null and params.rows != "" '>
+            LIMIT ${params.page},${params.rows}
+        </if>
+    </select>
+
+    <!-- 获取检查补录任务信息计数 -->
+    <select id="getSupplementTaskCount" resultType="int">
+        SELECT
+        COUNT(0)
+        FROM
+        `inspection`.`inspection_supplement_task` a
+        WHERE
+        1=1
+        <if test=' params.TASK_YEAR != null and params.TASK_YEAR != "" '>
+            AND a.TASK_YEAR = #{params.TASK_YEAR}
+        </if>
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.TASK_ID =#{params.TASK_ID}
+        </if>
+        <if test=' params.TASK_NAME != null and params.TASK_NAME != "" '>
+            AND a.TASK_NAME LIKE '%${params.TASK_NAME}%'
+        </if>
+        <if test=' params.TASK_TYPE != null and params.TASK_TYPE != "" '>
+            AND a.TASK_TYPE = #{params.TASK_TYPE}
+        </if>
+    </select>
+
+    <!-- 新增检查补录信息 -->
+    <insert id="addSupplementTask">
+        INSERT
+            `inspection`.`inspection_supplement_task`
+        VALUES (
+            #{params.TASK_ID},
+            #{params.TASK_NAME},
+            #{params.TASK_TYPE},
+            #{params.TASK_TYPE_DSCR},
+            #{params.TASK_YEAR},
+            #{params.START_DATE},
+            #{params.END_DATE},
+            #{params.CHECK_ORG},
+            #{params.CHECK_ORG_DSCR},
+            #{params.OTHER_ORG_DSCR},
+            #{params.ADD_DATE},
+            #{params.ADD_USERID},
+            #{params.MODIFY_DATE},
+            #{params.MODIFY_USERID}
+        )
+    </insert>
+
+    <!-- 删除检查补录信息 -->
+    <delete id="delSupplementTask">
+        DELETE FROM
+        `inspection`.`inspection_supplement_task`
+        WHERE
+            TASK_ID = #{params.TASK_ID}
+    </delete>
+
+    <!-- 新增检查补录台账 -->
+    <insert id="addSupplementLedger">
+        INSERT
+        `inspection`.`inspection_supplement_ledger`
+        VALUES (
+            #{params.LEDGER_ID},
+            #{params.TASK_ID},
+            #{params.QUESTION_ID_1},
+            #{params.QUESTION_DSCR_1},
+            #{params.QUESTION_ID_2},
+            #{params.QUESTION_DSCR_2},
+            #{params.QUESTION_ID_3},
+            #{params.QUESTION_DSCR_3},
+            #{params.QUESTION_ID},
+            #{params.QUESTION_DSCR},
+            #{params.QUESTION_CONTENT},
+            CASE
+            WHEN #{params.REFORM_SCHEME} IS NOT NULL AND #{params.REFORM_SCHEME} &lt;&gt; '' AND #{params.IS_FINISH} = '0' THEN '0'
+            WHEN #{params.REFORM_SCHEME} IS NOT NULL AND #{params.REFORM_SCHEME} &lt;&gt; '' AND #{params.IS_FINISH} = '1' THEN '1'
+            WHEN (#{params.REFORM_SCHEME} IS NULL OR #{params.REFORM_SCHEME} = '') AND #{params.IS_FINISH} = '1' THEN '2'
+            END,
+            #{params.REFORM_SCHEME},
+            #{params.IS_FINISH},
+            #{params.FINISH_DATE},
+            #{params.IS_DEL},
+            #{params.ADD_USERID},
+            #{params.ADD_DATE},
+            #{params.MODIFY_USERID},
+            #{params.MODIFY_DATE}
+        )
+    </insert>
+
+
+    <!-- 新增制度依据 -->
+    <insert id="addSupplementRule">
+        INSERT INTO
+        `inspection`.`inspection_supplement_ledger_rule`
+        VALUES (
+        #{params.LEDGER_ID},
+        #{params.RULE_FILE_NO},
+        #{params.RULE_FILE_NAME},
+        #{params.RULE_FILE_CONTENT},
+        #{params.SORT}
+        )
+    </insert>
+
+    <!--  根据问题台账ID编辑 -->
+    <update id="editSupplementLedgerById">
+        UPDATE
+        `inspection`.`inspection_supplement_ledger`
+        SET
+        <if test=' params.QUESTION_ID_1 != null and params.QUESTION_ID_1 != "" '>
+            QUESTION_ID_1 = #{params.QUESTION_ID_1},
+        </if>
+        <if test=' params.QUESTION_DSCR_1 != null and params.QUESTION_DSCR_1 != "" '>
+            QUESTION_DSCR_1 = #{params.QUESTION_DSCR_1},
+        </if>
+        <if test=' params.QUESTION_ID_2 != null and params.QUESTION_ID_2 != "" '>
+            QUESTION_ID_2 = #{params.QUESTION_ID_2},
+        </if>
+        <if test=' params.QUESTION_DSCR_2 != null and params.QUESTION_DSCR_2 != "" '>
+            QUESTION_DSCR_2 = #{params.QUESTION_DSCR_2},
+        </if>
+        <if test=' params.QUESTION_ID_3 != null and params.QUESTION_ID_3 != "" '>
+            QUESTION_ID_3 = #{params.QUESTION_ID_3},
+        </if>
+        <if test=' params.QUESTION_DSCR_3 != null and params.QUESTION_DSCR_3 != "" '>
+            QUESTION_DSCR_3 = #{params.QUESTION_DSCR_3},
+        </if>
+        <if test=' params.QUESTION_ID != null and params.QUESTION_ID != "" '>
+            QUESTION_ID = #{params.QUESTION_ID},
+        </if>
+        <if test=' params.QUESTION_DSCR != null and params.QUESTION_DSCR != "" '>
+            QUESTION_DSCR = #{params.QUESTION_DSCR},
+        </if>
+        <if test=' params.QUESTION_CONTENT != null and params.QUESTION_CONTENT != "" '>
+            QUESTION_CONTENT = #{params.QUESTION_CONTENT},
+        </if>
+        <if test=' params.REFORM_SCHEME != null and params.REFORM_SCHEME != "" '>
+            REFORM_SCHEME = #{params.REFORM_SCHEME},
+        </if>
+        <if test=' params.IS_FINISH != null and params.IS_FINISH != "" '>
+            IS_FINISH = #{params.IS_FINISH},
+        </if>
+        <if test=' params.FINISH_DATE != null and params.FINISH_DATE != "" '>
+            FINISH_DATE = #{params.FINISH_DATE},
+        </if>
+        <if test=' params.MODIFY_USERID != null and params.MODIFY_USERID != "" '>
+            MODIFY_USERID = #{params.MODIFY_USERID},
+        </if>
+        <if test=' params.MODIFY_DATE != null and params.MODIFY_DATE != "" '>
+            MODIFY_DATE = #{params.MODIFY_DATE},
+        </if>
+        IS_REFORM = CASE
+        WHEN #{params.REFORM_SCHEME} IS NOT NULL AND #{params.REFORM_SCHEME} &lt;&gt; '' AND #{params.IS_FINISH} = '0' THEN '0'
+        WHEN #{params.REFORM_SCHEME} IS NOT NULL AND #{params.REFORM_SCHEME} &lt;&gt; '' AND #{params.IS_FINISH} = '1' THEN '1'
+        WHEN (#{params.REFORM_SCHEME} IS NULL OR #{params.REFORM_SCHEME} = '') AND #{params.IS_FINISH} = '1' THEN '2'
+        END,
+        LEDGER_ID = #{params.LEDGER_ID}
+        WHERE
+        LEDGER_ID = #{params.LEDGER_ID}
+    </update>
+
+    <!-- 根据台账ID删除 -->
+    <delete id="delSupplementLedgerById">
+        DELETE FROM `inspection`.`inspection_supplement_ledger`
+        WHERE LEDGER_ID = #{params.LEDGER_ID}
+    </delete>
+
+    <!-- 删除问题台账制度依据 -->
+    <delete id="delSupplementRule">
+        DELETE FROM `inspection`.`inspection_supplement_ledger_rule`
+        WHERE LEDGER_ID = #{params.LEDGER_ID}
+    </delete>
+
+</mapper>

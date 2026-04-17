@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.QuestionBankMapper">
+
+    <!-- 判断当前问题PID是否为顶级 -->
+    <select id="checkQuestionIDIsTop" resultType="java.util.HashMap">
+        SELECT
+            t.`QUESTION_ID`
+        FROM
+            `inspection`.`inspection_question_bank` t
+        WHERE
+            (t.QUESTION_PID IS NULL OR t.QUESTION_PID = '')
+            AND t.QUESTION_ID = #{params.QUESTION_PID}
+    </select>
+
+    <!-- 判断当前问题ID是否已添加“其他”三级 -->
+    <select id="checkAddOtherDscr" resultType="java.util.HashMap">
+        SELECT
+        t.`QUESTION_ID`
+        FROM
+        `inspection`.`inspection_question_bank` t
+        WHERE
+        t.QUESTION_PID = #{params.QUESTION_ID}
+        AND t.QUESTION_DSCR = '其他关注事项'
+    </select>
+
+    <select id="getQuestionBankPage" resultType="java.util.HashMap">
+        SELECT
+        ${params.column},d.QUESTION_DSCR as P_QUESTION_DSCR,a.APPROVAL_STATE,
+        a.SORT,
+        a.PATH AS path
+        FROM
+        inspection.inspection_question_bank a
+        LEFT JOIN inspection.inspection_question_bank d on a.QUESTION_PID = d.QUESTION_ID
+        LEFT JOIN inspection.inspection_question_rule_relation b on a.QUESTION_ID = b.QUESTION_ID
+        LEFT JOIN inspection.inspection_question_rule c on b.RULE_ID = c.RULE_ID
+        LEFT JOIN (SELECT
+        a.QUESTION_ID,
+        group_concat(e.ENUM_DSCR) as QUESTION_TYPE_DSCR,
+        group_concat(e.ENUM_ID) as QUESTION_TYPE
+        FROM
+        inspection.inspection_question_bank_type a,
+        enumset.cm_guoku_enumeration e
+        WHERE
+        e.ENUM_TYPE_ID IN(12, 21)
+        AND a.TYPE = e.ENUM_ID
+        <if test="params.QUESTION_TYPE!=null and params.QUESTION_TYPE!='' ">
+            AND a.TYPE = #{params.QUESTION_TYPE}
+        </if>
+        group by a.QUESTION_ID
+        )z on a.QUESTION_ID = z.QUESTION_ID
+        WHERE 1 = 1
+        and (a.QUESTION_PID is NULL or a.QUESTION_PID = '')
+        <if test="params.QUESTION_ID!=null and params.QUESTION_ID != ''">
+            AND a.QUESTION_ID = #{params.QUESTION_ID}
+        </if>
+        <if test="params.key_word!=null and params.key_word != ''">
+            AND a.QUESTION_DSCR like '%${params.key_word}%' or a.QUESTION_DETAILS LIKE '%${params.key_word}%'
+        </if>
+        <if test="params.isleaf!=null and params.isleaf!='' ">
+            AND a.isleaf = #{params.isleaf}
+        </if>
+        <if test="params.RULE_FILE_CONTENT!=null and params.RULE_FILE_CONTENT!='' ">
+            AND c.RULE_FILE_CONTENT like '%${params.RULE_FILE_CONTENT}%'
+        </if>
+        <if test="params.APPROVAL_STATE!=null and params.APPROVAL_STATE!='' ">
+            AND a.APPROVAL_STATE = #{params.APPROVAL_STATE}
+        </if>
+        order by a.SORT
+    </select>
+
+    <select id="getQuestionBankData" resultType="java.util.Map">
+        SELECT
+        DISTINCT  ${params.column},d.QUESTION_DSCR as P_QUESTION_DSCR,a.APPROVAL_STATE,
+        a.PATH AS path
+        FROM
+        inspection.inspection_question_bank a
+        JOIN inspection.inspection_question_bank d on a.QUESTION_PID = d.QUESTION_ID
+        left JOIN inspection.inspection_question_rule_relation b on a.QUESTION_ID = b.QUESTION_ID
+        left join inspection.inspection_question_rule c on b.RULE_ID = c.RULE_ID
+        LEFT JOIN (SELECT
+        a.QUESTION_ID,
+        group_concat(e.ENUM_DSCR) as QUESTION_TYPE_DSCR,
+        group_concat(e.ENUM_ID) as QUESTION_TYPE
+        FROM
+        inspection.inspection_question_bank_type a,
+        enumset.cm_guoku_enumeration e
+        WHERE
+        e.ENUM_TYPE_ID IN(12, 21)
+        AND a.TYPE = e.ENUM_ID
+        <if test="params.QUESTION_TYPE!=null and params.QUESTION_TYPE!='' ">
+            AND a.TYPE = #{params.QUESTION_TYPE}
+        </if>
+        group by a.QUESTION_ID
+        )z on a.QUESTION_ID = z.QUESTION_ID
+        WHERE 1 = 1
+        <if test="params.QUESTION_ID!=null and params.QUESTION_ID != ''">
+            AND a.QUESTION_ID = #{params.QUESTION_ID}
+        </if>
+        <if test="params.QUESTION_PID!=null and params.QUESTION_PID != ''">
+            AND a.QUESTION_PID  = #{params.QUESTION_PID}
+        </if>
+        <if test="params.key_word!=null and params.key_word != ''">
+            AND a.QUESTION_DSCR like '%${params.key_word}%' or a.QUESTION_DETAILS LIKE '%${params.key_word}%'
+        </if>
+        <if test="params.isleaf!=null and params.isleaf!='' ">
+            AND a.isleaf = #{params.isleaf}
+        </if>
+        <if test="params.QUESTION_TYPE!=null and params.QUESTION_TYPE!='' ">
+            AND (a.QUESTION_TYPE = #{params.QUESTION_TYPE} or a.QUESTION_TYPE = '' or a.QUESTION_TYPE is NULL)
+        </if>
+        <if test="params.RULE_FILE_CONTENT!=null and params.RULE_FILE_CONTENT!='' ">
+            AND c.RULE_FILE_CONTENT like '%${params.RULE_FILE_CONTENT}%'
+        </if>
+        <if test="params.parentId!=null and params.parentId != ''">
+            AND a.QUESTION_PID  = #{params.parentId}
+        </if>
+        <if test="params.APPROVAL_STATE!=null and params.APPROVAL_STATE!='' ">
+            AND a.APPROVAL_STATE = #{params.APPROVAL_STATE}
+        </if>
+        order by a.SORT
+    </select>
+
+    <select id="getQuestionBankCount" resultType="java.lang.Integer">
+        SELECT
+        count(1)
+        FROM
+        inspection.inspection_question_bank a left JOIN inspection.inspection_question_rule_relation b
+        on a.QUESTION_ID = b.QUESTION_ID left join inspection.inspection_question_rule c on b.RULE_ID = c.RULE_ID
+        LEFT JOIN (SELECT
+        a.QUESTION_ID,
+        group_concat(e.ENUM_DSCR) as QUESTION_TYPE_DSCR,
+        group_concat(e.ENUM_ID) as QUESTION_TYPE
+        FROM
+        inspection.inspection_question_bank_type a,
+        enumset.cm_guoku_enumeration e
+        WHERE
+        e.ENUM_TYPE_ID IN(12, 21)
+        AND a.TYPE = e.ENUM_ID
+        <if test="params.QUESTION_TYPE!=null and params.QUESTION_TYPE!='' ">
+            AND a.TYPE = #{params.QUESTION_TYPE}
+        </if>
+        group by a.QUESTION_ID
+        )z on a.QUESTION_ID = z.QUESTION_ID
+        WHERE 1 = 1
+        and (a.QUESTION_PID is NULL or a.QUESTION_PID = '')
+        <if test="params.QUESTION_ID!=null and params.QUESTION_ID != ''">
+            AND a.QUESTION_ID = #{params.QUESTION_ID}
+        </if>
+        <if test="params.key_word!=null and params.key_word != ''">
+            AND a.QUESTION_DSCR like '%${params.key_word}%' or a.QUESTION_DETAILS LIKE '%${params.key_word}%'
+        </if>
+        <if test="params.isleaf!=null and params.isleaf!='' ">
+            AND a.isleaf = #{params.isleaf}
+        </if>
+        <if test="params.QUESTION_TYPE!=null and params.QUESTION_TYPE!='' ">
+            AND (a.QUESTION_TYPE = #{params.QUESTION_TYPE} or a.QUESTION_TYPE = '' or a.QUESTION_TYPE is NULL)
+        </if>
+        <if test="params.RULE_FILE_CONTENT!=null and params.RULE_FILE_CONTENT!='' ">
+            AND c.RULE_FILE_CONTENT like '%${params.RULE_FILE_CONTENT}%'
+        </if>
+    </select>
+
+    <insert id="addQuestionBank" >
+        INSERT INTO inspection.inspection_question_bank
+        VALUES
+        (
+        #{params.QUESTION_ID},
+        #{params.QUESTION_DSCR},
+        #{params.QUESTION_PID},
+        #{params.PATH},
+        #{params.QUESTION_DETAILS},
+        #{params.QUESTION_QUALITATIVE},
+        #{params.QUESTION_OPINIONS},
+        #{params.QUESTION_SEVERITY},
+        #{params.QUESTION_RECTIFICATION_PLAN},
+        #{params.isleaf},
+        #{params.SORT},
+        #{params.SPARE1},
+        #{params.SPARE2},
+        #{params.SPARE3},
+        #{params.SPARE4},
+        #{params.SPARE5},
+        #{params.SPARE6},
+        #{params.SPARE7},
+        #{params.SPARE8},
+        #{params.SPARE9},
+        #{params.SPARE10},
+        '2',
+        #{params.ADD_USER},
+        #{params.ADD_TIME}
+        )
+    </insert>
+
+    <insert id="addQuestionRuleRelation" >
+        INSERT INTO inspection.inspection_question_rule_relation
+        VALUES
+        (
+        #{params.ID},
+        #{params.QUESTION_ID},
+        #{params.RULE_ID}
+        )
+    </insert>
+
+    <insert id="addQuestionType" >
+        INSERT INTO inspection.inspection_question_bank_type
+        VALUES
+        (
+        #{params.ID},
+        #{params.QUESTION_ID},
+        #{params.TYPE}
+        )
+    </insert>
+
+    <delete id="delQuestionType" >
+        DELETE
+        FROM
+        inspection.inspection_question_bank_type
+        WHERE 1 = 1
+        <if test="params.QUESTION_ID!=null and params.QUESTION_ID != ''">
+            AND QUESTION_ID = #{params.QUESTION_ID}
+        </if>
+        <if test="params.TYPE!=null and params.TYPE != ''">
+            AND TYPE  = #{params.TYPE}
+        </if>
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID  = #{params.ID}
+        </if>
+    </delete>
+
+    <delete id="delQuestionRuleRelation" >
+        DELETE
+        FROM
+        inspection.inspection_question_rule_relation
+        WHERE 1 = 1
+        <if test="params.QUESTION_ID!=null and params.QUESTION_ID != ''">
+            AND QUESTION_ID = #{params.QUESTION_ID}
+        </if>
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+    </delete>
+
+    <update id="editQuestionBank">
+        UPDATE inspection.inspection_question_bank SET
+        <if test=" params.QUESTION_DSCR != null and params.QUESTION_DSCR != ''">
+            QUESTION_DSCR = #{params.QUESTION_DSCR},
+        </if>
+        <if test=" params.QUESTION_PID != null and params.QUESTION_PID != ''">
+            QUESTION_PID = #{params.QUESTION_PID},
+        </if>
+        <if test=" params.PATH != null and params.PATH != ''">
+            PATH = #{params.PATH},
+        </if>
+        <if test=" params.QUESTION_DETAILS != null and params.QUESTION_DETAILS != ''">
+            QUESTION_DETAILS = #{params.QUESTION_DETAILS},
+        </if>
+        <if test=" params.QUESTION_QUALITATIVE != null and params.QUESTION_QUALITATIVE != ''">
+            QUESTION_QUALITATIVE = #{params.QUESTION_QUALITATIVE},
+        </if>
+        <if test=" params.QUESTION_OPINIONS != null and params.QUESTION_OPINIONS != ''">
+            QUESTION_OPINIONS = #{params.QUESTION_OPINIONS},
+        </if>
+        <if test=" params.isleaf != null and params.isleaf != ''">
+            isleaf = #{params.isleaf},
+        </if>
+        <if test=" params.SORT != null and params.SORT != ''">
+            SORT = #{params.SORT},
+        </if>
+        <if test=" params.QUESTION_SEVERITY != null and params.QUESTION_SEVERITY != ''">
+
+            QUESTION_SEVERITY = #{params.QUESTION_SEVERITY},
+        </if>
+        <if test=" params.QUESTION_RECTIFICATION_PLAN != null and params.QUESTION_RECTIFICATION_PLAN != ''">
+            QUESTION_RECTIFICATION_PLAN = #{params.QUESTION_RECTIFICATION_PLAN},
+        </if>
+        <if test=" params.SPARE1 != null and params.SPARE1 != ''">
+            SPARE1 = #{params.SPARE1},
+        </if>
+        <if test=" params.SPARE2 != null and params.SPARE2 != ''">
+            SPARE2 = #{params.SPARE2},
+        </if>
+        <if test=" params.SPARE3 != null and params.SPARE3 != ''">
+            SPARE3 = #{params.SPARE3},
+        </if>
+        <if test=" params.SPARE4 != null and params.SPARE4 != ''">
+            SPARE4 = #{params.SPARE4},
+        </if>
+        <if test=" params.SPARE5 != null and params.SPARE5 != ''">
+            SPARE5 = #{params.SPARE5},
+        </if>
+        <if test=" params.SPARE6 != null and params.SPARE6 != ''">
+            SPARE6 = #{params.SPARE6},
+        </if>
+        <if test=" params.SPARE7 != null and params.SPARE7 != ''">
+            SPARE7 = #{params.SPARE7},
+        </if>
+        <if test=" params.SPARE8 != null and params.SPARE8 != ''">
+            SPARE8 = #{params.SPARE8},
+        </if>
+        <if test=" params.SPARE9 != null and params.SPARE9 != ''">
+            SPARE9 = #{params.SPARE9},
+        </if>
+        <if test=" params.SPARE10 != null and params.SPARE10 != ''">
+            SPARE10 = #{params.SPARE10},
+        </if>
+        QUESTION_ID = #{params.QUESTION_ID}
+        WHERE QUESTION_ID = #{params.QUESTION_ID}
+    </update>
+
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        inspection.inspection_question_bank a
+        WHERE
+        1 = 1
+        <if test=" params.QUESTION_ID != null and params.QUESTION_ID != '' ">
+            AND a.QUESTION_ID != #{params.QUESTION_ID}
+        </if>
+        <if test=" params.QUESTION_DSCR != null and params.QUESTION_DSCR != '' ">
+            AND a.QUESTION_DSCR = #{params.QUESTION_DSCR}
+        </if>
+    </select>
+
+    <select id="getQuestionBankTree" resultType="java.util.HashMap">
+        SELECT
+        QUESTION_ID as id,
+        QUESTION_DSCR as name,
+        ifnull(QUESTION_PID,'') as pid,
+        isleaf,
+        ifnull(sort,'') AS sort
+        FROM
+        inspection.inspection_question_bank a
+        WHERE
+        1 = 1
+        <if test=" params.QUESTION_ID != null and params.QUESTION_ID != '' ">
+            AND a.QUESTION_ID = #{params.QUESTION_ID}
+        </if>
+        <if test=" params.QUESTION_DSCR != null and params.QUESTION_DSCR != '' ">
+            AND a.QUESTION_DSCR = #{params.QUESTION_DSCR}
+        </if>
+        <if test=" params.QUESTION_PID != null and params.QUESTION_PID != '' ">
+            AND a.QUESTION_PID = #{params.QUESTION_PID}
+        </if>
+        <if test="params.QUESTION_TYPE!=null and params.QUESTION_TYPE!='' ">
+            AND a.QUESTION_TYPE = #{params.QUESTION_TYPE}
+        </if>
+        order by SORT
+    </select>
+
+    <select id="getColumn" resultType="java.lang.String">
+        SELECT
+        GROUP_CONCAT(t.COLUMN_DSCR SEPARATOR ",")
+        FROM
+        inspection.inspection_question_column t
+        WHERE
+        t.COLUMN_DISPLAY = 0
+    </select>
+    <select id="getQuestionBankTreeNewTree" resultType="java.util.HashMap">
+        <!--
+                 SELECT
+                  distinct a.QUESTION_ID as id
+                  ,IFNULL(a.QUESTION_RECTIFICATION_PLAN,'') as QUESTION_RECTIFICATION_PLAN
+                  ,IFNULL(z.QUESTION_TYPE_DSCR,'') AS QUESTION_TYPE_DSCR
+                  ,a.SORT as SORT
+                  ,IFNULL(a.QUESTION_DSCR,'') AS name
+                  ,a.QUESTION_PID  as pid
+                ,a.SPARE1    QUESTION_TYPE
+                ,a.SPARE2    RULE_FILE_CONTENT
+
+                ,IFNULL(a.QUESTION_DETAILS,'') AS QUESTION_DETAILS
+                ,IFNULL(a.QUESTION_QUALITATIVE,'') AS QUESTION_QUALITATIVE
+                ,IFNULL(a.QUESTION_OPINIONS,'') AS  QUESTION_OPINIONS
+                ,IFNULL(a.QUESTION_SEVERITY,'') AS QUESTION_SEVERITY
+                ,a.isleaf  as isleaf
+                 FROM
+                 inspection.inspection_question_bank_bak a -->
+
+                        SELECT
+                        distinct a.QUESTION_ID as id
+                        ,IFNULL(a.QUESTION_RECTIFICATION_PLAN,'') as QUESTION_RECTIFICATION_PLAN
+                        ,IFNULL(z.QUESTION_TYPE_DSCR,'') AS QUESTION_TYPE_DSCR
+                        ,a.SORT as SORT
+                        ,IFNULL(a.QUESTION_DSCR,'') AS name
+                        ,ifnull(a.QUESTION_PID,'')  as pid
+                        ,IFNULL(z.QUESTION_TYPE,'') AS QUESTION_TYPE
+                        ,IFNULL(a.QUESTION_DETAILS,'') AS QUESTION_DETAILS
+                        ,IFNULL(a.QUESTION_QUALITATIVE,'') AS QUESTION_QUALITATIVE
+                        ,IFNULL(a.QUESTION_OPINIONS,'') AS  QUESTION_OPINIONS
+                        ,IFNULL(a.QUESTION_SEVERITY,'') AS QUESTION_SEVERITY
+                        ,a.PATH AS path
+                        ,a.isleaf  as isleaf
+                        ,GROUP_CONCAT(IFNULL(c.RULE_FILE_CONTENT,'')) AS RULE_FILE_CONTENT
+                        FROM
+                        inspection.inspection_question_bank a
+         LEFT JOIN inspection.inspection_question_bank d ON a.QUESTION_PID = d.QUESTION_ID
+         LEFT JOIN inspection.inspection_question_rule_relation b ON a.QUESTION_ID = b.QUESTION_ID
+         LEFT JOIN inspection.inspection_question_rule c ON b.RULE_ID = c.RULE_ID
+         LEFT JOIN (SELECT
+         a.QUESTION_ID,
+         GROUP_CONCAT(e.ENUM_DSCR) AS QUESTION_TYPE_DSCR,
+         GROUP_CONCAT(e.ENUM_ID) AS QUESTION_TYPE
+         FROM
+         inspection.inspection_question_bank_type a,
+         enumset.cm_guoku_enumeration e
+         WHERE
+         e.ENUM_TYPE_ID IN(12, 21)
+         AND a.TYPE = e.ENUM_ID
+         GROUP BY a.QUESTION_ID
+         )z ON a.QUESTION_ID = z.QUESTION_ID
+        GROUP BY      a.sort, a.QUESTION_ID  ,QUESTION_RECTIFICATION_PLAN
+        ,a.SORT
+        ,a.QUESTION_DSCR
+        ,a.QUESTION_PID
+        ,QUESTION_TYPE
+        ,a.QUESTION_QUALITATIVE
+        ,a.QUESTION_OPINIONS
+        ,a.QUESTION_SEVERITY
+        ,a.isleaf
+         ORDER BY a.SORT
+   </select>
+</mapper>

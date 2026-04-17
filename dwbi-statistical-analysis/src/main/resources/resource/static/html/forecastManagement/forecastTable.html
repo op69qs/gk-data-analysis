@@ -1,0 +1,27 @@
+<script>
+    $(function () {
+        $('#tableData').datagrid({
+            // url: '/statisticalAnalysis/forecastAnalysis/getDevOpsForecast',
+            toolbar: '#toolbar',
+            singleSelect: false,
+            pagination: false,
+            maxHeight: 600,
+            queryParams: {
+                indicators: $('#indicators').val(),
+                period: $('#period').val(),
+                start_time: $('#startTime').val(),
+                end_time: $('#endTime').val(),
+                sampleForecast: currentTabId
+            },
+            columns: [[
+                {field: "startTime", title: "样本起始时间", width: 150},
+                {field: "endTime", title: "样本结束时间", width: 150},
+                {field: "forecastTime", title: "预测时间", width: 150},
+                {field: "forecastValue", title: "预测值", width: 120, align: 'center'},
+                {field: "actualValue", title: "实际值", width: 120, align: 'center'},
+                {field: "erroValue", title: "误差值", width: 120, align: 'center'}
+            ]],
+            data: dataList
+        });
+    });
+</script>

@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.enumSetting.mapper.DetectionMapper">
+
+    <select id="getData" resultType="java.util.HashMap">
+        SELECT
+        ILLUSTRATE
+        ,DETECTION_TYPE_ID
+        ,DETECTION_TYPE_DSCR
+        ,DETECTION_ID
+        ,DETECTION_DSCR
+        ,DETECTION_CONNECTOR
+        ,DETECTION_CONDITIONS
+        ,STATE,
+        case when STATE='0'
+        then '在用'
+        else '停用'
+        end as STATE_DSCR
+        FROM `ENUMSET`.`CM_GUOKU_DETECTION` a
+        where DETECTION_TYPE_ID='${params.DETECTION_TYPE_ID}'
+
+        <if test=" params.STATE != null and params.STATE != ''">
+            and STATE = '${params.STATE}'
+        </if>
+        <if test=" params.DETECTION_DSCR != null and params.DETECTION_DSCR != ''">
+            AND DETECTION_DSCR like '%${params.DETECTION_DSCR}%'
+        </if>
+
+        order by DETECTION_ID
+        LIMIT ${params.page},${params.rows}
+
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM `ENUMSET`.`CM_GUOKU_DETECTION` a
+        where DETECTION_TYPE_ID='${params.DETECTION_TYPE_ID}'
+
+        <if test=" params.STATE != null and params.STATE != ''">
+            and STATE = '${params.STATE}'
+        </if>
+        <if test=" params.DETECTION_DSCR != null and params.DETECTION_DSCR != ''">
+            AND DETECTION_DSCR like '%${params.DETECTION_DSCR}%'
+        </if>
+
+    </select>
+    <select id="getDetectionTypeAll" resultType="java.util.HashMap">
+        SELECT
+        distinct DETECTION_ID id
+        ,DETECTION_DSCR name
+        FROM
+        `ENUMSET`.`CM_GUOKU_DETECTION`
+        WHERE STATE= 0
+        <if test=" params.DETECTION_TYPE_ID != null and params.DETECTION_TYPE_ID != ''">
+            and DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
+        </if>
+    </select>
+    <!--枚举类型-->
+    <select id="getDetectionType" resultType="java.util.HashMap">
+        SELECT
+        distinct DETECTION_TYPE_ID id
+        ,DETECTION_TYPE_DSCR name
+        FROM
+        `ENUMSET`.`CM_GUOKU_DETECTION`
+        WHERE STATE= 0
+        <if test=" params.DETECTION_TYPE_DSCR != null and params.DETECTION_TYPE_DSCR != ''">
+            and DETECTION_TYPE_DSCR like '%${params.DETECTION_TYPE_DSCR}%'
+        </if>
+        ORDER BY DETECTION_TYPE_ID
+    </select>
+    <select id="checkCode" resultType="java.util.HashMap">
+        SELECT *
+        FROM
+            `ENUMSET`.`CM_GUOKU_DETECTION`
+        WHERE
+             DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
+            AND ( DETECTION_ID = '${params.DETECTION_ID}'
+             or DETECTION_DSCR = '${params.DETECTION_DSCR}')
+    </select>
+
+    <!--    获取检查值ID最大值-->
+    <select id="getMaxDetectionId" resultType="string">
+        select max(DETECTION_ID) from enumset.cm_guoku_detection where DETECTION_TYPE_ID=#{params.DETECTION_TYPE_ID}
+    </select>
+
+
+    <insert id="addDetection">
+        INSERT INTO `ENUMSET`.`CM_GUOKU_DETECTION`
+        (
+            DETECTION_TYPE_ID,
+            DETECTION_TYPE_DSCR,
+            DETECTION_ID,
+            DETECTION_DSCR,
+            DETECTION_CONNECTOR,
+            DETECTION_CONDITIONS,
+            ILLUSTRATE
+        )
+        VALUES
+            (
+                '${params.DETECTION_TYPE_ID}',
+                '${params.DETECTION_TYPE_DSCR}',
+                '${params.DETECTION_ID}',
+                '${params.DETECTION_DSCR}',
+                '${params.DETECTION_CONNECTOR}',
+                '${params.DETECTION_CONDITIONS}',
+                '${params.ILLUSTRATE}'
+            )
+    </insert>
+    <update id="editDetection">
+        UPDATE `ENUMSET`.`CM_GUOKU_DETECTION` SET
+        <if test=" params.DETECTION_DSCR != null">
+            DETECTION_DSCR = '${params.DETECTION_DSCR}',
+        </if>
+        <if test=" params.DETECTION_CONNECTOR != null">
+            DETECTION_CONNECTOR = '${params.DETECTION_CONNECTOR}',
+        </if>
+        <if test=" params.DETECTION_CONDITIONS != null">
+            DETECTION_CONDITIONS = '${params.DETECTION_CONDITIONS}',
+        </if>
+        <if test=" params.STATE != null">
+            STATE = '${params.STATE}',
+        </if>
+        <if test=" params.ILLUSTRATE != null">
+            ILLUSTRATE = '${params.ILLUSTRATE}',
+        </if>
+        DETECTION_ID = '${params.DETECTION_ID}'
+        WHERE DETECTION_ID = #{params.DETECTION_ID}
+        AND DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
+        and STATE = '0'
+    </update>
+    <update id="delDetection">
+         UPDATE `ENUMSET`.`CM_GUOKU_DETECTION` SET STATE ='${params.STATE}'
+         where DETECTION_ID='${params.DETECTION_ID}'
+          AND DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
+    </update>
+    <update id="delDetectionNo">
+         UPDATE `ENUMSET`.`CM_GUOKU_DETECTION` SET STATE='0'
+         where DETECTION_ID='${params.DETECTION_ID}'
+          and DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
+          and STATE = '1'
+    </update>
+</mapper>

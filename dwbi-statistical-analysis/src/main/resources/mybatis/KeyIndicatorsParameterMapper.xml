@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.triber.analysis.dao.mapper.KeyIndicatorsParameterMapper">
+
+    <!--    获取重点指标维护参数条数-->
+    <select id="getKeyIndicatorsDataTotal" resultType="int">
+        SELECT count(1)
+        FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.id
+        LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.id
+        WHERE a.is_enable='1' AND b.is_enable='1' AND c.is_enable='1'
+        <if test="params.is_keyPoint != null and params.is_keyPoint != ''">
+            AND a.is_keyPoint=#{params.is_keyPoint}
+        </if>
+        <if test="params.indicatorkeyWord != null and params.indicatorkeyWord != ''">
+            AND a.index_name LIKE '%${params.indicatorkeyWord}%'
+        </if>
+        <if test="params.platformId != null and params.platformId != ''">
+            AND a.platform_id=#{params.platformId}
+        </if>
+    </select>
+
+    <!--    获取重点指标维护参数-->
+    <select id="getKeyIndicatorsData" resultType="hashmap">
+        SELECT a.ID,a.platform_id,b.platfrom_name,a.index_code,a.index_name,a.index_desc,a.is_monitor
+        FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.id
+        LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.id
+        WHERE a.is_enable='1' AND b.is_enable='1' AND c.is_enable='1'
+        <if test="params.is_keyPoint != null and params.is_keyPoint != ''">
+            AND a.is_keyPoint=#{params.is_keyPoint}
+        </if>
+        <if test="params.indicatorkeyWord != null and params.indicatorkeyWord != ''">
+            AND a.index_name LIKE '%${params.indicatorkeyWord}%'
+        </if>
+        <if test="params.platformId != null and params.platformId != ''">
+            AND a.platform_id=#{params.platformId}
+        </if>
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <!--    修改重点指标维护参数-->
+    <update id="updateKeyIndicatorsData">
+        UPDATE
+        system_docking.api_platform_index_info
+        SET
+        MODIFIER=#{params.userName},
+        MODIFY_DATE=#{params.modifyDate}
+        <if test="params.is_keyPoint != null and params.is_keyPoint != ''">
+            ,is_keyPoint=#{params.is_keyPoint}
+        </if>
+        <if test="params.index_desc != null and params.index_desc != ''">
+            ,index_desc=#{params.index_desc}
+        </if>
+        <if test="params.is_monitor != null and params.is_monitor != ''">
+            ,is_monitor=#{params.is_monitor}
+        </if>
+        WHERE ID IN
+        <foreach collection="params.indexArray" item="indexId" open="(" separator="," close=")">
+            #{indexId}
+        </foreach>
+    </update>
+</mapper>

@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.indicatorsLib.dao.mapper.indicatorsLib.IndexRelationMapper">
+
+    <!--    查询指标的检测值-->
+    <select id="getDetectionValue" resultType="hashmap">
+        SELECT DETECTION_ID,DETECTION_CONDITIONS
+        FROM `ENUMSET`.`CM_GUOKU_DETECTION` a
+        WHERE DETECTION_TYPE_ID='04' and STATE = '0'
+        <if test="indexArray != null and indexArray.length > 0">
+            AND DETECTION_ID IN
+            <foreach collection="indexArray" item="indexId" open="(" separator="," close=")">
+                #{indexId}
+            </foreach>
+        </if>
+    </select>
+    <!-- 根据筛选条件查询指标信息 -->
+    <select id="selectIndexRelationInfo" resultType="java.util.HashMap">
+        SELECT
+        r.IDENTITY_PROPERTY,
+        r.INDEX_NAME,
+        r.INDEX_DESCR,
+        REPLACE(REPLACE(REPLACE(REPLACE(r.INDEX_DIMNSN,'1','国库'),'2','地区'),'3','核算主体'),',','，') AS INDEX_DIMNSN_DSCR,
+        REPLACE(REPLACE(REPLACE(REPLACE(r.INDEX_PERIOD,'1','日指标'),'2','月指标'),'3','季指标'),'4','年指标') AS INDEX_PERIOD_DSCR,
+        CASE WHEN r.INDEX_TYPE ='0' THEN '数值'
+        WHEN r.INDEX_TYPE ='1' THEN '比率'
+        END AS INDEX_TYPE_DSCR,
+        ifnull(r.INDEX_DETAILS, '') AS INDEX_DETAILS
+        FROM
+        indicators_lib.`lib_index_relation` r
+        WHERE 1=1
+	and r.PARENT_ID is not NULL
+        <if test="params.personalFlag != null and params.personalFlag != ''">
+            AND r.PERSONAL_FLAG = #{params.personalFlag}
+        </if>
+        <if test="params.dimensionFlag != null and params.dimensionFlag != ''">
+            AND r.INDEX_DIMNSN LIKE '%${params.dimensionFlag}%'
+        </if>
+        <if test="params.periodFlag != null and params.periodFlag != ''">
+            AND r.INDEX_PERIOD LIKE '%${params.periodFlag}%'
+        </if>
+        <if test="params.name != null and params.name != ''">
+            AND r.INDEX_NAME LIKE '%${params.name}%'
+        </if>
+        ORDER BY r.add_date,r.IDENTITY_PROPERTY
+    </select>
+
+    <!-- 获取指标详细描述 -->
+    <select id="getIndexDetails" resultType="java.util.HashMap">
+        SELECT *
+        FROM
+            `indicators_lib`.`lib_index_relation` a
+        WHERE
+            a.`INDEX_ID` = #{params.INDEX_ID}
+    </select>
+
+
+    <!--    根据筛选条件查询指标Tree-->
+    <select id="selectIndexRelationTree" resultType="hashmap">
+        select
+        *,
+        CONCAT(z.name, '▲', z.title, '▲', z.flag) AS text
+        from (SELECT r.INDEX_ID as id,
+        r.INDEX_NAME as name,
+        r.INDEX_DESCR as title,
+        CASE WHEN r.INDEX_TYPE = '0' THEN
+        ''
+        WHEN r.INDEX_TYPE = '1' THEN
+        '(%)'
+        ELSE '' END as flag,
+        ifnull(r.PARENT_ID,'') as pId,
+        r.PARENT_ID,
+        r.IDENTITY_PROPERTY
+        FROM indicators_lib.`lib_index_relation` r
+        WHERE INDEX_STATUS='0'
+        <if test="params.personalFlag != null and params.personalFlag != ''">
+            AND r.PERSONAL_FLAG = #{params.personalFlag}
+        </if>
+        <if test="params.id != null and params.id != '' ">
+            AND r.INDEX_ID = #{params.id}
+        </if>
+        <if test="params.pId != null and params.pId != '' ">
+            AND r.PARENT_ID = #{params.pId}
+        </if>
+        <if test="params.userId != null and params.userId != ''">
+            AND r.ADD_USERID = #{params.userId}
+        </if>
+        <if test="params.dimensionFlag != null and params.dimensionFlag != ''">
+            AND r.INDEX_DIMNSN LIKE '%${params.dimensionFlag}%'
+        </if>
+        <if test="params.periodFlag != null and params.periodFlag != ''">
+            AND r.INDEX_PERIOD LIKE '%${params.periodFlag}%'
+        </if>
+        <if test="params.name != null and params.name != '' and params.name.length > 0">
+            AND
+            <foreach collection="params.name" index="index" item="name" open="(" close=")" separator="OR">
+                r.INDEX_NAME LIKE '%${name}%'
+            </foreach>
+        </if>
+
+
+
+        <if test="params.categories != null and params.categories.size() > 0">
+            AND
+            <foreach collection="params.categories" item="category" open="(" close=")" separator="OR">
+                FIND_IN_SET(#{category}, r.CATEGORY)
+            </foreach>
+        </if>
+
+        )z
+        <if test="(params.dimensionFlag != null and params.dimensionFlag != '')
+        or (params.periodFlag != null and params.periodFlag != '')
+        or (params.name != null and params.name != '' and params.name.length > 0)">
+            UNION ALL
+            select *,
+            CONCAT(b.name, '▲', b.title, '▲', b.flag) AS text
+            from (SELECT
+            a.INDEX_ID AS id,
+            a.INDEX_NAME AS NAME,
+            a.INDEX_DESCR AS title,
+            CASE
+            WHEN a.INDEX_TYPE = '0' THEN
+            ''
+            WHEN a.INDEX_TYPE = '1' THEN
+            '(%)'
+            ELSE
+            ''
+            END AS flag,
+            ifnull(a.PARENT_ID, '') AS pId,
+            a.PARENT_ID,
+            a.IDENTITY_PROPERTY
+            FROM
+            indicators_lib.`lib_index_relation` a
+            WHERE
+            a.PARENT_ID IS NULL
+            and a.INDEX_CORRE_TABLE is null
+            <if test="params.personalFlag != null and params.personalFlag != ''">
+                AND a.PERSONAL_FLAG = #{params.personalFlag}
+            </if>
+            and INDEX_STATUS='0'
+            )b
+        </if>
+        ORDER BY PARENT_ID,IDENTITY_PROPERTY
+    </select>
+
+    <!--    获取自定义指标方案表-->
+    <select id="getIndicatorsTableName" resultType="hashmap">
+        SELECT r.INDEX_ID as colId,r.INDEX_CORRE_TABLE as tableName,r.INDEX_TYPE as type
+        FROM indicators_lib.`lib_index_relation` r
+        where r.INDEX_STATUS='0' AND r.INDEX_ID in
+        <foreach collection="array" item="indexId" index="index" open="(" separator="," close=")">
+            #{indexId}
+        </foreach>
+    </select>
+
+    <!--    查询指标count-->
+    <select id="getIndicatorsCount" resultType="integer">
+        ${schemeSql}
+    </select>
+
+    <!--    查询新建未保存的指标方案table-->
+    <select id="getIndicatorsTable" resultType="hashmap">
+        ${schemeSql}
+    </select>
+
+    <!--    查询指标方案ECharts-->
+    <select id="getIndicatorsECharts" resultType="hashmap">
+        ${schemeSql}
+    </select>
+
+    <!--    查询指标账期最大值和最小值-->
+    <select id="getMinDateAndMaxDate" resultType="hashmap">
+        ${accountPeriodSql}
+    </select>
+
+    <!--    查询指标维度-->
+    <select id="getDimensionData" resultType="hashmap">
+        ${dimensionSql}
+    </select>
+
+    <!--    根据已选择的维度id查询选择的维度信息-->
+    <select id="getDimensionSelectById" resultType="hashmap">
+        SELECT r.guoku_id as value,r.guoku_dscr as label
+        FROM dmcode.`cm_guoku_dimnsn` r
+        where r.id in
+        <foreach collection="codeArry" item="code" index="index" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+    </select>
+
+</mapper>

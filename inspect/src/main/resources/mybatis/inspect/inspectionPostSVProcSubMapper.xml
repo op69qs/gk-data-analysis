@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionPostSVProcSubMapper">
+
+    <select id="getInspectionProcSubData" resultType="java.util.Map">
+        SELECT
+        b.`INSPECTION_PROCESS_ID`,
+        a.*
+        FROM
+        inspection.inspection_process_sub_postsv a
+        JOIN
+        inspection.inspection_process_postsv b
+        ON a.`PROCESS_ID` = b.`ID`
+        WHERE
+        1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND a.ID = #{params.ID}
+        </if>
+        <if test="params.INSPECTION_PROCESS_SUB_ID!=null and params.INSPECTION_PROCESS_SUB_ID!='' ">
+            AND a.INSPECTION_PROCESS_SUB_ID = #{params.INSPECTION_PROCESS_SUB_ID}
+        </if>
+        <if test="params.INSPECTION_PROCESS_SUB_NAME!=null and params.INSPECTION_PROCESS_SUB_NAME!='' ">
+            AND a.INSPECTION_PROCESS_SUB_NAME like '%${params.INSPECTION_PROCESS_SUB_NAME}%'
+        </if>
+        <if test="params.PROCESS_ID!=null and params.PROCESS_ID!='' ">
+            AND a.PROCESS_ID = #{params.PROCESS_ID}
+        </if>
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID!='' ">
+            AND a.INSPECTION_TASK_ID = #{params.INSPECTION_TASK_ID}
+        </if>
+        <if test="params.INSPECTION_PROCESS_SUB_SIGN!=null and params.INSPECTION_PROCESS_SUB_SIGN!='' ">
+            AND a.INSPECTION_PROCESS_SUB_SIGN = #{params.INSPECTION_PROCESS_SUB_SIGN}
+        </if>
+        <if test="params.FINISH_TIME!=null and params.FINISH_TIME!='' ">
+            AND a.FINISH_TIME = #{params.FINISH_TIME}
+        </if>
+        <if test="params.IS_ACTIVE!=null and params.IS_ACTIVE!='' ">
+            AND a.IS_ACTIVE = #{params.IS_ACTIVE}
+        </if>
+        <if test="params.FOR_RECORD!=null and params.FOR_RECORD!='' ">
+            AND a.FOR_RECORD = #{params.FOR_RECORD}
+        </if>
+        ORDER BY a.INSPECTION_PROCESS_SUB_ID
+    </select>
+
+</mapper>

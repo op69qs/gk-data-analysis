@@ -1,0 +1,186 @@
+<link rel="stylesheet" href="/statisticalAnalysis/static/css/systemManagement/systemManagement.css"/>
+<link rel="stylesheet" type="text/css" href="/statisticalAnalysis/static/css/forecast_analysis.css"/>
+<div id="bread">数据报表 > <span style="color:#1f5ec4;font-weight: bold;">监测告警明细表</span></div>
+<div id="containerId" class="layui-container" style="width:100%; margin-top:15px;height:90%;">
+    <div class="layui-row" >
+        <div class="layui-col-md2 layui-col-lg2"  style="width: 320px">
+            <span> 指&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;标：</span>
+            <input id="indicators" class="easyui-combobox" style="width:200px;"
+                   data-options="
+                   prompt:'请选择指标',
+                   valueField:'value',
+                   textField:'label',
+                   url:'./statisticalAnalysis/forecastAnalysis/getIndicatorsData?type=devOps&is_monitor=1'"
+            />
+        </div>
+        <div class="layui-col-md2 layui-col-lg2"   style="width: 300px">
+            <span>时间：</span>
+            <span>
+                <input id="startTime" class="Wdate" placeholder="请选择起始时间" style="width: 200px"
+                       onfocus="WdatePicker({readOnly : false,dateFmt : 'yyyy-MM-dd',isShowWeek : true,isShowClear: false, maxDate : '%y-%M-%d'});"/>
+            </span>
+
+        </div>
+        <div class="layui-col-md2 layui-col-lg2"  style="width: 50px">
+            <span>&nbsp;&nbsp;—</span>
+        </div>
+        <div class="layui-col-md2 layui-col-lg2" style="width: 240px">
+            <span>
+                <input id="endTime" class="Wdate" placeholder="请选择结束时间" style="width: 200px;"
+                       onfocus="WdatePicker({readOnly : false,dateFmt : 'yyyy-MM-dd',isShowWeek : true,isShowClear: false, maxDate : '%y-%M-%d'});"/>
+            </span>
+        </div>
+        <div class="layui-col-md2 layui-col-lg2" style="width: 80px;">
+            <a class="easyui-linkbutton" onclick="queryData()" style="weight:50%;height: 100%">查询</a>
+
+        </div>
+        <div class="layui-col-md2 layui-col-lg2"  style="width: 80px;">
+            <a href="javascript:void(0)" class="easyui-linkbutton" onclick="exportFun();">导出</a>
+        </div>
+        <div class="layui-col-md2 layui-col-lg2"  style="width: 80px;">
+            <a class="easyui-linkbutton" onclick="resetData()" style="weight:50%;height: 100%">重置</a>
+        </div>
+    </div>
+
+    <div class="layui-row" style="margin-top: 15px;">
+        <div id="tableData"></div>
+    </div>
+</div>
+<style>
+    .layui-col-md2.layui-col-lg2{
+        width: 26.667%
+    }
+    span{
+        margin: 0px;
+        padding: 1px;
+    }
+
+</style>
+<script>
+    $(function () {
+        setTimeout(function () {
+            initTable();
+        }, 100);
+    });
+    function initTable() {
+        $('#tableData').datagrid({
+            fitColumns: true,
+            singleSelect: true,
+            method: "post",
+            pagination: true,
+            pageIndex:1,//页索引
+            pageList: [10, 20, 50, 100],
+            pageSize: 10,
+            columns: [
+                [
+                    {field: "alarm_time", title: "时间", width: '20%' },
+                    {field: "index_name", title: "指标名称", width:  '20%'},
+                    {field: "platfrom_name", title: "平台", width:  '20%'},
+                    {field: "resource_desc", title: "资源", width:  '20%'},
+                    {field: "alarm_value", title: "数值", width:  '20%'}
+                ]
+            ],
+            //分页控件
+            toolbar: '#tbRole',
+            data:[]
+        });
+    }
+    //初始化表格
+    function initTabeleData(param) {
+        var columns= [
+            {field: "alarm_time", title: "时间", width: '12%' },
+            {field: "index_name", title: "指标名称", width:  '15%'},
+            {field: "platfrom_name", title: "平台", width:  '10%'},
+            {field: "resource_desc", title: "资源", width:  '15%'},
+            {field: "resource_ip", title: "资源ip", width:  '8%'},
+            {field: "alarm_value", title: "告警次数", width:  '5%'},
+            {field: "description", title: "告警内容", width:  '40%'}
+        ];
+
+        //查询表格数据
+        $('#tableData').datagrid({
+            url: './statisticalAnalysis/alarmDetails/getAlarmDetailsData',
+            toolbar: '#toolbar',
+            singleSelect: true,
+            pagination: true,
+            maxHeight: 600,
+            pageIndex:1,//页索引
+            pageList: [10, 20, 50, 100],
+            pageSize: 10,
+            queryParams: param || {},
+            columns:[columns]
+        });
+    }
+
+    //查询
+    function queryData() {
+        var param = {
+            type: 'devOps',
+            pageFlag: 'details',
+            period: '3',
+            indicators: $('#indicators').textbox('getValue'),
+            startTime: $('#startTime').val(),
+            endTime: $('#endTime').val()
+        };
+
+        if (param.startTime == '' && param.endTime == '') { //请选择日期
+            layer.msg("请选择时间!");
+            return;
+        }
+        if (param.startTime != '' && param.endTime != '' && param.startTime > param.endTime) {
+            $("#startTime,#endTime").val("");
+            layer.msg("起始时间不能大于结束时间，请重新选择!");
+            return;
+        }
+        initTabeleData(param);
+    }
+
+    //重置
+    function resetData() {
+        $("#indicators").combobox("setValue", "");
+        $("#period").combobox("setValue", "");
+        $("#startTime ").val("");
+        $("#endTime").val("");
+        $('#tableData').datagrid('loadData', { total: 0, rows: [] });
+    }
+    // 导出
+    function exportFun() {
+        var  indicators= $('#indicators').textbox('getValue');
+        var  startTime=$('#startTime').val();
+        var endTime=$('#endTime').val();
+        window.location.href = './statisticalAnalysis/alarmDetails/getTotalReportExcelOne?indicators=' + indicators + '&startTime=' + startTime +'&endTime=' + endTime;
+    }
+
+
+    //动态切换时间插件、下拉选
+    function changeTimeElement(value) {
+        //情况时间控件值
+        if (value == '') { //无值
+            $("#startTime,#endTime").val("");
+            $("#startTime,#endTime").attr("disabled", true);
+        } else { //日、月、年
+            $("#startTime,#endTime").val("");
+            $("#startTime,#endTime").attr("disabled", false);
+            var dateFormatter = ("3" == value) ? "yyyy-MM-dd" : (("4" == value) ? "yyyy-MM" : "yyyy");
+            var maxDateFormatter = ("3" == value) ? "%y-%M-%d" : (("4" == value) ? "%y-%M" : "%y");
+            $("#startTime,#endTime").attr("onfocus", "WdatePicker({readOnly : false,dateFmt : '" + dateFormatter + "',isShowWeek : true,isShowClear: false, maxDate : '" + maxDateFormatter + "'})");
+        }
+    }
+
+    var xhrOnProgress = function (fun) {
+        xhrOnProgress.onprogress = fun; //绑定监听
+        //使用闭包实现监听绑
+        return function () {
+            //通过$.ajaxSettings.xhr();获得XMLHttpRequest对象
+            var xhr = $.ajaxSettings.xhr();
+            //判断监听函数是否为函数
+            if (typeof xhrOnProgress.onprogress !== 'function')
+                return xhr;
+            //如果有监听函数并且xhr对象支持绑定时就把监听函数绑定上去
+            if (xhrOnProgress.onprogress && xhr.upload) {
+                xhr.upload.onprogress = xhrOnProgress.onprogress;
+            }
+            return xhr;
+        }
+    }
+</script>

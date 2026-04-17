@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionReformMapper">
+
+    <select id="getInspectionReformPage" resultType="java.util.Map">
+        SELECT
+            a.QUESTION_ID,
+            a.QUESTION_CONTENT,
+            a.QUESTION_OPINIONS,
+            e.RULE_FILE_NAME,
+            e.RULE_FILE_NO,
+            e.RULE_FILE_CONTENT,
+            l.ID,
+            l.IS_SCHEME,
+            l.IS_CASE,
+            l.IS_COMPLETE,
+            l.COMPLETE_TIME
+        FROM
+        <if test=' params.type != null and params.type != "" '>
+            inspection.inspection_self_ledger a
+        </if>
+        <if test=' params.type == null or params.TASK_ID == "" '>
+            inspection.`inspection_question_ledger` a
+        </if>
+        JOIN `inspection`.inspection_reform_ledger l ON a.LEDGER_ID = l.LEDGER_ID
+        LEFT JOIN
+        (SELECT
+        t1.RULE_FILE_NAME,
+        t1.RULE_FILE_NO,
+        t1.RULE_FILE_CONTENT,
+        t1.`LEDGER_ID`
+        FROM
+        `inspection`.`inspection_question_ledger_rule` t1
+        ) e
+        ON a.`LEDGER_ID` = e.LEDGER_ID
+        WHERE
+        1=1
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+        <if test=' params.IS_LIST != null and params.IS_LIST != "" '>
+            AND a.IS_LIST = #{params.IS_LIST}
+        </if>
+        <if test=' params.IS_CASE != null and params.IS_CASE != "" '>
+            AND l.IS_CASE = #{params.IS_CASE}
+        </if>
+        ORDER BY
+        a.ADD_DATE desc
+    </select>
+
+    <select id="countInspectionReform" resultType="java.lang.Integer">
+        SELECT
+        count(1)
+        FROM
+        <if test=' params.type != null and params.type != "" '>
+            inspection.inspection_self_ledger a
+        </if>
+        <if test=' params.type == null or params.TASK_ID == "" '>
+            inspection.`inspection_question_ledger` a
+        </if>
+        JOIN `inspection`.inspection_reform_ledger l ON a.LEDGER_ID = l.LEDGER_ID
+        LEFT JOIN
+        (SELECT
+        t1.RULE_FILE_NAME,
+        t1.RULE_FILE_NO,
+        t1.RULE_FILE_CONTENT,
+        t1.`LEDGER_ID`
+        FROM
+        `inspection`.`inspection_question_ledger_rule` t1
+        ) e
+        ON a.`LEDGER_ID` = e.LEDGER_ID
+        WHERE
+        1=1
+        AND a.IS_REPORT = '0'
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+        <if test=' params.IS_LIST != null and params.IS_LIST != "" '>
+            AND a.IS_LIST = #{params.IS_LIST}
+        </if>
+        <if test=' params.IS_CASE != null and params.IS_CASE != "" '>
+            AND l.IS_CASE = #{params.IS_CASE}
+        </if>
+        ORDER BY
+        a.ADD_DATE desc
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="getInspectionReformData" resultType="java.util.Map">
+        SELECT
+        a.QUESTION_ID,
+        a.QUESTION_CONTENT,
+        a.QUESTION_OPINIONS,
+        e.RULE_FILE_NAME,
+        e.RULE_FILE_NO,
+        e.RULE_FILE_CONTENT,
+        l.ID,
+        l.IS_SCHEME,
+        l.IS_CASE,
+        l.IS_COMPLETE,
+        l.COMPLETE_TIME
+        FROM
+        <if test=' params.tableType == "selfLedger" '>
+            inspection.inspection_self_ledger a
+        </if>
+        <if test=' params.tableType == "questionLedger" '>
+            inspection.`inspection_question_ledger` a
+        </if>
+        JOIN `inspection`.inspection_reform_ledger l ON a.LEDGER_ID = l.LEDGER_ID
+        LEFT JOIN
+        (SELECT
+        t1.RULE_FILE_NAME,
+        t1.RULE_FILE_NO,
+        t1.RULE_FILE_CONTENT,
+        t1.`LEDGER_ID`
+        FROM
+        `inspection`.`inspection_question_ledger_rule` t1
+        ) e
+        ON a.`LEDGER_ID` = e.LEDGER_ID
+        WHERE
+        1=1
+        AND a.IS_REPORT = '0'
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+        <if test=' params.IS_LIST != null and params.IS_LIST != "" '>
+            AND a.IS_LIST = #{params.IS_LIST}
+        </if>
+        <if test=' params.IS_CASE != null and params.IS_CASE != "" '>
+            AND l.IS_CASE = #{params.IS_CASE}
+        </if>
+        <if test=' params.LEDGER_ID != null and params.LEDGER_ID != "" '>
+            AND l.LEDGER_ID = #{params.LEDGER_ID}
+        </if>
+        ORDER BY
+        a.ADD_DATE desc
+    </select>
+
+    <select id="getInspectionReformSchemeData" resultType="java.util.Map">
+        SELECT
+        a.*,
+        c.NAME AS USER_NAME
+        FROM
+        inspection.inspection_reform_scheme a
+        LEFT JOIN inspection.inspection_sysuser_talentpool_relation b on a.USER = b.SYS_USERID
+        LEFT JOIN inspection.cm_guoku_talentpool c on b.TALENTPOOL_ID = c.UUID
+        WHERE
+        1 = 1
+        <if test=' params.ID != null and params.ID != "" '>
+            AND a.ID = #{params.ID}
+        </if>
+        <if test=' params.REFORM_ID != null and params.REFORM_ID != "" '>
+            AND a.REFORM_ID = #{params.REFORM_ID}
+        </if>
+        ORDER BY a.SCHEME_TIME asc
+    </select>
+
+    <delete id="delInspectionReformScheme" >
+        DELETE FROM inspection.inspection_reform_scheme  WHERE ID = #{params.ID} or REFORM_ID = #{params.REFORM_ID}
+    </delete>
+
+    <delete id="delInspectionReform" >
+        DELETE FROM inspection.inspection_reform_ledger  WHERE ID = #{params.ID} or LEDGER_ID = #{params.LEDGER_ID}
+    </delete>
+
+    <select id="getInspectionReformReplayData" resultType="java.util.Map">
+        SELECT
+        a.*,
+        c.NAME AS USER_NAME
+        FROM
+        inspection.inspection_reform_replay a
+        LEFT JOIN inspection.inspection_sysuser_talentpool_relation b on a.REPLY_USER = b.SYS_USERID
+        LEFT JOIN inspection.cm_guoku_talentpool c on b.TALENTPOOL_ID = c.UUID
+        WHERE
+        1=1
+        <if test=' params.ID != null and params.ID != "" '>
+            AND a.ID = #{params.ID}
+        </if>
+        <if test=' params.SCHEME_ID != null and params.SCHEME_ID != "" '>
+            AND a.SCHEME_ID = #{params.SCHEME_ID}
+        </if>
+        ORDER BY a.REPLY_TIME asc
+    </select>
+
+    <delete id="delInspectionReformReplay" >
+        DELETE FROM inspection.inspection_reform_replay  WHERE ID = #{params.ID} or SCHEME_ID = #{params.ID};
+    </delete>
+
+    <insert id="addInspectionReform" >
+        INSERT INTO inspection.inspection_reform_ledger
+        VALUES
+        (
+        #{params.ID},
+        #{params.TASK_ID},
+        #{params.LEDGER_ID},
+        '2',
+        '1',
+        '1',
+        #{params.COMPLETE_TIME}
+        )
+    </insert>
+
+    <insert id="addInspectionScheme" >
+        INSERT INTO inspection.inspection_reform_scheme
+        VALUES
+        (
+        #{params.ID},
+        #{params.REFORM_ID},
+        #{params.REFORM_SCHEME},
+        #{params.MEMO},
+        #{params.USER},
+        #{params.SCHEME_TIME}
+        )
+    </insert>
+
+    <insert id="addInspectionReplay" >
+        INSERT INTO inspection.inspection_reform_replay
+        VALUES
+        (
+        #{params.ID},
+        #{params.SCHEME_ID},
+        #{params.CONTENT},
+        #{params.REPLY_USER},
+        #{params.REPLY_TIME}
+        )
+    </insert>
+
+    <select id="getQuestionLedgerLvById" resultType="java.util.Map">
+        SELECT
+        a.QUESTION_ID_1,
+        a.QUESTION_ID_2,
+        b.QUESTION_DSCR AS QUESTION_DSCR_1,
+        c.QUESTION_DSCR AS QUESTION_DSCR_2
+        FROM
+        <if test=' params.type != null and params.type != "" '>
+            inspection.inspection_self_ledger a
+        </if>
+        <if test=' params.type == null or params.TASK_ID == "" '>
+            inspection.`inspection_question_ledger` a
+        </if>
+        JOIN `inspection`.`inspection_question_bank` b
+        ON a.`QUESTION_ID_1` = b.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` c
+        ON a.`QUESTION_ID_2` = c.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` cc
+        ON a.`QUESTION_ID` = cc.QUESTION_ID
+        WHERE
+        <if test='params.logic == "notEq" '>
+            cc.`QUESTION_DSCR` &lt;&gt; '其他'
+        </if>
+        <if test='params.logic == "Eq" '>
+            cc.`QUESTION_DSCR` = '其他'
+        </if>
+        AND a.`TASK_ID` = #{params.TASK_ID}
+        <if test=' params.queryType == "workingPaper" '>
+            AND a.ADD_USERID = #{params.ADD_USERID}
+        </if>
+        <if test=' params.IS_REPORT != null and params.IS_REPORT != "" '>
+            AND a.IS_REPORT = #{params.IS_REPORT}
+        </if>
+        <if test=' params.IS_LIST != null and params.IS_LIST != "" '>
+            AND a.IS_LIST = #{params.IS_LIST}
+        </if>
+        GROUP BY
+        a.QUESTION_ID_1,
+        a.QUESTION_ID_2
+        ORDER BY
+        a.ADD_DATE
+    </select>
+
+    <select id="getQuestionLedgerLvOne" resultType="java.util.Map">
+        SELECT
+        a.QUESTION_ID_1,
+        b.QUESTION_DSCR AS QUESTION_DSCR_1
+        FROM
+        <if test=' params.type != null and params.type != "" '>
+            inspection.inspection_self_ledger a
+        </if>
+        <if test=' params.type == null or params.TASK_ID == "" '>
+            inspection.`inspection_question_ledger` a
+        </if>
+        JOIN `inspection`.`inspection_question_bank` b
+        ON a.`QUESTION_ID_1` = b.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` c
+        ON a.`QUESTION_ID_2` = c.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` cc
+        ON a.`QUESTION_ID` = cc.QUESTION_ID
+        WHERE
+        <if test='params.logic == "notEq" '>
+            cc.`QUESTION_DSCR` &lt;&gt; '其他'
+        </if>
+        <if test='params.logic == "Eq" '>
+            cc.`QUESTION_DSCR` = '其他'
+        </if>
+        AND a.`TASK_ID` = #{params.TASK_ID}
+        <if test=' params.queryType == "workingPaper" '>
+            AND a.ADD_USERID = #{params.ADD_USERID}
+        </if>
+        <if test=' params.IS_REPORT != null and params.IS_REPORT != "" '>
+            AND a.IS_REPORT = #{params.IS_REPORT}
+        </if>
+        <if test=' params.IS_LIST != null and params.IS_LIST != "" '>
+            AND a.IS_LIST = #{params.IS_LIST}
+        </if>
+        GROUP BY
+        a.QUESTION_ID_1
+        ORDER BY
+        a.ADD_DATE
+    </select>
+
+    <select id="getReformData" resultType="java.util.Map">
+        SELECT
+        c.QUESTION_ID,
+        c.QUESTION_ID_1,
+        c.QUESTION_ID_2,
+        c.TASK_ID,
+        c.QUESTION_CONTENT,
+        b.*
+        FROM
+        inspection.inspection_reform_ledger a
+        INNER JOIN (
+        SELECT
+        *
+        FROM
+        inspection.inspection_reform_scheme t
+        WHERE
+        t.SCHEME_TIME = (
+        SELECT
+        max(i.SCHEME_TIME)
+        FROM
+        inspection.inspection_reform_scheme i
+        WHERE
+        t.REFORM_ID = i.REFORM_ID
+        )
+        ) b ON a.ID = b.REFORM_ID
+        INNER JOIN
+        <if test=' params.type != null and params.type != "" '>
+        inspection.inspection_self_ledger c
+        </if>
+        <if test=' params.type == null or params.TASK_ID == "" '>
+            inspection.`inspection_question_ledger` c
+        </if>
+        ON a.LEDGER_ID = c.LEDGER_ID
+        where c.TASK_ID = #{params.TASK_ID}
+    </select>
+
+    <select id="isComplete" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            inspection.inspection_reform_ledger a
+        WHERE
+            NOT EXISTS (
+                SELECT
+                    b.REFORM_ID
+                FROM
+                    inspection.inspection_reform_scheme b
+                WHERE
+                    a.ID = b.REFORM_ID
+            )
+        AND a.TASK_ID = #{params.TASK_ID}
+    </select>
+
+    <update id="updateReform">
+        UPDATE inspection.inspection_reform_ledger SET
+        <if test=" params.TASK_ID != null and params.TASK_ID != ''">
+            TASK_ID = #{params.TASK_ID},
+        </if>
+        <if test=" params.LEDGER_ID != null and params.LEDGER_ID != ''">
+            LEDGER_ID = #{params.LEDGER_ID},
+        </if>
+        <if test=" params.IS_CASE != null and params.IS_CASE != ''">
+            IS_CASE = #{params.IS_CASE},
+        </if>
+        <if test=" params.IS_SCHEME != null and params.IS_SCHEME != ''">
+            IS_SCHEME = #{params.IS_SCHEME},
+        </if>
+        <if test=" params.IS_COMPLETE != null and params.IS_COMPLETE != ''">
+            IS_COMPLETE = #{params.IS_COMPLETE},
+        </if>
+        <if test=" params.COMPLETE_TIME != null and params.COMPLETE_TIME != ''">
+            COMPLETE_TIME = #{params.COMPLETE_TIME},
+        </if>
+        ID = #{params.ID}
+        WHERE ID = #{params.ID} or LEDGER_ID = #{params.LEDGER_ID}
+    </update>
+
+    <select id="toAddCase" resultType="java.util.Map">
+        SELECT
+            a.QUESTION_ID_1,
+            c.QUESTION_DSCR AS QUESTION_DSCR_1,
+            a.QUESTION_ID_2,
+            h.QUESTION_DSCR AS QUESTION_DSCR_2,
+            a.QUESTION_ID,
+            d.QUESTION_DSCR,
+            a.QUESTION_CONTENT,
+            d.QUESTION_OPINIONS,
+            e.RULE_FILE_NAME,
+            e.RULE_FILE_NO,
+            e.RULE_FILE_CONTENT,
+            l.ID as REFORM_ID,
+            f.REFORM_SCHEME,
+            f.MEMO,
+            g.INSPECTION_TASK_ID,
+            g.INSPECTED_GUOKU_ID
+        FROM
+            inspection.`inspection_question_ledger` a
+        JOIN `inspection`.`inspection_question_bank` d ON a.`QUESTION_ID` = d.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` c ON a.QUESTION_ID_1 = c.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` h ON a.QUESTION_ID_2 = h.QUESTION_ID
+        JOIN `inspection`.inspection_reform_ledger l ON a.LEDGER_ID = l.LEDGER_ID
+        JOIN inspection.inspection_reform_scheme f ON l.ID = f.REFORM_ID
+        JOIN inspection.inspection_task g ON a.TASK_ID = g.INSPECTION_TASK_ID
+        LEFT JOIN (
+            SELECT
+                t1.RULE_FILE_NAME,
+                t1.RULE_FILE_NO,
+                t1.RULE_FILE_CONTENT,
+                t2.`QUESTION_ID`
+            FROM
+                `inspection`.`inspection_question_rule` t1
+            JOIN inspection.`inspection_question_rule_relation` t2 ON t1.RULE_ID = t2.`RULE_ID`
+            WHERE
+                t1.RULE_STATE = '0'
+        ) e ON a.`QUESTION_ID` = e.QUESTION_ID
+        WHERE
+            1 = 1
+        <if test=" params.ID != null and params.ID != ''">
+            AND l.ID = #{params.ID}
+        </if>
+    </select>
+
+</mapper>

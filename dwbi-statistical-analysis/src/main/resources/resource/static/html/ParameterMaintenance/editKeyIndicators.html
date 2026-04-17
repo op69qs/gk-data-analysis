@@ -1,0 +1,37 @@
+<style>
+    #edit {
+        padding: 20px;
+    }
+
+    #edit > div {
+        padding-bottom: 10px;
+    }
+
+    #edit > div > span {
+        display: inline-block;
+        width: 30%;
+        text-align: right;
+    }
+
+    #edit > div > .textbox {
+        width: 50% !important;
+    }
+</style>
+<div id="edit">
+    <div style="margin-top: 5px">
+        <span>指标名称：</span><input class="easyui-textbox" id="index_name" name="index_name" readonly/>
+    </div>
+
+    <div style="margin-top: 5px">
+        <span>平台名称：</span> <input class="easyui-textbox" id="platfrom_name" name="platfrom_name" readonly/>
+    </div>
+    <div style="margin-top: 5px">
+        <span>是否监测器：</span> <input class="easyui-combobox" id="is_monitor" name="is_monitor" readonly
+                                   data-options="
+                                   valueField:'value',textField:'label',data:[{'value':'1','label':'是'},{'value':'0','label':'否'}]"/>
+    </div>
+    <div style="margin-top: 5px">
+        <span>指标描述：</span> <input class="easyui-textbox" id="index_desc" name="index_desc"
+                                  data-options="required:true,multiline:true" style="height:100px;width:50%"/>
+    </div>
+</div>

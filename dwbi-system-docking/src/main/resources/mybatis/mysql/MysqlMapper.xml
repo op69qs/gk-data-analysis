@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.dockingProjects.mapper.mysql.MysqlMapper">
+
+    <select id="findAll" resultType="java.util.Map">
+
+        SELECT ID,task_code,task_name,task_desc,task_thread_type,task_start_params,task_start_postfix,task_thread_count,tesk_sort
+        FROM system_docking.api_task_ins
+        WHERE is_enable='1'
+    </select>
+</mapper>

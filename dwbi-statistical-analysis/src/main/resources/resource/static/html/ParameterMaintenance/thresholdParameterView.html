@@ -1,0 +1,206 @@
+<style>
+    #viewData {
+        padding: 20px;
+    }
+
+    #viewData > div {
+        padding-bottom: 10px;
+    }
+
+    #viewData > div > span {
+        display: inline-block;
+        text-align: right;
+    }
+</style>
+<div id="viewData">
+    <div style="margin-top: 5px">
+        <span>业务类型：</span>
+        <input id="business_type_view" class="easyui-combobox" style="width:200px;"
+               data-options="
+                   required:true,
+                   prompt:'请选择业务类型',
+                   valueField:'value',
+                   textField:'label',
+                   data: [{'value':'devOps','label':'运维'},{'value':'network','label':'网络'}],
+                   onChange:function(current, old){if(current!=old){getIndicators(current);}}
+                    "/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span>数据类型：</span>
+        <input id="data_type_view" class="easyui-combobox" style="width:200px;"
+               data-options="required:true,prompt:'数据类型',
+                   valueField:'value',
+                   textField:'label',
+                   data: [{'value':'1','label':'业务数据'},{'value':'2','label':'告警数据'}],
+                   onChange:function(current, old){if(current!=old){showOrHideResources(current);}}"/>
+    </div>
+    <div style="margin-top: 5px" style="margin-top: 5px">
+        <span>指&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;标：</span>
+        <input id="indicators_view" class="easyui-combobox" style="width:200px;"
+               data-options="prompt:'请选择指标',
+                   onChange:function(current, old){if(current!=old){getResources(current);}}"/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <span>资&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;源：</span>
+        <input id="resources_view" class="easyui-combobox" style="width:200px;"
+               data-options="prompt:'请选择资源'"/>
+    </div>
+    <div style="margin-top: 5px">
+        <span>阈值设置：</span>
+        <input id="threshold_type_view" class="easyui-combobox" style="width:200px;"
+               data-options="
+                   required:true,
+                   valueField:'value',
+                   textField:'label',
+                   data: [{'value':'0','label':'数值'},{'value':'1','label':'百分比'}]
+                    "/>
+        <div style="margin-top: 15px">
+            &nbsp;&nbsp;&nbsp;&nbsp;<span>预测值</span>&nbsp;&nbsp;&nbsp;
+            <input id="operator_view" class="easyui-combobox" style="width:200px;"
+                   data-options="
+                   valueField:'value',
+                   textField:'label',
+                   data: [{'value':'1','label':'大于'},{'value':'2','label':'小于'},{'value':'3','label':'大于或小于'}]
+                    "/>
+            <span>&nbsp;&nbsp;&nbsp;&nbsp;实际值&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;超过</span>
+            <input id="operator_value_view" class="easyui-textbox" style="width:200px;"/>
+        </div>
+    </div>
+    <div style="margin-top: 5px">
+        <span>说&nbsp;&nbsp;&nbsp;&nbsp;明：</span>
+        <input class="easyui-textbox" id="description_view" data-options="multiline:true"
+               style="height:150px;width:80%"/>
+        <input class="easyui-textbox" id="resource_init" type="hidden" data-options="hidden:true"/>
+    </div>
+</div>
+<script>
+    //根据业务类型查询指标
+    function getIndicators(value) {
+        if (value == '') {
+            $("#indicators_view").combobox('setValue', '');
+        } else {
+            $.ajax({
+                type: 'post',
+                url: './statisticalAnalysis/forecastThresholdParameter/getMonitorIndexData?type=' + value,
+                dataType: "json",
+                success: function (result) {
+                    $("#indicators_view").combobox({
+                        valueField: 'value',
+                        textField: 'label',
+                        data: result
+                    });
+                }
+            });
+        }
+    }
+
+    //根据数据类型显示或隐藏资源
+    function showOrHideResources(value) {
+        var resourceId = $("#resources_view").combobox('getValue');
+        if (value == '' || value == '2') {
+            $("#resources_view").combobox('setValue', '');
+            $("#resources_view").combobox('readonly', true); //只读
+        } else {
+            var type = $("#business_type_view").combobox('getValue');
+            var indicators = $("#indicators_view").combobox('getValue');
+            $("#resources_view").combobox('readonly', false); //取消只读
+            if (type != '' && indicators != '') {
+                $.ajax({
+                    type: 'post',
+                    url: './statisticalAnalysis/forecastThresholdParameter/getIndexResourceData?type=' + type + "&indicators=" + indicators,
+                    dataType: "json",
+                    success: function (result) {
+                        $("#resources_view").combobox({
+                            valueField: 'value',
+                            textField: 'label',
+                            data: result
+                        });
+                        if(resourceId != ''){
+                            $("#resources_view").combobox('setValue',resourceId);
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    //根据指标查询资源
+    function getResources(value) {
+        if (value == '') {
+            $("#resources_view").combobox('setValue', '');
+        } else {
+            var type = $("#business_type_view").combobox('getValue');
+            if(type != ''){
+                $.ajax({
+                    type: 'post',
+                    url: './statisticalAnalysis/forecastThresholdParameter/getIndexResourceData?type=' + type + "&indicators=" + value,
+                    dataType: "json",
+                    success: function (result) {
+                        $("#resources_view").combobox({
+                            valueField: 'value',
+                            textField: 'label',
+                            data: result
+                        });
+                        if($("#resource_init").textbox('getValue') != ''){
+                            $('#resources_view').combobox('setValue', $("#resource_init").textbox('getValue'));
+                            $("#resource_init").textbox('setValue','')
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    //保存
+    function saveData(flag, rows) {
+        if ($('#business_type_view').combobox('getValue') == '') {
+            $.messager.alert('提示', '业务类型不能为空', 'info');
+            return;
+        }
+        if ($('#data_type_view').combobox('getValue') == '') {
+            $.messager.alert('提示', '数据类型不能为空', 'info');
+            return;
+        }
+        if ($('#indicators_view').combobox('getValue') == '') {
+            $.messager.alert('提示', '指标不能为空', 'info');
+            return;
+        }
+        if ($('#data_type_view').combobox('getValue') == '1' && $('#resources_view').combobox('getValue') == '') { //业务数据类型必须选择资源
+            $.messager.alert('提示', '资源不能为空', 'info');
+            return;
+        }
+        if ($('#threshold_type_view').combobox('getValue') == '' || $('#operator_view').combobox('getValue') == '' || $('#operator_value_view').textbox('getValue') == '') {
+            $.messager.alert('提示', '阈值设置不能为空', 'info');
+            return;
+        }
+        var method = flag == '0' ? 'insertThresholdData' : 'updateThresholdData';
+        var params = {
+            ID: flag == '0' ? '' : rows.id,
+            index_id: $('#indicators_view').combobox('getValue'),
+            index_name: $('#indicators_view').combobox('getText'),
+            business_type: $('#business_type_view').combobox('getValue'),
+            data_type: $('#data_type_view').combobox('getValue'),
+            resource: $('#resources_view').combobox('getValue'),
+            resource_name: $('#resources_view').combobox('getText'),
+            threshold_type: $('#threshold_type_view').combobox('getValue'),
+            operator: $('#operator_view').combobox('getValue'),
+            operator_value: $('#operator_value_view').textbox('getValue'),
+            description: $('#description_view').textbox('getValue'),
+            Authorization: localStorage.token,
+            userName: localStorage.userName
+        };
+        $.ajax({
+            type: 'post',
+            url: './statisticalAnalysis/forecastThresholdParameter/' + method,
+            data: params,
+            dataType: "json",
+            beforeSend: ajaxLoading,
+            success: function (result) {
+                ajaxLoadEnd();
+                $.messager.alert('提示', result.msg, 'info', function () {
+                    $('#viewData').dialog('destroy');
+                    $('#tableData').datagrid('load');
+                });
+            }
+        })
+    }
+
+</script>

@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.indicatorsLib.dao.mapper.indicatorsLib.IndexSchemeMapper">
+
+    <!--    推送指标库到图库-->
+    <insert id="pushIndexToVS">
+        INSERT INTO  `visual_screen`.`vs_lib_index_scheme`(
+            ID,
+            SCHEME_DESCR,
+            SCHEME_SQL,
+            SCHEME_COLUMS,
+            SCHEME_CONDITON,
+            ADD_USERID,
+            ADD_DATE
+        )
+            SELECT
+                ID,
+                SCHEME_DESCR,
+                SCHEME_SQL,
+                SCHEME_COLUMS,
+                SCHEME_CONDITON,
+                #{params.userId},
+                NOW()
+            FROM
+                `indicators_lib`.`lib_index_scheme`
+            WHERE
+                ID = #{params.ID}
+    </insert>
+
+    <!--    新增指标方案-->
+    <insert id="saveIndexScheme">
+        INSERT INTO indicators_lib.`lib_index_scheme`
+            VALUES (
+                #{params.schemeId},
+                #{params.schemeDescr},
+                #{params.schemeSql},
+                #{params.schemeColums},
+                #{params.schemeConditon},
+                #{params.isPublicScheme},
+                '1',
+                #{params.userId},
+                #{params.date},
+                #{params.userId},
+                #{params.date},
+                ''
+            )
+    </insert>
+
+    <!--    修改已保存的指标方案信息-->
+    <update id="updateSchemeData">
+        UPDATE indicators_lib.`lib_index_scheme`
+        <set>
+            <if test="params.schemeDescr != null and params.schemeDescr != ''">
+                SCHEME_DESCR = #{params.schemeDescr},
+            </if>
+            <if test="params.schemeSql != null and params.schemeSql != ''">
+                SCHEME_SQL = #{params.schemeSql},
+            </if>
+            <if test="params.schemeColums != null and params.schemeColums != ''">
+                SCHEME_COLUMS = #{params.schemeColums},
+            </if>
+            <if test="params.schemeConditon != null and params.schemeConditon != ''">
+                SCHEME_CONDITON = #{params.schemeConditon},
+            </if>
+            <if test="params.isPublicScheme != null and params.isPublicScheme != ''">
+                IS_PUBLIC_SCHEME = #{params.isPublicScheme},
+            </if>
+            <if test="params.userId != null and params.userId != ''">
+                MODIFY_USERID = #{params.userId},
+            </if>
+            <if test="params.date != null and params.date != ''">
+                MODIFY_DATE = #{params.date}
+            </if>
+            <if test="params.IS_PUSH != null and params.IS_PUSH != ''">
+                IS_PUSH = #{params.IS_PUSH}
+            </if>
+        </set>
+        WHERE id = #{params.schemeId}
+    </update>
+
+    <!--    保存指标方案之前校验方案描述的唯一性-->
+    <select id="validatySchemeDescr" resultType="integer">
+        select count(1) from indicators_lib.`lib_index_scheme` s
+        WHERE
+        <if test="params.schemeId != null and params.schemeId != ''">
+            s.SCHEME_DESCR = #{params.schemeDescr} AND s.ID <![CDATA[<>]]> #{params.schemeId}
+        </if>
+        <if test="params.schemeId == null or params.schemeId == ''">
+            s.SCHEME_DESCR = #{params.schemeDescr}
+        </if>
+    </select>
+
+    <!--    根据指标方案id 查询保存的指标方案表SCHEME_COLUMS字段拿到指标ID-->
+    <select id="selectSchemeColumn" resultType="string">
+        SELECT s.SCHEME_COLUMS FROM indicators_lib.`lib_index_scheme` s WHERE s.id=#{schemeId}
+    </select>
+
+    <!--    查询保存的指标方案表头字段-->
+    <select id="selectSchemeThead" resultType="hashmap">
+        SELECT o.INDEX_ID,
+        CASE WHEN o.INDEX_TYPE = '0' THEN
+        o.INDEX_NAME
+        ELSE
+        CONCAT(o.INDEX_NAME,'(%)') END AS INDEX_NAME
+        FROM indicators_lib.`lib_index_relation` o
+        WHERE o.index_id in
+        <foreach collection="array" item="indexId" index="index" open="(" separator="," close=")">
+            #{indexId}
+        </foreach>
+    </select>
+
+    <!--    查询已保存的方案count-->
+    <select id="getSchemeCount" resultType="int">
+        SELECT COUNT(1) FROM indicators_lib.`lib_index_scheme` s
+        WHERE S.IS_DELETE='1'
+        <!--  个人指标方案 -->
+        <if test='params.isPublicScheme == "1"'>
+            AND s.ADD_USERID=#{params.userId} AND IS_PUBLIC_SCHEME = '1'
+        </if>
+        <!--  公共指标方案 -->
+        <if test='params.isPublicScheme == "0"'>
+            AND IS_PUBLIC_SCHEME = '0'
+        </if>
+    </select>
+
+    <!--    查询个人常用公共方案count-->
+    <select id="getUsedPublicSchemeCount" resultType="int">
+        SELECT COUNT(1) FROM indicators_lib.`lib_public_scheme` s WHERE s.ADD_USERID=#{params.userId}
+    </select>
+
+    <!--    查询已保存的指标方案-->
+    <select id="selectSchemeTable" resultType="hashmap">
+        SELECT s.ID,s.SCHEME_DESCR,s.SCHEME_CONDITON,s.IS_PUBLIC_SCHEME,indicators_lib.f_get_IndexName(s.SCHEME_COLUMS) AS INDEX_NAME,
+        IS_PUSH
+        <!--  公共指标方案,需要关联方案关系表主键 -->
+        <if test='params.isPublicScheme == "0"'>
+            ,p.ID AS PUBLIC_ID
+        </if>
+        FROM indicators_lib.`lib_index_scheme` s
+        <!--  个人常用的公共指标方案,需要关联方案关系表 -->
+        <if test='params.isPublicScheme == "0"'>
+            RIGHT JOIN indicators_lib.`lib_public_scheme` p ON s.ID=p.SCHEME_ID AND s.ADD_USERID=p.ADD_USERID
+        </if>
+        WHERE S.IS_DELETE='1'
+        <!--  个人指标方案 -->
+        <if test='params.isPublicScheme == "1"'>
+            AND s.ADD_USERID=#{params.userId} AND IS_PUBLIC_SCHEME = '1'
+        </if>
+        <!--  公共指标方案 -->
+        <if test='params.isPublicScheme == "0"'>
+            AND IS_PUBLIC_SCHEME = '0'
+        </if>
+        <if test="params.schemeDescr != null or params.schemeDescr != ''">
+            AND s.SCHEME_DESCR LIKE '%${params.schemeDescr}%'
+        </if>
+        ORDER BY MODIFY_DATE DESC
+        LIMIT ${params.page},${params.pageSize}
+    </select>
+
+    <!--    根据指标方案id查询指标方案的执行sql-->
+    <select id="selectSchemeSQL" resultType="string">
+        SELECT s.SCHEME_SQL FROM indicators_lib.`lib_index_scheme` s WHERE s.id=#{schemeId}
+    </select>
+
+    <!--    删除指标方案-->
+    <update id="deleteSchemeById">
+        DELETE FROM indicators_lib.`lib_index_scheme`
+        WHERE id=#{params.schemeId}
+    </update>
+
+    <!--    删除指标方案-->
+    <!--<update id="deleteSchemeById">-->
+        <!--UPDATE indicators_lib.`lib_index_scheme`-->
+        <!--SET IS_DELETE='0',-->
+        <!--MODIFY_USERID=#{params.userId},-->
+        <!--MODIFY_DATE=#{params.date}-->
+        <!--WHERE id=#{params.schemeId}-->
+    <!--</update>-->
+
+    <!--    查询指标公共方案列表-->
+    <select id="selectPublicScheme" resultType="hashmap">
+        SELECT s.ID,s.SCHEME_DESCR,s.SCHEME_CONDITON,
+            s.IS_PUBLIC_SCHEME,indicators_lib.f_get_IndexName(s.SCHEME_COLUMS) AS INDEX_NAME,
+            CASE WHEN  (SELECT COUNT(1) FROM indicators_lib.`lib_public_scheme` p WHERE p.ADD_USERID = '${params.userId}' AND p.SCHEME_ID = s.ID) > 0 THEN
+            '1' ELSE '0' END AS STATE
+        FROM indicators_lib.`lib_index_scheme` s
+        WHERE S.IS_DELETE='1' AND IS_PUBLIC_SCHEME = '0'
+        <if test="params.schemeDescr != null or params.schemeDescr != ''">
+            AND s.SCHEME_DESCR LIKE '%${params.schemeDescr}%'
+        </if>
+        ORDER BY MODIFY_DATE DESC
+        LIMIT ${params.page},${params.pageSize}
+    </select>
+
+    <!--    根据用户Id和指标方案Id查询个人常用公共方案-->
+    <select id="isUsedPublicScheme" resultType="int">
+         SELECT COUNT(1) FROM indicators_lib.`lib_public_scheme`
+         WHERE ADD_USERID = #{params.userId} AND SCHEME_ID = #{params.schemeId}
+    </select>
+
+    <!--    新增指标公共方案-->
+    <update id="insertPublicScheme">
+         INSERT INTO indicators_lib.`lib_public_scheme`
+            VALUES (
+                #{params.publicId},
+                #{params.schemeId},
+                #{params.userId},
+                #{params.date},
+                null,
+                null
+            )
+    </update>
+
+    <!--    删除指标个人常用公共方案-->
+    <delete id="deletePublicScheme">
+        DELETE FROM indicators_lib.`lib_public_scheme` WHERE SCHEME_ID=#{params.schemeId}
+    </delete>
+
+</mapper>

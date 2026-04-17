@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.triber.analysis.dao.mapper.AlarmStatisticsMapper">
+
+    <!--    获取监测告警统计表数据total-->
+    <select id="getAlarmStatisticsDataTotal" resultType="int">
+        SELECT count(1)
+        FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.id
+        LEFT JOIN ucloud.api_alarm_summary c ON a.id=c.index_id
+        LEFT JOIN system_docking.api_system_resource d ON c.resource_id=d.id
+        LEFT JOIN system_docking.api_system_resource_ip e ON e.resource_id=d.id
+        WHERE b.is_enable='1' AND d.is_enable='1' AND a.is_monitor='1' AND c.table_name='ucloud.api_interface_alarm_data'
+        <if test="params.indicators != null and params.indicators != ''">
+            AND a.id=#{params.indicators}
+        </if>
+        <if test="params.period != null and params.period != ''">
+            AND c.period=#{params.period}
+        </if>
+        <if test="params.times != null and params.times != ''">
+            AND c.time ${params.times}
+        </if>
+    </select>
+
+    <!--    获取监测告警统计表数据-->
+    <select id="getAlarmStatisticsData" resultType="hashmap">
+        SELECT c.id,c.time AS alarm_time,a.id AS index_id,a.index_name,b.id AS platform_id,b.platfrom_name,
+        d.id AS resource_id,CONCAT(d.resource_desc,'(',ip_address,')') AS resource_desc,c.Count AS alarm_value
+        FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.id
+        LEFT JOIN ucloud.api_alarm_summary c ON a.id=c.index_id
+        LEFT JOIN system_docking.api_system_resource d ON c.resource_id=d.id
+        LEFT JOIN system_docking.api_system_resource_ip e ON e.resource_id=d.id
+        WHERE b.is_enable='1' AND d.is_enable='1' AND c.table_name='ucloud.api_interface_alarm_data'
+        <if test="params.indicators != null and params.indicators != ''">
+            AND a.id=#{params.indicators}
+        </if>
+        <if test="params.period != null and params.period != ''">
+            AND c.period=#{params.period}
+        </if>
+        <if test="params.times != null and params.times != ''">
+            AND c.time ${params.times}
+        </if>
+        ORDER BY alarm_time
+        <if test="params.limit != null and params.limit != ''">
+            ${params.limit}
+        </if>
+    </select>
+
+</mapper>

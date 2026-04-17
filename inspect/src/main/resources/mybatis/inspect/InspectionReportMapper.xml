@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionReportMapper">
+    <!-- author: Samer 检查报告-->
+
+    <!-- 获取检查项目 -->
+    <select id="getInspectItemsByTypeId" resultType="java.util.HashMap">
+        SELECT
+        distinct ENUM_ID id
+        ,ENUM_DSCR name
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE STATE= 0
+        <if test=" params.ENUM_TYPE_ID != null and params.ENUM_TYPE_ID != ''">
+            and ENUM_TYPE_ID = '${params.ENUM_TYPE_ID}'
+        </if>
+    </select>
+
+    <!-- 获取检查组信息 -->
+    <select id="getGroupUsers" resultType="java.util.Map">
+        SELECT
+            c.`NAME`,
+            d.ENUM_DSCR,
+            CONCAT(e.ENUM_DSCR, "/", C.TITLE) AS DUTY
+        FROM
+            `inspection`.`inspection_group` a
+            JOIN inspection.`inspection_group_user` b
+                ON a.`INSPECTION_GROUP_ID` = b.`INSPECTION_GROUP_ID`
+            JOIN inspection.`cm_guoku_talentpool` c
+                ON b.`INSPECTION_GROUP_USER` = c.`UUID`
+            JOIN
+            (SELECT
+                 t.`ENUM_ID`,
+                 t.`ENUM_DSCR`
+             FROM
+                 `enumset`.`cm_guoku_enumeration` t
+             WHERE t.`ENUM_TYPE_ID` = '7') d
+                ON b.`INSPECTION_GROUP_DUTIES` = d.ENUM_ID
+            JOIN
+            (SELECT
+                 t1.`ENUM_ID`,
+                 t1.`ENUM_DSCR`
+             FROM
+                 `enumset`.`cm_guoku_enumeration` t1
+             WHERE t1.`ENUM_TYPE_ID` = '4') e
+                ON c.`DUTIES` = e.ENUM_ID
+        WHERE a.`INSPECTION_TASK_ID` = #{params.TASK_ID}
+        GROUP BY c.`UUID`
+        ORDER BY
+            CAST(d.ENUM_ID AS SIGNED),
+            c.`UUID`
+    </select>
+
+    <!-- 根据ID更新检查报告 -->
+    <update id="updateReportById">
+        UPDATE `inspection`.`inspection_report` a
+        SET
+        INSPECT_DATE = #{params.INSPECT_DATE},
+        INSPECT_ITEMS = #{params.INSPECT_ITEMS},
+        INSPECT_ITEMS_DSCR = #{params.INSPECT_ITEMS_DSCR},
+        NOTES = #{params.NOTES},
+        ACCT_VOUCHER = #{params.ACCT_VOUCHER},
+        ACCT_ATTACH = #{params.ACCT_ATTACH},
+        TOTAL_ACCOUNT = #{params.TOTAL_ACCOUNT},
+        DIVIDED_ACCOUNT = #{params.DIVIDED_ACCOUNT},
+        REPORT_NUM = #{params.REPORT_NUM},
+        REGISTY_TYPE_NUM = #{params.REGISTY_TYPE_NUM},
+        TOTAL_EVALUATION = #{params.TOTAL_EVALUATION},
+        OPINION_SUGGESTION=#{params.OPINION_SUGGESTION},
+        DIRECTOR = #{params.DIRECTOR},
+        DEPARTMENT_HEAD = #{params.DEPARTMENT_HEAD},
+        AFTER_HEAD = #{params.AFTER_HEAD},
+        MODIFY_DATE =#{params.MODIFY_DATE}
+        WHERE 1=1
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.`TASK_ID` = #{params.TASK_ID}
+        </if>
+        <if test=' params.REPORT_ID != null and params.REPORT_ID != "" '>
+            AND a.`REPORT_ID` = #{params.REPORT_ID}
+        </if>
+    </update>
+
+    <!-- 根据任务ID或者报告ID获取报告信息 -->
+    <select id="getReportById" resultType="java.util.Map">
+        SELECT *
+        FROM
+        `inspection`.`inspection_report` a
+        WHERE 1=1
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.`TASK_ID` = #{params.TASK_ID}
+        </if>
+        <if test=' params.REPORT_ID != null and params.REPORT_ID != "" '>
+            AND a.`REPORT_ID` = #{params.REPORT_ID}
+        </if>
+    </select>
+
+    <!-- 新增检查报告 -->
+    <insert id="addInspectionReport">
+        INSERT INTO `inspection`.`inspection_report`
+        VALUES (
+            #{params.REPORT_ID},
+            #{params.TASK_ID},
+            #{params.FILLING_DATE},
+            #{params.INSPECT_DATE},
+            #{params.INSPECT_TYPE},
+            #{params.INSPECT_ITEMS},
+            #{params.INSPECT_ITEMS_DSCR},
+            #{params.NOTES},
+            #{params.ACCT_VOUCHER},
+            #{params.ACCT_ATTACH},
+            #{params.TOTAL_ACCOUNT},
+            #{params.DIVIDED_ACCOUNT},
+            #{params.REPORT_NUM},
+            #{params.REGISTY_TYPE_NUM},
+            #{params.TOTAL_EVALUATION},
+            #{params.OPINION_SUGGESTION},
+            #{params.DIRECTOR},
+            #{params.DEPARTMENT_HEAD},
+            #{params.AFTER_HEAD},
+            #{params.INSPECTED_TRE_OPINIOS},
+            #{params.GROUP_LEADER},
+            #{params.CHIEF_MAN},
+            #{params.ATTACHMENT_NAME},
+            #{params.PAPER_ATTACHMENT},
+            #{params.PRINT_ATTACHMENT},
+            #{params.NOT_OTHER_CONTENT},
+            #{params.OTHER_CONTENT},
+            #{params.ADD_USERID},
+            #{params.ADD_DATE},
+            #{params.MODIFY_USERID},
+            #{params.MODIFY_DATE}
+        )
+    </insert>
+
+</mapper>

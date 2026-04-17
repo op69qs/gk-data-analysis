@@ -1,0 +1,67 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files #
+#*.jar
+*.war
+*.nar
+*.ear
+#*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+.idea
+*.iml
+*.csv
+*.dat
+target
+deploy-package
+!deploy-package/service.sh
+target-dist
+pbc-file
+project_zip
+import
+venv
+tmp
+.vscode
+.mvn
+#front
+node_modules
+dist
+assets
+public
+.project
+.metadata
+.classpath
+.settings
+.factorypath
+appserver
+temp_*
+deploy-package
+logs
+
+#ai
+.kiro
+.qoder
+.gemini
+.menmroy
+.cursor
+.agent
+
+.DS_Store
+__MACOSX
+
+# 部署包目录
+deploy_package

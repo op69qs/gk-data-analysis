@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionFileMapper">
+
+    <select id="getInspectionFileData" resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        inspection.inspection_file a
+        WHERE
+        1 = 1
+        <if test="params.INSPECTION_FILE_ID!=null and params.INSPECTION_FILE_ID != ''">
+            AND a.INSPECTION_FILE_ID = #{params.INSPECTION_FILE_ID}
+        </if>
+        <if test="params.TASK_ID!=null and params.TASK_ID!='' ">
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+        <if test="params.INSPECTION_PROCESS_SUB_ID!=null and params.INSPECTION_PROCESS_SUB_ID!='' ">
+            AND a.INSPECTION_PROCESS_SUB_ID = #{params.INSPECTION_PROCESS_SUB_ID}
+        </if>
+    </select>
+
+    <insert id="addInspectionFile" >
+        INSERT INTO inspection.inspection_file
+        VALUES
+        (
+        #{params.INSPECTION_FILE_ID},
+        #{params.TASK_ID},
+        #{params.INSPECTION_PROCESS_SUB_ID},
+        #{params.INSPECTION_FILE_NAME},
+        #{params.INSPECTION_FILE_PATH},
+        #{params.UPLOAD_TIME},
+        #{params.UPLOAD_USER}
+        )
+    </insert>
+
+    <update id="editInspectionFile">
+        UPDATE inspection.inspection_file SET
+        <if test=" params.TASK_ID != null and params.TASK_ID != ''">
+            TASK_ID = #{params.TASK_ID},
+        </if>
+        <if test=" params.INSPECTION_PROCESS_SUB_ID != null and params.INSPECTION_PROCESS_SUB_ID != ''">
+            INSPECTION_PROCESS_SUB_ID = #{params.INSPECTION_PROCESS_SUB_ID},
+        </if>
+        <if test=" params.INSPECTION_FILE_NAME != null and params.INSPECTION_FILE_NAME != ''">
+            INSPECTION_FILE_NAME = #{params.INSPECTION_FILE_NAME},
+        </if>
+        <if test=" params.INSPECTION_FILE_PATH != null and params.INSPECTION_FILE_PATH != ''">
+            INSPECTION_FILE_PATH = #{params.INSPECTION_FILE_PATH},
+        </if>
+        <if test=" params.UPLOAD_TIME != null and params.UPLOAD_TIME != ''">
+            UPLOAD_TIME = #{params.UPLOAD_TIME},
+        </if>
+        <if test=" params.UPLOAD_USER != null and params.UPLOAD_USER != ''">
+            UPLOAD_USER = #{params.UPLOAD_USER},
+        </if>
+        INSPECTION_FILE_ID = #{params.INSPECTION_FILE_ID}
+        WHERE INSPECTION_FILE_ID = #{params.INSPECTION_FILE_ID}
+    </update>
+
+    <delete id="delInspectionFile" >
+        DELETE
+        FROM
+        inspection.inspection_file
+        WHERE 1 = 1
+        <if test="params.INSPECTION_FILE_ID!=null and params.INSPECTION_FILE_ID != ''">
+            AND INSPECTION_FILE_ID = #{params.INSPECTION_FILE_ID}
+        </if>
+        <if test="params.TASK_ID!=null and params.TASK_ID != ''">
+            AND TASK_ID = #{params.TASK_ID}
+        </if>
+        <if test=" params.INSPECTION_PROCESS_SUB_ID != null and params.INSPECTION_PROCESS_SUB_ID != ''">
+           AND INSPECTION_PROCESS_SUB_ID = #{params.INSPECTION_PROCESS_SUB_ID}
+        </if>
+    </delete>
+
+</mapper>

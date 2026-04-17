@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fixedReport.dao.mapper.fixedReport.CentralizedPaymentMapper">
+    <select id="getBudgetUnit" resultType="java.util.HashMap">
+        SELECT
+        distinct S_BDGORGCODE as id,
+        S_BDGORGNAME as name
+        FROM
+        edw.cm_guoku_bdgorg
+        where 1=1
+    </select>
+
+    <select id="getAgentBankClass" resultType="java.util.HashMap">
+        SELECT
+        distinct AgentBankNo as id,
+        AgentBankName as name
+        FROM
+        edw.cm_guoku_AgentBankClass
+        where 1=1
+    </select>
+
+    <select id="getGuoKu" resultType="java.util.HashMap">
+        SELECT
+        distinct a.GUOKU_ID id,
+        a.GUOKU_DSCR name,
+        CASE
+        WHEN LEVEL = 3
+        THEN a.GUOKU_LVL_ID_1
+        WHEN LEVEL = 4
+        THEN a.GUOKU_LVL_ID_2
+        WHEN LEVEL = 5
+        THEN a.GUOKU_LVL_ID_3
+        ELSE a.guoku_id
+        END pid
+        FROM
+        edw.cm_guoku_dimnsn a
+       where 1=1
+        <if test=" params.guoku_id != null and params.guoku_id != ''">
+            <if test=" params.guoku_id == params.GUOKU_ID_PREFIX">
+
+            </if>
+            <if test=" params.guoku_id != params.GUOKU_ID_PREFIX">
+                AND a.`GUOKU_ID` = #{params.guoku_id} or a.`GUOKU_LVL_ID_3` = #{params.guoku_id}
+            </if>
+
+        </if>
+        <if test=" params.OLD_GUOKU_ID != null and params.OLD_GUOKU_ID != ''">
+            <if test=" params.OLD_GUOKU_ID == params.GUOKU_ID_PREFIX">
+
+            </if>
+            <if test=" params.OLD_GUOKU_ID != params.GUOKU_ID_PREFIX">
+                AND (
+                a.`OLD_GUOKU_ID` = #{params.OLD_GUOKU_ID}
+                OR a.`GUOKU_ID` = #{params.OLD_GUOKU_ID}
+                )
+            </if>
+
+
+        </if>
+
+    </select>
+
+    <select id="getKeMu" resultType="java.util.HashMap">
+        SELECT
+        distinct SUBJECT_code_4 id,
+        SUBJECT_DSCR_4 name,
+        CASE
+        WHEN LEVEL = 0
+        THEN 0
+        WHEN LEVEL = 1
+        THEN SUBJECT_code_1
+        WHEN LEVEL = 2
+        THEN SUBJECT_code_1
+        WHEN LEVEL = 3
+        THEN SUBJECT_code_2
+        WHEN LEVEL = 4
+        THEN SUBJECT_code_3
+        END pId,
+        LEVEL
+        FROM
+        edw.cm_guoku_rcpt_dsb
+        WHERE 1=1
+        AND SUBJECT_CODE_0 = 2
+          AND STATE=0
+        ORDER BY id
+    </select>
+
+    <select id="getKeMu2" resultType="java.util.HashMap">
+        SELECT
+        distinct SUBJECT_code_4 id,
+        SUBJECT_code_4 name,
+        CASE
+        WHEN LEVEL = 0
+        THEN 0
+        WHEN LEVEL = 1
+        THEN SUBJECT_code_1
+        WHEN LEVEL = 2
+        THEN SUBJECT_code_1
+        WHEN LEVEL = 3
+        THEN SUBJECT_code_2
+        WHEN LEVEL = 4
+        THEN SUBJECT_code_3
+        END pId,
+        LEVEL
+        FROM
+        edw.cm_guoku_rcpt_dsb
+        WHERE 1=1
+        AND SUBJECT_CODE_0 = 2
+          AND STATE=0
+        ORDER BY id
+    </select>
+</mapper>

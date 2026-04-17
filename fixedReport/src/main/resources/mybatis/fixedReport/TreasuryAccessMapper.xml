@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dockingProjects.mapper.mysql.TreasuryAccessMapper">
+
+    <!--    三证合一_个体开业、注销信息  接口信息-->
+    <!--    调用三证合一_个体开业、注销信息存储过程-->
+    <select id="callThreeCertificatesSyncretic" statementType="CALLABLE">
+        CALL ods.P_TRS_INFO_PRACTICE_CANCEL_TEMPORARY();
+    </select>
+    <insert id="insertThreeCertificatesSyncretic">
+        INSERT INTO ods.trs_info_practice_cancel_temporary
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.ID},
+            #{item.BBH},
+            #{item.SJBBM},
+            #{item.SJBLX},
+            #{item.DWDM},
+            #{item.DWMC},
+            #{item.INFOACTIONTYPE},
+            #{item.INFODATE},
+            #{item.PRIPID},
+            #{item.UNISCID},
+            #{item.REGNO},
+            #{item.TRANAME},
+            #{item.COMPFORM},
+            #{item.APPRDATE},
+            #{item.REGORG},
+            #{item.NOTNO},
+            #{item.ESTDATE},
+            #{item.ENTTYPE},
+            #{item.REGSTATE},
+            #{item.INDUSTRYCO},
+            #{item.EMPNUM},
+            #{item.OPSCOPE},
+            #{item.OPLOC},
+            #{item.OPLOCDISTRICT},
+            #{item.OPLOCPOSTALCODE},
+            #{item.OPLOCTEL},
+            #{item.PROLOCSTREETCODE},
+            #{item.CANREGREA},
+            #{item.CANDATE},
+            #{item.ISUNISCID}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="delThreeCertificatesSyncretic" parameterType="java.lang.String">
+       delete FROM ods.trs_info_practice_cancel_temporary
+    </delete>
+
+
+    <!--    企业基本信息-多证合一数据 存储过程-->
+    <select id="callEnterpriseBasicInformation" statementType="CALLABLE">
+        CALL ods.P_TRS_INFO_ENTERPRISES_TEMPORARY();
+    </select>
+    <!--    企业基本信息-多证合一数据  接口信息   -->
+    <insert id="insertEnterpriseBasicInformation">
+        INSERT INTO ods.trs_info_enterprises_temporary
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.PRIPID},
+            #{item.UNISCID},
+            #{item.ENTNAME},
+            #{item.ENTTYPE},
+            #{item.REGORG},
+            #{item.ESTDATE},
+            #{item.OPFROM},
+            #{item.OPTO},
+            #{item.DOM},
+            #{item.TEL},
+            #{item.OPLOC},
+            #{item.INDUSTRYPHY},
+            #{item.INDUSTRYCO},
+            #{item.LEREP},
+            #{item.CERTYPE},
+            #{item.MOBTEL},
+            #{item.BCONS},
+            #{item.BCONSCERTYPE},
+            #{item.BCONSCERNO},
+            #{item.BCONSTEL},
+            #{item.TYPE},
+            #{item.DATAUPTIME},
+            #{item.POSTALCODE},
+            #{item.CERNO}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="delEnterpriseBasicInformation" parameterType="java.lang.String">
+       delete FROM ods.trs_info_enterprises_temporary
+    </delete>
+
+
+    <!--    非企业团体基本信息 接口信息 存储过程-->
+    <select id="callNonEnterpriseBasicInformation" statementType="CALLABLE">
+        CALL ods.P_TRS_INFO_NONBUSINESS_TEMPORARY();
+    </select>
+    <!--    非企业团体基本信息 接口信息   -->
+    <insert id="insertNonEnterpriseBasicInformation">
+        INSERT INTO ods.trs_info_nonbusiness_temporary
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.SORG_TYPE},
+            #{item.CN_NAME},
+            #{item.UNIFIED_CODE},
+            #{item.NAME},
+            #{item.CARD_TYPE},
+            #{item.ID_CARD},
+            #{item.RESIDENCE},
+            #{item.REG_MON},
+            #{item.BUSINESS},
+            #{item.BORG_NAME},
+            #{item.SIGN_DATE},
+            #{item.SIGN_END_DATE},
+            #{item.MORG_NAME},
+            #{item.ACT_AREA},
+            #{item.SORG_STATUS},
+            #{item.LINK_MAN},
+            #{item.LINK_PHONE}
+            )
+        </foreach>
+    </insert>
+
+    <delete id="delNonEnterpriseBasicInformation" parameterType="java.lang.String">
+       delete FROM ods.trs_info_nonbusiness_temporary
+    </delete>
+
+</mapper>

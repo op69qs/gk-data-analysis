@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionPostSVListMapper">
+    <!-- author: Samer  事后监督交接清单-->
+
+    <!-- 获取任务信息 -->
+    <select id="getTaskInfoByTaskId" resultType="java.util.Map">
+        SELECT
+            a.*,
+        b.ENUM_DSCR    AS TASK_TYPE_DSCR,
+        c.`guoku_dscr` AS INSPECTED_GUOKU_DSCR
+        FROM
+        `inspection`.`inspection_task_postsv` a
+        JOIN
+        (
+        SELECT
+        t1.`ENUM_DSCR`,
+        t1.ENUM_ID
+        FROM
+        `enumset`.`cm_guoku_enumeration` t1
+        WHERE
+        t1.`ENUM_TYPE_ID` = '12'
+        ) b
+        ON b.`ENUM_ID` = a.INSPECTION_TASK_TYPE
+        LEFT JOIN
+        dmcode.`cm_guoku_dimnsn` c
+        ON a.`INSPECTED_GUOKU_ID` = c.`guoku_id`
+        WHERE
+        a.INSPECTION_TASK_ID = #{params.TASK_ID};
+    </select>
+
+    <!-- 获取模板信息 -->
+    <select id="getTemplateInfo" resultType="java.util.HashMap">
+        SELECT
+        a.`data_name` AS  ITEM_DSCR,
+        a.`num` AS  ITEM_NUM,
+        a.`data_date` AS  ITEM_DATE,
+        a.`remarks` AS  REMARKS,
+        false AS isSet
+        FROM
+        `inspection`.`inspection_borrow_template` a
+        WHERE
+        a.`type` = '010'
+    </select>
+
+    <!-- 获取主表信息 -->
+    <select id="getMainInfo" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+            `inspection`.`inspection_handover_list` a
+        WHERE 1=1
+        <if test='params.LIST_ID != null and params.LIST_ID != ""'>
+            AND a.LIST_ID = #{params.LIST_ID}
+        </if>
+        <if test='params.TASK_ID != null and params.TASK_ID != ""'>
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+    </select>
+
+    <!-- 获取子表信息 -->
+    <select id="getSubSheet" resultType="java.util.HashMap">
+        SELECT
+            *,
+        false AS isSet
+        FROM
+            `inspection`.`inspection_handover_list_sub` a
+        WHERE 1=1
+        <if test='params.LIST_ID != null and params.LIST_ID != ""'>
+            AND a.LIST_ID = #{params.LIST_ID}
+        </if>
+    </select>
+
+    <!-- 获取全部记录 -->
+    <select id="getFullInfo" resultType="java.util.HashMap">
+        SELECT *,false AS isSet
+        FROM
+        `inspection`.`inspection_handover_list` a
+        LEFT JOIN
+        `inspection`.`inspection_handover_list_sub` b
+        ON a.LIST_ID = b.LIST_ID
+        WHERE 1=1
+        <if test='params.LIST_ID != null and params.LIST_ID != ""'>
+            AND a.LIST_ID = #{params.LIST_ID}
+        </if>
+        <if test='params.TASK_ID != null and params.TASK_ID != ""'>
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+    </select>
+
+    <!-- 修改主表信息 -->
+    <update id="editMainInfo">
+        UPDATE `inspection`.`inspection_handover_list`
+        SET
+        <if test='params.TASK_ID != null and params.TASK_ID != ""'>
+            TASK_ID=#{params.TASK_ID},
+        </if>
+        <if test='params.BOOKORG_DSCR != null and params.BOOKORG_DSCR != ""'>
+            BOOKORG_DSCR=#{params.BOOKORG_DSCR},
+        </if>
+        <if test='params.FILLING_DATE != null and params.FILLING_DATE != ""'>
+            FILLING_DATE= #{params.FILLING_DATE},
+        </if>
+        <if test='params.HAND_OVER != null and params.HAND_OVER != ""'>
+            HAND_OVER=#{params.HAND_OVER},
+        </if>
+        <if test='params.ACCEPTER != null and params.ACCEPTER != ""'>
+            ACCEPTER=#{params.ACCEPTER},
+        </if>
+        <if test='params.ADD_USERID != null and params.ADD_USERID != ""'>
+            ADD_USERID=#{params.ADD_USERID},
+        </if>
+        <if test='params.ADD_DATE != null and params.ADD_DATE != ""'>
+            ADD_DATE=#{params.ADD_DATE},
+        </if>
+        <if test='params.MODIFY_USERID != null and params.MODIFY_USERID != ""'>
+            MODIFY_USERID=#{params.MODIFY_USERID},
+        </if>
+        <if test='params.MODIFY_DATE != null and params.MODIFY_DATE != ""'>
+            MODIFY_DATE= #{params.MODIFY_DATE},
+        </if>
+        <if test='params.ATTACHMENT_NAME != null and params.ATTACHMENT_NAME != ""'>
+            ATTACHMENT_NAME= #{params.ATTACHMENT_NAME},
+        </if>
+        <if test='params.PAPER_ATTACHMENT != null and params.PAPER_ATTACHMENT != ""'>
+            PAPER_ATTACHMENT= #{params.PAPER_ATTACHMENT},
+        </if>
+        <if test='params.PRINT_ATTACHMENT != null and params.PRINT_ATTACHMENT != ""'>
+            PRINT_ATTACHMENT=#{params.PRINT_ATTACHMENT},
+        </if>
+        LIST_ID = #{params.LIST_ID}
+        WHERE
+        LIST_ID = #{params.LIST_ID}
+    </update>
+
+    <!-- 新增主表信息 -->
+    <insert id="addMainInfo">
+        INSERT INTO `inspection`.`inspection_handover_list`
+        VALUES (
+            #{params.LIST_ID},
+            #{params.TASK_ID},
+            #{params.BOOKORG_DSCR},
+            #{params.FILLING_DATE},
+            #{params.HAND_OVER},
+            #{params.ACCEPTER},
+            #{params.ADD_USERID},
+            #{params.ADD_DATE},
+            #{params.MODIFY_USERID},
+            #{params.MODIFY_DATE},
+            #{params.ATTACHMENT_NAME},
+            #{params.PAPER_ATTACHMENT},
+            #{params.PRINT_ATTACHMENT}
+        )
+    </insert>
+
+    <!-- 删除主表信息 -->
+    <delete id="deleteMainInfo">
+        DELETE FROM `inspection`.`inspection_handover_list`
+        WHERE
+            LIST_ID = #{params.LIST_ID}
+    </delete>
+
+    <!-- 新增子表信息 -->
+    <insert id="addSubInfo">
+        INSERT INTO `inspection`.`inspection_handover_list_sub`
+        VALUES
+        <foreach collection="params.dataList" item="data" separator=",">
+            (
+            #{params.LIST_ID},
+            #{data.ITEM_DSCR},
+            #{data.ITEM_NUM},
+            #{data.ITEM_DATE},
+            #{data.REMARKS}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 删除子表信息 -->
+    <delete id="delSubInfo">
+        DELETE FROM `inspection`.`inspection_handover_list_sub`
+        WHERE
+            LIST_ID = #{params.LIST_ID}
+    </delete>
+
+</mapper>

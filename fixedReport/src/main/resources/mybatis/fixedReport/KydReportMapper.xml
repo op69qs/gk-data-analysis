@@ -1,0 +1,610 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fixedReport.dao.mapper.fixedReport.KydReportMapper">
+    <!-- 获取分行业列表  -->
+    <select id="getIndustryReportAll" resultType="java.util.HashMap">
+        SELECT
+
+        '合计' as PRONAME,
+        FORMAT(sum(F_AMT_101)/#{params.amtUnit},2) as F_AMT_101,
+        FORMAT(((sum(F_AMT_101)-sum(F_AMT_101_year))/sum(F_AMT_101_year))*100,2) as F_AMT_101_year,
+        FORMAT(sum(F_AMT_1010101)/#{params.amtUnit},2) as F_AMT_1010101,
+        FORMAT(((sum(F_AMT_1010101)-sum(F_AMT_1010101_year))/sum(F_AMT_1010101_year))*100,2) as F_AMT_1010101_year,
+        FORMAT(sum(F_AMT_1010201)/#{params.amtUnit},2) as F_AMT_1010201,
+        FORMAT(((sum(F_AMT_1010201)-sum(F_AMT_1010201_year))/sum(F_AMT_1010201_year))*100,2) as F_AMT_1010201_year,
+        FORMAT(sum(F_AMT_10104)/#{params.amtUnit},2) as F_AMT_10104,
+        FORMAT(((sum(F_AMT_10104)-sum(F_AMT_10104_year))/sum(F_AMT_10104_year))*100,2) as F_AMT_10104_year,
+        FORMAT(sum(F_AMT_10106)/#{params.amtUnit},2) as F_AMT_10106,
+        FORMAT(((sum(F_AMT_10106)-sum(F_AMT_10106_year))/sum(F_AMT_10106_year))*100,2) as F_AMT_10106_year,
+        FORMAT(sum(F_AMT_10107)/#{params.amtUnit},2) as F_AMT_10107,
+        FORMAT(((sum(F_AMT_10107)-sum(F_AMT_10107_year))/sum(F_AMT_10107_year))*100,2) as F_AMT_10107_year,
+        FORMAT(sum(F_AMT_10109)/#{params.amtUnit},2) as F_AMT_10109,
+        FORMAT(((sum(F_AMT_10109)-sum(F_AMT_10109_year))/sum(F_AMT_10109_year))*100,2) as F_AMT_10109_year,
+        FORMAT(sum(F_AMT_10110)/#{params.amtUnit},2) as F_AMT_10110,
+        FORMAT(((sum(F_AMT_10110)-sum(F_AMT_10110_year))/sum(F_AMT_10110_year))*100,2) as F_AMT_10110_year,
+        FORMAT(sum(F_AMT_10111)/#{params.amtUnit},2) as F_AMT_10111,
+        FORMAT(((sum(F_AMT_10111)-sum(F_AMT_10111_year))/sum(F_AMT_10111_year))*100,2) as F_AMT_10111_year,
+        FORMAT(sum(F_AMT_10112)/#{params.amtUnit},2) as F_AMT_10112,
+        FORMAT(((sum(F_AMT_10112)-sum(F_AMT_10112_year))/sum(F_AMT_10112_year))*100,2) as F_AMT_10112_year,
+        FORMAT(sum(F_AMT_10113)/#{params.amtUnit},2) as F_AMT_10113,
+        FORMAT(((sum(F_AMT_10113)-sum(F_AMT_10113_year))/sum(F_AMT_10113_year))*100,2) as F_AMT_10113_year,
+        FORMAT(sum(F_AMT_10116)/#{params.amtUnit},2) as F_AMT_10116,
+        FORMAT(((sum(F_AMT_10116)-sum(F_AMT_10116_year))/sum(F_AMT_10116_year))*100,2) as F_AMT_10116_year,
+        FORMAT(sum(F_AMT_10114)/#{params.amtUnit},2) as F_AMT_10114,
+        FORMAT(((sum(F_AMT_10114)-sum(F_AMT_10114_year))/sum(F_AMT_10114_year))*100,2) as F_AMT_10114_year,
+        FORMAT(sum(F_AMT_10118)/#{params.amtUnit},2) as F_AMT_10118,
+        FORMAT(((sum(F_AMT_10118)-sum(F_AMT_10118_year))/sum(F_AMT_10118_year))*100,2) as F_AMT_10118_year,
+        FORMAT(sum(F_AMT_10119)/#{params.amtUnit},2) as F_AMT_10119,
+        FORMAT(((sum(F_AMT_10119)-sum(F_AMT_10119_year))/sum(F_AMT_10119_year))*100,2) as F_AMT_10119_year,
+        FORMAT(sum(F_AMT_10120)/#{params.amtUnit},2) as F_AMT_10120,
+        FORMAT(((sum(F_AMT_10120)-sum(F_AMT_10120_year))/sum(F_AMT_10120_year))*100,2) as F_AMT_10120_year,
+        FORMAT(sum(F_AMT_10121)/#{params.amtUnit},2) as F_AMT_10121,
+        FORMAT(((sum(F_AMT_10121)-sum(F_AMT_10121_year))/sum(F_AMT_10121_year))*100,2) as F_AMT_10121_year,
+        FORMAT(sum(F_AMT_99999)/#{params.amtUnit},2) as F_AMT_99999,
+        FORMAT(((sum(F_AMT_99999)-sum(F_AMT_99999_year))/sum(F_AMT_99999_year))*100,2) as F_AMT_99999_year,
+        mark
+        FROM
+        (
+        SELECT
+        sum(F_AMT_101) AS F_AMT_101,
+        sum(F_AMT_1010101) AS F_AMT_1010101,
+        sum(F_AMT_1010201) AS F_AMT_1010201,
+        sum(F_AMT_10104) AS F_AMT_10104,
+        sum(F_AMT_10106) AS F_AMT_10106,
+        sum(F_AMT_10107) AS F_AMT_10107,
+        sum(F_AMT_10109) AS F_AMT_10109,
+        sum(F_AMT_10110) AS F_AMT_10110,
+        sum(F_AMT_10111) AS F_AMT_10111,
+        sum(F_AMT_10112) AS F_AMT_10112,
+        sum(F_AMT_10113) AS F_AMT_10113,
+        sum(F_AMT_10116) AS F_AMT_10116,
+        sum(F_AMT_10114) AS F_AMT_10114,
+        sum(F_AMT_10118) AS F_AMT_10118,
+        sum(F_AMT_10119) AS F_AMT_10119,
+        sum(F_AMT_10120) AS F_AMT_10120,
+        sum(F_AMT_10121) AS F_AMT_10121,
+        sum(F_AMT_99999) AS F_AMT_99999,
+        mark
+        FROM
+        ${params.tableName} a
+        where
+        PRONAME IN ( '第一产业', '第二产业', '第三产业' )
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = #{params.D_ACCT}
+        </if>
+        <if test="params.PRONAME !=null and params.PRONAME !='' ">
+            AND PRONAME like  '%${params.PRONAME}%'
+        </if>
+        <if test="params.PROCODE != '' and params.PROCODE != null ">
+            AND PROCODE IN(${params.PROCODE})
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.mark !=null and params.mark!='' ">
+            AND mark  = '${params.mark}'
+        </if>
+        ) a,(
+        SELECT
+        sum(F_AMT_101) AS F_AMT_101_year,
+        sum(F_AMT_1010101) AS F_AMT_1010101_year,
+        sum(F_AMT_1010201) AS F_AMT_1010201_year,
+        sum(F_AMT_10104) AS F_AMT_10104_year,
+        sum(F_AMT_10106) AS F_AMT_10106_year,
+        sum(F_AMT_10107) AS F_AMT_10107_year,
+        sum(F_AMT_10109) AS F_AMT_10109_year,
+        sum(F_AMT_10110) AS F_AMT_10110_year,
+        sum(F_AMT_10111) AS F_AMT_10111_year,
+        sum(F_AMT_10112) AS F_AMT_10112_year,
+        sum(F_AMT_10113) AS F_AMT_10113_year,
+        sum(F_AMT_10116) AS F_AMT_10116_year,
+        sum(F_AMT_10114) AS F_AMT_10114_year,
+        sum(F_AMT_10118) AS F_AMT_10118_year,
+        sum(F_AMT_10119) AS F_AMT_10119_year,
+        sum(F_AMT_10120) AS F_AMT_10120_year,
+        sum(F_AMT_10121) AS F_AMT_10121_year,
+        sum(F_AMT_99999) AS F_AMT_99999_year
+        FROM
+        ${params.tableName} a
+        where
+        PRONAME IN ( '第一产业', '第二产业', '第三产业' )
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = date_format(date_sub(concat(#{params.D_ACCT},'-01'),interval 1 year),'%Y-%m')
+        </if>
+        <if test="params.PRONAME !=null and params.PRONAME !='' ">
+            AND PRONAME like  '%${params.PRONAME}%'
+        </if>
+        <if test="params.PROCODE != '' and params.PROCODE != null ">
+            AND PROCODE IN(${params.PROCODE})
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.mark !=null and params.mark!='' ">
+            AND mark  = '${params.mark}'
+        </if>
+        ) b
+        union
+        SELECT * from (
+        SELECT
+        a.`name` as PRONAME,
+        FORMAT(sum(F_AMT_101)/#{params.amtUnit},2) as F_AMT_101,
+        FORMAT(((sum(F_AMT_101)-sum(F_AMT_101_year))/sum(F_AMT_101_year))*100,2) as F_AMT_101_year,
+        FORMAT(sum(F_AMT_1010101)/#{params.amtUnit},2) as F_AMT_1010101,
+        FORMAT(((sum(F_AMT_1010101)-sum(F_AMT_1010101_year))/sum(F_AMT_1010101_year))*100,2) as F_AMT_1010101_year,
+        FORMAT(sum(F_AMT_1010201)/#{params.amtUnit},2) as F_AMT_1010201,
+        FORMAT(((sum(F_AMT_1010201)-sum(F_AMT_1010201_year))/sum(F_AMT_1010201_year))*100,2) as F_AMT_1010201_year,
+        FORMAT(sum(F_AMT_10104)/#{params.amtUnit},2) as F_AMT_10104,
+        FORMAT(((sum(F_AMT_10104)-sum(F_AMT_10104_year))/sum(F_AMT_10104_year))*100,2) as F_AMT_10104_year,
+        FORMAT(sum(F_AMT_10106)/#{params.amtUnit},2) as F_AMT_10106,
+        FORMAT(((sum(F_AMT_10106)-sum(F_AMT_10106_year))/sum(F_AMT_10106_year))*100,2) as F_AMT_10106_year,
+        FORMAT(sum(F_AMT_10107)/#{params.amtUnit},2) as F_AMT_10107,
+        FORMAT(((sum(F_AMT_10107)-sum(F_AMT_10107_year))/sum(F_AMT_10107_year))*100,2) as F_AMT_10107_year,
+        FORMAT(sum(F_AMT_10109)/#{params.amtUnit},2) as F_AMT_10109,
+        FORMAT(((sum(F_AMT_10109)-sum(F_AMT_10109_year))/sum(F_AMT_10109_year))*100,2) as F_AMT_10109_year,
+        FORMAT(sum(F_AMT_10110)/#{params.amtUnit},2) as F_AMT_10110,
+        FORMAT(((sum(F_AMT_10110)-sum(F_AMT_10110_year))/sum(F_AMT_10110_year))*100,2) as F_AMT_10110_year,
+        FORMAT(sum(F_AMT_10111)/#{params.amtUnit},2) as F_AMT_10111,
+        FORMAT(((sum(F_AMT_10111)-sum(F_AMT_10111_year))/sum(F_AMT_10111_year))*100,2) as F_AMT_10111_year,
+        FORMAT(sum(F_AMT_10112)/#{params.amtUnit},2) as F_AMT_10112,
+        FORMAT(((sum(F_AMT_10112)-sum(F_AMT_10112_year))/sum(F_AMT_10112_year))*100,2) as F_AMT_10112_year,
+        FORMAT(sum(F_AMT_10113)/#{params.amtUnit},2) as F_AMT_10113,
+        FORMAT(((sum(F_AMT_10113)-sum(F_AMT_10113_year))/sum(F_AMT_10113_year))*100,2) as F_AMT_10113_year,
+        FORMAT(sum(F_AMT_10116)/#{params.amtUnit},2) as F_AMT_10116,
+        FORMAT(((sum(F_AMT_10116)-sum(F_AMT_10116_year))/sum(F_AMT_10116_year))*100,2) as F_AMT_10116_year,
+        FORMAT(sum(F_AMT_10114)/#{params.amtUnit},2) as F_AMT_10114,
+        FORMAT(((sum(F_AMT_10114)-sum(F_AMT_10114_year))/sum(F_AMT_10114_year))*100,2) as F_AMT_10114_year,
+        FORMAT(sum(F_AMT_10118)/#{params.amtUnit},2) as F_AMT_10118,
+        FORMAT(((sum(F_AMT_10118)-sum(F_AMT_10118_year))/sum(F_AMT_10118_year))*100,2) as F_AMT_10118_year,
+        FORMAT(sum(F_AMT_10119)/#{params.amtUnit},2) as F_AMT_10119,
+        FORMAT(((sum(F_AMT_10119)-sum(F_AMT_10119_year))/sum(F_AMT_10119_year))*100,2) as F_AMT_10119_year,
+        FORMAT(sum(F_AMT_10120)/#{params.amtUnit},2) as F_AMT_10120,
+        FORMAT(((sum(F_AMT_10120)-sum(F_AMT_10120_year))/sum(F_AMT_10120_year))*100,2) as F_AMT_10120_year,
+        FORMAT(sum(F_AMT_10121)/#{params.amtUnit},2) as F_AMT_10121,
+        FORMAT(((sum(F_AMT_10121)-sum(F_AMT_10121_year))/sum(F_AMT_10121_year))*100,2) as F_AMT_10121_year,
+        FORMAT(sum(F_AMT_99999)/#{params.amtUnit},2) as F_AMT_99999,
+        FORMAT(((sum(F_AMT_99999)-sum(F_AMT_99999_year))/sum(F_AMT_99999_year))*100,2) as F_AMT_99999_year,
+        mark
+        FROM
+
+        adm.`trs_kyd_industry_mb` a
+        LEFT JOIN
+        (select distinct a.*,b.* from  (
+        SELECT
+        t2.key PRONAME,
+        sum(F_AMT_101) AS F_AMT_101,
+        sum(F_AMT_1010101) AS F_AMT_1010101,
+        sum(F_AMT_1010201) AS F_AMT_1010201,
+        sum(F_AMT_10104) AS F_AMT_10104,
+        sum(F_AMT_10106) AS F_AMT_10106,
+        sum(F_AMT_10107) AS F_AMT_10107,
+        sum(F_AMT_10109) AS F_AMT_10109,
+        sum(F_AMT_10110) AS F_AMT_10110,
+        sum(F_AMT_10111) AS F_AMT_10111,
+        sum(F_AMT_10112) AS F_AMT_10112,
+        sum(F_AMT_10113) AS F_AMT_10113,
+        sum(F_AMT_10116) AS F_AMT_10116,
+        sum(F_AMT_10114) AS F_AMT_10114,
+        sum(F_AMT_10118) AS F_AMT_10118,
+        sum(F_AMT_10119) AS F_AMT_10119,
+        sum(F_AMT_10120) AS F_AMT_10120,
+        sum(F_AMT_10121) AS F_AMT_10121,
+        sum(F_AMT_99999) AS F_AMT_99999,
+        mark
+        FROM
+
+        ${params.tableName} t1
+        left join
+        adm.`trs_kyd_industry_mb` t2
+        on t1.PRONAME = t2.key
+        where 1=1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = #{params.D_ACCT}
+        </if>
+        <if test="params.PRONAME !=null and params.PRONAME !='' ">
+            AND PRONAME like  '%${params.PRONAME}%'
+        </if>
+        <if test="params.PROCODE != '' and params.PROCODE != null ">
+            AND PROCODE IN(${params.PROCODE})
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.mark !=null and params.mark!='' ">
+            AND mark  = '${params.mark}'
+        </if>
+        GROUP BY  t1.PRONAME
+
+        ) a left join (
+        SELECT
+        t2.key PRONAME_b,
+        sum(F_AMT_101) AS F_AMT_101_year,
+        sum(F_AMT_1010101) AS F_AMT_1010101_year,
+        sum(F_AMT_1010201) AS F_AMT_1010201_year,
+        sum(F_AMT_10104) AS F_AMT_10104_year,
+        sum(F_AMT_10106) AS F_AMT_10106_year,
+        sum(F_AMT_10107) AS F_AMT_10107_year,
+        sum(F_AMT_10109) AS F_AMT_10109_year,
+        sum(F_AMT_10110) AS F_AMT_10110_year,
+        sum(F_AMT_10111) AS F_AMT_10111_year,
+        sum(F_AMT_10112) AS F_AMT_10112_year,
+        sum(F_AMT_10113) AS F_AMT_10113_year,
+        sum(F_AMT_10116) AS F_AMT_10116_year,
+        sum(F_AMT_10114) AS F_AMT_10114_year,
+        sum(F_AMT_10118) AS F_AMT_10118_year,
+        sum(F_AMT_10119) AS F_AMT_10119_year,
+        sum(F_AMT_10120) AS F_AMT_10120_year,
+        sum(F_AMT_10121) AS F_AMT_10121_year,
+        sum(F_AMT_99999) AS F_AMT_99999_year
+        FROM
+        ${params.tableName} t1
+        left join
+        adm.`trs_kyd_industry_mb` t2
+        on t1.PRONAME = t2.key
+        where 1=1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = date_format(date_sub(concat(#{params.D_ACCT},'-01'),interval 1 year),'%Y-%m')
+        </if>
+        <if test="params.PRONAME !=null and params.PRONAME !='' ">
+            AND PRONAME like  '%${params.PRONAME}%'
+        </if>
+        <if test="params.PROCODE != '' and params.PROCODE != null ">
+            AND PROCODE IN(${params.PROCODE})
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.mark !=null and params.mark!='' ">
+            AND mark  = '${params.mark}'
+        </if>
+        GROUP BY  t1.PRONAME
+
+        ) b  on a.PRONAME = b.PRONAME_b
+        ) b
+        on a.key = b.PRONAME
+        where
+        1=1
+        GROUP BY a.`key`
+        order by a.sort) s
+
+        <if test="params.page !=null and params.page !='' ">
+            LIMIT ${params.page},${params.rows}
+        </if>
+
+
+    </select>
+
+    <select id="countIndustryReportAll" resultType="java.lang.Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        (
+        SELECT * FROM
+        adm.`trs_kyd_industry_mb` a
+        LEFT JOIN
+        (select * from  adm.`trs_kyd_industry` where 1=1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = #{params.D_ACCT}
+        </if>
+        <if test="params.PRONAME !=null and params.PRONAME !='' ">
+            AND PRONAME like  '%${params.PRONAME}%'
+        </if>
+        <if test="params.PROCODE != '' and params.PROCODE != null ">
+            AND PROCODE IN(${params.PROCODE})
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.mark !=null and params.mark!='' ">
+            AND mark  = '${params.mark}'
+        </if>
+        ) b
+        on a.key = b.PRONAME
+        where
+         1=1
+        GROUP BY a.`key`
+        ) ss
+    </select>
+
+    <!-- 获取分企业列表  -->
+    <select id="getEnterpriseReportAll" resultType="java.util.HashMap">
+        SELECT
+        a.PRONAME,
+        FORMAT(F_AMT_101/#{params.amtUnit},2) as F_AMT_101,
+        FORMAT(((F_AMT_101-F_AMT_101_year)/F_AMT_101_year)*100,2) as F_AMT_101_year,
+        FORMAT(F_AMT_1010101/#{params.amtUnit},2) as F_AMT_1010101,
+        FORMAT(((F_AMT_1010101-F_AMT_1010101_year)/F_AMT_1010101_year)*100,2) as F_AMT_1010101_year,
+        FORMAT(F_AMT_1010201/#{params.amtUnit},2) as F_AMT_1010201,
+        FORMAT(((F_AMT_1010201-F_AMT_1010201_year)/F_AMT_1010201_year)*100,2) as F_AMT_1010201_year,
+        FORMAT(F_AMT_10104/#{params.amtUnit},2) as F_AMT_10104,
+        FORMAT(((F_AMT_10104-F_AMT_10104_year)/F_AMT_10104_year)*100,2) as F_AMT_10104_year,
+        FORMAT(F_AMT_10106/#{params.amtUnit},2) as F_AMT_10106,
+        FORMAT(((F_AMT_10106-F_AMT_10106_year)/F_AMT_10106_year)*100,2) as F_AMT_10106_year,
+        FORMAT(F_AMT_10107/#{params.amtUnit},2) as F_AMT_10107,
+        FORMAT(((F_AMT_10107-F_AMT_10107_year)/F_AMT_10107_year)*100,2) as F_AMT_10107_year,
+        FORMAT(F_AMT_10109/#{params.amtUnit},2) as F_AMT_10109,
+        FORMAT(((F_AMT_10109-F_AMT_10109_year)/F_AMT_10109_year)*100,2) as F_AMT_10109_year,
+        FORMAT(F_AMT_10110/#{params.amtUnit},2) as F_AMT_10110,
+        FORMAT(((F_AMT_10110-F_AMT_10110_year)/F_AMT_10110_year)*100,2) as F_AMT_10110_year,
+        FORMAT(F_AMT_10111/#{params.amtUnit},2) as F_AMT_10111,
+        FORMAT(((F_AMT_10111-F_AMT_10111_year)/F_AMT_10111_year)*100,2) as F_AMT_10111_year,
+        FORMAT(F_AMT_10112/#{params.amtUnit},2) as F_AMT_10112,
+        FORMAT(((F_AMT_10112-F_AMT_10112_year)/F_AMT_10112_year)*100,2) as F_AMT_10112_year,
+        FORMAT(F_AMT_10113/#{params.amtUnit},2) as F_AMT_10113,
+        FORMAT(((F_AMT_10113-F_AMT_10113_year)/F_AMT_10113_year)*100,2) as F_AMT_10113_year,
+        FORMAT(F_AMT_10116/#{params.amtUnit},2) as F_AMT_10116,
+        FORMAT(((F_AMT_10116-F_AMT_10116_year)/F_AMT_10116_year)*100,2) as F_AMT_10116_year,
+        FORMAT(F_AMT_10114/#{params.amtUnit},2) as F_AMT_10114,
+        FORMAT(((F_AMT_10114-F_AMT_10114_year)/F_AMT_10114_year)*100,2) as F_AMT_10114_year,
+        FORMAT(F_AMT_10118/#{params.amtUnit},2) as F_AMT_10118,
+        FORMAT(((F_AMT_10118-F_AMT_10118_year)/F_AMT_10118_year)*100,2) as F_AMT_10118_year,
+        FORMAT(F_AMT_10119/#{params.amtUnit},2) as F_AMT_10119,
+        FORMAT(((F_AMT_10119-F_AMT_10119_year)/F_AMT_10119_year)*100,2) as F_AMT_10119_year,
+        FORMAT(F_AMT_10120/#{params.amtUnit},2) as F_AMT_10120,
+        FORMAT(((F_AMT_10120-F_AMT_10120_year)/F_AMT_10120_year)*100,2) as F_AMT_10120_year,
+        FORMAT(F_AMT_10121/#{params.amtUnit},2) as F_AMT_10121,
+        FORMAT(((F_AMT_10121-F_AMT_10121_year)/F_AMT_10121_year)*100,2) as F_AMT_10121_year,
+        FORMAT(F_AMT_99999/#{params.amtUnit},2) as F_AMT_99999,
+        FORMAT(((F_AMT_99999-F_AMT_99999_year)/F_AMT_99999_year)*100,2) as F_AMT_99999_year,
+        mark
+        FROM
+        (SELECT
+        PROCODE,
+        PRONAME,
+        sum(F_AMT_101) AS F_AMT_101,
+        sum(F_AMT_1010101) AS F_AMT_1010101,
+        sum(F_AMT_1010201) AS F_AMT_1010201,
+        sum(F_AMT_10104) AS F_AMT_10104,
+        sum(F_AMT_10106) AS F_AMT_10106,
+        sum(F_AMT_10107) AS F_AMT_10107,
+        sum(F_AMT_10109) AS F_AMT_10109,
+        sum(F_AMT_10110) AS F_AMT_10110,
+        sum(F_AMT_10111) AS F_AMT_10111,
+        sum(F_AMT_10112) AS F_AMT_10112,
+        sum(F_AMT_10113) AS F_AMT_10113,
+        sum(F_AMT_10116) AS F_AMT_10116,
+        sum(F_AMT_10114) AS F_AMT_10114,
+        sum(F_AMT_10118) AS F_AMT_10118,
+        sum(F_AMT_10119) AS F_AMT_10119,
+        sum(F_AMT_10120) AS F_AMT_10120,
+        sum(F_AMT_10121) AS F_AMT_10121,
+        sum(F_AMT_99999) AS F_AMT_99999,
+        mark
+        FROM
+        ${params.tableName} a
+        where
+        1=1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = #{params.D_ACCT}
+        </if>
+        <if test="params.PRONAME !=null and params.PRONAME !='' ">
+            AND PRONAME like  '%${params.PRONAME}%'
+        </if>
+        <if test="params.PROCODE != '' and params.PROCODE != null ">
+            AND PROCODE IN(${params.PROCODE})
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.mark !=null and params.mark!='' ">
+            AND mark  = '${params.mark}'
+        </if>
+        group by a.PRONAME
+        ) a left join (
+        SELECT
+        PROCODE,
+        PRONAME,
+        sum(F_AMT_101) AS F_AMT_101_year,
+        sum(F_AMT_1010101) AS F_AMT_1010101_year,
+        sum(F_AMT_1010201) AS F_AMT_1010201_year,
+        sum(F_AMT_10104) AS F_AMT_10104_year,
+        sum(F_AMT_10106) AS F_AMT_10106_year,
+        sum(F_AMT_10107) AS F_AMT_10107_year,
+        sum(F_AMT_10109) AS F_AMT_10109_year,
+        sum(F_AMT_10110) AS F_AMT_10110_year,
+        sum(F_AMT_10111) AS F_AMT_10111_year,
+        sum(F_AMT_10112) AS F_AMT_10112_year,
+        sum(F_AMT_10113) AS F_AMT_10113_year,
+        sum(F_AMT_10116) AS F_AMT_10116_year,
+        sum(F_AMT_10114) AS F_AMT_10114_year,
+        sum(F_AMT_10118) AS F_AMT_10118_year,
+        sum(F_AMT_10119) AS F_AMT_10119_year,
+        sum(F_AMT_10120) AS F_AMT_10120_year,
+        sum(F_AMT_10121) AS F_AMT_10121_year,
+        sum(F_AMT_99999) AS F_AMT_99999_year
+        FROM
+        ${params.tableName} a
+        where
+        1=1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = date_format(date_sub(concat(#{params.D_ACCT},'-01'),interval 1 year),'%Y-%m')
+        </if>
+        <if test="params.PRONAME !=null and params.PRONAME !='' ">
+            AND PRONAME like  '%${params.PRONAME}%'
+        </if>
+        <if test="params.PROCODE != '' and params.PROCODE != null ">
+            AND PROCODE IN(${params.PROCODE})
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.mark !=null and params.mark!='' ">
+            AND mark  = '${params.mark}'
+        </if>
+        group by a.PRONAME
+
+        ) b
+        on   a.PRONAME = b.PRONAME
+
+        LIMIT ${params.page},${params.rows}
+
+    </select>
+
+    <select id="countEnterpriseReportAll" resultType="java.lang.Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        (
+        SELECT * FROM ${params.tableName} a
+        where
+        1=1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = #{params.D_ACCT}
+        </if>
+        <if test="params.PRONAME !=null and params.PRONAME !='' ">
+            AND PRONAME like  '%${params.PRONAME}%'
+        </if>
+        <if test="params.PROCODE != '' and params.PROCODE != null ">
+            AND PROCODE IN(${params.PROCODE})
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.mark !=null and params.mark!='' ">
+            AND mark  = '${params.mark}'
+        </if>
+        group by a.PRONAME
+        ) ss
+    </select>
+
+    <!-- 获取企业排名列表  -->
+    <select id="getEnterpriseRankingReportAll" resultType="java.util.HashMap">
+        SELECT
+        a.*
+        FROM
+        (SELECT
+        D_ACCT,
+        S_TRECODE,
+        s_tredscr,
+        PROCODE,
+        PRONAME,
+        FORMAT(F_AMT / #{params.amtUnit}, 2) AS F_AMT,
+        FORMAT(((F_AMT - F_AMT_tb) / F_AMT_tb) * 100, 2) AS F_AMT_tb,
+        FORMAT(F_AMT_year / #{params.amtUnit}, 2) AS F_AMT_year,
+        FORMAT(
+        (
+        (F_AMT_year - F_AMT_year_tb) / F_AMT_year_tb
+        ) * 100,
+        2
+        ) AS F_AMT_year_tb,
+        industry,
+        CONCAT(@rank := @rank + 1, '') AS rank
+        FROM
+        (SELECT
+        a.D_ACCT,
+        a.S_TRECODE,
+        a.s_tredscr,
+        a.PROCODE,
+        a.PRONAME,
+        a.F_AMT  AS F_AMT,
+        a.F_AMT_year  AS F_AMT_year,
+        b.F_AMT_tb  AS F_AMT_tb,
+        b.F_AMT_year_tb   AS F_AMT_year_tb,
+        a.industry
+        FROM
+        (SELECT
+        D_ACCT,
+        S_TRECODE,
+        s_tredscr,
+        PROCODE,
+        PRONAME,
+        SUM(F_AMT) AS F_AMT ,
+        SUM(F_AMT_year)  AS  F_AMT_year,
+        IF(
+        #{params.industryType} = TRUE,
+        #{params.industryName},
+        LEV_4_DSCR
+        ) AS industry
+        FROM
+        ${params.tableName}
+        where
+        1=1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = #{params.D_ACCT}
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.industryId != '' and params.industryId != null ">
+            AND (LEV_1_ID IN(${params.industryId}) or LEV_2_ID IN(${params.industryId}))
+        </if>
+        GROUP BY
+        PRONAME
+        ORDER BY SUM(F_AMT_year) DESC
+        LIMIT 100) a
+        LEFT JOIN
+        (SELECT
+        S_TRECODE,
+        s_tredscr,
+        PROCODE,
+        PRONAME,
+        SUM(F_AMT)      AS F_AMT_tb,
+        SUM(F_AMT_year) AS F_AMT_year_tb,
+        IF(
+        #{params.industryType} = TRUE,
+        #{params.industryName},
+        LEV_4_DSCR
+        ) AS industry
+        FROM
+        ${params.tableName}
+        WHERE 1 = 1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = date_format(date_sub(concat(#{params.D_ACCT},'-01'),interval 1 year),'%Y-%m')
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.industryId != '' and params.industryId != null ">
+            AND (LEV_1_ID IN(${params.industryId}) or LEV_2_ID IN(${params.industryId}))
+        </if>
+        GROUP BY
+        PRONAME) b
+        ON a.s_trecode = b.s_trecode
+        AND a.PRONAME = b.PRONAME
+        AND a.industry = b.industry
+        ) a,
+        (SELECT
+        @rank := 0) b
+        ORDER BY a.F_AMT_year DESC
+        LIMIT 0, 50) a
+        ORDER BY CONVERT(rank, DECIMAL)
+        <if test="params.page !=null and params.page !='' ">
+            LIMIT ${params.page},${params.rows}
+        </if>
+
+    </select>
+
+    <select id="countEnterpriseRankingReportAll" resultType="java.lang.Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        (
+        SELECT * FROM ${params.tableName} a
+        where
+        1=1
+        <if test="params.D_ACCT !=null and params.D_ACCT !='' ">
+            AND D_ACCT = #{params.D_ACCT}
+        </if>
+        <if test="params.S_TRECODE != '' and params.S_TRECODE != null ">
+            AND S_TRECODE IN(${params.S_TRECODE})
+        </if>
+        <if test="params.industryId != '' and params.industryId != null ">
+            AND (LEV_1_ID IN(${params.industryId}) or LEV_2_ID IN(${params.industryId}))
+        </if>
+        GROUP BY PRONAME
+        LIMIT 0,50
+        ) ss
+    </select>
+
+    <select id="getIndustryDrop" resultType="java.util.HashMap">
+         select  * from (
+            select LEV_1_ID as id,LEV_1_DSCR as name, '' as pId
+                     from edw.cm_clr_industry_info c GROUP BY c.LEV_2_ID
+             union
+             select LEV_2_ID as id,LEV_2_DSCR as name,SUBSTRING(LEV_2_ID, 1, 1 ) as pId
+                     from edw.cm_clr_industry_info c
+                            where c.LEV_1_ID not in ('GR','WS')  GROUP BY c.LEV_2_ID
+				 ) a
+    </select>
+
+</mapper>

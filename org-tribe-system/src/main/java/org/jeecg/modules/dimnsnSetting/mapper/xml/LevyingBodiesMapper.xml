@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.dimnsnSetting.mapper.LevyingBodiesMapper">
+
+    <resultMap id="LevyingBodies" type="org.jeecg.modules.dimnsnSetting.model.LevyingBodies">
+        <result column="TAX_ORG_ID" jdbcType="VARCHAR" property="TAX_ORG_ID"/>
+        <result column="TAX_ORG_DSCR" jdbcType="VARCHAR" property="TAX_ORG_DSCR"/>
+        <result column="TYPE_ID" jdbcType="VARCHAR" property="TYPE_ID"/>
+        <result column="TYPE_DSCR" jdbcType="VARCHAR" property="TYPE_DSCR"/>
+        <result column="BOOK_ORG_CODE" jdbcType="VARCHAR" property="BOOK_ORG_CODE"/>
+        <result column="TRECODE" jdbcType="VARCHAR" property="TRECODE"/>
+        <result column="STATE" jdbcType="VARCHAR" property="STATE"/>
+        <result column="STATE_DSCR" jdbcType="VARCHAR" property="STATE_DSCR"/>
+    </resultMap>
+
+    <select id="getPage" resultType="java.util.HashMap">
+        SELECT
+        a.*, CASE a.STATE
+        WHEN '0' THEN
+        '启用'
+        WHEN '1' THEN
+        '停用'
+        ELSE
+        '停用'
+        END AS STATE_DSCR
+        FROM
+        `dmcode`.cm_guoku_taxorg a
+        WHERE
+        1 = 1
+        <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
+            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
+        </if>
+        <if test=" params.TYPE_ID != null and params.TYPE_ID != ''">
+            and a.TYPE_ID = #{params.TYPE_ID}
+        </if>
+        <if test=" params.TYPE_DSCR != null and params.TYPE_DSCR != ''">
+            and a.TYPE_DSCR = #{params.TYPE_DSCR}
+        </if>
+        <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
+            and a.TAX_ORG_DSCR like '%${params.TAX_ORG_DSCR}%'
+        </if>
+        <if test=" params.TRECODE != null and params.TRECODE != ''">
+            and a.TRECODE = #{params.TRECODE}
+        </if>
+        <if test=" params.STATE != null and params.STATE != ''">
+            and a.STATE = #{params.STATE}
+        </if>
+        <if test=" params.BOOK_ORG_CODE != null and params.BOOK_ORG_CODE != ''">
+            and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
+        </if>
+        ORDER BY a.TAX_ORG_ID asc
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        `dmcode`.cm_guoku_taxorg a
+        WHERE
+        1 = 1
+        <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
+            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
+        </if>
+        <if test=" params.TYPE_ID != null and params.TYPE_ID != ''">
+            and a.TYPE_ID = #{params.TYPE_ID}
+        </if>
+        <if test=" params.TYPE_DSCR != null and params.TYPE_DSCR != ''">
+            and a.TYPE_DSCR = #{params.TYPE_DSCR}
+        </if>
+        <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
+            and a.TAX_ORG_DSCR like '%${params.TAX_ORG_DSCR}%'
+        </if>
+        <if test=" params.TRECODE != null and params.TRECODE != ''">
+            and a.TRECODE = #{params.TRECODE}
+        </if>
+        <if test=" params.STATE != null and params.STATE != ''">
+            and a.STATE = #{params.STATE}
+        </if>
+        <if test=" params.BOOK_ORG_CODE != null and params.BOOK_ORG_CODE != ''">
+            and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
+        </if>
+    </select>
+
+    <select id="getAll" resultType="java.util.HashMap">
+        SELECT
+        a.*, CASE a.STATE
+        WHEN '0' THEN
+        '启用'
+        WHEN '1' THEN
+        '停用'
+        ELSE
+        '停用'
+        END AS STATE_DSCR
+        FROM
+        `dmcode`.cm_guoku_taxorg a
+        WHERE
+        1 = 1
+        <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
+            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
+        </if>
+        <if test=" params.TYPE_ID != null and params.TYPE_ID != ''">
+            and a.TYPE_ID = #{params.TYPE_ID}
+        </if>
+        <if test=" params.TYPE_DSCR != null and params.TYPE_DSCR != ''">
+            and a.TYPE_DSCR = #{params.TYPE_DSCR}
+        </if>
+        <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
+            and a.TAX_ORG_DSCR like '%${params.TAX_ORG_DSCR}%'
+        </if>
+        <if test=" params.TRECODE != null and params.TRECODE != ''">
+            and a.TRECODE = #{params.TRECODE}
+        </if>
+        <if test=" params.STATE != null and params.STATE != ''">
+            and a.STATE = #{params.STATE}
+        </if>
+        <if test=" params.BOOK_ORG_CODE != null and params.BOOK_ORG_CODE != ''">
+            and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
+        </if>
+        ORDER BY a.TAX_ORG_ID asc
+    </select>
+
+    <select id="getExport" resultMap="LevyingBodies">
+        SELECT
+        a.*, CASE a.STATE
+        WHEN '0' THEN
+        '启用'
+        WHEN '1' THEN
+        '停用'
+        ELSE
+        '停用'
+        END AS STATE_DSCR
+        FROM
+        `dmcode`.cm_guoku_taxorg a
+        WHERE
+        1 = 1
+        <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
+            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
+        </if>
+        <if test=" params.TYPE_ID != null and params.TYPE_ID != ''">
+            and a.TYPE_ID = #{params.TYPE_ID}
+        </if>
+        <if test=" params.TYPE_DSCR != null and params.TYPE_DSCR != ''">
+            and a.TYPE_DSCR = #{params.TYPE_DSCR}
+        </if>
+        <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
+            and a.TAX_ORG_DSCR like '%${params.TAX_ORG_DSCR}%'
+        </if>
+        <if test=" params.TRECODE != null and params.TRECODE != ''">
+            and a.TRECODE = #{params.TRECODE}
+        </if>
+        <if test=" params.STATE != null and params.STATE != ''">
+            and a.STATE = #{params.STATE}
+        </if>
+        <if test=" params.BOOK_ORG_CODE != null and params.BOOK_ORG_CODE != ''">
+            and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
+        </if>
+        ORDER BY a.TAX_ORG_ID asc
+    </select>
+
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM  `dmcode`.cm_guoku_taxorg  a
+        where 1=1
+        and STATE = '0'
+        <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
+            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
+        </if>
+        <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
+            and a.TAX_ORG_DSCR = #{params.TAX_ORG_DSCR}
+        </if>
+    </select>
+
+    <insert id="add">
+        INSERT INTO  `dmcode`.cm_guoku_taxorg
+        VALUES
+            (
+             #{params.TAX_ORG_ID},
+             #{params.TAX_ORG_DSCR},
+             #{params.TYPE_ID},
+             #{params.TYPE_DSCR},
+             #{params.BOOK_ORG_CODE},
+             #{params.TRECODE},
+             #{params.STATE}
+            )
+    </insert>
+
+    <update id="edit">
+        UPDATE  `dmcode`.cm_guoku_taxorg SET
+        <if test=" params.TAX_ORG_DSCR != null">
+            TAX_ORG_DSCR = #{params.TAX_ORG_DSCR},
+        </if>
+        <if test=" params.TYPE_ID != null">
+            TYPE_ID = #{params.TYPE_ID},
+        </if>
+        <if test=" params.TYPE_DSCR != null">
+            TYPE_DSCR = #{params.TYPE_DSCR},
+        </if>
+        <if test=" params.BOOK_ORG_CODE != null">
+            BOOK_ORG_CODE = #{params.BOOK_ORG_CODE},
+        </if>
+        <if test=" params.TRECODE != null">
+            TRECODE = #{params.TRECODE},
+        </if>
+        <if test=" params.STATE != null">
+            STATE = #{params.STATE},
+        </if>
+        TAX_ORG_ID = #{params.TAX_ORG_ID}
+        WHERE TAX_ORG_ID = #{params.TAX_ORG_ID}
+    </update>
+
+    <delete id="del" >
+        DELETE
+        FROM
+        `dmcode`.cm_guoku_taxorg
+        WHERE 1 = 1
+        <if test="params.TAX_ORG_ID!=null and params.TAX_ORG_ID != ''">
+            AND TAX_ORG_ID = #{params.TAX_ORG_ID}
+        </if>
+    </delete>
+
+</mapper>

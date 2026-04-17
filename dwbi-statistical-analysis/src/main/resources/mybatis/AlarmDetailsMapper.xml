@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.triber.analysis.dao.mapper.AlarmDetailsMapper">
+
+    <!--    获取监测告警明细表数据total-->
+    <select id="getAlarmDetailsDataTotal" resultType="int">
+        SELECT count(DISTINCT a.id)
+        FROM ucloud.api_interface_alarm_data a
+        LEFT JOIN  system_docking.api_platform_index_info b ON a.index_code=b.index_code
+        LEFT JOIN system_docking.api_interface_system_platform_info c ON b.platform_id=c.id
+        RIGHT JOIN system_docking.api_system_resource_ip d ON a.resource_ip=d.ip_address
+        LEFT JOIN system_docking.api_system_resource e ON d.resource_id=e.id
+        WHERE b.is_enable='1' AND c.is_enable='1' AND d.is_enable='1'
+        <if test="params.indicators != null and params.indicators != ''">
+            AND b.id=#{params.indicators}
+        </if>
+        <if test="params.times != null and params.times != ''">
+            AND LEFT(a.lastOccurTime,10) ${params.times}
+        </if>
+    </select>
+
+    <!--    获取监测告警明细表数据-->
+    <select id="getAlarmDetailsData" resultType="hashmap">
+        SELECT a.lastOccurTime AS alarm_time,b.index_name,c.platfrom_name,a.resource_ip,
+        a.resource_name AS resource_desc,a.alarm_count AS alarm_value,a.description
+        FROM ucloud.api_interface_alarm_data a
+        LEFT JOIN  system_docking.api_platform_index_info b ON a.index_code=b.index_code
+        LEFT JOIN system_docking.api_interface_system_platform_info c ON b.platform_id=c.id
+        RIGHT JOIN system_docking.api_system_resource_ip d ON a.resource_ip=d.ip_address
+        LEFT JOIN system_docking.api_system_resource e ON d.resource_id=e.id
+        WHERE b.is_enable='1' AND c.is_enable='1' AND d.is_enable='1'
+        <if test="params.indicators != null and params.indicators != ''">
+            AND b.id=#{params.indicators}
+        </if>
+        <if test="params.times != null and params.times != ''">
+            AND LEFT(a.lastOccurTime,10) ${params.times}
+        </if>
+        GROUP BY a.id
+        ORDER BY alarm_time
+        <if test="params.limit != null and params.limit != ''">
+            ${params.limit}
+        </if>
+    </select>
+
+</mapper>

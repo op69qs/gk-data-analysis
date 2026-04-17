@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.dimnsnSetting.mapper.AreaMapper">
+    <resultMap id="treeMaptest" type="org.jeecg.modules.dimnsnSetting.model.TreeAreaNode">
+        <result column="area_no_id" jdbcType="VARCHAR" property="area_no_id"/>
+        <result column="area_dscr" jdbcType="VARCHAR" property="area_dscr"/>
+        <result column="area_no_pid" jdbcType="VARCHAR" property="area_no_pid"/>
+        <result column="level" jdbcType="VARCHAR" property="level"/>
+        <result column="level_dscr" jdbcType="VARCHAR" property="level_dscr"/>
+        <result column="sort" jdbcType="VARCHAR" property="sort"/>
+        <result column="area_dscr_s" jdbcType="VARCHAR" property="area_dscr_s"/>
+        <result column="type_id" jdbcType="VARCHAR" property="type_id"/>
+        <result column="type_dscr" jdbcType="VARCHAR" property="type_dscr"/>
+        <result column="path" jdbcType="VARCHAR" property="path"/>
+        <result column="isleaf" jdbcType="NUMERIC" property="isleaf"/>
+        <result column="state" jdbcType="VARCHAR" property="state"/>
+        <result column="statedesc" jdbcType="VARCHAR" property="statedesc"/>
+    </resultMap>
+    <select id="getArea" resultType="java.util.HashMap">
+         SELECT
+            a.area_no_id   id,
+            a.area_dscr name,
+           a.area_no_pid AS  pid
+        FROM
+            dmcode.CM_GUOKU_AREA_CODE a
+        WHERE  state='0'
+    </select>
+    <select id="checkCode" resultType="java.util.HashMap">
+        SELECT *
+        FROM
+            ${params.TABLENAME}
+        WHERE  state='0' and
+             ${params.COlID} = '${params.AREA_NO_ID}'
+    </select>
+    <insert id="addArea">
+        INSERT INTO DMCODE.CM_GUOKU_AREA_CODE
+        (
+            id
+            ,area_no_id
+            ,area_dscr
+            ,area_no_pid
+            ,level
+            ,sort
+            ,area_dscr_s
+            ,isleaf
+            ,state
+            ,statedesc
+            ,type_id
+            ,type_dscr
+        )
+        VALUES
+            (
+            '${params.area_no_id}'
+            ,'${params.area_no_id}'
+            ,'${params.area_dscr}'
+            ,'${params.area_no_pid}'
+            ,'${params.level}'
+            ,'${params.sort}'
+            ,'${params.area_dscr_s}'
+            ,'${params.isleaf}'
+            ,'0'
+            ,'启用'
+            ,'${params.type_id}'
+            ,'${params.type_dscr}'
+            )
+    </insert>
+    <update id="updateAreaPid">
+        UPDATE DMCODE.`CM_GUOKU_AREA_CODE` SET  isleaf=1
+         where id='${params.area_no_pid}'
+    </update>
+
+    <update id="editArea">
+        UPDATE DMCODE.CM_GUOKU_AREA_CODE SET
+        <if test=" params.area_dscr != null">
+            area_dscr = '${params.area_dscr}',
+        </if>
+        <if test=" params.area_no_pid != null">
+            area_no_pid = '${params.area_no_pid}',
+        </if>
+        <if test=" params.isleaf != null">
+            isleaf = ${params.isleaf} ,
+        </if>
+        <if test=" params.level != null">
+            level = '${params.level}' ,
+        </if>
+        <if test=" params.sort != null">
+            sort = '${params.sort}' ,
+        </if>
+        <if test=" params.area_dscr_s != null">
+            area_dscr_s = '${params.area_dscr_s}' ,
+        </if>
+        <if test=" params.type_id != null">
+            type_id = '${params.type_id}' ,
+        </if>
+        <if test=" params.type_dscr != null">
+            type_dscr = '${params.type_dscr}' ,
+        </if>
+        id = '${params.id}'
+        where id = '${params.id}'
+    </update>
+
+    <select id="isDelArea" resultType="java.lang.Integer">
+        SELECT
+           a.`state`  as state
+        FROM
+        dmcode.CM_GUOKU_AREA_CODE a
+        WHERE 1 = 1  and
+        id= '${params.area_no_pid}'
+    </select>
+
+    <update id="delArea">
+         UPDATE DMCODE.`cm_guoku_area_code` SET STATE ='${params.state}'
+        ,statedesc =( case when  '${params.state}'='0'
+        then  '启用'
+        else  '禁用' end )
+         where id='${params.id}'
+    </update>
+
+    <update id="delAreaParent">
+        UPDATE DMCODE.`CM_GUOKU_AREA_CODE` SET STATE ='${params.state}'
+        ,statedesc =( case when  '${params.state}'='0'
+        then  '启用'
+        else  '禁用' end )
+         where  id in (
+        select id from (
+          SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid='${params.id}'  -- id
+                UNION
+                 SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid='${params.id}')
+
+                UNION
+
+                SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid IN
+                (
+                 SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid='${params.id}'))
+
+                UNION
+                SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+            WHERE 1 = 1
+                AND  area_no_pid IN (
+             SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid IN
+                (
+                 SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.CM_GUOKU_AREA_CODE a
+                WHERE 1 = 1
+                AND  area_no_pid='${params.id}'))
+                )
+        )v
+         )
+
+
+    </update>
+
+    <select id="getAreaList" resultMap="treeMaptest">
+        SELECT DISTINCT
+        area_no_id AS id,
+        area_dscr AS title,
+        area_dscr AS name,
+        area_no_pid AS parentId,
+        area_no_id,
+        area_dscr,
+        (
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        enum_type_id = '35'
+        AND enum_id = a. LEVEL
+        ) AS level_dscr,
+        level,
+        area_no_pid,
+        state,
+        statedesc,
+        isleaf,
+        sort,
+        area_dscr_s,
+        type_id,
+        type_dscr path
+        FROM
+        dmcode.CM_GUOKU_AREA_CODE a
+        <where>
+            <if test=" params.par == '1'.toString()">
+                a.`area_no_pid` =''
+            </if>
+            <if test=" params.par == '2'.toString()">
+
+            </if>
+            <if test=" params.par == '0'.toString()">
+                and area_no_pid = '${params.parentId}'
+            </if>
+            <if test=" params.area_dscr != null  and params.area_dscr != ''">
+                and area_dscr like '%${params.area_dscr}%'
+            </if>
+            <if test=" params.state != null and params.state != ''">
+                and STATE = '${params.state}'
+            </if>
+        </where>
+    </select>
+</mapper>

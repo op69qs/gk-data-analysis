@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionPostSVReportMapper">
+    <!-- author: Samer  事后监督监督季度报告-->
+
+    <!-- 获取记录 -->
+    <select id="getRecord" resultType="java.util.HashMap">
+        SELECT
+        a.REPORT_ID,
+        a.YEAR,
+        a.QUARTER,
+        a.INSPECTED_GUOKU_ID,
+        a.BOOKORG_ID,
+        a.BOOKORG_DSCR,
+        a.PERIOD_YEAR,
+        a.PERIOD_NUM,
+        a.PERIOD_AMT,
+        a.FILLING_DATE,
+        a.INCOME_STATE,
+        a.PAYOUT_STATE,
+        a.BACK_STATE,
+        a.CORR_STATE,
+        a.NB_STATE,
+        a.ACCT_STATE,
+        a.REV_ACC_STATE,
+        a.HANG_STATE,
+        a.REMIT_STATE,
+        a.QUERY_STATE,
+        a.HAND_VOU_STATE,
+        a.CLEAR_OTHERS,
+        a.VOU_USE_STATE,
+        a.BIZ_HO_STATE,
+        a.ACCT_POS_STATE,
+        a.OTHERS,
+        a.QUESTION_CONTENT,
+        a.REFORM_MEMO,
+        a.AFTER_HEAD,
+        a.LISTER,
+        a.ADD_USERID,
+        a.ADD_DATE,
+        a.MODIFY_USERID,
+        a.MODIFY_DATE,
+        a.ATTACHMENT_NAME,
+        a.PAPER_ATTACHMENT,
+        a.PRINT_ATTACHMENT,
+        a.IS_LOCK,
+        CONCAT('第',substring(a.QUARTER, 6),'季度') AS QUARTER_DSCR
+        FROM
+        `inspection`.`inspection_postsv_report` a
+        WHERE 1=1
+        <if test='params.REPORT_ID != null and params.REPORT_ID != ""'>
+            AND a.REPORT_ID = #{params.REPORT_ID}
+        </if>
+        <if test='params.START_DATE != null and params.START_DATE != ""'>
+            AND a.QUARTER &gt;= #{params.START_DATE}
+        </if>
+        <if test='params.END_DATE != null and params.END_DATE != ""'>
+            AND a.QUARTER &lt;= #{params.END_DATE}
+        </if>
+        <if test='params.guoku_id == "2400000000" '>
+            <if test="params.INSPECTED_GUOKU_ID!=null and params.INSPECTED_GUOKU_ID!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.INSPECTED_GUOKU_ID}
+            </if>
+        </if>
+        <if test='params.guoku_id != "2400000000" '>
+            <if test="params.guoku_id!=null and params.guoku_id!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.guoku_id}
+            </if>
+        </if>
+        ORDER BY a.YEAR DESC, a.QUARTER DESC
+        <if test=' params.page != null and params.rows != null '>
+            LIMIT ${params.page},${params.rows}
+        </if>
+    </select>
+
+    <!-- 获取记录条数 -->
+    <select id="getRecordCount" resultType="int">
+        SELECT
+        count(0)
+        FROM
+        `inspection`.`inspection_postsv_report` a
+        WHERE 1=1
+        <if test='params.REPORT_ID != null and params.REPORT_ID != ""'>
+            AND a.REPORT_ID = #{params.REPORT_ID}
+        </if>
+        <if test='params.START_DATE != null and params.START_DATE != ""'>
+            AND a.QUARTER &gt;= #{params.START_DATE}
+        </if>
+        <if test='params.END_DATE != null and params.END_DATE != ""'>
+            AND a.QUARTER &lt;= #{params.END_DATE}
+        </if>
+        <if test='params.guoku_id == "2400000000" '>
+            <if test="params.INSPECTED_GUOKU_ID!=null and params.INSPECTED_GUOKU_ID!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.INSPECTED_GUOKU_ID}
+            </if>
+        </if>
+        <if test='params.guoku_id != "2400000000" '>
+            <if test="params.guoku_id!=null and params.guoku_id!='' ">
+                AND a.INSPECTED_GUOKU_ID = #{params.guoku_id}
+            </if>
+        </if>
+    </select>
+
+
+    <!-- 修改记录 -->
+    <update id="editRecord">
+        UPDATE `inspection`.`inspection_postsv_report`
+        SET
+        <if test=' params.YEAR != null and params.YEAR != "" '>
+            `YEAR`=#{params.YEAR},
+        </if>
+        <if test=' params.QUARTER != null and params.QUARTER != "" '>
+            `QUARTER`=#{params.QUARTER},
+        </if>
+        <if test=' params.INSPECTED_GUOKU_ID != null and params.INSPECTED_GUOKU_ID != "" '>
+            INSPECTED_GUOKU_ID=#{params.INSPECTED_GUOKU_ID},
+        </if>
+        <if test=' params.BOOKORG_ID != null and params.BOOKORG_ID != "" '>
+            BOOKORG_ID=#{params.BOOKORG_ID},
+        </if>
+        <if test=' params.BOOKORG_DSCR != null and params.BOOKORG_DSCR != "" '>
+            BOOKORG_DSCR=#{params.BOOKORG_DSCR},
+        </if>
+        <if test=' params.PERIOD_YEAR != null and params.PERIOD_YEAR != "" '>
+            PERIOD_YEAR=#{params.PERIOD_YEAR},
+        </if>
+        <if test=' params.PERIOD_NUM != null and params.PERIOD_NUM != "" '>
+            PERIOD_NUM=#{params.PERIOD_NUM},
+        </if>
+        <if test=' params.PERIOD_AMT != null and params.PERIOD_AMT != "" '>
+            PERIOD_AMT=#{params.PERIOD_AMT},
+        </if>
+        <if test=' params.FILLING_DATE != null and params.FILLING_DATE != "" '>
+            FILLING_DATE=#{params.FILLING_DATE},
+        </if>
+        <if test=' params.INCOME_STATE != null and params.INCOME_STATE != "" '>
+            INCOME_STATE=#{params.INCOME_STATE},
+        </if>
+        <if test=' params.PAYOUT_STATE != null and params.PAYOUT_STATE != "" '>
+            PAYOUT_STATE=#{params.PAYOUT_STATE},
+        </if>
+        <if test=' params.BACK_STATE != null and params.BACK_STATE != "" '>
+            BACK_STATE=#{params.BACK_STATE},
+        </if>
+        <if test=' params.CORR_STATE != null and params.CORR_STATE != "" '>
+            CORR_STATE=#{params.CORR_STATE},
+        </if>
+        <if test=' params.NB_STATE != null and params.NB_STATE != "" '>
+            NB_STATE=#{params.NB_STATE},
+        </if>
+        <if test=' params.ACCT_STATE != null and params.ACCT_STATE != "" '>
+            ACCT_STATE=#{params.ACCT_STATE},
+        </if>
+        <if test=' params.REV_ACC_STATE != null and params.REV_ACC_STATE != "" '>
+            REV_ACC_STATE=#{params.REV_ACC_STATE},
+        </if>
+        <if test=' params.HANG_STATE != null and params.HANG_STATE != "" '>
+            HANG_STATE=#{params.HANG_STATE},
+        </if>
+        <if test=' params.REMIT_STATE != null and params.REMIT_STATE != "" '>
+            REMIT_STATE=#{params.REMIT_STATE},
+        </if>
+        <if test=' params.QUERY_STATE != null and params.QUERY_STATE != "" '>
+            QUERY_STATE=#{params.QUERY_STATE},
+        </if>
+        <if test=' params.HAND_VOU_STATE != null and params.HAND_VOU_STATE != "" '>
+            HAND_VOU_STATE=#{params.HAND_VOU_STATE},
+        </if>
+        <if test=' params.CLEAR_OTHERS != null and params.CLEAR_OTHERS != "" '>
+            CLEAR_OTHERS=#{params.CLEAR_OTHERS},
+        </if>
+        <if test=' params.VOU_USE_STATE != null and params.VOU_USE_STATE != "" '>
+            VOU_USE_STATE=#{params.VOU_USE_STATE},
+        </if>
+        <if test=' params.BIZ_HO_STATE != null and params.BIZ_HO_STATE != "" '>
+            BIZ_HO_STATE=#{params.BIZ_HO_STATE},
+        </if>
+        <if test=' params.ACCT_POS_STATE != null and params.ACCT_POS_STATE != "" '>
+            ACCT_POS_STATE=#{params.ACCT_POS_STATE},
+        </if>
+        <if test=' params.OTHERS != null and params.OTHERS != "" '>
+            OTHERS=#{params.OTHERS},
+        </if>
+        <if test=' params.QUESTION_CONTENT != null and params.QUESTION_CONTENT != "" '>
+            QUESTION_CONTENT=#{params.QUESTION_CONTENT},
+        </if>
+        <if test=' params.REFORM_MEMO != null and params.REFORM_MEMO != "" '>
+            REFORM_MEMO=#{params.REFORM_MEMO},
+        </if>
+        <if test=' params.AFTER_HEAD != null and params.AFTER_HEAD != "" '>
+            AFTER_HEAD=#{params.AFTER_HEAD},
+        </if>
+        <if test=' params.LISTER != null and params.LISTER != "" '>
+            LISTER=#{params.LISTER},
+        </if>
+        <if test=' params.MODIFY_USERID != null and params.MODIFY_USERID != "" '>
+            MODIFY_USERID=#{params.MODIFY_USERID},
+        </if>
+        <if test=' params.MODIFY_DATE != null and params.MODIFY_DATE != "" '>
+            MODIFY_DATE=#{params.MODIFY_DATE},
+        </if>
+        <if test=' params.ATTACHMENT_NAME != null and params.ATTACHMENT_NAME != "" '>
+            ATTACHMENT_NAME=#{params.ATTACHMENT_NAME},
+        </if>
+        <if test=' params.PAPER_ATTACHMENT != null and params.PAPER_ATTACHMENT != "" '>
+            PAPER_ATTACHMENT=#{params.PAPER_ATTACHMENT},
+        </if>
+        <if test=' params.PRINT_ATTACHMENT != null and params.PRINT_ATTACHMENT != "" '>
+            PRINT_ATTACHMENT=#{params.PRINT_ATTACHMENT},
+        </if>
+        REPORT_ID = #{params.REPORT_ID}
+        WHERE
+        REPORT_ID = #{params.REPORT_ID}
+    </update>
+
+</mapper>

@@ -1,0 +1,1111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionPlanMapper">
+
+    <!-- 获取检查计划名称 -->
+    <select id="getCurPlanName" resultType="java.util.HashMap">
+        SELECT *
+        FROM
+            `inspection`.`inspection_plan` a
+        WHERE
+            a.`INSPECTION_PLAN_ID` = #{params.INSPECTION_PLAN_ID}
+    </select>
+
+    <!-- 查询当前计划问题台账中的一级问题分类 -->
+    <select id="getCurTaskQuestion_1" resultType="java.util.HashMap">
+        SELECT
+        a.`QUESTION_ID_1` AS QUESTION_ID,
+        a.`QUESTION_DSCR_1` AS QUESTION_DSCR
+        FROM
+        `inspection`.`inspection_question_ledger` a
+        JOIN
+        `inspection`.`inspection_task` c
+        ON a.TASK_ID = c.INSPECTION_TASK_ID
+        WHERE 1=1
+        <if test=' params.INSPECTION_PLAN_ID!=null and params.INSPECTION_PLAN_ID!="" '>
+            AND c.`INSPECTION_PLAN_ID` = #{params.INSPECTION_PLAN_ID}
+        </if>
+        GROUP BY a.`QUESTION_ID_1`
+    </select>
+
+    <!-- 查询计划包含任务的汇总表信息 -->
+    <select id="getStatisticsTableByPlanId" resultType="java.util.HashMap">
+        SELECT
+        <foreach collection="params.columns" item="column" separator=",">
+            <if test=' column == "INSPECTED_GUOKU_DSCR" '>
+                b.guoku_DSCR AS `${column}`
+            </if>
+            <if test=' column != "INSPECTED_GUOKU_DSCR" '>
+                CASE WHEN COUNT(CASE WHEN a.QUERY_ITME = '${column}' AND LENGTH('${column}')&lt;&gt;32 THEN a.ITME_VALUE
+                END) > 0
+                THEN FORMAT(SUM(CASE WHEN a.QUERY_ITME = '${column}' AND LENGTH('${column}')&lt;&gt;32 THEN a.ITME_VALUE
+                END), 0)
+                ELSE 0 END AS `${column}`
+            </if>
+        </foreach>
+        FROM
+        `inspection`.`inspection_statistical_table` a
+        LEFT JOIN
+        dmcode.`cm_guoku_dimnsn` b
+        ON a.`ITME_VALUE` = b.`guoku_id`
+        JOIN
+        `inspection`.`inspection_task` c
+        ON a.TASK_ID = c.INSPECTION_TASK_ID
+        WHERE 1=1
+        <if test=' params.INSPECTION_PLAN_ID!=null and params.INSPECTION_PLAN_ID!="" '>
+            AND c.`INSPECTION_PLAN_ID` = #{params.INSPECTION_PLAN_ID}
+        </if>
+        GROUP BY
+        a.TASK_ID
+    </select>
+
+    <!--    获取检查计划主查询数据 -->
+    <select id="getInspectionPlanData" resultType="java.util.HashMap">
+        SELECT
+        a.INSPECTION_PLAN_ID,
+        a.INSPECTION_PLAN_YEAR,
+        a.INSPECTION_PLAN_TYPE,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.`cm_guoku_enumeration` b
+        WHERE
+        b.ENUM_TYPE_ID = '12'
+        AND b.ENUM_ID = a.`INSPECTION_PLAN_TYPE`
+        ) AS INSPECTION_PLAN_TYPE_DSCR,
+        a.INSPECTION_PLAN_NAME,
+        a.INSPECTION_PLAN_BEGINTIME,
+        a.INSPECTION_PLAN_ENDTIME,
+        CONCAT(
+        DATE_FORMAT(a.INSPECTION_PLAN_BEGINTIME, '%m-%d'),
+        '至',
+        DATE_FORMAT(a.INSPECTION_PLAN_ENDTIME, '%m-%d')
+        ) AS INSPECTION_PLAN_TIME,
+        a.INSPECTION_GUOKU,
+        a.INSPECTION_PLAN_INDEX,
+        a.INSPECTION_PLAN_STATE,
+        a.UPDATE_TIME,
+        a.CHECK_ORG,
+        REPLACE(a.CHECK_ORG_DSCR,'中国人民银行','') AS CHECK_ORG_DSCR,
+        a.CHECKED_ORG,
+        REPLACE(a.CHECKED_ORG_DSCR,'中国人民银行','') AS CHECKED_ORG_DSCR,
+        a.INSPECTION_BOOKORG_ID,
+        a.INSPECTION_BOOKORG_DSCR,
+        a.IS_BUILDTASK,
+        a.BUILDTASK_DATE
+        FROM
+        `inspection`.`inspection_plan` a
+        WHERE
+        1 = 1
+        <if test="params.INSPECTION_PLAN_ID!=null and params.INSPECTION_PLAN_ID != ''">
+            AND a.INSPECTION_PLAN_ID = '${params.INSPECTION_PLAN_ID}'
+        </if>
+        <if test="params.INSPECTION_PLAN_YEAR!=null and params.INSPECTION_PLAN_YEAR != ''">
+            AND a.INSPECTION_PLAN_YEAR = '${params.INSPECTION_PLAN_YEAR}'
+        </if>
+        <if test="params.INSPECTION_PLAN_STATE!=null and params.INSPECTION_PLAN_STATE != ''">
+            AND a.INSPECTION_PLAN_STATE = '${params.INSPECTION_PLAN_STATE}'
+        </if>
+        <if test="params.INSPECTION_PLAN_TYPE!=null and params.INSPECTION_PLAN_TYPE != ''">
+            AND a.INSPECTION_PLAN_TYPE = '${params.INSPECTION_PLAN_TYPE}'
+        </if>
+        <if test="params.INSPECTION_PLAN_NAME!=null and params.INSPECTION_PLAN_NAME != ''">
+            AND a.INSPECTION_PLAN_NAME like '%${params.INSPECTION_PLAN_NAME}%'
+        </if>
+        <if test="params.INSPECTION_GUOKU!=null and params.INSPECTION_GUOKU != ''">
+            AND a.INSPECTION_GUOKU = '${params.INSPECTION_GUOKU}'
+        </if>
+        <if test="params.BOOKORG_ID!=null and params.BOOKORG_ID!='' ">
+            AND b.BOOKORG_ID = #{params.BOOKORG_ID}
+        </if>
+        <if test="params.CHECK_ORG!=null and params.CHECK_ORG!='' ">
+            AND a.CHECK_ORG = #{params.CHECK_ORG}
+        </if>
+        <if test="params.CHECKED_ORG!=null and params.CHECKED_ORG!='' ">
+            AND a.CHECKED_ORG = #{params.CHECKED_ORG}
+        </if>
+        <if test="params.CHECK_KEY_WORD!=null and params.CHECK_KEY_WORD!='' ">
+            AND (a.CHECK_ORG_DSCR like '%${params.CHECK_KEY_WORD}%' or a.INSPECTION_GUOKU_DSCR like
+            '%${params.CHECK_KEY_WORD}%')
+        </if>
+        <if test="params.CHECKED_KEY_WORD!=null and params.CHECKED_KEY_WORD!='' ">
+            AND (a.CHECKED_ORG_DSCR like '%${params.CHECKED_KEY_WORD}%' or a.BOOKORG_DSCR like
+            '%${params.CHECKED_KEY_WORD}%'
+            or a.INSPECTED_GUOKU_DSCR like '%${params.CHECKED_KEY_WORD}%')
+        </if>
+        ORDER BY
+        a.UPDATE_TIME DESC
+        <if test=' params.page != null and params.page != "" and params.rows != null and params.rows !="" '>
+            LIMIT ${params.page},${params.rows}
+        </if>
+        <!--SELECT * FROM (SELECT
+        aa.INSPECTION_PLAN_YEAR,
+        aa.INSPECTION_PLAN_ID,
+        aa.INSPECTION_PLAN_TYPE,
+        aa.INSPECTION_PLAN_BEGINTIME,
+        aa.INSPECTION_PLAN_ENDTIME,
+        aa.INSPECTION_PLAN_NAME,
+        aa.INSPECTION_PLAN_TYPE_DSCR,
+        aa.INSPECTION_PLAN_TIME,
+        aa.INSPECTION_GUOKU,
+        REPLACE(REPLACE(aa.INSPECTION_GUOKU_DSCR,'国家金库',''),'中国人民银行','') AS INSPECTION_GUOKU_DSCR,
+        REPLACE(REPLACE(aa.BOOKORG_DSCR,'国家金库',''),'中国人民银行','') AS BOOKORG_DSCR,
+        aa.BOOKORG_ID,
+        aa.CHECK_ORG,
+        REPLACE(REPLACE(aa.CHECK_ORG_DSCR,'国家金库',''),'中国人民银行','') AS CHECK_ORG_DSCR,
+        aa.CHECKED_ORG,
+        REPLACE(REPLACE(aa.CHECKED_ORG_DSCR,'国家金库',''),'中国人民银行','') AS CHECKED_ORG_DSCR,
+        REPLACE(REPLACE(GROUP_CONCAT(t.guoku_dscr),'国家金库',''),'中国人民银行','') AS INSPECTED_GUOKU_DSCR,
+        GROUP_CONCAT(aa.INSPECTED_GUOKU_ID) AS INSPECTED_GUOKU_ID,
+        aa.UPDATE_TIME,
+        aa.IS_BUILDTASK
+        FROM
+        (
+        SELECT DISTINCT
+        a.`INSPECTION_PLAN_YEAR` AS INSPECTION_PLAN_YEAR,
+        a.INSPECTION_PLAN_ID AS INSPECTION_PLAN_ID,
+        a.`INSPECTION_PLAN_TYPE` AS INSPECTION_PLAN_TYPE,
+        INSPECTION_PLAN_BEGINTIME AS INSPECTION_PLAN_BEGINTIME,
+        INSPECTION_PLAN_ENDTIME AS INSPECTION_PLAN_ENDTIME,
+        INSPECTION_PLAN_NAME AS INSPECTION_PLAN_NAME,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.`cm_guoku_enumeration` b
+        WHERE
+        b.ENUM_TYPE_ID = '12'
+        AND b.ENUM_ID = a.`INSPECTION_PLAN_TYPE`
+        ) AS INSPECTION_PLAN_TYPE_DSCR,
+        CONCAT(
+        DATE_FORMAT(a.INSPECTION_PLAN_BEGINTIME, '%m-%d'),
+        '至',
+        DATE_FORMAT(a.INSPECTION_PLAN_ENDTIME, '%m-%d')
+        ) AS INSPECTION_PLAN_TIME,
+        a.`INSPECTION_GUOKU` AS INSPECTION_GUOKU,
+        (
+        SELECT
+        guoku_dscr
+        FROM
+        dmcode.`cm_guoku_dimnsn` c
+        WHERE
+        c.GUOKU_ID = a.INSPECTION_GUOKU
+        ) AS INSPECTION_GUOKU_DSCR,
+        (
+        SELECT
+        GROUP_CONCAT(BOOKORG_DSCR)
+        FROM
+        inspection.`inspection_task`
+        WHERE
+        INSPECTION_PLAN_ID = a.INSPECTION_PLAN_ID
+        ) AS BOOKORG_DSCR,
+        (
+        SELECT
+        GROUP_CONCAT(DISTINCT BOOKORG_ID)
+        FROM
+        inspection.`inspection_task`
+        WHERE
+        INSPECTION_PLAN_ID = a.INSPECTION_PLAN_ID
+        ) AS BOOKORG_ID,
+        b.INSPECTED_GUOKU_ID,
+        a.CHECK_ORG,
+        a.CHECK_ORG_DSCR,
+        a.CHECKED_ORG,
+        a.CHECKED_ORG_DSCR,
+        a.UPDATE_TIME,
+        a.IS_BUILDTASK
+        FROM
+        `inspection`.`inspection_plan` a
+        LEFT JOIN `inspection`.`inspection_task` b ON a.`INSPECTION_PLAN_ID` = b.`INSPECTION_PLAN_ID`
+        WHERE
+        1 = 1
+        <if test="params.INSPECTION_PLAN_YEAR!=null and params.INSPECTION_PLAN_YEAR != ''">
+            AND a.INSPECTION_PLAN_YEAR = '${params.INSPECTION_PLAN_YEAR}'
+        </if>
+        <if test="params.INSPECTION_PLAN_STATE!=null and params.INSPECTION_PLAN_STATE != ''">
+            AND a.INSPECTION_PLAN_STATE = '${params.INSPECTION_PLAN_STATE}'
+        </if>
+        <if test="params.INSPECTION_PLAN_TYPE!=null and params.INSPECTION_PLAN_TYPE != ''">
+            AND a.INSPECTION_PLAN_TYPE = '${params.INSPECTION_PLAN_TYPE}'
+        </if>
+        <if test="params.INSPECTION_PLAN_NAME!=null and params.INSPECTION_PLAN_NAME != ''">
+            AND a.INSPECTION_PLAN_NAME like '%${params.INSPECTION_PLAN_NAME}%'
+        </if>
+        <if test="params.INSPECTION_GUOKU!=null and params.INSPECTION_GUOKU != ''">
+            AND a.INSPECTION_GUOKU = '${params.INSPECTION_GUOKU}'
+        </if>
+        <if test="params.BOOKORG_ID!=null and params.BOOKORG_ID!='' ">
+            AND b.BOOKORG_ID = #{params.BOOKORG_ID}
+        </if>
+        <if test="params.CHECK_ORG!=null and params.CHECK_ORG!='' ">
+            AND a.CHECK_ORG = #{params.CHECK_ORG}
+        </if>
+        <if test="params.CHECKED_ORG!=null and params.CHECKED_ORG!='' ">
+            AND a.CHECKED_ORG = #{params.CHECKED_ORG}
+        </if>
+        ) aa
+        left JOIN dmcode.cm_guoku_dimnsn t ON aa.INSPECTED_GUOKU_ID = t.guoku_id
+        WHERE
+        1 = 1
+        GROUP BY
+        aa.INSPECTION_PLAN_YEAR,
+        aa.INSPECTION_PLAN_ID,
+        aa.INSPECTION_PLAN_TYPE,
+        aa.INSPECTION_PLAN_BEGINTIME,
+        aa.INSPECTION_PLAN_ENDTIME,
+        aa.INSPECTION_PLAN_NAME,
+        aa.INSPECTION_PLAN_TYPE_DSCR,
+        aa.INSPECTION_PLAN_TIME,
+        aa.INSPECTION_GUOKU,
+        aa.INSPECTION_GUOKU_DSCR,
+        aa.BOOKORG_DSCR,
+        aa.BOOKORG_ID,
+        aa.CHECK_ORG,
+        aa.CHECK_ORG_DSCR,
+        aa.CHECKED_ORG,
+        aa.CHECKED_ORG_DSCR,
+        aa.UPDATE_TIME
+        ORDER BY
+        aa.UPDATE_TIME DESC)bb
+        where 1=1
+        <if test="params.CHECK_KEY_WORD!=null and params.CHECK_KEY_WORD!='' ">
+            AND (CHECK_ORG_DSCR like '%${params.CHECK_KEY_WORD}%' or INSPECTION_GUOKU_DSCR like
+            '%${params.CHECK_KEY_WORD}%')
+        </if>
+        <if test="params.CHECKED_KEY_WORD!=null and params.CHECKED_KEY_WORD!='' ">
+            AND (CHECKED_ORG_DSCR like '%${params.CHECKED_KEY_WORD}%' or BOOKORG_DSCR like
+            '%${params.CHECKED_KEY_WORD}%'
+            or INSPECTED_GUOKU_DSCR like '%${params.CHECKED_KEY_WORD}%')
+        </if>
+        LIMIT ${params.page},${params.rows}-->
+    </select>
+
+    <!--    获取检查计划主查询数据 -->
+    <select id="getInspectionPlanDataCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(0)
+        FROM
+        `inspection`.`inspection_plan` a
+        WHERE
+        1 = 1
+        <if test="params.INSPECTION_PLAN_ID!=null and params.INSPECTION_PLAN_ID != ''">
+            AND a.INSPECTION_PLAN_ID = '${params.INSPECTION_PLAN_ID}'
+        </if>
+        <if test="params.INSPECTION_PLAN_YEAR!=null and params.INSPECTION_PLAN_YEAR != ''">
+            AND a.INSPECTION_PLAN_YEAR = '${params.INSPECTION_PLAN_YEAR}'
+        </if>
+        <if test="params.INSPECTION_PLAN_STATE!=null and params.INSPECTION_PLAN_STATE != ''">
+            AND a.INSPECTION_PLAN_STATE = '${params.INSPECTION_PLAN_STATE}'
+        </if>
+        <if test="params.INSPECTION_PLAN_TYPE!=null and params.INSPECTION_PLAN_TYPE != ''">
+            AND a.INSPECTION_PLAN_TYPE = '${params.INSPECTION_PLAN_TYPE}'
+        </if>
+        <if test="params.INSPECTION_PLAN_NAME!=null and params.INSPECTION_PLAN_NAME != ''">
+            AND a.INSPECTION_PLAN_NAME like '%${params.INSPECTION_PLAN_NAME}%'
+        </if>
+        <if test="params.INSPECTION_GUOKU!=null and params.INSPECTION_GUOKU != ''">
+            AND a.INSPECTION_GUOKU = '${params.INSPECTION_GUOKU}'
+        </if>
+        <if test="params.BOOKORG_ID!=null and params.BOOKORG_ID!='' ">
+            AND b.BOOKORG_ID = #{params.BOOKORG_ID}
+        </if>
+        <if test="params.CHECK_ORG!=null and params.CHECK_ORG!='' ">
+            AND a.CHECK_ORG = #{params.CHECK_ORG}
+        </if>
+        <if test="params.CHECKED_ORG!=null and params.CHECKED_ORG!='' ">
+            AND a.CHECKED_ORG = #{params.CHECKED_ORG}
+        </if>
+        <if test="params.CHECK_KEY_WORD!=null and params.CHECK_KEY_WORD!='' ">
+            AND (a.CHECK_ORG_DSCR like '%${params.CHECK_KEY_WORD}%' or a.INSPECTION_GUOKU_DSCR like
+            '%${params.CHECK_KEY_WORD}%')
+        </if>
+        <if test="params.CHECKED_KEY_WORD!=null and params.CHECKED_KEY_WORD!='' ">
+            AND (a.CHECKED_ORG_DSCR like '%${params.CHECKED_KEY_WORD}%' or a.BOOKORG_DSCR like
+            '%${params.CHECKED_KEY_WORD}%'
+            or a.INSPECTED_GUOKU_DSCR like '%${params.CHECKED_KEY_WORD}%')
+        </if>
+        <!--SELECT count(1) FROM (SELECT
+        aa.INSPECTION_PLAN_YEAR,
+        aa.INSPECTION_PLAN_ID,
+        aa.INSPECTION_PLAN_TYPE,
+        aa.INSPECTION_PLAN_BEGINTIME,
+        aa.INSPECTION_PLAN_ENDTIME,
+        aa.INSPECTION_PLAN_NAME,
+        aa.INSPECTION_PLAN_TYPE_DSCR,
+        aa.INSPECTION_PLAN_TIME,
+        aa.INSPECTION_GUOKU,
+        REPLACE(aa.INSPECTION_GUOKU_DSCR,'国家金库','') AS INSPECTION_GUOKU_DSCR,
+        REPLACE(aa.BOOKORG_DSCR,'国家金库','') AS BOOKORG_DSCR,
+        aa.BOOKORG_ID,
+        aa.CHECK_ORG,
+        aa.CHECK_ORG_DSCR,
+        aa.CHECKED_ORG,
+        aa.CHECKED_ORG_DSCR,
+        GROUP_CONCAT(t.guoku_dscr) AS INSPECTED_GUOKU_DSCR,
+        GROUP_CONCAT(aa.INSPECTED_GUOKU_ID) AS INSPECTED_GUOKU_ID,
+        aa.UPDATE_TIME
+        FROM
+        (
+        SELECT DISTINCT
+        a.`INSPECTION_PLAN_YEAR` AS INSPECTION_PLAN_YEAR,
+        a.INSPECTION_PLAN_ID AS INSPECTION_PLAN_ID,
+        a.`INSPECTION_PLAN_TYPE` AS INSPECTION_PLAN_TYPE,
+        INSPECTION_PLAN_BEGINTIME AS INSPECTION_PLAN_BEGINTIME,
+        INSPECTION_PLAN_ENDTIME AS INSPECTION_PLAN_ENDTIME,
+        INSPECTION_PLAN_NAME AS INSPECTION_PLAN_NAME,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.`cm_guoku_enumeration` b
+        WHERE
+        b.ENUM_TYPE_ID = '12'
+        AND b.ENUM_ID = a.`INSPECTION_PLAN_TYPE`
+        ) AS INSPECTION_PLAN_TYPE_DSCR,
+        CONCAT(
+        a.`INSPECTION_PLAN_BEGINTIME`,
+        '至',
+        a.`INSPECTION_PLAN_ENDTIME`
+        ) AS INSPECTION_PLAN_TIME,
+        a.`INSPECTION_GUOKU` AS INSPECTION_GUOKU,
+        (
+        SELECT
+        guoku_dscr
+        FROM
+        dmcode.`cm_guoku_dimnsn` c
+        WHERE
+        c.GUOKU_ID = a.INSPECTION_GUOKU
+        ) AS INSPECTION_GUOKU_DSCR,
+        (
+        SELECT
+        GROUP_CONCAT(BOOKORG_DSCR)
+        FROM
+        inspection.`inspection_task`
+        WHERE
+        INSPECTION_PLAN_ID = a.INSPECTION_PLAN_ID
+        ) AS BOOKORG_DSCR,
+        (
+        SELECT
+        GROUP_CONCAT(BOOKORG_ID)
+        FROM
+        inspection.`inspection_task`
+        WHERE
+        INSPECTION_PLAN_ID = a.INSPECTION_PLAN_ID
+        ) AS BOOKORG_ID,
+        b.INSPECTED_GUOKU_ID,
+        a.CHECK_ORG,
+        a.CHECK_ORG_DSCR,
+        a.CHECKED_ORG,
+        a.CHECKED_ORG_DSCR,
+        a.UPDATE_TIME
+        FROM
+        `inspection`.`inspection_plan` a
+        LEFT JOIN `inspection`.`inspection_task` b ON a.`INSPECTION_PLAN_ID` = b.`INSPECTION_PLAN_ID`
+        WHERE
+        1 = 1
+        <if test="params.INSPECTION_PLAN_YEAR!=null and params.INSPECTION_PLAN_YEAR != ''">
+            AND a.INSPECTION_PLAN_YEAR = '${params.INSPECTION_PLAN_YEAR}'
+        </if>
+        <if test="params.INSPECTION_PLAN_STATE!=null and params.INSPECTION_PLAN_STATE != ''">
+            AND a.INSPECTION_PLAN_STATE = '${params.INSPECTION_PLAN_STATE}'
+        </if>
+        <if test="params.INSPECTION_PLAN_TYPE!=null and params.INSPECTION_PLAN_TYPE != ''">
+            AND a.INSPECTION_PLAN_TYPE = '${params.INSPECTION_PLAN_TYPE}'
+        </if>
+        <if test="params.INSPECTION_PLAN_NAME!=null and params.INSPECTION_PLAN_NAME != ''">
+            AND a.INSPECTION_PLAN_NAME like '%${params.INSPECTION_PLAN_NAME}%'
+        </if>
+        <if test="params.INSPECTION_GUOKU!=null and params.INSPECTION_GUOKU != ''">
+            AND a.INSPECTION_GUOKU = '${params.INSPECTION_GUOKU}'
+        </if>
+        <if test="params.BOOKORG_ID!=null and params.BOOKORG_ID!='' ">
+            AND b.BOOKORG_ID = #{params.BOOKORG_ID}
+        </if>
+        <if test="params.CHECK_ORG!=null and params.CHECK_ORG!='' ">
+            AND a.CHECK_ORG = #{params.CHECK_ORG}
+        </if>
+        <if test="params.CHECKED_ORG!=null and params.CHECKED_ORG!='' ">
+            AND a.CHECKED_ORG = #{params.CHECKED_ORG}
+        </if>
+        ) aa
+        left JOIN dmcode.cm_guoku_dimnsn t ON aa.INSPECTED_GUOKU_ID = t.guoku_id
+        WHERE
+        1 = 1
+        GROUP BY
+        aa.INSPECTION_PLAN_YEAR,
+        aa.INSPECTION_PLAN_ID,
+        aa.INSPECTION_PLAN_TYPE,
+        aa.INSPECTION_PLAN_BEGINTIME,
+        aa.INSPECTION_PLAN_ENDTIME,
+        aa.INSPECTION_PLAN_NAME,
+        aa.INSPECTION_PLAN_TYPE_DSCR,
+        aa.INSPECTION_PLAN_TIME,
+        aa.INSPECTION_GUOKU,
+        aa.INSPECTION_GUOKU_DSCR,
+        aa.BOOKORG_DSCR,
+        aa.BOOKORG_ID,
+        aa.CHECK_ORG,
+        aa.CHECK_ORG_DSCR,
+        aa.CHECKED_ORG,
+        aa.CHECKED_ORG_DSCR,
+        aa.UPDATE_TIME
+        ORDER BY
+        aa.UPDATE_TIME DESC)bb
+        where 1=1
+        <if test="params.CHECK_KEY_WORD!=null and params.CHECK_KEY_WORD!='' ">
+            AND (CHECK_ORG_DSCR like '%${params.CHECK_KEY_WORD}%' or INSPECTION_GUOKU_DSCR like
+            '%${params.CHECK_KEY_WORD}%')
+        </if>
+        <if test="params.CHECKED_KEY_WORD!=null and params.CHECKED_KEY_WORD!='' ">
+            AND (CHECKED_ORG_DSCR like '%${params.CHECKED_KEY_WORD}%' or BOOKORG_DSCR like
+            '%${params.CHECKED_KEY_WORD}%'
+            or INSPECTED_GUOKU_DSCR like '%${params.CHECKED_KEY_WORD}%')
+        </if>-->
+    </select>
+    <!--    获取检查计划主查询数据 -->
+    <select id="getInspectionPlanInspected" resultType="java.util.HashMap">
+        SELECT
+        a.`INSPECTION_GROUP_NAME`,
+        a.`INSPECTED_GUOKU_ID`,
+        a.INSPECTION_GROUP_ID,
+        a.INSPECTION_TASK_ID,
+        b.ID,
+        d.INSPECTION_TASK_BEGINTIME,
+        d.INSPECTION_TASK_ENDTIME,
+        d.INSPECTION_TASK_STATE,
+        (SELECT
+        DISTINCT guoku_dscr
+        FROM
+        dmcode.`cm_guoku_dimnsn`
+        WHERE guoku_id = a.`INSPECTED_GUOKU_ID`) AS INSPECTED_GUOKU_DSCR,
+        b.INSPECTION_GROUP_USER ,
+        c.`NAME` AS INSPECTION_GROUP_USER_NAME,
+        IFNULL(b.`INSPECTION_GROUP_DUTIES`,'3') AS INSPECTION_GROUP_DUTIES,
+        (SELECT ENUM_DSCR FROM `enumset`.`cm_guoku_enumeration` WHERE ENUM_ID=b.`INSPECTION_GROUP_DUTIES` AND
+        ENUM_TYPE_ID='7') AS INSPECTION_GROUP_DUTIES_DSCR
+        ,
+        (
+        SELECT
+        CONCAT(FORMAT(aa.sub_total/aa.total*100,2), '%') AS IS_FINSH
+        FROM
+        (
+        SELECT
+        COUNT(CASE WHEN t2.`INSPECTION_PROCESS_SUB_SIGN` = '0' THEN t2.`INSPECTION_PROCESS_SUB_ID` END) AS sub_total,
+        COUNT(t2.`INSPECTION_PROCESS_SUB_ID`) AS total,
+        t1.`INSPECTION_TASK_ID`
+        FROM
+        `inspection`.`inspection_process` t1
+        JOIN
+        `inspection`.`inspection_process_sub` t2
+        ON t1.`ID` = t2.`PROCESS_ID`
+        WHERE t2.`INSPECTION_PROCESS_SUB_ID` NOT LIKE '___040_'
+        GROUP BY t1.`INSPECTION_TASK_ID`
+        ) aa
+        WHERE aa.`INSPECTION_TASK_ID` = a.INSPECTION_TASK_ID
+        ) AS IS_FINSH,
+        d.BOOKORG_ID,
+        d.BOOKORG_DSCR,
+        e.*
+        FROM
+        `inspection`.`inspection_group` a
+        LEFT JOIN `inspection`.inspection_group_user b
+        ON a.`INSPECTION_GROUP_ID` =b.`INSPECTION_GROUP_ID`
+        LEFT JOIN inspection.`cm_guoku_talentpool` c
+        ON b.`INSPECTION_GROUP_USER`=c.UUID
+        JOIN `inspection`.`inspection_task` d on a.INSPECTION_TASK_ID = d.INSPECTION_TASK_ID
+        JOIN inspection.inspection_plan e on d.INSPECTION_PLAN_ID = e.INSPECTION_PLAN_ID
+        WHERE 1=1
+        <if test="params.INSPECTION_PLAN_ID!=null and params.INSPECTION_PLAN_ID != ''">
+            and d.`INSPECTION_PLAN_ID` = '${params.INSPECTION_PLAN_ID}'
+        </if>
+        <if test="params.INSPECTION_TASK_ID!=null and params.INSPECTION_TASK_ID != ''">
+            and a.INSPECTION_TASK_ID ='${params.INSPECTION_TASK_ID}'
+        </if>
+        order by INSPECTION_GROUP_NAME
+    </select>
+
+
+    <!--    保存检查计划查询数据 -->
+    <insert id="saveInspectPlan">
+        INSERT INTO inspection.inspection_plan
+        (
+            INSPECTION_PLAN_ID
+            , INSPECTION_PLAN_YEAR
+            , INSPECTION_PLAN_TYPE
+            , INSPECTION_PLAN_NAME
+            , INSPECTION_PLAN_BEGINTIME
+            , INSPECTION_PLAN_ENDTIME
+            , INSPECTION_GUOKU
+            , INSPECTION_PLAN_INDEX
+            , INSPECTION_PLAN_STATE
+            , UPDATE_TIME
+            , CHECK_ORG
+            , CHECK_ORG_DSCR
+            , CHECKED_ORG
+            , CHECKED_ORG_DSCR
+            , INSPECTION_BOOKORG_ID
+            , INSPECTION_BOOKORG_DSCR
+            , IS_BUILDTASK
+            , CREATE_ORG
+        )
+        VALUES
+            (
+                '${params.INSPECTION_PLAN_ID}',
+                '${params.INSPECTION_PLAN_YEAR}',
+                '${params.INSPECTION_PLAN_TYPE}',
+                '${params.INSPECTION_PLAN_NAME}',
+                '${params.INSPECTION_PLAN_BEGINTIME}',
+                '${params.INSPECTION_PLAN_ENDTIME}',
+                '${params.INSPECTION_GUOKU}',
+                '${params.INSPECTION_PLAN_INDEX}',
+                '1',
+                '${params.UPDATE_TIME}',
+                #{params.CHECK_ORG},
+                #{params.CHECK_ORG_DSCR},
+                #{params.CHECKED_ORG},
+                #{params.CHECKED_ORG_DSCR},
+                #{params.INSPECTION_BOOKORG_ID},
+                #{params.INSPECTION_BOOKORG_DSCR},
+                #{params.IS_BUILDTASK},
+                #{params.CREATE_ORG}
+            )
+    </insert>
+    <insert id="saveInspectPlanSub">
+        INSERT INTO inspection.inspection_task
+        (
+        INSPECTION_TASK_ID,
+        INSPECTION_PLAN_ID,
+        INSPECTION_TASK_YEAR
+        ,INSPECTION_TASK_TYPE
+        ,INSPECTION_TASK_NAME
+        <if test=' params.INSPECTION_PLAN_TYPE == "008" or params.INSPECTION_PLAN_TYPE == "007" '>
+            ,INSPECTION_TASK_BEGINTIME
+            ,INSPECTION_TASK_ENDTIME
+        </if>
+        ,INSPECTION_GUOKU
+        ,INSPECTED_GUOKU_ID
+        ,INSPECTION_TASK_STATE
+        ,IS_LOCK_MAIN
+        ,IS_LOCK_GROUP
+        ,IS_FINISH
+        ,BOOKORG_ID
+        ,BOOKORG_DSCR
+        ,INSPECTION_BOOKORG_ID
+        ,INSPECTION_BOOKORG_DSCR
+        ,CREATE_TIME
+        ,CHECK_ORG
+        ,CHECK_ORG_DSCR
+        ,CHECKED_ORG
+        ,CHECKED_ORG_DSCR
+        )
+        VALUES
+        (
+        '${params.INSPECTION_TASK_ID}',
+        '${params.INSPECTION_PLAN_ID}',
+        '${params.INSPECTION_PLAN_YEAR}',
+        '${params.INSPECTION_PLAN_TYPE}',
+        '${params.INSPECTION_TASK_NAME}',
+        <if test=' params.INSPECTION_PLAN_TYPE == "008"  or params.INSPECTION_PLAN_TYPE == "007" '>
+            '${params.INSPECTION_TASK_BEGINTIME}',
+            '${params.INSPECTION_TASK_ENDTIME}',
+        </if>
+        '${params.INSPECTION_GUOKU}',
+        '${params.INSPECTED_GUOKU_ID}'
+        ,'1'
+        ,'1'
+        ,'1'
+        ,'2'
+        ,#{params.BOOKORG_ID}
+        ,#{params.BOOKORG_DSCR}
+        ,#{params.INSPECTION_BOOKORG_ID}
+        ,#{params.INSPECTION_BOOKORG_DSCR}
+        ,#{params.CREATE_TIME},
+        #{params.CHECK_ORG},
+        #{params.CHECK_ORG_DSCR},
+        #{params.CHECKED_ORG},
+        #{params.CHECKED_ORG_DSCR}
+        )
+    </insert>
+    <insert id="saveInspectPlanGroup">
+        INSERT INTO inspection.inspection_group
+        (
+            INSPECTION_GROUP_ID,
+            INSPECTION_TASK_ID
+            , INSPECTION_GROUP_NAME
+            , INSPECTED_GUOKU_ID
+        )
+        VALUES
+            (
+                '${params.INSPECTION_GROUP_ID}',
+                '${params.INSPECTION_TASK_ID}',
+                '${params.INSPECTION_GROUP_NAME}',
+                '${params.INSPECTED_GUOKU_ID}'
+            )
+    </insert>
+    <update id="abolishInspectMain">
+        UPDATE inspection.inspection_plan
+        SET INSPECTION_PLAN_STATE = '0'
+        WHERE INSPECTION_PLAN_ID = '${params.INSPECTION_PLAN_ID}'
+    </update>
+    <update id="abolishInspectSub">
+        UPDATE inspection.inspection_task
+        SET INSPECTION_TASK_STATE = '0'
+        WHERE INSPECTION_PLAN_ID = '${params.INSPECTION_PLAN_ID}'
+    </update>
+    <update id="abolishInspectTask">
+        UPDATE inspection.inspection_task
+        SET INSPECTION_TASK_STATE = '0'
+        WHERE INSPECTION_TASK_ID = '${params.INSPECTION_TASK_ID}'
+    </update>
+
+    <update id="editInspected">
+        UPDATE inspection.inspected_guoku
+        SET INSPECTED_GUOKU_ID = '${params.INSPECTED_GUOKU_ID}', INSPECTED_GUOKU_DSCR = (
+            SELECT a.`guoku_dscr`
+            FROM dmcode.`cm_guoku_dimnsn` a
+            WHERE a.`guoku_id` = '${params.INSPECTED_GUOKU_ID}'
+        )
+        WHERE INSPECTION_TASK_ID = '${params.INSPECTION_TASK_ID}'
+    </update>
+    <update id="editInspect">
+        UPDATE inspection.inspection_plan
+        SET
+        <if test='params.INSPECTION_PLAN_YEAR != null and params.INSPECTION_PLAN_YEAR != "" '>
+            INSPECTION_PLAN_YEAR = '${params.INSPECTION_PLAN_YEAR}',
+        </if>
+        <if test='params.INSPECTION_PLAN_TYPE != null and params.INSPECTION_PLAN_TYPE != "" '>
+            INSPECTION_PLAN_TYPE = '${params.INSPECTION_PLAN_TYPE}',
+        </if>
+        <if test='params.INSPECTION_PLAN_NAME != null and params.INSPECTION_PLAN_NAME != "" '>
+            INSPECTION_PLAN_NAME = '${params.INSPECTION_PLAN_NAME}',
+        </if>
+        <if test='params.INSPECTION_PLAN_BEGINTIME != null and params.INSPECTION_PLAN_BEGINTIME != "" '>
+            INSPECTION_PLAN_BEGINTIME = '${params.INSPECTION_PLAN_BEGINTIME}',
+        </if>
+        <if test='params.INSPECTION_PLAN_ENDTIME != null and params.INSPECTION_PLAN_ENDTIME != "" '>
+            INSPECTION_PLAN_ENDTIME = '${params.INSPECTION_PLAN_ENDTIME}',
+        </if>
+        <if test='params.INSPECTION_GUOKU != null and params.INSPECTION_GUOKU != "" '>
+            INSPECTION_GUOKU = '${params.INSPECTION_GUOKU}',
+        </if>
+        <if test='params.INSPECTION_PLAN_INDEX != null and params.INSPECTION_PLAN_INDEX != "" '>
+            INSPECTION_PLAN_INDEX = '${params.INSPECTION_PLAN_INDEX}',
+        </if>
+        <if test='params.UPDATE_TIME != null and params.UPDATE_TIME != "" '>
+            UPDATE_TIME = '${params.UPDATE_TIME}',
+        </if>
+        <if test='params.CHECK_ORG != null and params.CHECK_ORG != "" '>
+            CHECK_ORG = #{params.CHECK_ORG},
+        </if>
+        <if test='params.CHECK_ORG_DSCR != null and params.CHECK_ORG_DSCR != "" '>
+            CHECK_ORG_DSCR = #{params.CHECK_ORG_DSCR},
+        </if>
+        <if test='params.CHECKED_ORG != null and params.CHECKED_ORG != "" '>
+            CHECKED_ORG = #{params.CHECKED_ORG},
+        </if>
+        <if test='params.CHECKED_ORG_DSCR != null and params.CHECKED_ORG_DSCR != "" '>
+            CHECKED_ORG_DSCR = #{params.CHECKED_ORG_DSCR},
+        </if>
+        <if test='params.IS_BUILDTASK != null and params.IS_BUILDTASK != "" '>
+            IS_BUILDTASK = #{params.IS_BUILDTASK},
+        </if>
+        <if test='params.BUILDTASK_DATE != null and params.BUILDTASK_DATE != "" '>
+            BUILDTASK_DATE = #{params.BUILDTASK_DATE},
+        </if>
+        INSPECTION_PLAN_ID = '${params.INSPECTION_PLAN_ID}'
+        WHERE INSPECTION_PLAN_ID = '${params.INSPECTION_PLAN_ID}'
+    </update>
+
+
+    <select id="getInspectType" resultType="java.util.Map">
+        SELECT
+            a.`ENUMERATION_CODE` AS id,
+            a.`ENUMERATION_DSCR` AS name
+        FROM
+            inspection.`cm_guoku_enumeration` a
+        WHERE a.`ENUMERATION_TYPE_CODE` = 6
+        ORDER BY ENUMERATION_CODE
+    </select>
+    <delete id="delInspectPlanMain">
+        DELETE
+        FROM
+            inspection.inspection_plan
+        WHERE ID = '${params.ID}'
+    </delete>
+    <delete id="delInspectPlanSub">
+        DELETE
+        FROM
+            inspection.inspection_plan_sub
+        WHERE ID = '${params.ID}'
+    </delete>
+    <delete id="delInspectPlanUser">
+        DELETE
+        FROM
+            inspection.inspection_group_user_relation
+        WHERE ID = '${params.ID}'
+    </delete>
+    <select id="isAddPerson" resultType="int">
+        SELECT count(1)
+        FROM
+            inspection.inspection_group_user t
+            JOIN inspection.inspection_group i
+                ON t.INSPECTION_GROUP_ID = i.INSPECTION_GROUP_ID
+            JOIN inspection.inspection_task k
+                ON i.INSPECTION_TASK_ID = k.INSPECTION_TASK_ID
+        WHERE t.INSPECTION_GROUP_USER = '${params.INSPECTION_GROUP_USER}'
+              AND (
+                  (
+                      '${params.INSPECTION_TASK_ENDTIME}' <![CDATA[  >= ]]> k.INSPECTION_TASK_BEGINTIME
+                      AND '${params.INSPECTION_TASK_ENDTIME}' <![CDATA[ <=  ]]> k.INSPECTION_TASK_ENDTIME
+                  )
+                  OR (
+                      '${params.INSPECTION_TASK_BEGINTIME}' <![CDATA[  <]]> k.INSPECTION_TASK_BEGINTIME
+                      AND '${params.INSPECTION_TASK_ENDTIME}' <![CDATA[  > ]]> k.INSPECTION_TASK_ENDTIME
+                  )
+                  OR (
+                      '${params.INSPECTION_TASK_BEGINTIME}'  <![CDATA[ >=  ]]> k.INSPECTION_TASK_BEGINTIME
+                      AND '${params.INSPECTION_TASK_BEGINTIME}'   <![CDATA[ <= ]]> k.INSPECTION_TASK_ENDTIME
+                  )
+              )
+    </select>
+    <select id="getPersonAll" resultType="map">
+        SELECT
+        USER_ID,
+        b.`NAME`USER_NAME,
+        a.GUOKU_ID,
+        (SELECT GUOKU_DSCR FROM edw.`cm_guoku_dimnsn` c WHERE c.GUOKU_ID=a.GUOKU_ID) AS GUOKU_DESC,
+        b.SEX,
+        b.NATION,
+        b.DUTIES,
+        b.PHONE,
+        a.INSPECT_GUOKU_ID,
+        (SELECT GUOKU_DSCR FROM edw.`cm_guoku_dimnsn` c WHERE c.GUOKU_ID=a.INSPECT_GUOKU_ID) AS INSPECT_GUOKU_NAME,
+        a.INSPECT_DUTIES
+        FROM
+        inspection.`inspection_group_user_relation` a
+        LEFT JOIN inspection.`cm_guoku_talentpool` b
+        ON a.`USER_ID` =b.`ID`
+        WHERE a.ID = '${params.ID}'
+        AND a.INSPECT_ID = '${params.INSPECT_ID}'
+        AND a.INSPECT_GUOKU_ID = '${params.INSPECT_GUOKU_ID}'
+        <if test="params.INSPECT_DUTIES!=null and params.INSPECT_DUTIES != ''">
+            AND a.INSPECT_DUTIES IN (${params.INSPECT_DUTIES})
+        </if>
+
+    </select>
+    <insert id="addPerson">
+        INSERT INTO inspection.inspection_group_user_relation
+        (ID
+            , INSPECT_ID
+            , INSPECT_GROUP_ID
+            , USER_ID
+            , GUOKU_ID
+            , INSPECT_GUOKU_ID
+            , INSPECT_DUTIES)
+        VALUES
+            (
+                '${params.ID}'
+                , '${params.INSPECT_ID}'
+                , '${params.INSPECT_GROUP_ID}'
+                , '${params.USER_ID}'
+                , '${params.GUOKU_ID}'
+                , '${params.INSPECT_GUOKU_ID}'
+                , '${params.INSPECT_DUTIES}')
+
+    </insert>
+    <delete id="delPerson">
+        DELETE
+        FROM
+            inspection.inspection_group_user_relation
+        WHERE ID = '${params.ID}'
+              AND INSPECT_ID = '${params.INSPECT_ID}'
+              AND INSPECT_GUOKU_ID = '${params.INSPECT_GUOKU_ID}'
+              AND USER_ID = '${params.USER_ID}'
+    </delete>
+    <!--    获取检查任职下拉接口 -->
+    <select id="getInspectionAll" resultType="java.util.HashMap">
+        SELECT
+            a.`ENUMERATION_CODE` id,
+            a.`ENUMERATION_DSCR` name
+        FROM inspection.`cm_guoku_enumeration` a
+        WHERE a.`ENUMERATION_TYPE_CODE` = '7'
+    </select>
+    <!--    获取人才库详情 -->
+    <select id="getTalentPool" resultType="java.util.HashMap">
+        SELECT *
+        FROM `inspection`.`cm_guoku_talentpool`
+        WHERE UUID = '${params.INSPECTION_GROUP_USER}'
+    </select>
+    <delete id="delUser">
+        DELETE FROM `inspection`.inspection_group_user
+        WHERE INSPECTION_GROUP_ID = '${params.INSPECTION_GROUP_ID}' AND
+              INSPECTION_GROUP_USER = '${params.INSPECTION_GROUP_USER}'
+    </delete>
+    <insert id="saveInspectUser">
+        INSERT INTO `inspection`.inspection_group_user
+        (
+            ID,
+            INSPECTION_GROUP_ID,
+            INSPECTION_GROUP_USER,
+            INSPECTION_GROUP_DUTIES
+        )
+        VALUES
+            (
+                '${params.ID}',
+                '${params.INSPECTION_GROUP_ID}',
+                '${params.INSPECTION_GROUP_USER}',
+                '3'
+            )
+    </insert>
+    <insert id="DelInspectUser">
+        DELETE FROM `inspection`.inspection_group_user
+        WHERE INSPECTION_GROUP_ID = '${params.INSPECTION_GROUP_ID}'
+    </insert>
+    <select id="getTalentPoolAll" resultType="map">
+        SELECT
+        a.UUID,
+        NAME,
+        GUOKU_ID,
+        GUOKU_DSCR,
+        SEX,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 5
+        AND ENUM_ID = SEX
+        ) AS SEX_DSCR,
+        BIRTHDAY,
+        AGE,
+        NATION,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 2
+        AND ENUM_ID = NATION
+        ) AS NATION_DSCR,
+        POLITICS,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 10
+        AND ENUM_ID = POLITICS
+        ) AS POLITICS_DSCR,
+        MAJOR,
+        EDUCATION,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 1
+        AND ENUM_ID = EDUCATION
+        ) AS EDUCATION_DSCR,
+        DUTIES,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 4
+        AND ENUM_ID = DUTIES
+        ) AS DUTIES_DSCR,
+        (
+        SELECT
+        ENUM_ID
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 4
+        AND ENUM_ID = DUTIES
+        ) AS DUTIES_ORDER,
+        CUR_POSITION,
+        PHONE,
+        WORK_LIFE,
+        EXPERTISE,
+        (
+        SELECT
+        ENUM_DSCR
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE
+        ENUM_TYPE_ID = 3
+        AND ENUM_ID = EXPERTISE
+        ) AS EXPERTISE_DSCR,
+        TITLE,
+        LAWCERT,
+        CASE
+        WHEN LAWCERT = '0' THEN
+        '是'
+        ELSE
+        '否'
+        END AS LAWCERT_DSCR,
+        LAWCERT_NO,
+        CHECK_NO,
+        CHIEF,
+        CASE
+        WHEN CHIEF = '0' THEN
+        '是'
+        ELSE
+        '否'
+        END AS CHIEF_DSCR,
+        MEMO,
+        STATE,
+        LAST_TIME,
+        LAST_USER
+        FROM
+        inspection.cm_guoku_talentpool a
+        WHERE
+        1 = 1
+        <if test=" params.NAME != null and params.NAME != ''">
+            AND NAME like '%${params.NAME}%'
+        </if>
+        <if test=" params.GUOKU_ID != null and params.GUOKU_ID != ''">
+            AND GUOKU_ID = #{params.GUOKU_ID}
+        </if>
+        <if test=" params.GUOKU_DSCR != null and params.GUOKU_DSCR != ''">
+            AND GUOKU_DSCR like '%${params.GUOKU_DSCR}%'
+        </if>
+        <if test=" params.SEX != null and params.SEX != ''">
+            AND SEX = #{params.SEX}
+        </if>
+        <if test=" params.NATION != null and params.NATION != ''">
+            AND NATION = #{params.NATION}
+        </if>
+        <if test=" params.DUTIES != null and params.DUTIES != ''">
+            AND DUTIES = #{params.DUTIES}
+        </if>
+        <if test=" params.PHONE != null and params.PHONE != ''">
+            AND PHONE like '%${params.PHONE}%'
+        </if>
+        <if test=" params.EXPERTISE != null and params.EXPERTISE != ''">
+            <foreach collection="params.EXPERTISE" item="item">
+                AND EXPERTISE LIKE '%${item}%'
+            </foreach>
+        </if>
+        <if test=" params.STATE != null and params.STATE != ''">
+            AND STATE = #{params.STATE}
+        </if>
+        <if test=" params.EDUCATION != null and params.EDUCATION != ''">
+            AND EDUCATION = #{params.EDUCATION}
+        </if>
+        <if test=" params.BIRTHDAY != null and params.BIRTHDAY != ''">
+            AND BIRTHDAY = #{params.BIRTHDAY}
+        </if>
+        <if test=" params.START_AGE != null and params.START_AGE != '' ">
+            AND AGE <![CDATA[>=]]> #{params.START_AGE}
+        </if>
+        <if test=" params.END_AGE != null and params.END_AGE != '' ">
+            AND AGE <![CDATA[<=]]> #{params.END_AGE}
+        </if>
+        <if test=" params.LAWCERT != null and params.LAWCERT != ''">
+            AND LAWCERT = #{params.LAWCERT}
+        </if>
+        <if test=" params.TITLE != null and params.TITLE != ''">
+            AND TITLE = #{params.TITLE}
+        </if>
+        <if test='params.IS_GROUP == 1'>
+            ORDER BY a.GUOKU_ID, CAST(DUTIES_ORDER AS SIGNED)
+        </if>
+    </select>
+
+    <select id="getInspectionProcess" resultType="map">
+        SELECT *
+        FROM `inspection_task_template` a
+        WHERE a.TEMP_TYPE_ID = '${params.INSPECTION_PLAN_TYPE}'
+    </select>
+
+
+    <insert id="saveInspectProcess">
+        INSERT INTO `inspection`.inspection_process
+        (
+            ID,
+            INSPECTION_PROCESS_ID,
+            INSPECTION_TASK_ID,
+            INSPECTION_PROCESS_NAME,
+            INSPECTION_PROCESS_SIGN,
+            IS_ACTIVE
+        )
+        VALUES
+            (
+                '${params.ID}',
+                '${params.INSPECTION_PROCESS_ID}',
+                '${params.INSPECTION_TASK_ID}',
+                '${params.INSPECTION_PROCESS_NAME}',
+                '1',
+                '1'
+            )
+    </insert>
+
+    <insert id="saveInspectProcessSub">
+        INSERT INTO `inspection`.inspection_process_sub
+        (
+            INSPECTION_PROCESS_SUB_ID,
+            INSPECTION_PROCESS_ID,
+            INSPECTION_PROCESS_SUB_NAME,
+            INSPECTION_PROCESS_SUB_SIGN,
+            IS_ACTIVE
+        )
+        VALUES
+            (
+                '${params.INSPECTION_PROCESS_SUB_ID}',
+                '${params.INSPECTION_PROCESS_ID}',
+                '${params.INSPECTION_PROCESS_SUB_NAME}',
+                '${params.INSPECTION_PROCESS_SUB_SIGN}',
+                '1'
+            )
+    </insert>
+
+    <update id="editUserDuties">
+        UPDATE `inspection`.inspection_group_user
+        SET INSPECTION_GROUP_DUTIES = '${params.INSPECTION_GROUP_DUTIES}'
+        WHERE INSPECTION_GROUP_ID = '${params.INSPECTION_GROUP_ID}' AND
+              INSPECTION_GROUP_USER = '${params.INSPECTION_GROUP_USER}'
+    </update>
+    <select id="isEditUserDuties" resultType="map">
+        SELECT *
+        FROM `inspection`.inspection_group_user
+        WHERE
+            INSPECTION_GROUP_ID = '${params.INSPECTION_GROUP_ID}' AND
+            INSPECTION_GROUP_DUTIES = '${params.INSPECTION_GROUP_DUTIES}'
+            AND INSPECTION_GROUP_DUTIES  <![CDATA[  <> ]]> '3'
+    </select>
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        inspection.inspection_plan a
+        WHERE
+        1 = 1
+        <if test=" params.INSPECTION_PLAN_ID != null and params.INSPECTION_PLAN_ID != '' ">
+            AND a.INSPECTION_PLAN_ID != #{params.INSPECTION_PLAN_ID}
+        </if>
+        <if test=" params.INSPECTION_PLAN_NAME != null and params.INSPECTION_PLAN_NAME != '' ">
+            AND a.INSPECTION_PLAN_NAME = #{params.INSPECTION_PLAN_NAME}
+        </if>
+    </select>
+
+    <select id="getGuokuById" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        dmcode.cm_guoku_dimnsn a
+        WHERE
+        1 = 1
+        <if test=" params.guoku_id != null and params.guoku_id != '' ">
+            AND a.guoku_id = #{params.guoku_id}
+        </if>
+    </select>
+
+</mapper>

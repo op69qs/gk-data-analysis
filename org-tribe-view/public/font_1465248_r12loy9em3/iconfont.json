@@ -1,0 +1,233 @@
+{
+  "id": "1465248",
+  "name": "昆明二期",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "6873830",
+      "name": "向右双箭头",
+      "font_class": "xiangyoushuangjiantou",
+      "unicode": "e70b",
+      "unicode_decimal": 59147
+    },
+    {
+      "icon_id": "6873832",
+      "name": "向左双箭头",
+      "font_class": "xiangzuoshuangjiantou",
+      "unicode": "e70c",
+      "unicode_decimal": 59148
+    },
+    {
+      "icon_id": "13019272",
+      "name": "搜索",
+      "font_class": "sousuo",
+      "unicode": "e644",
+      "unicode_decimal": 58948
+    },
+    {
+      "icon_id": "7555973",
+      "name": "保存",
+      "font_class": "baocun",
+      "unicode": "e6ad",
+      "unicode_decimal": 59053
+    },
+    {
+      "icon_id": "5881157",
+      "name": "关  闭",
+      "font_class": "guanbi1",
+      "unicode": "e635",
+      "unicode_decimal": 58933
+    },
+    {
+      "icon_id": "8564968",
+      "name": "向下箭头",
+      "font_class": "xiangxiajiantou",
+      "unicode": "e64c",
+      "unicode_decimal": 58956
+    },
+    {
+      "icon_id": "6052004",
+      "name": "计算",
+      "font_class": "jisuan",
+      "unicode": "e638",
+      "unicode_decimal": 58936
+    },
+    {
+      "icon_id": "12350530",
+      "name": "下载",
+      "font_class": "xiazai1",
+      "unicode": "e688",
+      "unicode_decimal": 59016
+    },
+    {
+      "icon_id": "10425895",
+      "name": "文件-方案",
+      "font_class": "wj-fa",
+      "unicode": "e632",
+      "unicode_decimal": 58930
+    },
+    {
+      "icon_id": "5009949",
+      "name": "过滤",
+      "font_class": "guolv",
+      "unicode": "e61a",
+      "unicode_decimal": 58906
+    },
+    {
+      "icon_id": "5239380",
+      "name": "导出",
+      "font_class": "daochu",
+      "unicode": "e6fe",
+      "unicode_decimal": 59134
+    },
+    {
+      "icon_id": "7048441",
+      "name": "排序",
+      "font_class": "paixu2",
+      "unicode": "e684",
+      "unicode_decimal": 59012
+    },
+    {
+      "icon_id": "9905388",
+      "name": "图表 柱状图 (1)",
+      "font_class": "tubiaozhuzhuangtu",
+      "unicode": "e6f5",
+      "unicode_decimal": 59125
+    },
+    {
+      "icon_id": "10820988",
+      "name": "向左",
+      "font_class": "xiangzuo",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "1230734",
+      "name": "退格",
+      "font_class": "tuige",
+      "unicode": "e623",
+      "unicode_decimal": 58915
+    },
+    {
+      "icon_id": "2591672",
+      "name": "运算-乘",
+      "font_class": "yunsuan-cheng",
+      "unicode": "e675",
+      "unicode_decimal": 58997
+    },
+    {
+      "icon_id": "2597271",
+      "name": "运算-除",
+      "font_class": "yunsuan-chu",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "2597273",
+      "name": "运算-加",
+      "font_class": "yunsuan-jia",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    },
+    {
+      "icon_id": "2597277",
+      "name": "运算-减",
+      "font_class": "yunsuan-jian",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "3101467",
+      "name": "排序",
+      "font_class": "sort-small-a",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    },
+    {
+      "icon_id": "5366823",
+      "name": "折线图",
+      "font_class": "zhexiantu",
+      "unicode": "e622",
+      "unicode_decimal": 58914
+    },
+    {
+      "icon_id": "9255242",
+      "name": "柱状图",
+      "font_class": "zhuzhuangtu1",
+      "unicode": "e6c0",
+      "unicode_decimal": 59072
+    },
+    {
+      "icon_id": "9909654",
+      "name": "饼 图",
+      "font_class": "bingtu",
+      "unicode": "e683",
+      "unicode_decimal": 59011
+    },
+    {
+      "icon_id": "11402840",
+      "name": "柱状&折线图",
+      "font_class": "zhuzhuangzhexiantu",
+      "unicode": "e609",
+      "unicode_decimal": 58889
+    },
+    {
+      "icon_id": "1086169",
+      "name": "减",
+      "font_class": "jian",
+      "unicode": "e613",
+      "unicode_decimal": 58899
+    },
+    {
+      "icon_id": "1215755",
+      "name": "加",
+      "font_class": "jia",
+      "unicode": "e621",
+      "unicode_decimal": 58913
+    },
+    {
+      "icon_id": "4599464",
+      "name": "除号",
+      "font_class": "chuhao",
+      "unicode": "e62e",
+      "unicode_decimal": 58926
+    },
+    {
+      "icon_id": "7434419",
+      "name": "乘号",
+      "font_class": "chenghao",
+      "unicode": "e619",
+      "unicode_decimal": 58905
+    },
+    {
+      "icon_id": "7434425",
+      "name": "右括号",
+      "font_class": "youkuohao",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "7434426",
+      "name": "左括号",
+      "font_class": "zuokuohao",
+      "unicode": "e61e",
+      "unicode_decimal": 58910
+    },
+    {
+      "icon_id": "7708043",
+      "name": "锁",
+      "font_class": "suo",
+      "unicode": "e620",
+      "unicode_decimal": 58912
+    },
+    {
+      "icon_id": "8791338",
+      "name": "手动",
+      "font_class": "shoudong",
+      "unicode": "e729",
+      "unicode_decimal": 59177
+    }
+  ]
+}

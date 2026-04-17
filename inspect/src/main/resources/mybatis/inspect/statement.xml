@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.StatementMapper">
+
+    <select id="getStatementData" resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        inspection.inspection_statement a
+        WHERE
+        1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND a.ID = #{params.ID}
+        </if>
+        <if test="params.TASK_ID!=null and params.TASK_ID!='' ">
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+    </select>
+
+    <insert id="addStatement" >
+        INSERT INTO inspection.inspection_statement
+        VALUES
+        (
+        #{params.ID},
+        #{params.CHECK_ORG_DSCR},
+        #{params.STATEMENT_TIME},
+        #{params.QUESTIONED_PERSON},
+        #{params.SEX},
+        #{params.CHECKED_ORG_DSCR},
+        #{params.DEP},
+        #{params.STATEMENT_CONTENT},
+        #{params.QUESTIONED_SIGN},
+        #{params.QUESTION_PERSON},
+        #{params.RECORDER},
+        #{params.TASK_ID},
+        #{params.FILE_PATH}
+        )
+    </insert>
+
+    <update id="editStatement">
+        UPDATE inspection.inspection_statement SET
+        <if test=" params.CHECK_ORG_DSCR != null and params.CHECK_ORG_DSCR != ''">
+            CHECK_ORG_DSCR = #{params.CHECK_ORG_DSCR},
+        </if>
+        <if test=" params.CHECKED_ORG_DSCR != null and params.CHECKED_ORG_DSCR != ''">
+            CHECKED_ORG_DSCR = #{params.CHECKED_ORG_DSCR},
+        </if>
+        <if test=" params.STATEMENT_TIME != null and params.STATEMENT_TIME != ''">
+            STATEMENT_TIME = #{params.STATEMENT_TIME},
+        </if>
+        <if test=" params.QUESTIONED_PERSON != null and params.QUESTIONED_PERSON != ''">
+            QUESTIONED_PERSON = #{params.QUESTIONED_PERSON},
+        </if>
+        <if test=" params.SEX != null and params.SEX != ''">
+            SEX = #{params.SEX},
+        </if>
+        <if test=" params.DEP != null and params.DEP != ''">
+            DEP = #{params.DEP},
+        </if>
+        <if test=" params.STATEMENT_CONTENT != null and params.STATEMENT_CONTENT != ''">
+            STATEMENT_CONTENT = #{params.STATEMENT_CONTENT},
+        </if>
+        <if test=" params.QUESTIONED_SIGN != null and params.QUESTIONED_SIGN != ''">
+            QUESTIONED_SIGN = #{params.QUESTIONED_SIGN},
+        </if>
+        <if test=" params.QUESTION_PERSON != null and params.QUESTION_PERSON != ''">
+            QUESTION_PERSON = #{params.QUESTION_PERSON},
+        </if>
+        <if test=" params.RECORDER != null and params.RECORDER != ''">
+            RECORDER = #{params.RECORDER},
+        </if>
+        <if test=" params.FILE_PATH != null and params.FILE_PATH != ''">
+            FILE_PATH = #{params.FILE_PATH},
+        </if>
+        ID = #{params.ID}
+        WHERE ID = #{params.ID}
+    </update>
+
+    <delete id="delStatement" >
+        DELETE
+        FROM
+        inspection.inspection_statement
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.TASK_ID!=null and params.TASK_ID != ''">
+            AND TASK_ID = #{params.TASK_ID}
+        </if>
+    </delete>
+
+</mapper>

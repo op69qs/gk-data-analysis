@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionWorkingPaperMapper">
+    <!-- author: Samer 工作底稿 -->
+
+    <!-- 根据底稿ID获取底稿信息 -->
+    <select id="getWorkingPapersByPaperId" resultType="java.util.Map">
+        SELECT *
+        FROM
+        `inspection`.`inspection_working_paper` a
+        WHERE 1=1
+        <if test=' params.TASK_ID !=null and params.TASK_ID != "" '>
+            AND a.`TASK_ID` = #{params.TASK_ID}
+        </if>
+        <if test=' params.ADD_USERID !=null and params.ADD_USERID != "" '>
+            AND a.`ADD_USERID` = #{params.ADD_USERID}
+        </if>
+    </select>
+
+    <!-- 根据底稿ID更新底稿信息 -->
+    <update id="updateWorkingPapersByPaperId">
+        UPDATE `inspection`.`inspection_working_paper` a
+        SET
+            a.CHECK_ITEMS_CONTENT = #{params.CHECK_ITEMS_CONTENT},
+            a.MODIFY_DATE         = #{params.MODIFY_DATE}
+        WHERE
+            ((a.`PAPER_ID` = #{params.PAPER_ID})
+             OR
+             (
+                 a.`TASK_ID` = #{params.TASK_ID}
+                 AND a.`ADD_USERID` = #{params.ADD_USERID}
+             ))
+    </update>
+
+    <!-- 根据任务ID用户ID获取台账信息 -->
+    <select id="getWorkingPapersByTaskIdUserId" resultType="java.util.Map">
+        SELECT *
+        FROM
+            `inspection`.`inspection_working_paper` a
+        WHERE
+            a.`TASK_ID` = #{params.TASK_ID}
+            AND a.`ADD_USERID` = #{params.ADD_USERID}
+    </select>
+
+    <!-- 获取当前用户姓名 -->
+    <select id="getUserInfoByUserId" resultType="java.util.Map">
+        SELECT *
+        FROM
+            `jeecg-boot-os`.`sys_user` a
+        WHERE
+            a.id = #{params.ADD_USERID};
+    </select>
+
+    <!-- 根据任务ID获取任务信息 -->
+    <select id="getTaskInfoByTaskId" resultType="java.util.Map">
+        SELECT
+            b.ENUM_DSCR    AS TASK_TYPE_DSCR,
+            a.INSPECTION_TASK_BEGINTIME,
+            a.INSPECTION_TASK_ENDTIME,
+            c.`guoku_dscr` AS INSPECTED_GUOKU_DSCR
+        FROM
+            `inspection`.`inspection_task` a
+            JOIN
+            (
+                SELECT
+                    t1.`ENUM_DSCR`,
+                    t1.ENUM_ID
+                FROM
+                    `enumset`.`cm_guoku_enumeration` t1
+                WHERE
+                    t1.`ENUM_TYPE_ID` = '12'
+            ) b
+                ON b.`ENUM_ID` = a.INSPECTION_TASK_TYPE
+            LEFT JOIN
+            dmcode.`cm_guoku_dimnsn` c
+                ON a.`INSPECTED_GUOKU_ID` = c.`guoku_id`
+        WHERE
+            a.INSPECTION_TASK_ID = #{params.TASK_ID};
+    </select>
+
+    <!-- 根据当前用户任务ID获取台账一级二级 -->
+    <select id="getQuestionLedgerLvById" resultType="java.util.Map">
+        SELECT
+        a.QUESTION_ID_1,
+        a.QUESTION_ID_2,
+        b.QUESTION_DSCR AS QUESTION_DSCR_1,
+        c.QUESTION_DSCR AS QUESTION_DSCR_2
+        FROM
+        inspection.`inspection_question_ledger` a
+        JOIN `inspection`.`inspection_question_bank` b
+        ON a.`QUESTION_ID_1` = b.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` c
+        ON a.`QUESTION_ID_2` = c.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` cc
+        ON a.`QUESTION_ID` = cc.QUESTION_ID
+        WHERE
+        <if test='params.logic == "notEq" '>
+            cc.`QUESTION_DSCR` &lt;&gt; '其他'
+        </if>
+        <if test='params.logic == "Eq" '>
+            cc.`QUESTION_DSCR` = '其他'
+        </if>
+        AND a.`TASK_ID` = #{params.TASK_ID}
+        AND a.`ADD_USERID` = #{params.ADD_USERID}
+        GROUP BY
+        a.QUESTION_ID_1,
+        a.QUESTION_ID_2
+        ORDER BY
+        a.ADD_DATE
+    </select>
+
+    <!-- 根据当前用户任务ID获取末级台账制度及整改方式信息 -->
+    <select id="getRuleOpinionById" resultType="java.util.Map">
+        SELECT
+        a.QUESTION_ID,
+        a.QUESTION_CONTENT,
+        d.QUESTION_OPINIONS,
+        e.RULE_FILE_NAME,
+        e.RULE_FILE_NO,
+        e.RULE_FILE_CONTENT
+        FROM
+        inspection.`inspection_question_ledger` a
+        JOIN `inspection`.`inspection_question_bank` d
+        ON a.`QUESTION_ID` = d.QUESTION_ID
+        JOIN `inspection`.`inspection_question_bank` cc
+        ON a.`QUESTION_ID` = cc.QUESTION_ID
+        LEFT JOIN
+        (SELECT
+        t1.RULE_FILE_NAME,
+        t1.RULE_FILE_NO,
+        t1.RULE_FILE_CONTENT,
+        t2.`QUESTION_ID`
+        FROM
+        `inspection`.`inspection_question_rule` t1
+        JOIN inspection.`inspection_question_rule_relation` t2
+        ON t1.RULE_ID = t2.`RULE_ID`
+        WHERE t1.RULE_STATE = '0') e
+        ON a.`QUESTION_ID` = e.QUESTION_ID
+        WHERE
+        <if test='params.logic == "notEq" '>
+            cc.`QUESTION_DSCR` &lt;&gt; '其他'
+        </if>
+        <if test='params.logic == "Eq" '>
+            cc.`QUESTION_DSCR` = '其他'
+        </if>
+        AND a.`TASK_ID` = #{params.TASK_ID}
+        AND a.`ADD_USERID` = #{params.ADD_USERID}
+        AND a.QUESTION_ID_2 = #{params.QUESTION_ID_2}
+        GROUP BY
+        a.QUESTION_CONTENT
+        ORDER BY
+        a.ADD_DATE
+    </select>
+
+    <!-- 工作底稿新增 -->
+    <insert id="addWorkingPapers">
+        INSERT INTO `inspection`.`inspection_working_paper`
+        VALUES (
+            #{params.PAPER_ID},
+            #{params.TASK_ID},
+            #{params.FILLING_DATE},
+            #{params.CHECK_ITEMS_CONTENT},
+            #{params.ADD_USERID},
+            #{params.ADD_DATE},
+            #{params.MODIFY_USERID},
+            #{params.MODIFY_DATE},
+            #{params.ATTACHMENT_NAME},
+            #{params.PAPER_ATTACHMENT},
+            #{params.PRINT_ATTACHMENT},
+            #{params.NOT_OTHER_CONTENT},
+            #{params.OTHER_CONTENT}
+        )
+    </insert>
+
+</mapper>

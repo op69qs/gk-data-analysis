@@ -1,0 +1,30 @@
+<style>
+    #searchData {
+        padding: 20px;
+    }
+
+    #searchData > div {
+        padding-bottom: 10px;
+    }
+
+    #searchData > div > span {
+        display: inline-block;
+        text-align: right;
+    }
+</style>
+<div id="searchData">
+    <div>
+        <span>指标名称：</span>
+        <input id="indicatorsAdd" class="easyui-textbox" prompt="请输入关键字查询"/>
+        <span>平台：</span> <input class="easyui-combobox" id="platformAdd" data-options="
+                   prompt:'请选择平台',
+                   valueField:'value',
+                   textField:'label',
+                   url:'./statisticalAnalysis/keyIndicatorsMonitor/getIndexPlatform'
+                    "/>
+        <a class="easyui-linkbutton" onclick="queryAddData()" style="weight:50%;height: 100%">查询</a>
+        <a class="easyui-linkbutton" onclick="resetAddData()" style="weight:50%;height: 100%">重置</a>
+    </div>
+    <div id="viewData" style="margin-top: 15px;"> </div>
+</div>
+<script type="text/javascript" src="/statisticalAnalysis/static/js/ParameterMaintenance/KeyIndicatorsParameter.js"></script>

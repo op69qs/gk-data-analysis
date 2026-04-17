@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.mvcconfig.MvcConfigMapper">
+    <!-- author: Samer 静态页面控制-->
+
+    <!-- 获取配置信息 -->
+    <select id="getMvcConfig" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            `jeecg-boot-os`.`sys_microservice_cif` a
+        WHERE a.STATUS = '0'
+        <if test=' params.applicationName != "" and  params.applicationName != null '>
+            AND a.APPLICATION = #{params.applicationName}
+        </if>
+    </select>
+
+</mapper>

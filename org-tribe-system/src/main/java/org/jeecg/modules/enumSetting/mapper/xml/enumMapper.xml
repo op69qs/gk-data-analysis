@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.enumSetting.mapper.EnumMapper">
+
+    <select id="getData" resultType="java.util.HashMap">
+        SELECT
+        ILLUSTRATE
+        ,ENUM_TYPE_ID
+        ,ENUM_TYPE_DSCR
+        ,ENUM_ID
+        ,ENUM_DSCR
+        ,STATE,
+        case when STATE='0'
+        then '在用'
+        else '停用'
+        end as STATE_DSCR
+        FROM enumset.`cm_guoku_enumeration` a
+        where ENUM_TYPE_ID='${params.ENUM_TYPE_ID}'
+
+        <if test=" params.STATE != null and params.STATE != ''">
+            and STATE = '${params.STATE}'
+        </if>
+        <if test=" params.ENUM_DSCR != null and params.ENUM_DSCR != ''">
+            AND ENUM_DSCR like '%${params.ENUM_DSCR}%'
+        </if>
+
+        order by ENUM_ID
+        LIMIT ${params.page},${params.rows}
+
+    </select>
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM enumset.`cm_guoku_enumeration` a
+        where ENUM_TYPE_ID='${params.ENUM_TYPE_ID}'
+
+        <if test=" params.STATE != null and params.STATE != ''">
+            and STATE = '${params.STATE}'
+        </if>
+        <if test=" params.ENUM_DSCR != null and params.ENUM_DSCR != ''">
+            AND ENUM_DSCR like '%${params.ENUM_DSCR}%'
+        </if>
+
+    </select>
+    <select id="getEnumTypeAll" resultType="java.util.HashMap">
+        SELECT
+        distinct ENUM_ID id
+        ,ENUM_DSCR name
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE STATE= 0
+        <if test=" params.ENUM_TYPE_ID != null and params.ENUM_TYPE_ID != ''">
+            and ENUM_TYPE_ID IN (${params.ENUM_TYPE_ID})
+        </if>
+        <if test=" params.content != null and params.content != ''">
+            and ENUM_ID in ('002','003','004')
+        </if>
+        ORDER BY CAST(ENUM_ID AS SIGNED)
+    </select>
+    <!--枚举类型-->
+    <select id="getEnumType" resultType="java.util.HashMap">
+        SELECT
+        distinct ENUM_TYPE_ID id
+        ,ENUM_TYPE_DSCR name
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE STATE= 0
+        <if test=" params.ENUM_TYPE_DSCR != null and params.ENUM_TYPE_DSCR != ''">
+            and ENUM_TYPE_DSCR like '%${params.ENUM_TYPE_DSCR}%'
+        </if>
+    </select>
+    <select id="checkCode" resultType="java.util.HashMap">
+        SELECT *
+        FROM
+            enumset.`cm_guoku_enumeration`
+        WHERE
+             ENUM_TYPE_ID = '${params.ENUM_TYPE_ID}'
+            AND (ENUM_ID = '${params.ENUM_ID}'
+            or ENUM_DSCR = '${params.ENUM_DSCR}')
+    </select>
+
+    <!--    查询逻辑运算符号-->
+    <select id="getLogicalOperator" resultType="java.util.HashMap">
+        SELECT distinct ENUM_ID id,ENUM_DSCR name
+         FROM enumset.`cm_guoku_enumeration`
+        WHERE ENUM_TYPE_ID = '20' AND STATE='0' AND ENUM_ID NOT LIKE '%like%'
+    </select>
+
+    <insert id="addEnum">
+        INSERT INTO enumset.`cm_guoku_enumeration`
+        (
+              ENUM_TYPE_ID
+            ,ENUM_TYPE_DSCR
+            ,ENUM_ID
+            ,ENUM_DSCR,
+            ILLUSTRATE
+        )
+        VALUES
+            (
+                  '${params.ENUM_TYPE_ID}'
+                ,'${params.ENUM_TYPE_DSCR}'
+                ,'${params.ENUM_ID}'
+                ,'${params.ENUM_DSCR}'
+                ,'${params.ILLUSTRATE}'
+            )
+    </insert>
+    <update id="editEnum">
+        UPDATE enumset.`cm_guoku_enumeration` SET
+        <if test=" params.ENUM_DSCR != null">
+            ENUM_DSCR = '${params.ENUM_DSCR}',
+        </if>
+        <if test=" params.STATE != null">
+            STATE = '${params.STATE}',
+        </if>
+        <if test=" params.ILLUSTRATE != null">
+            ILLUSTRATE = '${params.ILLUSTRATE}',
+        </if>
+        ENUM_ID = '${params.ENUM_ID}'
+        WHERE ENUM_ID = #{params.ENUM_ID}
+        and ENUM_TYPE_ID = '${params.ENUM_TYPE_ID}'
+        and STATE = '0'
+    </update>
+    <update id="delEnum">
+         UPDATE enumset.`cm_guoku_enumeration` SET STATE ='${params.STATE}'
+         where ENUM_ID='${params.ENUM_ID}'
+          and ENUM_TYPE_ID = '${params.ENUM_TYPE_ID}'
+    </update>
+    <update id="delEnumNo">
+         UPDATE enumset.`cm_guoku_enumeration` SET STATE='0'
+         where ENUM_ID='${params.ENUM_ID}'
+          and ENUM_TYPE_ID = '${params.ENUM_TYPE_ID}'
+          and STATE = '1'
+    </update>
+
+    <select id="getFirst" resultType="java.util.HashMap">
+        SELECT DISTINCT
+        a.illustrate AS id,
+        a.illustrate AS name,
+        '' AS pid
+        FROM
+        enumset.`cm_guoku_enumeration` a
+        where 1 = 1
+        <if test=" params.STATE != null and params.STATE != ''">
+            and STATE = #{params.STATE}
+        </if>
+    </select>
+
+    <select id="getSecond" resultType="java.util.HashMap">
+        SELECT DISTINCT
+        b.ENUM_TYPE_ID AS id,
+        b.ENUM_TYPE_DSCR AS name,
+        b.illustrate AS pid
+        FROM
+        enumset.`cm_guoku_enumeration` b
+        where 1 = 1
+        <if test=" params.STATE != null and params.STATE != ''">
+            and STATE = #{params.STATE}
+        </if>
+    </select>
+
+    <select id="getThird" resultType="java.util.HashMap">
+        SELECT DISTINCT
+        c.ENUM_ID AS id,
+        c.ENUM_DSCR AS NAME,
+        c.ENUM_TYPE_ID AS pid
+        FROM
+        enumset.`cm_guoku_enumeration` c
+        where 1 = 1
+        <if test=" params.STATE != null and params.STATE != ''">
+            and STATE = #{params.STATE}
+        </if>
+    </select>
+
+    <select id="getEnumDscr" resultType="java.lang.String">
+        SELECT
+        enum_dscr
+        FROM
+        enumset.cm_guoku_enumeration
+        WHERE 1=1
+        <if test=" params.enum_type_id != null and params.enum_type_id != ''">
+            and enum_type_id = #{params.enum_type_id}
+        </if>
+        <if test=" params.enum_id != null and params.enum_id != ''">
+            AND enum_id = #{params.enum_id}
+        </if>
+    </select>
+</mapper>

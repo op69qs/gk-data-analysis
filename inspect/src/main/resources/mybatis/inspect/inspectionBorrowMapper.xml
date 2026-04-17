@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionBorrowMapper">
+
+
+    <resultMap id="BorrowDataMap" type="org.inspect.model.BorrowData">
+        <result column="borrow_index" jdbcType="INTEGER" property="borrow_index"/>
+        <result column="data_name" jdbcType="VARCHAR" property="data_name"/>
+        <result column="num" jdbcType="VARCHAR" property="num"/>
+        <result column="data_date" jdbcType="VARCHAR" property="data_date"/>
+        <result column="borrow_date" jdbcType="VARCHAR" property="borrow_date"/>
+        <result column="inspected_charge" jdbcType="VARCHAR" property="inspected_charge"/>
+        <result column="leader" jdbcType="VARCHAR" property="leader"/>
+    </resultMap>
+
+    <select id="getInspectionBorrowData" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        inspection.inspection_borrow a
+        WHERE
+        1 = 1
+        <if test="params.TASK_ID!=null and params.TASK_ID != ''">
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+        <if test="params.INSPECTION_TASK_YEAR!=null and params.INSPECTION_TASK_YEAR!='' ">
+            AND a.PROC_ID = #{params.PROC_ID}
+        </if>
+        <if test="params.data_name!=null and params.data_name!='' ">
+            AND a.data_name like '%${params.data_name}%'
+        </if>
+        order by a.borrow_index
+    </select>
+
+    <select id="getInspectionBorrow" resultMap="BorrowDataMap">
+        SELECT
+        *
+        FROM
+        inspection.inspection_borrow a
+        WHERE
+        1 = 1
+        <if test="params.TASK_ID!=null and params.TASK_ID != ''">
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+        <if test="params.INSPECTION_TASK_YEAR!=null and params.INSPECTION_TASK_YEAR!='' ">
+            AND a.PROC_ID = #{params.PROC_ID}
+        </if>
+        <if test="params.data_name!=null and params.data_name!='' ">
+            AND a.data_name like '%${params.data_name}%'
+        </if>
+        order by a.borrow_index
+    </select>
+
+    <select id="getInspectionBorrowTemp" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        inspection.inspection_borrow_template a
+        where 1=1
+        <if test="params.type!=null and params.type!='' ">
+            AND a.type = #{params.type}
+        </if>
+        order by a.borrow_index
+    </select>
+
+    <insert id="addInspectionBorrow" >
+        INSERT INTO inspection.inspection_borrow
+        VALUES
+        (
+        #{params.id},
+        #{params.borrow_index},
+        #{params.data_name},
+        #{params.num},
+        #{params.data_date},
+        #{params.borrow_date},
+        #{params.borrow_user},
+        #{params.return_date},
+        #{params.return_user},
+        #{params.inspected_charge},
+        #{params.leader},
+        #{params.TASK_ID},
+        #{params.PROC_ID},
+        #{params.title},
+        #{params.inspected_guoku},
+        #{params.supervisor}
+        )
+    </insert>
+
+    <update id="editInspectionBorrow">
+        UPDATE inspection.inspection_borrow SET
+        <if test=" params.borrow_index != null and params.borrow_index != ''">
+            borrow_index = #{params.borrow_index},
+        </if>
+        <if test=" params.data_name != null and params.data_name != ''">
+            data_name = #{params.data_name},
+        </if>
+        <if test=" params.num != null and params.num != ''">
+            num = #{params.num},
+        </if>
+        <if test=" params.data_date != null and params.data_date != ''">
+            data_date = #{params.data_date},
+        </if>
+        <if test=" params.borrow_date != null and params.borrow_date != ''">
+            borrow_date = #{params.borrow_date},
+        </if>
+        <if test=" params.borrow_user != null and params.borrow_user != ''">
+            borrow_user = #{params.borrow_user},
+        </if>
+        <if test=" params.return_date != null and params.return_date != ''">
+            return_date = #{params.return_date},
+        </if>
+        <if test=" params.return_user != null and params.return_user != ''">
+            return_user = #{params.return_user},
+        </if>
+        <if test=" params.inspected_charge != null and params.inspected_charge != ''">
+            inspected_charge = #{params.inspected_charge},
+        </if>
+        <if test=" params.leader != null and params.leader != ''">
+            leader = #{params.leader},
+        </if>
+        <if test=" params.TASK_ID != null and params.TASK_ID != ''">
+            TASK_ID = #{params.TASK_ID},
+        </if>
+        <if test=" params.PROC_ID != null and params.PROC_ID != ''">
+            PROC_ID = #{params.PROC_ID},
+        </if>
+        <if test=" params.supervisor != null and params.supervisor != ''">
+            supervisor = #{params.supervisor},
+        </if>
+        id = #{params.id}
+        WHERE id = #{params.id}
+    </update>
+
+    <update id="editBorrowUser">
+        UPDATE inspection.inspection_borrow SET
+        <if test=" params.borrow_user != null and params.borrow_user != ''">
+            borrow_user = #{params.borrow_user},
+        </if>
+        <if test=" params.leader != null and params.leader != ''">
+            leader = #{params.leader},
+        </if>
+        TASK_ID = #{params.TASK_ID}
+        WHERE TASK_ID = #{params.TASK_ID}
+    </update>
+
+    <update id="editBorrowCharge">
+        UPDATE inspection.inspection_borrow SET
+        <if test=" params.inspected_charge != null and params.inspected_charge != ''">
+            inspected_charge = #{params.inspected_charge},
+        </if>
+        <if test=" params.supervisor != null and params.supervisor != ''">
+            supervisor = #{params.supervisor},
+        </if>
+        PROC_ID = #{params.PROC_ID}
+        WHERE PROC_ID = #{params.PROC_ID}
+    </update>
+
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        inspection.inspection_borrow a
+        WHERE
+        1 = 1
+        <if test=" params.PROC_ID != null and params.PROC_ID != '' ">
+            AND a.PROC_ID = #{params.PROC_ID}
+        </if>
+        <if test=" params.data_name != null and params.data_name != '' ">
+            AND a.data_name = #{params.data_name}
+        </if>
+        <if test=" params.id != null and params.id != '' ">
+            AND a.id != #{params.id}
+        </if>
+    </select>
+
+    <delete id="delInspectionBorrow" >
+        DELETE
+        FROM
+        inspection.inspection_borrow
+        WHERE 1 = 1
+        <if test="params.id != null and params.id != ''">
+            AND id = #{params.id}
+        </if>
+    </delete>
+
+    <select id="getEnum" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM
+        enumset.cm_guoku_enumeration a
+        WHERE
+        1 = 1
+        <if test=" params.ENUM_TYPE_ID != null and params.ENUM_TYPE_ID != '' ">
+            AND a.ENUM_TYPE_ID = #{params.ENUM_TYPE_ID}
+        </if>
+        <if test=" params.ENUM_ID != null and params.ENUM_ID != '' ">
+            AND a.ENUM_ID = #{params.ENUM_ID}
+        </if>
+    </select>
+
+</mapper>

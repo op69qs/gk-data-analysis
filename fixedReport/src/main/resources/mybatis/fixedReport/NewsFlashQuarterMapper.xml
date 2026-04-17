@@ -1,0 +1,2416 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.fixedReport.dao.mapper.fixedReport.NewsFlashQuarterMapper">
+
+ <!-- 获取生成报告的报表参数信息 -->
+ <select id="getTableParams" resultType="map">
+          SELECT IFNULL(b.SERVICE_TYPE,'') AS  SERVICE_TYPE,
+
+      CONCAT(IFNULL(FORMAT(UP_YEAR /${params.AMT_UNIT},2),''),' ') AS  UP_YEAR,
+      CONCAT(IFNULL(FORMAT(UP_YEAR_PP*100,2),''),' ') AS  UP_YEAR_PP,
+      CONCAT(IFNULL(FORMAT(DOWN_YEAR  /${params.AMT_UNIT},2),''),' ') AS  DOWN_YEAR,
+      CONCAT(IFNULL(FORMAT(DOWN_YEAR_PP  *100,2),''),' ') AS  DOWN_YEAR_PP,
+      CONCAT(IFNULL(FORMAT(DOWN_YEAR_Y  *100,2),''),' ')  AS  DOWN_YEAR_Y
+      FROM      report.qut_talbe  b
+      LEFT JOIN (SELECT * FROM
+      EDW.TRS_FINANCE_TAX_STATIS a
+      where
+      D_ACCT ='${params.ACCOUNT_PERIOD}'
+      AND a.T_AREA_NO='500000'
+      ORDER BY rows_id) a
+      ON trim(a.SERVICE_TYPE)=trim(b.SERVICE_TYPE)
+    </select>
+
+ <select id="getTableParams2" resultType="map">
+        SELECT
+        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table421
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),' '),'/')  AS table422
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table423
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),' '),'/')  AS table424
+        ,ifnull(concat(replace(FORMAT((SELECT
+        sum(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE  <![CDATA[  <> ]]>  '500000')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table431
+       , IFNULL(CONCAT(REPLACE(FORMAT((SELECT
+        (SUM(a.`INDEX_VALUE`)-SUM(b.`INDEX_VALUE`))/SUM(b.`INDEX_VALUE`)*100
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+		LEFT JOIN
+		`indicators_lib`.`lib_indicators_000012` B
+		ON a.DIMENSION_FLAG=b.DIMENSION_FLAG
+		AND a.PERIOD_FLAG=b.PERIOD_FLAG
+		AND a.INDEX_DIM_CODE=b.INDEX_DIM_CODE
+		AND concat(substr(a.ACCOUNT_PERIOD,1,4)-1,substr(a.ACCOUNT_PERIOD,5,6))=b.ACCOUNT_PERIOD
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE  <![CDATA[  <> ]]>  '500000'),2),',','|'),' '),'/') AS table432
+		,ifnull(concat(replace(FORMAT((SELECT
+        sum(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE  <![CDATA[  <> ]]>  '500000')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table433
+		, IFNULL(CONCAT(REPLACE(FORMAT((SELECT
+        (SUM(a.`INDEX_VALUE`)-SUM(b.`INDEX_VALUE`))/SUM(b.`INDEX_VALUE`)*100
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+		LEFT JOIN
+		`indicators_lib`.`lib_indicators_000218` B
+		ON a.DIMENSION_FLAG=b.DIMENSION_FLAG
+		AND a.PERIOD_FLAG=b.PERIOD_FLAG
+		AND a.INDEX_DIM_CODE=b.INDEX_DIM_CODE
+		AND concat(substr(a.ACCOUNT_PERIOD,1,4)-1,substr(a.ACCOUNT_PERIOD,5,6))=b.ACCOUNT_PERIOD
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE  <![CDATA[  <> ]]>  '500000'),2),',','|'),' '),'/') AS table434
+		,IFNULL(CONCAT(REPLACE(FORMAT( (SELECT a.`INDEX_VALUE` AS INDEX_VALUE FROM
+        `indicators_lib`.`lib_indicators_000448` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3'
+        AND a.INDEX_DIM_CODE =  '500000'
+		and  a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}')/${params.AMT_UNIT}
+        ,2),',','|'),' '),'/') AS table441
+        ,IFNULL(CONCAT(REPLACE(FORMAT( (SELECT a.`INDEX_VALUE` AS INDEX_VALUE FROM
+        `indicators_lib`.`lib_indicators_000449` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3'
+        AND a.INDEX_DIM_CODE =  '500000'
+		and  a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}')*100
+        ,2),',','|'),' '),'/') AS table442
+        ,IFNULL(CONCAT(REPLACE(FORMAT( (SELECT a.`INDEX_VALUE` AS INDEX_VALUE FROM
+        `indicators_lib`.`lib_indicators_000450` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3'
+        AND a.INDEX_DIM_CODE =  '500000'
+		and  a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}')/${params.AMT_UNIT}
+        ,2),',','|'),' '),'/') AS table443
+        ,IFNULL(CONCAT(REPLACE(FORMAT( (SELECT a.`INDEX_VALUE` AS INDEX_VALUE FROM
+        `indicators_lib`.`lib_indicators_000451` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3'
+        AND a.INDEX_DIM_CODE =  '500000'
+		and  a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}')*100
+        ,2),',','|'),' '),'/') AS table444
+		,ifnull(concat(replace(FORMAT((SELECT
+        sum(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE in (select distinct area_no_id from  report.area_sort WHERE  area_pid='500997'))/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table451
+        ,
+	IFNULL(CONCAT(REPLACE(FORMAT(
+	((SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500997')
+         )-(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD  =    CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500997')
+         ))/(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD   =     CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500997')
+         ) * 100
+         ,2
+         ),',','|'),' '),'/')
+         AS table452
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        sum(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE   in (select distinct area_no_id from  report.area_sort WHERE  area_pid='500997') )/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table453
+		,IFNULL(CONCAT(REPLACE(FORMAT(
+	((SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500997')
+         )-(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD  =    CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500997')
+         ))/(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD   =     CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500997')
+         ) * 100
+         ,2
+         ),',','|'),' '),'/')    AS table454
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500103')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table1
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500103')*100,2),',','|'),' '),'/')  AS table2
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500103')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table3
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500103')*100,2),',','|'),' '),'/')  AS table4
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500106')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table21
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500106')*100,2),',','|'),' '),'/')  AS table22
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500106')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table23
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500106')*100,2),',','|'),' '),'/')  AS table24
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500105')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table31
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500105')*100,2),',','|'),' '),'/')  AS table32
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500105')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table33
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500105')*100,2),',','|'),' '),'/')  AS table34
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500108')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table41
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500108')*100,2),',','|'),' '),'/')  AS table42
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500108')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table43
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500108')*100,2),',','|'),' '),'/')  AS table44
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500109')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table51
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500109')*100,2),',','|'),' '),'/')  AS table52
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500109')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table53
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500109')*100,2),',','|'),' '),'/')  AS table54
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500107')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table61
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500107')*100,2),',','|'),' '),'/')  AS table62
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500107')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table63
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500107')*100,2),',','|'),' '),'/')  AS table64
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500104')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table71
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500104')*100,2),',','|'),' '),'/')  AS table72
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500104')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table73
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500104')*100,2),',','|'),' '),'/')  AS table74
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500113')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table81
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500113')*100,2),',','|'),' '),'/')  AS table82
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500113')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table83
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500113')*100,2),',','|'),' '),'/')  AS table84
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500112')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table91
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500112')*100,2),',','|'),' '),'/')  AS table92
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500112')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table93
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500112')*100,2),',','|'),' '),'/')  AS table94
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500999')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table101
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500999')*100,2),',','|'),' '),'/')  AS table102
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500999')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table103
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500999')*100,2),',','|'),' '),'/')  AS table104
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500996')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table111
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500996')*100,2),',','|'),' '),'/')  AS table112
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500996')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table113
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500996')*100,2),',','|'),' '),'/')  AS table114
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500115')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table121
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500115')*100,2),',','|'),' '),'/')  AS table122
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500115')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table123
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500115')*100,2),',','|'),' '),'/')  AS table124
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500102')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table131
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500102')*100,2),',','|'),' '),'/')  AS table132
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500102')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table133
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500102')*100,2),',','|'),' '),'/')  AS table134
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500117')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table141
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500117')*100,2),',','|'),' '),'/')  AS table142
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500117')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table143
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500117')*100,2),',','|'),' '),'/')  AS table144
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500116')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table151
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500116')*100,2),',','|'),' '),'/')  AS table152
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500116')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table153
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500116')*100,2),',','|'),' '),'/')  AS table154
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500118')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table161
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500118')*100,2),',','|'),' '),'/')  AS table162
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500118')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table163
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500118')*100,2),',','|'),' '),'/')  AS table164
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500119')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table171
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500119')*100,2),',','|'),' '),'/')  AS table172
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500119')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table173
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500119')*100,2),',','|'),' '),'/')  AS table174
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500110')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table181
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500110')*100,2),',','|'),' '),'/')  AS table182
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500110')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table183
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500110')*100,2),',','|'),' '),'/')  AS table184
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500131')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table191
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500131')*100,2),',','|'),' '),'/')  AS table192
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500131')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table193
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500131')*100,2),',','|'),' '),'/')  AS table194
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500152')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table201
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500152')*100,2),',','|'),' '),'/')  AS table202
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500152')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table203
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500152')*100,2),',','|'),' '),'/')  AS table204
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500151')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table211
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500151')*100,2),',','|'),' '),'/')  AS table212
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500151')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table213
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500151')*100,2),',','|'),' '),'/')  AS table214
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500153')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table221
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500153')*100,2),',','|'),' '),'/')  AS table222
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500153')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table223
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500153')*100,2),',','|'),' '),'/')  AS table224
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500111')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table231
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500111')*100,2),',','|'),' '),'/')  AS table232
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500111')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table233
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500111')*100,2),',','|'),' '),'/')  AS table234
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500120')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table241
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500120')*100,2),',','|'),' '),'/')  AS table242
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500120')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table243
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500120')*100,2),',','|'),' '),'/')  AS table244
+        ,ifnull(concat(replace(FORMAT((SELECT
+        sum(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE  in (select distinct area_no_id from  report.area_sort WHERE  area_pid='500998'))/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table461
+		,IFNULL(CONCAT(REPLACE(FORMAT(
+	((SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500998')
+         )-(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD  =    CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500998')
+         ))/(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD   =     CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500998')
+         ) * 100
+         ,2
+         ),',','|'),' '),'/')     AS table462
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        sum(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE  in (select distinct area_no_id from  report.area_sort WHERE  area_pid='500998'))/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table463
+		,IFNULL(CONCAT(REPLACE(FORMAT(
+	((SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500998')
+         )-(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD  =    CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500998')
+         ))/(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD   =     CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500998')
+         ) * 100
+         ,2
+         ),',','|'),' '),'/')    AS table464
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500101')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table251
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500101')*100,2),',','|'),' '),'/')  AS table252
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500101')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table253
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500101')*100,2),',','|'),' '),'/')  AS table254
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500228')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table261
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500228')*100,2),',','|'),' '),'/')  AS table262
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500228')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table263
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500228')*100,2),',','|'),' '),'/')  AS table264
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500229')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table271
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500229')*100,2),',','|'),' '),'/')  AS table272
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500229')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table273
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500229')*100,2),',','|'),' '),'/')  AS table274
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500230')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table281
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500230')*100,2),',','|'),' '),'/')  AS table282
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500230')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table283
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500230')*100,2),',','|'),' '),'/')  AS table284
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500231')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table291
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500231')*100,2),',','|'),' '),'/')  AS table292
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500231')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table293
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500231')*100,2),',','|'),' '),'/')  AS table294
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500233')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table301
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500233')*100,2),',','|'),' '),'/')  AS table302
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500233')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table303
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500233')*100,2),',','|'),' '),'/')  AS table304
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500154')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table311
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500154')*100,2),',','|'),' '),'/')  AS table312
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500154')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table313
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500154')*100,2),',','|'),' '),'/')  AS table314
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500235')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table321
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500235')*100,2),',','|'),' '),'/')  AS table322
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500235')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table323
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500235')*100,2),',','|'),' '),'/')  AS table324
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500236')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table331
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500236')*100,2),',','|'),' '),'/')  AS table332
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500236')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table333
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500236')*100,2),',','|'),' '),'/')  AS table334
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500237')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table341
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500237')*100,2),',','|'),' '),'/')  AS table342
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500237')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table343
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500237')*100,2),',','|'),' '),'/')  AS table344
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500238')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table351
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500238')*100,2),',','|'),' '),'/')  AS table352
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500238')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table353
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500238')*100,2),',','|'),' '),'/')  AS table354
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        sum(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE  in (select distinct area_no_id from  report.area_sort WHERE  area_pid='500995') )/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table471
+        ,
+	IFNULL(CONCAT(REPLACE(FORMAT(
+	((SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500995')
+         )-(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD  =    CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500995')
+         ))/(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD   =     CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500995')
+         ) * 100
+         ,2
+         ),',','|'),' '),'/')  AS table472
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        sum(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE  in (select distinct area_no_id from  report.area_sort WHERE  area_pid='500995') )/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table473
+		,IFNULL(CONCAT(REPLACE(FORMAT(
+	((SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500995')
+         )-(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD  =    CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500995')
+         ))/(SELECT
+        SUM(a.`INDEX_VALUE`)
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD   =     CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,SUBSTR('${params.ACCOUNT_PERIOD}',5,6))
+        AND a.INDEX_DIM_CODE IN
+         (SELECT DISTINCT area_no_id FROM  report.area_sort WHERE  area_pid='500995')
+         ) * 100
+         ,2
+         ),',','|'),' '),'/')    AS table474
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500114')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table361
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500114')*100,2),',','|'),' '),'/')  AS table362
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500114')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table363
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500114')*100,2),',','|'),' '),'/')  AS table364
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500232')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table371
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500232')*100,2),',','|'),' '),'/')  AS table372
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500232')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table373
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500232')*100,2),',','|'),' '),'/')  AS table374
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500240')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table381
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500240')*100,2),',','|'),' '),'/')  AS table382
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500240')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table383
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500240')*100,2),',','|'),' '),'/')  AS table384
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500243')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table391
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500243')*100,2),',','|'),' '),'/')  AS table392
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500243')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table393
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500243')*100,2),',','|'),' '),'/')  AS table394
+        ,        ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500242')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table401
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500242')*100,2),',','|'),' '),'/')  AS table402
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500242')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table403
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500242')*100,2),',','|'),' '),'/')  AS table404
+        ,ifnull(concat(replace(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000012` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500241')/${params.AMT_UNIT},2),',','|'),' '),'/')   AS table411
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000013` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500241')*100,2),',','|'),' '),'/')  AS table412
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000218` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500241')/${params.AMT_UNIT},2),',','|'),' '),'/')  AS table413
+        ,ifnull(CONCAT(REPLACE(FORMAT((SELECT
+
+        a.`INDEX_VALUE`
+        FROM
+        `indicators_lib`.`lib_indicators_000219` a
+        WHERE a.DIMENSION_FLAG = '2'
+        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+        AND a.INDEX_DIM_CODE='500241')*100,2),',','|'),' '),'/')  AS table414
+    </select>
+
+ <select id="getTableParams3" resultType="map">
+       SELECT
+       CASE WHEN IFNULL(a.PROJECT,'') = '内蒙古'  THEN  IFNULL(a.PROJECT,'')
+        WHEN IFNULL(a.PROJECT,'') = '黑龙江'  THEN  IFNULL(a.PROJECT,'')
+        ELSE SUBSTR(IFNULL(a.PROJECT,''),1,2)  END  AS bPROJECT,
+        IFNULL(CONCAT(REPLACE(FORMAT(a.T010101_RATE*100,2),',','|'),''),'/') AS bT010101_RATE,
+        IFNULL(CONCAT(REPLACE(FORMAT(a.T010101_RANK,0),',','|'),''),'/')  AS bT010101_RANK,
+        IFNULL(CONCAT(REPLACE(FORMAT(a.101_TATE*100,2),',','|'),''),'/') AS b101_TATE,
+        IFNULL(CONCAT(REPLACE(FORMAT(a.101_RANK,0),',','|'),''),'/') AS b101_RANK,
+        CASE WHEN IFNULL(b.PROJECT,'') = '内蒙古'  THEN  IFNULL(b.PROJECT,'')
+           WHEN IFNULL(b.PROJECT,'') = '黑龙江'  THEN  IFNULL(b.PROJECT,'')
+        ELSE SUBSTR(IFNULL(b.PROJECT,''),1,2)  END    AS aPROJECT_1,
+        IFNULL(CONCAT(REPLACE(FORMAT(b.T010101_RATE*100,2),',','|'),''),'/')  AS aT010101_RATE_1,
+        IFNULL(CONCAT(REPLACE(FORMAT(b.T010101_RANK,0),',','|'),''),'/')  AS aT010101_RANK_1,
+        IFNULL(CONCAT(REPLACE(FORMAT(b.101_TATE*100,2),',','|'),''),'/')      AS a101_TATE_1,
+        IFNULL(CONCAT(REPLACE(FORMAT(b.101_RANK,0),',','|'),''),'/')      AS a101_RANK_1
+        FROM
+        (
+        SELECT  DATA_DATE,a.PROJECT,
+        a.T010101_RATE,
+        a.T010101_RANK,
+        a.101_TATE,
+        a.101_RANK, (@a :=@a + 1) ROWS_ID FROM (SELECT   DATA_DATE,
+        a.T010101_RATE,
+        a.T010101_RANK,
+        a.101_TATE,
+        a.101_RANK,a.`PROJECT`  FROM
+        `edw`.TRS_BUDGET_INCOME_COMPARE a
+        WHERE a.ROWS_ID  &lt;  34
+        AND a.DATA_DATE =REPLACE('${params.ACCOUNT_PERIOD}','-','')
+        ORDER BY ROWS_ID ) a , (SELECT @a := 0) t1
+        ) a
+        LEFT JOIN
+        (
+        SELECT  DATA_DATE,a.PROJECT,
+        a.T010101_RATE,
+        a.T010101_RANK,
+        a.101_TATE,
+        a.101_RANK, (@b :=@b + 1) ROWS_ID FROM (SELECT   DATA_DATE,
+        a.T010101_RATE,
+        a.T010101_RANK,
+        a.101_TATE,
+        a.101_RANK,a.`PROJECT`  FROM
+        `edw`.TRS_BUDGET_INCOME_COMPARE a
+        WHERE a.ROWS_ID &gt; 33
+        AND a.DATA_DATE =replace('${params.ACCOUNT_PERIOD}','-','')
+        ORDER BY ROWS_ID ) a, (SELECT @b := 0) t2
+
+        ) b
+        ON  a.rows_id =b.rows_id
+    </select>
+
+ <select id="getTableParams4" resultType="map">
+       SELECT
+        CASE WHEN IFNULL(a.PROJECT,'') = '内蒙古'  THEN  IFNULL(a.PROJECT,'')
+        WHEN IFNULL(a.PROJECT,'') = '黑龙江'  THEN  IFNULL(a.PROJECT,'')
+        ELSE SUBSTR(IFNULL(a.PROJECT,''),1,2)  END  AS bPROJECT,
+        IFNULL(CONCAT(REPLACE(FORMAT(a.T010101_RATE*100,2),',','|'),''),'/') AS bT010101_RATE,
+        IFNULL(CONCAT(REPLACE(FORMAT(a.T010101_RANK,0),',','|'),''),'/')  AS bT010101_RANK,
+        IFNULL(CONCAT(REPLACE(FORMAT(a.101_TATE*100,2),',','|'),''),'/') AS b101_TATE,
+        IFNULL(CONCAT(REPLACE(FORMAT(a.101_RANK,0),',','|'),''),'/') AS b101_RANK,
+        CASE WHEN IFNULL(b.PROJECT,'') = '内蒙古'  THEN  IFNULL(b.PROJECT,'')
+           WHEN IFNULL(b.PROJECT,'') = '黑龙江'  THEN  IFNULL(b.PROJECT,'')
+        ELSE SUBSTR(IFNULL(b.PROJECT,''),1,2)  END    AS aPROJECT_1,
+        IFNULL(CONCAT(REPLACE(FORMAT(b.T010101_RATE*100,2),',','|'),''),'/')  AS aT010101_RATE_1,
+        IFNULL(CONCAT(REPLACE(FORMAT(b.T010101_RANK,2),',','|'),''),'/')  AS aT010101_RANK_1,
+        IFNULL(CONCAT(REPLACE(FORMAT(b.101_TATE*100,2),',','|'),''),'/')      AS a101_TATE_1,
+        IFNULL(CONCAT(REPLACE(FORMAT(b.101_RANK,2),',','|'),''),'/')      AS a101_RANK_1
+        FROM
+        (
+        SELECT  DATA_DATE,a.PROJECT,
+        a.T010101_RATE,
+        a.T010101_RANK,
+        a.101_TATE,
+        a.101_RANK, (@a :=@a + 1) ROWS_ID FROM (SELECT   DATA_DATE,
+        a.T010101_RATE,
+        a.T010101_RANK,
+        a.101_TATE,
+        a.101_RANK,b.`PROJECT` FROM  report.qut_area2  b LEFT JOIN (SELECT
+        *
+        FROM
+        `edw`.TRS_BUDGET_INCOME_COMPARE a
+        WHERE a.ROWS_ID  &lt;  34
+        AND a.DATA_DATE =REPLACE('${params.ACCOUNT_PERIOD}','-','')
+        ORDER BY ROWS_ID)a ON b.PROJECT=a.PROJECT ORDER BY ROWS_NO) a , (SELECT @a := 0) t1
+        ) a
+        LEFT JOIN
+        (
+        SELECT  DATA_DATE,a.PROJECT,
+        a.T010101_RATE,
+        a.T010101_RANK,
+        a.101_TATE,
+        a.101_RANK, (@b :=@b + 1) ROWS_ID FROM (SELECT   DATA_DATE,
+        a.T010101_RATE,
+        a.T010101_RANK,
+        a.101_TATE,
+        a.101_RANK,b.`PROJECT` FROM  report.qut_area3  b LEFT JOIN (SELECT
+        *
+        FROM
+        `edw`.TRS_BUDGET_INCOME_COMPARE a
+        WHERE a.ROWS_ID &gt; 33
+        AND a.DATA_DATE =replace('${params.ACCOUNT_PERIOD}','-','')
+        ORDER BY ROWS_ID)a ON b.PROJECT=a.PROJECT ORDER BY ROWS_NO) a, (SELECT @b := 0) t2
+
+        ) b
+        ON  a.rows_id =b.rows_id
+
+    </select>
+ <!-- 获取生成报告的文本及参数信息 -->
+ <select id="getTextAndParams" resultType="java.util.HashMap">
+        SELECT
+        concat(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'')  AS YEAR,
+        CASE WHEN SUBSTR('${params.ACCOUNT_PERIOD}',6,1)='1'
+       THEN  concat(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'3')
+       WHEN SUBSTR('${params.ACCOUNT_PERIOD}',6,1)='2'
+       THEN  concat(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'6')
+        WHEN SUBSTR('${params.ACCOUNT_PERIOD}',6,1)='9'
+       THEN  concat(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'9')
+       ELSE  concat(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'12')
+       END AS MONTH
+    ,CONCAT(SUBSTR(LAST_DAY(CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),
+		(
+		 CASE WHEN SUBSTR('${params.ACCOUNT_PERIOD}',6,1) ='1' THEN '03'
+		  WHEN SUBSTR('${params.ACCOUNT_PERIOD}',6,1) ='2' THEN '06'
+		   WHEN SUBSTR('${params.ACCOUNT_PERIOD}',6,1) ='3' THEN '09'
+			ELSE '12' END
+		),'01')),9,2),' ') AS LAST_DAY,
+		SUBSTR('${params.ACCOUNT_PERIOD}',6,1) as qtr,
+		SUBSTR('${params.ACCOUNT_PERIOD}',6,1)-1   lastQtr
+             ,concat(REPLACE(FORMAT(a.lib_000005/${params.AMT_UNIT},2),',','|'),' ') AS '000005'
+       ,CASE WHEN a.lib_000441  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000441/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000441)/${params.AMT_UNIT},2),',','|')))
+         END AS '000441'
+           ,(select round(ifnull(NUM,0),0) from report.news_flash_month_text_number b where b.ACCOUNT_PERIOD='${params.ACCOUNT_PERIOD}' and INDEX_NAME='lib_000178') as  lib_000178
+       ,CASE WHEN a.lib_000006  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000006*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000006)*100,2),',','|')))
+         END AS '000006'
+         , CONCAT(REPLACE(FORMAT(a.lib_000006*100,2),',','|') ,' ') as 'lib_000006'
+	   , concat(REPLACE(FORMAT(a.lib_000031/${params.AMT_UNIT},2),',','|'),' ') AS '000031'
+       ,CASE WHEN a.lib_000331  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000331/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000331)/${params.AMT_UNIT},2),',','|')))
+         END AS '000331'
+       ,CASE WHEN a.lib_000032  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000032*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000032)*100,2),',','|')))
+         END AS '000032'
+          ,CONCAT(REPLACE(FORMAT(a.lib_000032*100,2),',','|') ,' ') AS 'lib_000032'
+	   ,concat(REPLACE(FORMAT(a.lib_000172/${params.AMT_UNIT},2),',','|'),' ') AS '000172'
+       ,CASE WHEN a.lib_000175  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000175/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000175)/${params.AMT_UNIT},2),',','|')))
+         END AS '000175'
+       ,CASE WHEN a.lib_000176  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000176*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000176)*100,2),',','|')))
+         END AS '000176'
+          , CONCAT(REPLACE(FORMAT(a.lib_000176*100,2),',','|') ,' ')  AS '000176_lib'
+		,concat(REPLACE(FORMAT(a.lib_000273/${params.AMT_UNIT},2),',','|'),' ') AS '000273'
+       ,CASE WHEN a.lib_000392  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000392/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000392)/${params.AMT_UNIT},2),',','|')))
+         END AS '000392'
+           ,CASE WHEN a.lib_000458  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000458/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000458)/${params.AMT_UNIT},2),',','|')))
+         END AS '000458'
+         , CONCAT(REPLACE(FORMAT(ABS(a.lib_000459)/${params.AMT_UNIT},2),',','|')) AS '000459'
+         ,CASE WHEN a.lib_000460  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000460/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000460)/${params.AMT_UNIT},2),',','|')))
+         END AS '000460'
+        ,CASE WHEN a.lib_000461  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000461*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000461)*100,2),',','|')))
+         END AS '000461'
+       ,CASE WHEN a.lib_000423  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000423*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000423)*100,2),',','|')))
+         END AS '000423'
+		 ,concat(REPLACE(FORMAT(a.lib_000341/${params.AMT_UNIT},2),',','|'),' ') AS '000341'
+       ,CASE WHEN a.lib_000343  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000343/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000343)/${params.AMT_UNIT},2),',','|')))
+         END AS '000343'
+       ,CASE WHEN a.lib_000342  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000342*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000342)*100,2),',','|')))
+         END AS '000342'
+	   ,concat(REPLACE(FORMAT(a.lib_000346/${params.AMT_UNIT},2),',','|'),' ') AS '000346'
+       ,CASE WHEN a.lib_000348  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000348/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000348)/${params.AMT_UNIT},2),',','|')))
+         END AS '000348'
+       ,CASE WHEN a.lib_000347  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000347*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000347)*100,2),',','|')))
+         END AS '000347'
+       ,concat(REPLACE(FORMAT(a.lib_000345  *100 ,2),',','|'),' ') AS '000345'
+ 	   ,concat(REPLACE(FORMAT(a.lib_000365/${params.AMT_UNIT},2),',','|'),' ') AS '000365'
+       ,CASE WHEN a.lib_000393  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000393/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000393)/${params.AMT_UNIT},2),',','|')))
+         END AS '000393'
+       ,CASE WHEN a.lib_00031802  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_00031802*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_00031802)*100,2),',','|')))
+         END AS '00031802'
+             ,CASE WHEN a.lib_000013  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000013*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000013)*100,2),',','|')))
+         END AS '000013'
+               ,CASE WHEN a.lib_000219  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000219*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000219)*100,2),',','|')))
+         END AS '000219'
+		,concat(REPLACE(FORMAT(a.lib_00032001/${params.AMT_UNIT},2),',','|'),' ') AS '00032001'
+       ,CASE WHEN a.lib_000395  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000395/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000395)/${params.AMT_UNIT},2),',','|')))
+         END AS '000395'
+          ,CASE WHEN a.lib_000453  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000453/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000453)/${params.AMT_UNIT},2),',','|')))
+         END AS '000453'
+       ,CASE WHEN a.lib_000396  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000396*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000396)*100,2),',','|')))
+         END AS '000396'
+	   ,concat(REPLACE(FORMAT(a.lib_000372/${params.AMT_UNIT},2),',','|'),' ') AS '000372'
+       ,concat(REPLACE(FORMAT(a.lib_000376 *100,2),',','|'),' ') AS '000376'
+		,concat(REPLACE(FORMAT(a.lib_000177/${params.AMT_UNIT},2),',','|'),' ') AS '000177'
+       ,CASE WHEN a.lib_000192  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000192/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000192)/${params.AMT_UNIT},2),',','|')))
+         END AS '000192'
+       ,CASE WHEN a.lib_000178  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000178*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000178)*100,2),',','|')))
+         END AS '000178'
+          ,CONCAT(REPLACE(FORMAT(a.lib_000178*100,2),',','|') ,' ') AS '000178_lib'
+	,concat(REPLACE(FORMAT(a.lib_000180/${params.AMT_UNIT},2),',','|'),' ') AS '000180'
+      ,CASE WHEN a.lib_000337  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000337/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000337)/${params.AMT_UNIT},2),',','|')))
+         END AS '000337'
+       ,CASE WHEN a.lib_000181  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000181*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000181)*100,2),',','|')))
+         END AS '000181'
+          ,CONCAT(REPLACE(FORMAT(a.lib_000181*100,2),',','|') ,' ') AS 'lib_000181'
+		  ,concat(REPLACE(FORMAT(a.lib_000262/${params.AMT_UNIT},2),',','|'),' ') AS '000262'
+       ,concat(REPLACE(FORMAT(a.lib_000264/${params.AMT_UNIT},2),',','|'),' ') AS '000264'
+	  ,CASE WHEN a.lib_000260  &gt;  0
+         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000260/${params.AMT_UNIT},2),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000260)/${params.AMT_UNIT},2),',','|')))
+         END AS '000260'
+       ,CASE WHEN a.lib_000209  &gt;  0
+         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000209*100,2),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000209)*100,2),',','|')))
+         END AS '000209'
+         ,CONCAT(REPLACE(FORMAT(a.lib_000209*100,2),',','|') ,' ')  AS 'lib_000209'
+		 	   ,concat(REPLACE(FORMAT(a.lib_000252 /${params.AMT_UNIT},2),',','|'),' ') AS '000252'
+	   ,concat(REPLACE(FORMAT(a.lib_000228 /${params.AMT_UNIT},2),',','|'),' ') AS '000228'
+	   ,concat(REPLACE(FORMAT(a.lib_000001 /${params.AMT_UNIT},2),',','|'),' ') AS '000001'
+	   ,concat(REPLACE(FORMAT(a.lib_000008 /${params.AMT_UNIT},2),',','|'),' ') AS '000008'
+	   ,concat(REPLACE(FORMAT(a.lib_000052 /${params.AMT_UNIT},2),',','|'),' ') AS '000052'
+	   ,concat(REPLACE(FORMAT(a.lib_000015 /${params.AMT_UNIT},2),',','|'),' ') AS '000015'
+	   ,concat(REPLACE(FORMAT(a.lib_000117 /${params.AMT_UNIT},2),',','|'),' ') AS '000117'
+	   ,concat(REPLACE(FORMAT(a.lib_000021 /${params.AMT_UNIT},2),',','|'),' ') AS '000021'
+	   ,concat(REPLACE(FORMAT(a.lib_000194 /${params.AMT_UNIT},2),',','|'),' ') AS '000194'
+	   ,concat(REPLACE(FORMAT(a.lib_000198 /${params.AMT_UNIT},2),',','|'),' ') AS '000198'
+	   ,concat(REPLACE(FORMAT(a.lib_000202 /${params.AMT_UNIT},2),',','|'),' ') AS '000202'
+	   ,concat(REPLACE(FORMAT(a.lib_000206 /${params.AMT_UNIT},2),',','|'),' ') AS '000206'
+	   ,concat(REPLACE(FORMAT(a.lib_000210 /${params.AMT_UNIT},2),',','|'),' ') AS '000210'
+	   ,concat(REPLACE(FORMAT(a.lib_000214 /${params.AMT_UNIT},2),',','|'),' ') AS '000214'
+	   ,concat(REPLACE(FORMAT(a.lib_000027 /${params.AMT_UNIT},2),',','|'),' ') AS '000027'
+	   ,concat(REPLACE(FORMAT(a.lib_000034 /${params.AMT_UNIT},2),',','|'),' ') AS '000034'
+	   ,concat(REPLACE(FORMAT(a.lib_000040 /${params.AMT_UNIT},2),',','|'),' ') AS '000040'
+	   ,concat(REPLACE(FORMAT(a.lib_000046 /${params.AMT_UNIT},2),',','|'),' ') AS '000046'
+	   ,concat(REPLACE(FORMAT(a.lib_000131 /${params.AMT_UNIT},2),',','|'),' ') AS '000131'
+	   ,concat(REPLACE(FORMAT(a.lib_000133 /${params.AMT_UNIT},2),',','|'),' ') AS '000133'
+	   ,concat(REPLACE(FORMAT(a.lib_000254 /${params.AMT_UNIT},2),',','|'),' ') AS '000254'
+	   ,concat(REPLACE(FORMAT(a.lib_000230 /${params.AMT_UNIT},2),',','|'),' ') AS '000230'
+	   ,concat(REPLACE(FORMAT(a.lib_000012 /${params.AMT_UNIT},2),',','|'),' ') AS '000012'
+
+	   ,concat(REPLACE(FORMAT(a.lib_000218 /${params.AMT_UNIT},2),',','|'),' ') AS '000218'
+	   ,concat(REPLACE(FORMAT(a.lib_000018 /${params.AMT_UNIT},2),',','|'),' ') AS '000018'
+	   ,concat(REPLACE(FORMAT(a.lib_000118 /${params.AMT_UNIT},2),',','|'),' ') AS '000118'
+	   ,concat(REPLACE(FORMAT(a.lib_000024 /${params.AMT_UNIT},2),',','|'),' ') AS '000024'
+	   ,concat(REPLACE(FORMAT(a.lib_000196 /${params.AMT_UNIT},2),',','|'),' ') AS '000196'
+	   ,concat(REPLACE(FORMAT(a.lib_000200 /${params.AMT_UNIT},2),',','|'),' ') AS '000200'
+	   ,concat(REPLACE(FORMAT(a.lib_000204 /${params.AMT_UNIT},2),',','|'),' ') AS '000204'
+	   ,concat(REPLACE(FORMAT(a.lib_000208 /${params.AMT_UNIT},2),',','|'),' ') AS '000208'
+	   ,concat(REPLACE(FORMAT(a.lib_000212 /${params.AMT_UNIT},2),',','|'),' ') AS '000212'
+	   ,concat(REPLACE(FORMAT(a.lib_000216 /${params.AMT_UNIT},2),',','|'),' ') AS '000216'
+	   ,concat(REPLACE(FORMAT(a.lib_000037 /${params.AMT_UNIT},2),',','|'),' ') AS '000037'
+	   ,concat(REPLACE(FORMAT(a.lib_000043 /${params.AMT_UNIT},2),',','|'),' ') AS '000043'
+	   ,concat(REPLACE(FORMAT(a.lib_000049 /${params.AMT_UNIT},2),',','|'),' ') AS '000049'
+	   ,concat(REPLACE(FORMAT(a.lib_000221 /${params.AMT_UNIT},2),',','|'),' ') AS '000221'
+	   ,concat(REPLACE(FORMAT(a.lib_000225 /${params.AMT_UNIT},2),',','|'),' ') AS '000225'
+       ,concat(REPLACE(FORMAT(a.lib_000002  * 100 ,2),',','|'),' ') AS '000002'
+       ,concat(REPLACE(FORMAT(a.lib_000009  * 100 ,2),',','|'),' ') AS '000009'
+
+       ,concat(REPLACE(FORMAT(a.lib_000016  * 100 ,2),',','|'),' ') AS '000016'
+       ,concat(REPLACE(FORMAT(a.lib_000019  * 100 ,2),',','|'),' ') AS '000019'
+       ,concat(REPLACE(FORMAT(a.lib_000022  * 100 ,2),',','|'),' ') AS '000022'
+       ,concat(REPLACE(FORMAT(a.lib_000025  * 100 ,2),',','|'),' ') AS '000025'
+       ,concat(REPLACE(FORMAT(a.lib_000028  * 100 ,2),',','|'),' ') AS '000028'
+       ,concat(REPLACE(FORMAT(a.lib_000035  * 100 ,2),',','|'),' ') AS '000035'
+       ,concat(REPLACE(FORMAT(a.lib_000036  * 100 ,2),',','|'),' ') AS '000036'
+       ,concat(REPLACE(FORMAT(a.lib_000038  * 100 ,2),',','|'),' ') AS '000038'
+       ,concat(REPLACE(FORMAT(a.lib_000039  * 100 ,2),',','|'),' ') AS '000039'
+       ,concat(REPLACE(FORMAT(a.lib_000041  * 100 ,2),',','|'),' ') AS '000041'
+       ,concat(REPLACE(FORMAT(a.lib_000042  * 100 ,2),',','|'),' ') AS '000042'
+       ,concat(REPLACE(FORMAT(a.lib_000044  * 100 ,2),',','|'),' ') AS '000044'
+       ,concat(REPLACE(FORMAT(a.lib_000045  * 100 ,2),',','|'),' ') AS '000045'
+       ,concat(REPLACE(FORMAT(a.lib_000047  * 100 ,2),',','|'),' ') AS '000047'
+       ,concat(REPLACE(FORMAT(a.lib_000048  * 100 ,2),',','|'),' ') AS '000048'
+       ,concat(REPLACE(FORMAT(a.lib_000050  * 100 ,2),',','|'),' ') AS '000050'
+       ,concat(REPLACE(FORMAT(a.lib_000051  * 100 ,2),',','|'),' ') AS '000051'
+       ,concat(REPLACE(FORMAT(a.lib_000054  * 100 ,2),',','|'),' ') AS '000054'
+       ,concat(REPLACE(FORMAT(a.lib_000119  * 100 ,2),',','|'),' ') AS '000119'
+       ,concat(REPLACE(FORMAT(a.lib_000120  * 100 ,2),',','|'),' ') AS '000120'
+       ,concat(REPLACE(FORMAT(a.lib_000132  * 100 ,2),',','|'),' ') AS '000132'
+       ,concat(REPLACE(FORMAT(a.lib_000134  * 100 ,2),',','|'),' ') AS '000134'
+       ,concat(REPLACE(FORMAT(a.lib_000179  * 100 ,2),',','|'),' ') AS '000179'
+       ,concat(REPLACE(FORMAT(a.lib_000182  * 100 ,2),',','|'),' ') AS '000182'
+       ,concat(REPLACE(FORMAT(a.lib_000195  * 100 ,2),',','|'),' ') AS '000195'
+       ,concat(REPLACE(FORMAT(a.lib_000197  * 100 ,2),',','|'),' ') AS '000197'
+       ,concat(REPLACE(FORMAT(a.lib_000199  * 100 ,2),',','|'),' ') AS '000199'
+       ,concat(REPLACE(FORMAT(a.lib_000201  * 100 ,2),',','|'),' ') AS '000201'
+       ,concat(REPLACE(FORMAT(a.lib_000203  * 100 ,2),',','|'),' ') AS '000203'
+       ,concat(REPLACE(FORMAT(a.lib_000205  * 100 ,2),',','|'),' ') AS '000205'
+       ,concat(REPLACE(FORMAT(a.lib_000207  * 100 ,2),',','|'),' ') AS '000207'
+       ,concat(REPLACE(FORMAT(a.lib_000211  * 100 ,2),',','|'),' ') AS '000211'
+       ,concat(REPLACE(FORMAT(a.lib_000213  * 100 ,2),',','|'),' ') AS '000213'
+       ,concat(REPLACE(FORMAT(a.lib_000215  * 100 ,2),',','|'),' ') AS '000215'
+       ,concat(REPLACE(FORMAT(a.lib_000217  * 100 ,2),',','|'),' ') AS '000217'
+       ,concat(REPLACE(FORMAT(a.lib_000220  * 100 ,2),',','|'),' ') AS '000220'
+       ,concat(REPLACE(FORMAT(a.lib_000222  * 100 ,2),',','|'),' ') AS '000222'
+       ,concat(REPLACE(FORMAT(a.lib_000223  * 100 ,2),',','|'),' ') AS '000223'
+       ,concat(REPLACE(FORMAT(a.lib_000224  * 100 ,2),',','|'),' ') AS '000224'
+       ,concat(REPLACE(FORMAT(a.lib_000226  * 100 ,2),',','|'),' ') AS '000226'
+       ,concat(REPLACE(FORMAT(a.lib_000227  * 100 ,2),',','|'),' ') AS '000227'
+       ,concat(REPLACE(FORMAT(a.lib_000229  * 100 ,2),',','|'),' ') AS '000229'
+       ,concat(REPLACE(FORMAT(a.lib_000231  * 100 ,2),',','|'),' ') AS '000231'
+       ,concat(REPLACE(FORMAT(a.lib_000232  * 100 ,2),',','|'),' ') AS '000232'
+       ,concat(REPLACE(FORMAT(a.lib_000233  * 100 ,2),',','|'),' ') AS '000233'
+       ,concat(REPLACE(FORMAT(a.lib_000234  * 100 ,2),',','|'),' ') AS '000234'
+       ,concat(REPLACE(FORMAT(a.lib_000235  * 100 ,2),',','|'),' ') AS '000235'
+       ,concat(REPLACE(FORMAT(a.lib_000236  * 100 ,2),',','|'),' ') AS '000236'
+       ,concat(REPLACE(FORMAT(a.lib_000237  * 100 ,2),',','|'),' ') AS '000237'
+       ,concat(REPLACE(FORMAT(a.lib_000238  * 100 ,2),',','|'),' ') AS '000238'
+       ,concat(REPLACE(FORMAT(a.lib_000239  * 100 ,2),',','|'),' ') AS '000239'
+       ,concat(REPLACE(FORMAT(a.lib_000240  * 100 ,2),',','|'),' ') AS '000240'
+       ,concat(REPLACE(FORMAT(a.lib_000241  * 100 ,2),',','|'),' ') AS '000241'
+       ,concat(REPLACE(FORMAT(a.lib_000242  * 100 ,2),',','|'),' ') AS '000242'
+       ,concat(REPLACE(FORMAT(a.lib_000243  * 100 ,2),',','|'),' ') AS '000243'
+       ,concat(REPLACE(FORMAT(a.lib_000244  * 100 ,2),',','|'),' ') AS '000244'
+       ,concat(REPLACE(FORMAT(a.lib_000245  * 100 ,2),',','|'),' ') AS '000245'
+       ,concat(REPLACE(FORMAT(a.lib_000246  * 100 ,2),',','|'),' ') AS '000246'
+       ,concat(REPLACE(FORMAT(a.lib_000247  * 100 ,2),',','|'),' ') AS '000247'
+       ,concat(REPLACE(FORMAT(a.lib_000248  * 100 ,2),',','|'),' ') AS '000248'
+       ,concat(REPLACE(FORMAT(a.lib_000249  * 100 ,2),',','|'),' ') AS '000249'
+       ,concat(REPLACE(FORMAT(a.lib_000250  * 100 ,2),',','|'),' ') AS '000250'
+       ,concat(REPLACE(FORMAT(a.lib_000251  * 100 ,2),',','|'),' ') AS '000251'
+       ,concat(REPLACE(FORMAT(a.lib_000253  * 100 ,2),',','|'),' ') AS '000253'
+       ,concat(REPLACE(FORMAT(a.lib_000255  * 100 ,2),',','|'),' ') AS '000255'
+
+       ,(SELECT
+        CONCAT(REPLACE(FORMAT(b.`INDEX_VALUE` /${params.AMT_UNIT},2),',','|'),' ') AS  '500996'
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   =  '500996'
+          AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}') AS '500996'
+       ,(SELECT
+        CONCAT(REPLACE(FORMAT(b.`INDEX_VALUE` /${params.AMT_UNIT},2),',','|'),' ') AS  '500999'
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   =  '500999'
+          AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}') AS '500999'
+         ,(SELECT
+        CONCAT(REPLACE(FORMAT(b.`INDEX_VALUE` /${params.AMT_UNIT},2),',','|'),' ') AS  '500000'
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000523` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   =  '500000'
+          AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}') AS '500000'
+             ,(SELECT
+        CONCAT(REPLACE(FORMAT(b.`INDEX_VALUE` *100 ,2),',','|'),' ') AS  '500996'
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   =  '500996'
+          AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}') AS 'lib_500996'
+       ,(SELECT
+        CONCAT(REPLACE(FORMAT(b.`INDEX_VALUE` *100,2),',','|'),' ') AS  '500999'
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   =  '500999'
+          AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}') AS 'lib_500999'
+         ,(SELECT
+        CONCAT(REPLACE(FORMAT(b.`INDEX_VALUE`*100,2),',','|'),' ') AS  '500000'
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000524` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   =  '500000'
+          AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}') AS 'lib_500000'
+          ,  (SELECT
+            ifnull(INDEX_VALUE,0)   AS 'map11'
+          FROM
+          (
+          SELECT
+                (@i := @i + 1) AS i,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE` /${params.AMT_UNIT}, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i := 0) AS it
+                ) v
+                WHERE v.i =1) as 'map11'
+               , (SELECT
+            ifnull(INDEX_VALUE,0)   AS 'map12'
+          FROM
+          (
+          SELECT
+                (@i2 := @i2 + 1) AS i2,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE` /${params.AMT_UNIT}, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i2 := 0) AS it
+                ) v
+                WHERE v.i2 =10) as 'map12'
+ ,  (SELECT
+            ifnull(INDEX_VALUE,0)   AS 'map13'
+          FROM
+          (
+          SELECT
+                (@i3 := @i3 + 1) AS i3,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE` /${params.AMT_UNIT}, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i3 := 0) AS it
+                ) v
+                WHERE v.i3 =20) as 'map13'
+               , (SELECT
+            ifnull(INDEX_VALUE,0)   AS 'map14'
+          FROM
+          (
+          SELECT
+                (@i4 := @i4 + 1) AS i4,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE` /${params.AMT_UNIT}, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i4 := 0) AS it
+                ) v
+                WHERE v.i4 =30) as 'map14'
+                   , (SELECT
+            ifnull(INDEX_VALUE,0)   AS 'map15'
+          FROM
+          (
+          SELECT
+                (@i5 := @i5 + 1) AS i5,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE` /${params.AMT_UNIT}, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i5 := 0) AS it
+                ) v
+                WHERE v.i5 =39) as 'map15'
+          ,  (SELECT
+            ifnull(INDEX_VALUE,0)   AS 'map21'
+          FROM
+          (
+          SELECT
+                (@i6 := @i6 + 1) AS i6,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE`  * 100, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i6 := 0) AS it
+                ) v
+                WHERE v.i6 =1) as 'map21'
+               , (SELECT
+            ifnull(INDEX_VALUE,0)   AS 'map22'
+          FROM
+          (
+          SELECT
+                (@i7 := @i7 + 1) AS i7,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE`  * 100, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i7 := 0) AS it
+                ) v
+                WHERE v.i7 =10) as 'map22'
+ ,  (SELECT
+           ifnull(INDEX_VALUE,0)  AS 'map23'
+          FROM
+          (
+          SELECT
+                (@i8 := @i8 + 1) AS i8,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE`  * 100, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i8 := 0) AS it
+                ) v
+                WHERE v.i8 =20) as 'map23'
+               , (SELECT
+           ifnull(INDEX_VALUE,0)  AS 'map24'
+          FROM
+          (
+          SELECT
+                (@i9 := @i9 + 1) AS i9,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE`  * 100, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i9 := 0) AS it
+                ) v
+                WHERE v.i9 =30) as 'map24'
+                   , (SELECT
+           ifnull(INDEX_VALUE,0)  AS 'map25'
+          FROM
+          (
+          SELECT
+                (@i0 := @i0 + 1) AS i0,
+                d.INDEX_VALUE
+                FROM
+                (SELECT
+                a.`area_dscr`,
+                area_no_id,
+                ROUND(b.`INDEX_VALUE`  * 100, 2) AS INDEX_VALUE
+                FROM
+                dmcode.`cm_guoku_area_code` a
+                LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+                ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+                WHERE b.PERIOD_FLAG = '3'
+                AND b.DIMENSION_FLAG = '2'
+                AND area_no_id   NOT  IN ('500999','500000','500996')
+                AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+                ORDER BY INDEX_VALUE  ) d,
+                (SELECT
+                @i0 := 0) AS it
+                ) v
+                WHERE v.i0 =39) as 'map25'
+		 from  `report`.`news_flash_quarter_report_text` a
+
+		   WHERE a.DIMENSION_FLAG = '2'
+            AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+            AND a.INDEX_DIM_CODE='500000'
+    </select>
+ <!-- 获取生成报告的图形参数信息 -->
+ <select id="getGraphParams" resultType="java.util.HashMap">
+                   (SELECT
+            IFNULL(GROUP_CONCAT(ROUND(ifnull(INDEX_VALUE,0)/${params.AMT_UNIT},2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            IFNULL(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
+            IFNULL(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            '1' as id
+          FROM
+            `indicators_lib`.`lib_indicators_000218` a
+          WHERE a.PERIOD_FLAG = '2'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'-01') AND CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'${params.monthDate}')
+                 GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
+                   ORDER BY ACCOUNT_PERIOD
+            )
+             union  all
+                     (SELECT
+            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE/${params.AMT_UNIT},2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            IFNULL(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
+            IFNULL(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            '2' as id
+          FROM
+            `indicators_lib`.`lib_indicators_000459` a
+          WHERE a.PERIOD_FLAG = '2'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'-01') AND CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'${params.monthDate}')
+                 GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
+                   ORDER BY ACCOUNT_PERIOD
+            )
+
+            UNION ALL
+          (SELECT
+            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            IFNULL(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
+            IFNULL(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
+            '3' as id
+          FROM
+            `indicators_lib`.`lib_indicators_000219` a
+          WHERE a.PERIOD_FLAG = '2'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+              AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'-01') AND CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'${params.monthDate}')
+                 GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
+                  ORDER BY ACCOUNT_PERIOD
+            )
+
+            UNION ALL
+          (SELECT
+            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            IFNULL(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
+            IFNULL(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
+            '4' as id
+          FROM
+            `indicators_lib`.`lib_indicators_000461` a
+          WHERE a.PERIOD_FLAG = '2'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'-01') AND CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'${params.monthDate}')
+                 GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
+                  ORDER BY ACCOUNT_PERIOD
+            )
+    </select>
+ <!-- 获取生成报告的图形参数信息 -->
+ <select id="getGraphParams2" resultType="java.util.HashMap">
+                    SELECT
+            ROUND(ifnull(INDEX_VALUE,0),2) value,
+             '公共预算收入' name
+          FROM
+            `indicators_lib`.`lib_indicators_000012` a
+          WHERE a.PERIOD_FLAG = '3'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+            AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+
+          union all
+
+          SELECT
+             ROUND(ifnull(INDEX_VALUE,0),2) value,
+             '基金预算收入' name
+          FROM
+            `indicators_lib`.`lib_indicators_000018` a
+          WHERE a.PERIOD_FLAG = '3'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+            AND ACCOUNT_PERIOD  = '${params.ACCOUNT_PERIOD}'
+
+            union all
+
+            SELECT
+             ROUND(ifnull(INDEX_VALUE,0),2) value,
+             '转移性收入' name
+          FROM
+            `indicators_lib`.`lib_indicators_000196` a
+          WHERE a.PERIOD_FLAG = '3'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+            AND ACCOUNT_PERIOD  = '${params.ACCOUNT_PERIOD}'
+
+          union all
+
+          SELECT
+             ROUND(ifnull(INDEX_VALUE,0),2) value,
+             '地方政府债务收入' name
+          FROM
+            `indicators_lib`.`lib_indicators_000208` a
+          WHERE a.PERIOD_FLAG = '3'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+            AND ACCOUNT_PERIOD  = '${params.ACCOUNT_PERIOD}'
+
+            union all
+
+          SELECT
+             ROUND(ifnull(INDEX_VALUE,0),2) value,
+             '国资预算收入' name
+          FROM
+            `indicators_lib`.`lib_indicators_000024` a
+          WHERE a.PERIOD_FLAG = '3'
+            AND DIMENSION_FLAG = '2'
+            AND INDEX_DIM_CODE = '500000'
+            AND ACCOUNT_PERIOD =  '${params.ACCOUNT_PERIOD}'
+    </select>
+ <!-- 获取生成报告的图形参数信息 -->
+ <select id="getGraphParams3" resultType="java.util.HashMap">
+       SELECT
+        (@i := @i + 1) AS i,
+         ifnull(d.INDEX_VALUE,0) value,
+       case when ifnull(d.area_dscr,'') ='万盛经济技术开发区'
+        then '万盛区'
+        else
+          ifnull(d.area_dscr,'')
+          end as name
+        FROM
+        (SELECT
+        a.`area_dscr`,
+        area_no_id,
+        ROUND(b.`INDEX_VALUE`/${params.AMT_UNIT}, 2) AS INDEX_VALUE
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   NOT  IN ('500999','500000','500996')
+        AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+        ORDER BY INDEX_VALUE  ) d,
+        (SELECT
+        @i := 0) AS it
+    </select>
+
+ <!-- 获取生成报告的图形参数信息 -->
+ <select id="getGraphParams4" resultType="java.util.HashMap">
+     SELECT
+        (@i := @i + 1) AS i,
+          ifnull(d.INDEX_VALUE,0) value,
+        case when ifnull(d.area_dscr,'') ='万盛经济技术开发区'
+        then '万盛区'
+        else
+          ifnull(d.area_dscr,'')
+          end as name
+        FROM
+        (SELECT
+        a.`area_dscr`,
+        area_no_id,
+        ROUND(b.`INDEX_VALUE`/${params.AMT_UNIT}, 2) AS INDEX_VALUE
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000005` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   NOT  IN ('500999','500000','500996')
+        AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+        ORDER BY INDEX_VALUE  ) d,
+        (SELECT
+        @i := 0) AS it
+        where area_no_id   in ('500106','500107','500103','500104','500108','500105')
+    </select>
+
+ <!-- 获取生成报告的图形参数信息 -->
+ <select id="getGraphParams5" resultType="java.util.HashMap">
+                 SELECT
+        (@i := @i + 1) AS i,
+        ifnull(d.INDEX_VALUE,0) value,
+        case when ifnull(d.area_dscr,'') ='万盛经济技术开发区'
+        then '万盛区'
+        else
+          ifnull(d.area_dscr,'')
+          end as name
+        FROM
+        (SELECT
+        a.`area_dscr`,
+        area_no_id,
+        ROUND(IFNULL(b.`INDEX_VALUE`,0)* 100 , 2) AS INDEX_VALUE
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   NOT  IN ('500999','500000','500996')
+        AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+        ORDER BY INDEX_VALUE DESC) d,
+        (SELECT
+        @i := 0) AS it
+    </select>
+
+ <!-- 获取生成报告的图形参数信息 -->
+ <select id="getGraphParams6" resultType="java.util.HashMap">
+               SELECT
+        (@i := @i + 1) AS i,
+         ifnull(d.INDEX_VALUE,0) value,
+        case when ifnull(d.area_dscr,'') ='万盛经济技术开发区'
+        then '万盛区'
+        else
+          ifnull(d.area_dscr,'')
+          end as name
+        FROM
+        (SELECT
+        a.`area_dscr`,
+        ROUND(b.`INDEX_VALUE`* 100 , 2) AS INDEX_VALUE,
+        area_no_id
+        FROM
+        dmcode.`cm_guoku_area_code` a
+        LEFT JOIN `indicators_lib`.`lib_indicators_000006` b
+        ON a.`area_no_id` = b.`INDEX_DIM_CODE`
+        WHERE b.PERIOD_FLAG = '3'
+        AND b.DIMENSION_FLAG = '2'
+        AND area_no_id   NOT  IN ('500999','500000','500996')
+        AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
+        ORDER BY INDEX_VALUE DESC) d,
+        (SELECT
+        @i := 0) AS it
+        where area_no_id   in ('500106','500107','500103','500104','500108','500105')
+    </select>
+
+</mapper>

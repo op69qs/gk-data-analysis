@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.enumSetting.mapper.ErrorLogMapper">
+
+    <select id="getData" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM etl.`edw_proc_error_log` a
+        where 1=1
+        <if test=" params.PROC_NAME != null and params.PROC_NAME != ''">
+            AND a.PROC_NAME like '%${params.PROC_NAME}%'
+        </if>
+        <if test=" params.begin_time != null and params.begin_time != ''">
+            AND a.START_TIME  <![CDATA[>=]]>  #{params.begin_time}
+        </if>
+        <if test=" params.end_time != null and params.end_time != ''">
+            AND a.START_TIME  <![CDATA[<=]]>  #{params.end_time}
+        </if>
+        order by a.START_TIME DESC
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM etl.`edw_proc_error_log` a
+        where 1=1
+        <if test=" params.PROC_NAME != null and params.PROC_NAME != ''">
+            AND a.PROC_NAME like '%${params.PROC_NAME}%'
+        </if>
+        <if test=" params.begin_time != null and params.begin_time != ''">
+            AND a.START_TIME  <![CDATA[>=]]>  #{params.begin_time}
+        </if>
+        <if test=" params.end_time != null and params.end_time != ''">
+            AND a.START_TIME  <![CDATA[<=]]>  #{params.end_time}
+        </if>
+    </select>
+
+    <select id="callProc" statementType="CALLABLE">
+        {call adm.P_ALL_CONTROL(
+          #{params.data_date,mode=IN},
+          #{params.guoku_id,mode=IN},
+          #{params.area_id,mode=IN}
+          )
+        }
+    </select>
+
+</mapper>

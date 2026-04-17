@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionSelfLedgerMapper">
+    <!-- author: Samer 自查问题台账 -->
+
+
+    <!-- 根据任务ID获取检查分类 -->
+    <select id="getTaskInfoById" resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        `inspection`.`inspection_task` a
+        WHERE
+        a.`INSPECTION_TASK_ID` = #{params.TASK_ID}
+    </select>
+
+    <!-- 获取国库信息 -->
+    <select id="getGuokuInfo" resultType="java.util.Map">
+        SELECT
+            *
+        FROM
+            `dmcode`.`cm_guoku_dimnsn` a
+        WHERE
+            a.`guoku_id` = #{params.guoku_id}
+    </select>
+
+    <!-- 根据用户ID任务ID获取问题台账 -->
+    <select id="getSelfLedgerByUserIdTaskID" resultType="java.util.Map">
+        SELECT
+        a.LEDGER_ID,
+        a.TASK_ID,
+        a.QUESTION_ID_1,
+        a.QUESTION_DSCR_1,
+        a.QUESTION_ID_2,
+        a.QUESTION_DSCR_2,
+        a.QUESTION_ID_3,
+        a.QUESTION_DSCR_3,
+        a.QUESTION_ID,
+        a.QUESTION_DSCR,
+        a.QUESTION_OPINIONS_ID,
+        a.QUESTION_OPINIONS,
+        a.PATH AS path,
+        a.IS_LIST,
+        a.IS_REPORT,
+        a.IS_DEL,
+        a.ADD_USERID,
+        a.ADD_DATE,
+        a.MODIFY_DATE,
+        a.COUNTY,
+        a.COUNTY_STATE,
+        a.CITY,
+        a.CITY_STATE,
+        a.PROVINCE,
+        a.PROVINCE_STATE,
+        a.IS_LOCK,
+        a.BACK_REASON,
+        a.QUESTION_CONTENT,
+        a.MEASURES,
+        a.ERROR_TYPE,
+        e.`REALNAME` AS NAME,
+        GROUP_CONCAT(d.RULE_DSCR SEPARATOR '\n') AS concent,
+        CONCAT(a.QUESTION_CONTENT,a.`IS_LIST`,a.`IS_REPORT`,a.QUESTION_OPINIONS, a.ADD_USERID) AS IS_MERGE
+        FROM
+        inspection.`inspection_Self_ledger` a
+        JOIN `jeecg-boot-os`.`sys_user` e
+        ON a.`ADD_USERID` = e.ID
+        LEFT JOIN
+        (
+        SELECT
+        r.`LEDGER_ID`,
+        CONCAT('《',r.`RULE_FILE_NAME`,'》（',r.`RULE_FILE_NO`, '）',r.`RULE_FILE_CONTENT`) AS RULE_DSCR
+        FROM
+        inspection.`inspection_self_ledger_rule` r
+        ) d
+        ON a.`LEDGER_ID`= d.`LEDGER_ID`
+
+        WHERE
+        1 = 1
+        <if test=' params.TASK_ID != null and params.TASK_ID != "" '>
+            AND a.TASK_ID =#{params.TASK_ID}
+        </if>
+        <if test=' params.ADD_USERID != null and params.ADD_USERID != "" '>
+            AND a.ADD_USERID =#{params.ADD_USERID}
+        </if>
+        GROUP BY a.LEDGER_ID,a.QUESTION_CONTENT
+        ORDER BY
+        <if test='params.QUERY_TYPE == "1"'>
+            a.`QUESTION_ID_1`,
+            a.`QUESTION_ID_2`,
+            a.`QUESTION_ID_3`,
+            a.`QUESTION_ID`,
+        </if>
+        a.QUESTION_CONTENT,
+        a.ADD_USERID,
+        a.ADD_DATE DESC
+    </select>
+
+    <!-- 根据检查任务ID获取该台账添加人 -->
+    <select id="getLedgerAddUserByTaskId" resultType="java.util.Map">
+        SELECT
+            a.`ADD_USERID` AS ADD_USERID,
+            e.`REALNAME`   AS NAME
+        FROM
+            inspection.`inspection_Self_ledger` a
+            JOIN `jeecg-boot-os`.`sys_user` e
+                ON a.`ADD_USERID` = e.ID
+        WHERE
+            a.`TASK_ID` = #{params.TASK_ID}
+        GROUP BY a.`ADD_USERID`
+    </select>
+
+    <!-- 根据台账ID获取台账信息 -->
+    <select id="getSelfLedgerByLedgerID" resultType="java.util.Map">
+        SELECT *
+        FROM
+            `inspection`.`inspection_Self_ledger`
+        WHERE
+            LEDGER_ID = #{params.LEDGER_ID}
+    </select>
+
+    <!-- 问题台账新增 -->
+    <insert id="addSelfLedger">
+        INSERT INTO
+            `inspection`.`inspection_Self_ledger`
+        VALUES (
+            #{params.LEDGER_ID},
+            #{params.TASK_ID},
+            #{params.QUESTION_ID_1},
+            #{params.QUESTION_DSCR_1},
+            #{params.QUESTION_ID_2},
+            #{params.QUESTION_DSCR_2},
+            #{params.QUESTION_ID_3},
+            #{params.QUESTION_DSCR_3},
+            #{params.QUESTION_ID},
+            #{params.QUESTION_DSCR},
+            #{params.QUESTION_OPINIONS_ID},
+            #{params.QUESTION_OPINIONS},
+            #{params.PATH},
+            #{params.IS_LIST},
+            #{params.IS_REPORT},
+            #{params.IS_DEL},
+            #{params.ADD_USERID},
+            #{params.ADD_DATE},
+            #{params.MODIFY_DATE},
+            #{params.COUNTY},
+            #{params.COUNTY_STATE},
+            #{params.CITY},
+            #{params.CITY_STATE},
+            #{params.PROVINCE},
+            #{params.PROVINCE_STATE},
+            #{params.IS_LOCK},
+            #{params.BACK_REASON},
+            #{params.QUESTION_CONTENT},
+            #{params.MEASURES},
+            #{params.ERROR_TYPE}
+        )
+    </insert>
+
+    <!--  根据问题台账ID编辑 -->
+    <update id="editSelfLedgerByLedgerID">
+        UPDATE
+            `inspection`.`inspection_Self_ledger`
+        SET
+        <if test=' params.QUESTION_ID_1 != null and params.QUESTION_ID_1 !="" '>
+            QUESTION_ID_1=#{params.QUESTION_ID_1},
+        </if>
+        <if test=' params.QUESTION_DSCR_1 != null and params.QUESTION_DSCR_1 !="" '>
+            QUESTION_DSCR_1=#{params.QUESTION_DSCR_1},
+        </if>
+        <if test=' params.QUESTION_ID_2 != null and params.QUESTION_ID_2 !="" '>
+            QUESTION_ID_2=#{params.QUESTION_ID_2},
+        </if>
+        <if test=' params.QUESTION_DSCR_2 != null and params.QUESTION_DSCR_2 !="" '>
+            QUESTION_DSCR_2=#{params.QUESTION_DSCR_2},
+        </if>
+        <if test=' params.QUESTION_ID_3 != null and params.QUESTION_ID_3 !="" '>
+            QUESTION_ID_3=#{params.QUESTION_ID_3},
+        </if>
+        <if test=' params.QUESTION_DSCR_3 != null and params.QUESTION_DSCR_3 !="" '>
+            QUESTION_DSCR_3= #{params.QUESTION_DSCR_3},
+        </if>
+        <if test=' params.QUESTION_ID != null and params.QUESTION_ID !="" '>
+            QUESTION_ID=#{params.QUESTION_ID},
+        </if>
+        <if test=' params.QUESTION_DSCR != null and params.QUESTION_DSCR !="" '>
+            QUESTION_DSCR= #{params.QUESTION_DSCR},
+        </if>
+        <if test=' params.QUESTION_OPINIONS_ID != null and params.QUESTION_OPINIONS_ID !="" '>
+            QUESTION_OPINIONS_ID=#{params.QUESTION_OPINIONS_ID},
+        </if>
+        <if test=' params.QUESTION_OPINIONS != null and params.QUESTION_OPINIONS !="" '>
+            QUESTION_OPINIONS=#{params.QUESTION_OPINIONS},
+        </if>
+        <if test=' params.PATH != null and params.PATH !="" '>
+            PATH=#{params.PATH},
+        </if>
+        <if test=' params.ADD_USERID != null and params.ADD_USERID !="" '>
+            ADD_USERID=#{params.ADD_USERID},
+        </if>
+        <if test=' params.ADD_DATE != null and params.ADD_DATE !="" '>
+            ADD_DATE= #{params.ADD_DATE},
+        </if>
+        <if test=' params.MODIFY_DATE != null and params.MODIFY_DATE !="" '>
+            MODIFY_DATE= #{params.MODIFY_DATE},
+        </if>
+        <if test=' params.COUNTY != null and params.COUNTY !="" '>
+            COUNTY= #{params.COUNTY},
+        </if>
+        <if test=' params.COUNTY_STATE != null and params.COUNTY_STATE !="" '>
+            COUNTY_STATE= #{params.COUNTY_STATE},
+        </if>
+        <if test=' params.CITY != null and params.CITY !="" '>
+            CITY= #{params.CITY},
+        </if>
+        <if test=' params.CITY_STATE != null and params.CITY_STATE !="" '>
+            CITY_STATE= #{params.CITY_STATE},
+        </if>
+        <if test=' params.PROVINCE != null and params.PROVINCE !="" '>
+            PROVINCE=#{params.PROVINCE},
+        </if>
+        <if test=' params.PROVINCE_STATE != null and params.PROVINCE_STATE !="" '>
+            PROVINCE_STATE=#{params.PROVINCE_STATE},
+        </if>
+        <if test=' params.IS_LOCK != null and params.IS_LOCK !="" '>
+            IS_LOCK=#{params.IS_LOCK},
+        </if>
+        <if test=' params.BACK_REASON != null and params.BACK_REASON !="" '>
+            BACK_REASON=#{params.BACK_REASON},
+        </if>
+        <if test=' params.QUESTION_CONTENT != null and params.QUESTION_CONTENT !="" '>
+            QUESTION_CONTENT=#{params.QUESTION_CONTENT},
+        </if>
+        <if test=' params.MEASURES != null and params.MEASURES !="" '>
+            MEASURES=#{params.MEASURES},
+        </if>
+        <if test=' params.ERROR_TYPE != null and params.ERROR_TYPE !="" '>
+            ERROR_TYPE=#{params.ERROR_TYPE},
+        </if>
+        LEDGER_ID = #{params.LEDGER_ID}
+        WHERE
+            LEDGER_ID = #{params.LEDGER_ID}
+    </update>
+
+    <!-- 根据台账ID删除 -->
+    <delete id="delSelfLedgerByLedgerId">
+        DELETE FROM `inspection`.`inspection_Self_ledger`
+        WHERE LEDGER_ID = #{params.LEDGER_ID}
+    </delete>
+
+    <!-- 新增问题台账制度依据 -->
+    <insert id="addQuestionLedgerRule">
+        INSERT INTO
+        `inspection`.`inspection_self_ledger_rule`
+        VALUES (
+        #{params.LEDGER_ID},
+        #{params.RULE_FILE_NO},
+        #{params.RULE_FILE_NAME},
+        #{params.RULE_FILE_CONTENT},
+        #{params.SORT}
+        )
+    </insert>
+
+    <!-- 删除问题台账制度依据 -->
+    <delete id="delQuestionLedgerRule">
+        DELETE FROM `inspection`.`inspection_self_ledger_rule`
+        WHERE LEDGER_ID = #{params.LEDGER_ID}
+    </delete>
+
+</mapper>

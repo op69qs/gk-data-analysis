@@ -1,0 +1,257 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>inspect</artifactId>
+	<version>2.1.0</version>
+
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>2.0.6.RELEASE</version>
+		<relativePath/>
+	</parent>
+
+	<properties>
+		<jeecgboot.common.version>2.1.0</jeecgboot.common.version>
+		<java.version>1.8</java.version>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<mybatis-plus.version>3.1.2</mybatis-plus.version>
+		<druid.version>1.1.17</druid.version>
+		<jwt.version>0.9.1</jwt.version>
+		<commons.version>2.6</commons.version>
+		<aliyun-java-sdk-core.version>3.2.3</aliyun-java-sdk-core.version>
+		<aliyun-java-sdk-dysmsapi.version>1.0.0</aliyun-java-sdk-dysmsapi.version>
+	</properties>
+
+	<dependencies>
+		<!--集成springmvc框架并实现自动配置 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<!-- freemarker -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-freemarker</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<!-- commons -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>${commons.version}</version>
+		</dependency>
+
+		<!-- eureka -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<version>2.0.1.RELEASE</version>
+		</dependency>
+		<!-- zuul -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+			<version>2.0.1.RELEASE</version>
+		</dependency>
+
+
+
+		<!-- Lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+		</dependency>
+
+		<!-- mybatis-plus -->
+		<dependency>
+			<groupId>com.baomidou</groupId>
+			<artifactId>mybatis-plus-boot-starter</artifactId>
+			<version>${mybatis-plus.version}</version>
+		</dependency>
+
+		<!-- druid -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid-spring-boot-starter</artifactId>
+			<version>${druid.version}</version>
+		</dependency>
+
+		<!-- 动态数据源 -->
+		<dependency>
+			<groupId>com.baomidou</groupId>
+			<artifactId>dynamic-datasource-spring-boot-starter</artifactId>
+			<version>2.5.4</version>
+		</dependency>
+
+		<!-- json -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.56</version>
+		</dependency>
+
+		<!--mysql-->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.47</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.jeecgframework</groupId>
+			<artifactId>autopoi-web</artifactId>
+			<version>1.0.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Swagger API文档 -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.xiaoymin</groupId>
+			<artifactId>swagger-bootstrap-ui</artifactId>
+			<version>1.9.3</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-bean-validators</artifactId>
+			<version>2.9.2</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.opensagres.xdocreport</groupId>
+			<artifactId>org.apache.poi.xwpf.converter.core</artifactId>
+			<version>1.0.4</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.opensagres.xdocreport</groupId>
+			<artifactId>org.apache.poi.xwpf.converter.xhtml</artifactId>
+			<version>1.0.4</version>
+		</dependency>
+
+		<!-- Redis -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.0</version>
+		</dependency>
+
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addClasspath>true</addClasspath>
+							<classpathPrefix>lib/</classpathPrefix>
+							<!--此处为应用入口类全路径-->
+							<mainClass>org.inspect.InspectApplication</mainClass>
+						</manifest>
+						<manifestEntries>
+							<!--配置文件目录-->
+							<Class-Path>./</Class-Path>
+						</manifestEntries>
+					</archive>
+					<!--打包时排除配置文件-->
+					<excludes>
+						<exclude>*.properties</exclude>
+						<exclude>*.yml</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<!--打包时排除内部依赖,并将依赖放到target/lib目录-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>false</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!--拷贝配置文件 copy-resources-->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>copy-resources</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<directory>src/main/resources</directory>
+									<includes>
+										<include>*.yml</include>
+										<include>*.properties</include>
+									</includes>
+								</resource>
+							</resources>
+							<outputDirectory>${project.build.directory}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

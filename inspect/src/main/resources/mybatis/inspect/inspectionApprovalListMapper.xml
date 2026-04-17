@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionApprovalListMapper">
+
+    <select id="getApprovalListData" resultType="java.util.Map">
+        SELECT
+        *
+        FROM
+        inspection.inspection_approvallist a
+        WHERE
+        1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND a.ID = #{params.ID}
+        </if>
+        <if test="params.TASK_ID!=null and params.TASK_ID!='' ">
+            AND a.TASK_ID = #{params.TASK_ID}
+        </if>
+    </select>
+
+    <insert id="addApprovalList" >
+        INSERT INTO inspection.inspection_approvallist
+        VALUES
+        (
+        #{params.ID},
+        #{params.CHECK_ORG_DSCR},
+        #{params.VALUE_1},
+        #{params.VALUE_2},
+        #{params.NUM},
+        #{params.NAME},
+        #{params.BASIS},
+        #{params.CHECK_BASIS},
+        #{params.CHECKED_ORG_DSCR},
+        #{params.CONTENT},
+        #{params.TERM},
+        #{params.MODE},
+        #{params.CHECK_TIME},
+        #{params.LARDER},
+        #{params.CHIEF},
+        #{params.MEMBER},
+        #{params.MEMO},
+        #{params.HEAD_OPINION},
+        #{params.HEAD_TIME},
+        #{params.PRESIDENT_OPINION},
+        #{params.PRESIDENT_TIME},
+        #{params.TASK_ID},
+        #{params.FILE_PATH}
+        )
+    </insert>
+
+    <update id="editApprovalList">
+        UPDATE inspection.inspection_approvallist SET
+        <if test=" params.CHECK_ORG_DSCR != null and params.CHECK_ORG_DSCR != ''">
+            CHECK_ORG_DSCR = #{params.CHECK_ORG_DSCR},
+        </if>
+        <if test=" params.VALUE_1 != null and params.VALUE_1 != ''">
+            VALUE_1 = #{params.VALUE_1},
+        </if>
+        <if test=" params.VALUE_2 != null and params.VALUE_2 != ''">
+            VALUE_2 = #{params.VALUE_2},
+        </if>
+        <if test=" params.NUM != null and params.NUM != ''">
+            NUM = #{params.NUM},
+        </if>
+        <if test=" params.NAME != null and params.NAME != ''">
+            NAME = #{params.NAME},
+        </if>
+        <if test=" params.BASIS != null and params.BASIS != ''">
+            BASIS = #{params.BASIS},
+        </if>
+        <if test=" params.CHECK_BASIS != null and params.CHECK_BASIS != ''">
+            CHECK_BASIS = #{params.CHECK_BASIS},
+        </if>
+        <if test=" params.CHECKED_ORG_DSCR != null and params.CHECKED_ORG_DSCR != ''">
+            CHECKED_ORG_DSCR = #{params.CHECKED_ORG_DSCR},
+        </if>
+        <if test=" params.CONTENT != null and params.CONTENT != ''">
+            CONTENT = #{params.CONTENT},
+        </if>
+        <if test=" params.TERM != null and params.TERM != ''">
+            TERM = #{params.TERM},
+        </if>
+        <if test=" params.MODE != null and params.MODE != ''">
+            MODE = #{params.MODE},
+        </if>
+        <if test=" params.CHECK_TIME != null and params.CHECK_TIME != ''">
+            CHECK_TIME = #{params.CHECK_TIME},
+        </if>
+        <if test=" params.LARDER != null and params.LARDER != ''">
+            LARDER = #{params.LARDER},
+        </if>
+        <if test=" params.CHIEF != null and params.CHIEF != ''">
+            CHIEF = #{params.CHIEF},
+        </if>
+        <if test=" params.MEMBER != null and params.MEMBER != ''">
+            MEMBER = #{params.MEMBER},
+        </if>
+        <if test=" params.MEMO != null and params.MEMO != ''">
+            MEMO = #{params.MEMO},
+        </if>
+        <if test=" params.HEAD_OPINION != null and params.HEAD_OPINION != ''">
+            HEAD_OPINION = #{params.HEAD_OPINION},
+        </if>
+        <if test=" params.HEAD_TIME != null and params.HEAD_TIME != ''">
+            HEAD_TIME = #{params.HEAD_TIME},
+        </if>
+        <if test=" params.PRESIDENT_OPINION != null and params.PRESIDENT_OPINION != ''">
+            PRESIDENT_OPINION = #{params.PRESIDENT_OPINION},
+        </if>
+        <if test=" params.PRESIDENT_TIME != null and params.PRESIDENT_TIME != ''">
+            PRESIDENT_TIME = #{params.PRESIDENT_TIME},
+        </if>
+        <if test=" params.FILE_PATH != null and params.FILE_PATH != ''">
+            FILE_PATH = #{params.FILE_PATH},
+        </if>
+        ID = #{params.ID}
+        WHERE ID = #{params.ID}
+    </update>
+
+    <delete id="delApprovalList" >
+        DELETE
+        FROM
+        inspection.inspection_approvallist
+        WHERE 1 = 1
+        <if test="params.ID!=null and params.ID != ''">
+            AND ID = #{params.ID}
+        </if>
+        <if test="params.TASK_ID!=null and params.TASK_ID != ''">
+            AND TASK_ID = #{params.TASK_ID}
+        </if>
+    </delete>
+
+</mapper>

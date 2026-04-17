@@ -1,0 +1,446 @@
+/*搜索条件样式*/
+.panel.combo-p {
+    overflow: auto !important;
+}
+
+#selectItems {
+    overflow: inherit !important;
+}
+
+.searchCondition select {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    background: url("../images/combo_arrow1.png") no-repeat scroll right center transparent;
+    padding-right: 14px;
+}
+
+.searchCondition select:hover {
+    background: url("../images/combo_arrow.png") no-repeat scroll right center transparent;
+    cursor: pointer;
+}
+
+.searchCondition select:focus {
+    border-color: #66afe9;
+    box-shadow: 0 0 5px 0 #93cdf9;
+}
+
+.searchCondition {
+    padding: 10px 0 0 11% !important;
+    font-size: 0;
+    border-bottom: 1px #dfdfdf solid;
+    border-top: 1px #dfdfdf solid;
+}
+
+.searchCondition:after {
+    content: "";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden;
+}
+
+.searchCondition > div {
+    display: inline-block;
+    width: 25%;
+    margin-bottom: 10px;
+    text-align: right;
+}
+
+.searchCondition > div > span {
+    font-size: 16px;
+    text-align: right;
+    font-family: "Microsoft YaHei", "微软雅黑";
+    vertical-align: middle;
+}
+
+.searchCondition > div > span > span {
+    color: red;
+    line-height: 23px
+}
+
+#search.panel-body {
+    border-bottom: 0;
+}
+
+.searchCondition > div > input, .searchCondition > div > select, .searchCondition > div > .ui-searc-col, .searchCondition > div > #box-of-org {
+    display: inline-block;
+    width: 55% !important;
+}
+
+.searchCondition > div > input, .searchCondition > div .inputs > input, .searchCondition > div .inputs3 > input, .searchCondition > div .inputs2 > input, .searchCondition > div > .ui-searc-col input, .searchCondition > div > #box-of-org > .ui-searc-col {
+    height: 30px;
+    line-height: 30px;
+}
+
+.searchCondition > div > .ui-searc-col > .ui-tree-container {
+    /*width: 100% !important;*/
+}
+
+.searchCondition > div > #box-of-org > .ui-searc-col > input {
+    width: 100%;
+}
+
+.searchCondition > div > select {
+    height: 32px;
+    border: solid 1px #ccc;
+}
+
+.searchCondition > div > .textbox {
+    width: 55% !important;
+    height: 28px !important;
+}
+
+.searchCondition > div .textbox > input {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.searchCondition > div > .ui-searc-col {
+    position: relative;
+    display: inline-block;
+    background: #fff;
+    border: solid 1px #ccc;
+}
+
+.searchCondition > div > .Wdate {
+    border-color: #ccc !important;
+}
+
+.searchCondition > div > .ui-searc-col > .ui-tree-container, .searchCondition > div > .ui-searc-col > .custom-ztree-container {
+    border: 1px solid #eceded;
+    background: #fff;
+    overflow: scroll;
+    min-width: 235px;
+}
+
+.searchCondition > div > .ui-searc-col input {
+    width: 100%;
+}
+
+.searchCondition > div > .inputs, .inputs2, .inputs3 {
+    width: 55% !important;
+    margin: 0;
+    display: flex;
+    float: right;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: -5px;
+    font-size: 16px;
+    line-height: 28px;
+}
+
+.inputBorder {
+    border: solid 1px #ccc;
+}
+
+.searchCondition > div .inputs3 > input {
+    width: 45%;
+    height: 28px;
+}
+
+.searchCondition > div .inputs2 > input {
+    flex: .98;
+    height: 28px;
+}
+
+.searchCondition > div .inputs > select,
+.searchCondition > div .inputs2 > select,
+.searchCondition > div .inputs2 > .textbox {
+    height: 29px;
+    border: solid 1px #ccc;
+}
+
+.searchCondition > div .inputs2 > select,
+.searchCondition > div .inputs2 > select > option {
+    width: 35px;
+    font-size: 16px;
+}
+
+.searchCondition > div .inputs > select:nth-of-type(1) {
+    width: 45px;
+}
+
+.searchCondition > div .inputs > select:nth-of-type(2) {
+    width: 60px;
+}
+
+.searchCondition > div .inputs > input {
+    width: 49%;
+    margin: 0 5px;
+    height: 29px;
+}
+
+.searchCondition .buttonRight {
+    float: right;
+}
+
+.searchCondition .searchButton, .searchCondition .searchButton2 {
+    text-align: right;
+    margin-right: 10%;
+}
+
+.searchCondition .searchButton a, .searchCondition .searchButton2 a {
+    height: 30px !important;
+    font-size: 16px;
+}
+
+.searchCondition .searchButton > a:nth-of-type(1) {
+    margin-right: 5px;
+}
+
+.searchCondition .searchButton2 > a:nth-of-type(1), .searchCondition .searchButton2 > a:nth-of-type(2) {
+    margin-right: 5px;
+}
+
+.searchCondition a {
+    color: #000;
+}
+
+.ui-tree-container {
+    background-color: #fff;
+    border: 1px solid #eceded;
+    overflow-y: auto;
+    margin: 0;
+    padding: 5px;
+    color: #333;
+    vertical-align: baseline;
+    font-variant-numeric: tabular-nums;
+    -moz-user-select: none;
+    float: none !important;
+    -moz-appearance: meterchunk;
+    box-sizing: border-box !important;
+    white-space: pre-line;
+    z-index: 1000;
+}
+
+.textbox-text, .textbox-addon {
+    margin-right: 0 !important;
+    padding: 0 !important;
+}
+
+.marginLeft {
+    margin-left: -10%;
+}
+
+.panel-body, .panel {
+    /*overflow: inherit !important;*/
+}
+
+.searchCondition.panel-body {
+    border-color: #dfdfdf !important;
+}
+
+.combo-panel {
+    overflow-y: scroll;
+}
+
+#refProjectTemplate.panel-body,
+#refSupplierTemplate.panel-body {
+    overflow: auto !important;
+}
+
+/*文库管理*/
+#refTableEvaluate.panel-body,
+#refSupplierAuditTemplate.panel-body,
+#refSupplierViewTemplate.panel-body {
+    overflow: auto !important;
+}
+
+#refTableEvaluate select:not(:disabled),
+#refProjectTemplate select:not(:disabled),
+#refSupplierTemplate select:not(:disabled),
+#refSupplierViewTemplate select:not(:disabled),
+#refSupplierAuditTemplate select:not(:disabled) {
+    background: url("../img/combo_arrow1.png") no-repeat scroll right center transparent;
+}
+
+#refTableEvaluate select,
+#refProjectTemplate select,
+#refSupplierTemplate select,
+#refSupplierViewTemplate select,
+#refSupplierAuditTemplate select {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    padding: 2px 0;
+    height: 30px !important;
+}
+
+/*#control {
+    margin: 0 !important;
+    padding: 0 !important;
+}*/
+
+/*#control {
+    width: 100% !important;
+}*/
+
+#refProjectTemplate, #refSupplierTemplate {
+    border: 0 !important;
+}
+
+.tabTitleSty {
+    font-weight: bold;
+}
+
+#refProjectTemplate td > select, #refProjectTemplate td > input,
+#refSupplierViewTemplate td > select, #refSupplierViewTemplate td > input,
+#refSupplierAuditTemplate td > select, #refSupplierAuditTemplate td > input,
+#refSupplierTemplate td > select, #refSupplierTemplate td > input,
+#refTableEvaluate td > select, #refTableEvaluate td > input {
+    border: 1px solid #ccc !important;
+}
+
+#refSupplierTemplate td > input:disabled,
+#refSupplierTemplate td > select:disabled,
+#refSupplierTemplate input[readonly],
+#refSupplierTemplate select[readonly] {
+    background: #fafafa !important;
+}
+
+#supplierTableId .textbox,
+#refSupplierTemplate .textbox,
+#editG .textbox,
+#refTableEvaluate .textbox,
+#refProjectTemplate .textbox {
+    width: 100% !important;
+}
+
+#supplierTableId .textbox .textbox-text,
+#refSupplierTemplate .textbox .textbox-text,
+#editG .textbox .textbox-text,
+#refSupplierAuditTemplate .textbox .textbox-text,
+#refTableEvaluate .textbox .textbox-text,
+#refSupplierViewTemplate .textbox .textbox-text,
+#refProjectTemplate .textbox .textbox-text,
+#refTableEvaluate .textbox .textbox-text {
+    width: 100% !important;
+}
+
+#refSupplierTemplate td > input,
+#refSupplierViewTemplate td > input,
+#refSupplierAuditTemplate td > input,
+#refTableEvaluate td > input,
+#refProjectTemplate td > input {
+    width: 100% !important;
+    padding: 2px 0;
+    height: 26px !important;
+}
+
+.table {
+    border: 0;
+}
+
+/*首页面板样式*/
+#homePanel .tabs-title {
+    font-size: 15px !important;
+}
+
+#homePanel .easyui-panel {
+    margin-bottom: 10px;
+}
+
+#homePanel .easyui-panel a {
+    font-size: 16px;
+    text-decoration: none !important;
+}
+
+#homePanel .easyui-panel a .colRed {
+    font-size: 16px;
+    color: red;
+}
+
+.colRed {
+    color: red !important;
+    font-weight: bold;
+}
+
+.fontSize16 {
+    font-size: 16px !important;
+    text-decoration-line: underline !important;
+}
+
+.table tr td {
+    border-top: 0 !important;
+}
+
+.colorLFont16 {
+    color: #1e90ff;
+    font-size: 16px;
+}
+
+/*供应商 datagrid滚动条*/
+.overfolwSetting .datagrid-row-selected,
+.supplierInformationQuery .datagrid-row-selected,
+.setTabSty .datagrid-row-selected {
+    background: #cdcdcd;
+    font-weight: bold;
+}
+
+.overfolwSetting .datagrid-view, .supplierInformationQuery .datagrid-view {
+    /*max-height: 500px !important;
+    overflow-y: auto !important;*/
+}
+
+#supplierInformationQuery .datagrid-view {
+    /*max-height: 400px !important;*/
+    /*overflow-y: auto !important;*/
+}
+
+#supplierInformationQuery .datagrid-row-selected {
+    background: #cdcdcd;
+    font-weight: bold;
+}
+
+#supplierInformationQuery .panel-body, #supplierInformationQuery .panel {
+    overflow-y: inherit !important;
+}
+
+#overfolwSetting .panel-body, #overfolwSetting .panel {
+    overflow-y: hidden !important;
+}
+
+/*combobox 图标高度*/
+.datagrid-toolbar .textbox-icon {
+    height: 29px !important;
+}
+
+/*datagrid 表头居中样式*/
+.datagrid-header-row td[field], .datagrid-header-row td[field] > div {
+    text-align: center !important;
+}
+
+#addButton .easyui-linkbutton, #editButton .easyui-linkbutton, #reviewButton .easyui-linkbutton {
+    background: #33638b;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 2px;
+    font-size: 14px;
+    width: 92px;
+}
+
+.easyui-linkbutton + .easyui-linkbutton {
+    margin-left: 10px;
+}
+
+.remarksStyle {
+    font-weight: bold;
+}
+
+#control.panel-body {
+    overflow-y: auto !important;
+}
+
+.flexLayout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+}
+
+/*input 垂直方向*/
+input {
+    vertical-align: middle;
+}

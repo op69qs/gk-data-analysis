@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.triber.analysis.dao.mapper.MonitorAlarmMapper">
+
+    <!--    查询监测指标-->
+    <select id="getAlarmIndexData" resultType="hashmap">
+        SELECT a.id AS value,a.index_name AS label
+		FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id = b.id
+        LEFT JOIN system_docking.api_interface_system_info c ON b.system_id = c.id
+        WHERE a.is_monitor = '1' AND a.is_enable = '1' AND b.is_enable = '1' AND c.is_enable = '1'
+        <if test="params.system_code != null and params.system_code != ''">
+            AND c.system_code=#{params.system_code}
+        </if>
+        <if test="params.platform != null and params.platform != ''">
+            AND b.id=#{params.platform}
+        </if>
+        <if test="params.index_type != null and params.index_type != ''">
+            AND a.index_type=#{params.index_type}
+        </if>
+        GROUP BY a.id
+    </select>
+
+    <!--    查询监测器平台-->
+    <select id="getAlarmPlatformData" resultType="hashmap">
+        SELECT a.id AS value,a.platfrom_name AS label
+		FROM system_docking.api_interface_system_platform_info a
+        LEFT JOIN system_docking.api_interface_system_info b ON a.system_id = b.id
+        WHERE a.is_enable = '1' AND b.is_enable = '1'
+        <if test="params.system_code != null and params.system_code != ''">
+            AND b.system_code=#{params.system_code}
+        </if>
+        <if test="params.is_monitor != null and params.is_monitor != ''">
+            AND EXISTS (SELECT DISTINCT c.platform_id FROM `system_docking`.api_platform_index_info c WHERE c.is_enable='1' AND c.is_monitor='${params.is_monitor}' AND a.ID=c.platform_id)
+        </if>
+        GROUP BY a.id
+    </select>
+
+    <!--    查询监测器设备资源-->
+    <select id="getAlarmResourceData" resultType="hashmap">
+        SELECT b.id AS value,b.resource_desc AS label
+        FROM system_docking.api_system_index_resource a
+		LEFT JOIN system_docking.api_system_resource b ON a.resource_id=b.id
+		LEFT JOIN system_docking.api_platform_index_info c ON a.index_id=c.id
+        LEFT JOIN system_docking.api_interface_system_platform_info d ON c.platform_id = d.id
+        LEFT JOIN system_docking.api_interface_system_info e ON d.system_id = e.id
+        WHERE b.is_enable = '1' AND c.is_enable = '1' AND c.is_monitor = '1' AND d.is_enable = '1'
+        <if test="params.system_code != null and params.system_code != ''">
+            AND e.system_code=#{params.system_code}
+        </if>
+        GROUP BY b.id
+    </select>
+
+    <!--    查询监测器告警数据-->
+    <select id="getAlarmAnalysisData" resultType="hashmap">
+        ${params.analysisSQL}
+    </select>
+
+</mapper>

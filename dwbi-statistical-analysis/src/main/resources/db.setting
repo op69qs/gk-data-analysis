@@ -1,0 +1,14 @@
+## db.setting文件
+url = jdbc:clickhouse://11.8.160.24:8123/default
+user = default
+
+## 生产环境去掉密码
+pass = chongqing
+
+## 可选配置
+# 是否在日志中显示执行的SQL
+showSql = true
+# 是否格式化显示的SQL
+formatSql = false
+# 是否显示SQL参数
+showParams = true

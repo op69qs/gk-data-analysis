@@ -1,0 +1,288 @@
+<link rel="stylesheet" href="/statisticalAnalysis/static/css/systemManagement/systemManagement.css"/>
+<div id="bread">参数维护 > <span style="color:#1f5ec4;font-weight: bold;">重点指标设置</span></div>
+<div class="layui-container" style="width:100%; margin-top:15px;height:90%;">
+    <div class="layui-row">
+        <div class="layui-col-md2 layui-col-lg2">
+            <span>指标：</span>
+            <input id="indicators" class="easyui-textbox" style="width:200px;" prompt="请输入关键字查询"/>
+        </div>
+        <div class="layui-col-md2 layui-col-lg2">
+            <span>平台：</span>
+            <input id="platform" class="easyui-combobox" style="width:200px;"
+                   data-options="
+                   prompt:'请选择平台',
+                   valueField:'value',
+                   textField:'label',
+                   url:'./statisticalAnalysis/keyIndicatorsMonitor/getIndexPlatform'
+                    "/>
+        </div>
+        <div class="layui-col-md2 layui-col-lg2">
+            <a class="easyui-linkbutton" onclick="queryData()" style="weight:50%;height: 100%">查询</a>
+            <a class="easyui-linkbutton" onclick="resetData()" style="weight:50%;height: 100%">重置</a>
+        </div>
+    </div>
+    <div class="layui-row" style="margin-top: 15px;">
+        <a class="easyui-linkbutton" onclick="addData()"
+           style="weight:50%;height: 100%;font-size: 17px;background-color: #33638B;color: #ffffff;">新增</a>
+    </div>
+    <div class="layui-row" style="margin-top: 5px;">
+        <div id="tableData"></div>
+    </div>
+</div>
+<script>
+    $(function () {
+        setTimeout(function () {
+            initTableData();
+        }, 100);
+    });
+
+    //展示页面表格数据
+    function initTableData() {
+        $('#tableData').datagrid({
+            url: './statisticalAnalysis/keyIndicatorsParameter/getKeyIndicatorsParameter',
+            toolbar: '#toolbar',
+            singleSelect: true,
+            pagination: true,
+            pageIndex:1,//页索引
+            pageList: [10, 20, 50, 100],
+            pageSize: 10,
+            maxHeight: 600,
+            queryParams: {
+                is_keyPoint: '1',
+                indicatorkeyWord: $('#indicators').textbox('getValue'),
+                platformId: $('#platform').combobox('getValue')
+            },
+            columns: [[
+                {field: "index_name", title: "指标名称", width: 350},
+                {field: "platfrom_name", title: "平台", width: 350},
+                {field: "index_desc", title: "指标描述", width: 450},
+                {
+                    field: "is_monitor", title: "是否监测器", width: 150, align: 'center',
+                    formatter: function (value) {
+                        if (value == 0) {
+                            return '否';
+                        } else if (value == 1) {
+                            return "是";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                {
+                    field: "操作", title: "操作", width: 180, align: 'center',
+                    formatter: function (value, row, index) {
+                        return "<a href='javascript:void(0)' class='tableButton' onclick='editIndicator(" + JSON.stringify(row) + ")'>编辑</a>&nbsp; &nbsp;<a href='javascript:void(0)' class='tableButton' onclick='delIndicator(" + JSON.stringify(row) + ")'>删除</a>"
+                    }
+                }
+            ]]
+        });
+    }
+
+    //增加关系
+    var addRelationKeep = $('<div></div>').dialog({width: 800, height: 400, closed: true});
+
+    //新增
+    function addData() {
+        $("body").append('<div id="addRelationKeep"></div>');
+        //获取页面url参数
+        addRelationKeep.dialog({
+            title: '新增',
+            left: '25%',
+            width: '50%',
+            height: '60%',
+            closed: true,
+            cache: false,
+            href: '/statisticalAnalysis/static/html/ParameterMaintenance/AddKeyIndicators.html',
+            modal: true,
+            onClose: function () {
+                $("#addRelationKeep").dialog("destroy");
+            },
+            buttons: [
+                {
+                    text: '取消', handler: function () {
+                        addRelationKeep.dialog('close');
+                        addRelationKeep.dialog("destroy");
+                    }
+                },
+                {text: '确定', align: 'right', handler: saveData}
+            ]
+            , onClose: function () {
+                addRelationKeep.dialog('destroy', true);
+            }
+        });
+        addRelationKeep.dialog("open");
+    }
+
+    function saveData() {
+        var indexArray = [];
+        var rows = $('#viewData').datagrid('getSelections');
+        for (var i = 0; i < rows.length; i++) {
+            indexArray.push(rows[i].ID);
+        }
+        var param = {
+            is_keyPoint: '1',
+            indexArray: indexArray.toString(),
+            Authorization: localStorage.token,
+            userName: localStorage.userName
+        };
+        $.ajax({
+            type: 'post',
+            url: './statisticalAnalysis/keyIndicatorsParameter/addKeyIndicatorsParameter',
+            data: param,
+            dataType: "json",
+            beforeSend: ajaxLoading,
+            success: function (result) {
+                ajaxLoadEnd();
+                $.messager.alert('提示', result.msg, 'info',function () {
+                    addRelationKeep.dialog('destroy');
+                    $('#tableData').datagrid('load');
+                });
+            }
+        })
+    }
+
+    //编辑
+    function editIndicator(rows) {
+        $('<div></div>').dialog({
+            id: 'editView',
+            width: '40%',
+            height: 500,
+            modal: true,
+            title: '编辑',
+            closed: false,
+            cache: false,
+            href: '/statisticalAnalysis/static/html/ParameterMaintenance/editKeyIndicators.html',
+            onClose: function () {
+                $('#editView').dialog('destroy');
+            },
+            buttons: [{
+                id: 'saveBtn',
+                text: '保存',
+                handler: function () {
+                    if ($('#is_monitor').combobox('getValue') == '') {
+                        $.messager.alert('提示', '是否监测器不能为空', 'info');
+                        return;
+                    }
+                    var params = {
+                        indexArray: rows.ID,
+                        index_desc: $('#index_desc').val(),
+                        is_monitor: $('#is_monitor').val(),
+                        Authorization: localStorage.token,
+                        userName: localStorage.userName
+                    };
+                    $.ajax({
+                        type: 'post',
+                        url: './statisticalAnalysis/keyIndicatorsParameter/editKeyIndicatorsParameter',
+                        data: params,
+                        dataType: "json",
+                        beforeSend: ajaxLoading,
+                        success: function (result) {
+                            ajaxLoadEnd();
+                            $.messager.alert('提示', result.msg, 'info', function () {
+                                $('#editView').dialog('destroy');
+                                $('#tableData').datagrid('load');
+                            });
+                        }
+                    });
+                }
+            }, {
+                text: '关闭',
+                handler: function () {
+                    $("#editView").dialog('close');
+                    $("#editView").dialog("destroy");
+                }
+            }],
+            onLoad: function () {
+                if (rows) {
+                    $('#index_name').textbox('setValue', rows.index_name);
+                    $('#platfrom_name').textbox('setValue', rows.platfrom_name);
+                    $('#index_desc').textbox('setValue', rows.index_desc);
+                    $('#is_monitor').combobox('setValue', rows.is_monitor);
+                }
+            }
+        });
+    }
+
+    //删除
+    function delIndicator(row) {
+        var param = {
+            is_keyPoint: '0',
+            indexArray: row.ID,
+            Authorization: localStorage.token,
+            userName: localStorage.userName
+        };
+        $.messager.confirm('提示', '你确定要删除吗?', function () {
+            $.ajax({
+                type: 'post',
+                url: './statisticalAnalysis/keyIndicatorsParameter/delKeyIndicatorsParameter',
+                data: param,
+                dataType: "json",
+                beforeSend: ajaxLoading,
+                success: function (result) {
+                    ajaxLoadEnd();
+                    $.messager.alert('提示', result.msg, 'info', function () {
+                        ajaxLoadEnd();
+                        $('#tableData').datagrid('load');
+                    });
+                }
+            });
+        });
+    }
+
+    //查询
+    function queryData() {
+        var params = {
+            indicators: $("#indicators").textbox("getValue"),
+            platform: $("#platform").combobox("getValue"),
+            Authorization: localStorage.token,
+            userName: localStorage.userName
+        };
+        initTableData();
+    }
+
+    //重置
+    function resetData() {
+        $("#indicators").textbox("setValue", "");
+        $("#platform").combobox("setValue", "");
+        queryData();
+    }
+
+    //开启loadding
+    function ajaxLoading() {
+        $("<div class=\"datagrid-mask\"></div>").css({
+            display: "block",
+            width: "100%",
+            height: $(window).height(),
+            'z-index': 99999
+        }).appendTo("body");
+        $("<div class=\"datagrid-mask-msg\"></div>").html("正在处理，请稍候。。。").appendTo("body").css({
+            display: "block",
+            left: ($(document.body).outerWidth(true) - 190) / 2,
+            top: ($(window).height() - 45) / 2,
+            'z-index': 999999
+        });
+    }
+
+    //关闭loadding
+    function ajaxLoadEnd() {
+        $(".datagrid-mask").remove();
+        $(".datagrid-mask-msg").remove();
+    }
+
+    var xhrOnProgress = function (fun) {
+        xhrOnProgress.onprogress = fun; //绑定监听
+        //使用闭包实现监听绑
+        return function () {
+            //通过$.ajaxSettings.xhr();获得XMLHttpRequest对象
+            var xhr = $.ajaxSettings.xhr();
+            //判断监听函数是否为函数
+            if (typeof xhrOnProgress.onprogress !== 'function')
+                return xhr;
+            //如果有监听函数并且xhr对象支持绑定时就把监听函数绑定上去
+            if (xhrOnProgress.onprogress && xhr.upload) {
+                xhr.upload.onprogress = xhrOnProgress.onprogress;
+            }
+            return xhr;
+        }
+    }
+</script>

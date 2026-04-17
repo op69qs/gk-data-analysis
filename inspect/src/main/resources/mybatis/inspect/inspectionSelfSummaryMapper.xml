@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionSelfSummaryMapper">
+    <!-- author: Samer 自查汇总表 -->
+
+    <!-- 查询当前任务汇总表信息 -->
+    <select id="getCurSelfSumInfo" resultType="java.util.HashMap">
+        SELECT
+        a.LEDGER_ID,
+        a.TASK_ID,
+        a.QUESTION_ID_1,
+        a.QUESTION_DSCR_1,
+        a.QUESTION_ID_2,
+        a.QUESTION_DSCR_2,
+        a.QUESTION_ID_3,
+        a.QUESTION_DSCR_3,
+        a.QUESTION_ID,
+        a.QUESTION_DSCR,
+        a.QUESTION_OPINIONS,
+        a.BACK_REASON,
+        a.QUESTION_CONTENT,
+        a.ERROR_TYPE,
+        CASE WHEN a.MEASURES IS NOT NULL AND a.MEASURES &lt;&gt; '' THEN a.MEASURES
+             WHEN a.MEASURES IS NULL OR a.MEASURES ='' THEN
+                CASE WHEN CONCAT(rls.COMPLETE_TIME,rls.REFORM_SCHEME,rls.MEMO) IS NOT NULL AND CONCAT(rls.COMPLETE_TIME,rls.REFORM_SCHEME,rls.MEMO) &lt;&gt; '' THEN CONCAT(rls.COMPLETE_TIME,rls.REFORM_SCHEME,rls.MEMO)
+                     ELSE '' END
+        END AS MEASURES,
+        CASE WHEN (a.MEASURES IS NOT NULL AND a.MEASURES &lt;&gt; '') OR
+            (CONCAT(rls.COMPLETE_TIME,rls.REFORM_SCHEME,rls.MEMO) IS NOT NULL
+        AND CONCAT(rls.COMPLETE_TIME,rls.REFORM_SCHEME,rls.MEMO) &lt;&gt; '' )
+        THEN '0'
+        ELSE '1'
+        END AS MEASURES_FLAG,
+        <if test=' params.COUNTY !=null and params.COUNTY !="" '>
+            COUNT(a.QUESTION_CONTENT) AS COUNTY_COUNT,
+            CASE WHEN a.COUNTY_STATE = '2' THEN '1'
+                 ELSE '0'
+            END AS IS_SUBMIT,
+            CASE WHEN a.COUNTY_STATE = '3' THEN '1'
+                 ELSE '-1'
+            END AS IS_BACK,
+            b.guoku_dscr AS COUNTY_DSCR
+        </if>
+        <if test=' params.CITY !=null and params.CITY !="" '>
+            COUNT(
+              CASE
+                WHEN a.COUNTY_STATE = '2'
+                  AND a.COUNTY &lt;&gt;''
+                  AND a.COUNTY IS NOT NULL
+                THEN a.QUESTION_CONTENT
+              END) AS COUNTY_COUNT,
+            CASE
+                WHEN a.COUNTY_STATE = '2'
+                    AND a.COUNTY &lt;&gt;''
+                    AND a.COUNTY IS NOT NULL
+                THEN b.guoku_dscr
+                ELSE ''
+            END AS COUNTY_DSCR,
+            COUNT(
+              CASE
+                WHEN a.CITY &lt;&gt;''
+                  AND a.CITY IS NOT NULL
+                  AND (a.COUNTY ='' OR a.COUNTY IS NULL)
+                THEN a.QUESTION_CONTENT
+              END) AS CITY_COUNT,
+
+            CASE WHEN a.CITY_STATE = '2' THEN '1'
+                 ELSE '0'
+            END AS IS_SUBMIT,
+            CASE WHEN a.COUNTY_STATE = '2' AND ( a.COUNTY &lt;&gt;'' AND a.COUNTY IS NOT NULL) AND a.CITY_STATE = '1' THEN '0'
+                 WHEN a.CITY_STATE = '3' THEN '1'
+                 ELSE '-1'
+            END AS IS_BACK,
+
+            CASE
+                WHEN a.CITY &lt;&gt;''
+                    AND a.CITY IS NOT NULL
+                    AND (a.COUNTY ='' OR a.COUNTY IS NULL)
+                THEN c.guoku_dscr
+                ELSE ''
+            END AS CITY_DSCR
+        </if>
+        <if test=' params.PROVINCE !=null and params.PROVINCE !="" '>
+            COUNT(
+              CASE
+                WHEN a.COUNTY_STATE = '2'
+                  AND a.COUNTY &lt;&gt;''
+                  AND a.COUNTY IS NOT NULL
+                THEN a.QUESTION_CONTENT
+              END) AS COUNTY_COUNT,
+            CASE
+                WHEN a.COUNTY_STATE = '2'
+                    AND a.COUNTY &lt;&gt;''
+                    AND a.COUNTY IS NOT NULL
+                THEN b.guoku_dscr
+            ELSE ''
+            END AS COUNTY_DSCR,
+            COUNT(
+              CASE
+                WHEN a.CITY_STATE = '2'
+                  AND a.CITY &lt;&gt;''
+                  AND a.CITY IS NOT NULL
+                  AND LEFT(a.CITY,4) &lt;&gt; '2401'
+                  AND (a.COUNTY ='' OR a.COUNTY IS NULL)
+                THEN a.QUESTION_CONTENT
+              END) AS CITY_COUNT,
+            CASE
+                WHEN a.CITY_STATE = '2'
+                    AND a.CITY &lt;&gt;''
+                    AND a.CITY IS NOT NULL
+                    AND LEFT(a.CITY,4) &lt;&gt; '2401'
+                    AND (a.COUNTY ='' OR a.COUNTY IS NULL)
+                THEN c.guoku_dscr
+            END AS CITY_DSCR,
+            COUNT(
+            CASE
+              WHEN a.PROVINCE_STATE = '2'
+                AND  (a.COUNTY ='' OR a.COUNTY IS NULL)
+                AND  (a.CITY ='' OR a.CITY IS NULL)
+            THEN a.QUESTION_CONTENT
+            END
+            ) AS PROVINCE_COUNT,
+
+            CASE WHEN a.PROVINCE_STATE = '2' THEN '1'
+            ELSE '0'
+            END AS IS_SUBMIT,
+            CASE WHEN a.CITY_STATE = '2' AND ( a.CITY &lt;&gt;'' AND a.CITY IS NOT NULL) AND a.PROVINCE_STATE = '1' THEN '0'
+                 WHEN a.PROVINCE_STATE = '3' THEN '1'
+            ELSE '-1'
+            END AS IS_BACK,
+
+            d.guoku_dscr AS PROVINCE_DSCR
+        </if>
+        FROM
+        `inspection`.`inspection_self_ledger` a
+        <if test=' params.COUNTY !=null and params.COUNTY !="" '>
+            LEFT JOIN
+            `dmcode`.`cm_guoku_dimnsn` b
+            ON a.COUNTY = b.guoku_id
+        </if>
+        <if test=' params.CITY !=null and params.CITY !="" '>
+            LEFT JOIN
+            `dmcode`.`cm_guoku_dimnsn` b
+            ON a.COUNTY = b.guoku_id
+            LEFT JOIN
+            `dmcode`.`cm_guoku_dimnsn` c
+            ON a.CITY = c.guoku_id
+        </if>
+        <if test=' params.PROVINCE !=null and params.PROVINCE !="" '>
+            LEFT JOIN
+            `dmcode`.`cm_guoku_dimnsn` b
+            ON a.COUNTY = b.guoku_id
+            LEFT JOIN
+            `dmcode`.`cm_guoku_dimnsn` c
+            ON a.CITY = c.guoku_id
+            LEFT JOIN
+            `dmcode`.`cm_guoku_dimnsn` d
+            ON a.PROVINCE = d.guoku_id
+        </if>
+        LEFT JOIN
+        (
+        SELECT
+        rl.`LEDGER_ID`,
+        rl.IS_COMPLETE,
+        CASE WHEN rl.COMPLETE_TIME IS NOT NULL OR rl.COMPLETE_TIME &lt;&gt; '' THEN CONCAT('完成时间：', rl.COMPLETE_TIME,
+        '。') ELSE '' END AS COMPLETE_TIME,
+        CASE WHEN rs.REFORM_SCHEME IS NOT NULL OR rs.REFORM_SCHEME &lt;&gt; '' THEN CONCAT('措施：', rs.REFORM_SCHEME, '。')
+        ELSE '' END AS REFORM_SCHEME,
+        CASE WHEN rs.MEMO IS NOT NULL OR rs.MEMO &lt;&gt; '' THEN CONCAT('说明：', rs.MEMO, '。') ELSE '' END AS MEMO
+        FROM
+        `inspection`.`inspection_reform_ledger` rl
+        JOIN
+        `inspection`.`inspection_reform_scheme` rs
+        ON rl.`ID` = rs.`REFORM_ID`
+        ) rls
+        ON a.LEDGER_ID = rls.LEDGER_ID
+        WHERE 1=1
+        AND a.ADD_DATE LIKE CONCAT('%', #{params.INSPECTION_TASK_YEAR}, '%')
+        <if test=' params.COUNTY !=null and params.COUNTY !="" '>
+            AND a.COUNTY = #{params.COUNTY}
+        </if>
+        <if test=' params.CITY !=null and params.CITY !="" '>
+            AND a.CITY = #{params.CITY}
+            AND a.COUNTY_STATE = '2'
+        </if>
+        <if test=' params.PROVINCE !=null and params.PROVINCE !="" '>
+            AND a.PROVINCE = #{params.PROVINCE}
+            AND a.COUNTY_STATE = '2'
+            AND a.CITY_STATE = '2'
+        </if>
+        GROUP BY
+        a.LEDGER_ID,
+        a.QUESTION_ID_1,
+        a.QUESTION_ID_2,
+        a.QUESTION_ID_3,
+        a.QUESTION_CONTENT
+        ORDER BY
+        a.QUESTION_ID_1,
+        a.QUESTION_ID_2,
+        a.QUESTION_ID_3,
+        a.QUESTION_CONTENT
+
+    </select>
+
+    <!--  根据问题台账ID编辑 -->
+    <update id="editSelfLedgerByLedgerID">
+        UPDATE
+        `inspection`.`inspection_Self_ledger`
+        SET
+        <if test=' params.QUESTION_ID_1 != null and params.QUESTION_ID_1 !="" '>
+            QUESTION_ID_1=#{params.QUESTION_ID_1},
+        </if>
+        <if test=' params.QUESTION_DSCR_1 != null and params.QUESTION_DSCR_1 !="" '>
+            QUESTION_DSCR_1=#{params.QUESTION_DSCR_1},
+        </if>
+        <if test=' params.QUESTION_ID_2 != null and params.QUESTION_ID_2 !="" '>
+            QUESTION_ID_2=#{params.QUESTION_ID_2},
+        </if>
+        <if test=' params.QUESTION_DSCR_2 != null and params.QUESTION_DSCR_2 !="" '>
+            QUESTION_DSCR_2=#{params.QUESTION_DSCR_2},
+        </if>
+        <if test=' params.QUESTION_ID_3 != null and params.QUESTION_ID_3 !="" '>
+            QUESTION_ID_3=#{params.QUESTION_ID_3},
+        </if>
+        <if test=' params.QUESTION_DSCR_3 != null and params.QUESTION_DSCR_3 !="" '>
+            QUESTION_DSCR_3= #{params.QUESTION_DSCR_3},
+        </if>
+        <if test=' params.QUESTION_ID != null and params.QUESTION_ID !="" '>
+            QUESTION_ID=#{params.QUESTION_ID},
+        </if>
+        <if test=' params.QUESTION_DSCR != null and params.QUESTION_DSCR !="" '>
+            QUESTION_DSCR= #{params.QUESTION_DSCR},
+        </if>
+        <if test=' params.QUESTION_OPINIONS != null and params.QUESTION_OPINIONS !="" '>
+            QUESTION_OPINIONS=#{params.QUESTION_OPINIONS},
+        </if>
+        <if test=' params.ADD_USERID != null and params.ADD_USERID !="" '>
+            ADD_USERID=#{params.ADD_USERID},
+        </if>
+        <if test=' params.ADD_DATE != null and params.ADD_DATE !="" '>
+            ADD_DATE= #{params.ADD_DATE},
+        </if>
+        <if test=' params.MODIFY_DATE != null and params.MODIFY_DATE !="" '>
+            MODIFY_DATE= #{params.MODIFY_DATE},
+        </if>
+        <if test=' params.COUNTY != null and params.COUNTY !="" '>
+            COUNTY= #{params.COUNTY},
+        </if>
+        <if test=' params.COUNTY_STATE != null and params.COUNTY_STATE !="" '>
+            COUNTY_STATE= #{params.COUNTY_STATE},
+        </if>
+        <if test=' params.CITY != null and params.CITY !="" '>
+            CITY= #{params.CITY},
+        </if>
+        <if test=' params.CITY_STATE != null and params.CITY_STATE !="" '>
+            CITY_STATE= #{params.CITY_STATE},
+        </if>
+        <if test=' params.PROVINCE != null and params.PROVINCE !="" '>
+            PROVINCE=#{params.PROVINCE},
+        </if>
+        <if test=' params.PROVINCE_STATE != null and params.PROVINCE_STATE !="" '>
+            PROVINCE_STATE=#{params.PROVINCE_STATE},
+        </if>
+        <if test=' params.IS_LOCK != null and params.IS_LOCK !="" '>
+            IS_LOCK=#{params.IS_LOCK},
+        </if>
+        <if test=' params.BACK_REASON != null'>
+            BACK_REASON=#{params.BACK_REASON},
+        </if>
+        <if test=' params.QUESTION_CONTENT != null and params.QUESTION_CONTENT !="" '>
+            QUESTION_CONTENT=#{params.QUESTION_CONTENT},
+        </if>
+        <if test=' params.MEASURES != null and params.MEASURES !="" '>
+            MEASURES=#{params.MEASURES},
+        </if>
+        <if test=' params.ERROR_TYPE != null and params.ERROR_TYPE !="" '>
+            ERROR_TYPE=#{params.ERROR_TYPE},
+        </if>
+        LEDGER_ID = #{params.LEDGER_ID}
+        WHERE
+        LEDGER_ID = #{params.LEDGER_ID}
+    </update>
+
+    <!-- 获取国库信息 -->
+    <select id="getGuokuInfo" resultType="java.util.Map">
+        SELECT *
+        FROM
+            `dmcode`.`cm_guoku_dimnsn` a
+        WHERE
+            a.`guoku_id` = #{params.guoku_id}
+    </select>
+
+</mapper>

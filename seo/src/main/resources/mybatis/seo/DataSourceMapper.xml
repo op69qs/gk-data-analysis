@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.seo.dao.mapper.DataSourceMapper">
+
+
+    <select id="getDataSourcePage" resultType="java.util.Map">
+        SELECT a.ID,
+        a.DATASOURCE_NAME,
+        a.TYPE,
+        a.IP,
+        a.PORT,
+        b.ID as DATABASE_ID,
+        b.DBNAME,
+        b.USERNAME,
+        b.PASSWORD,
+        b.STATE,
+        b.DRIVERCLASS_NAME,
+        b.DATASOURCE_URL
+        FROM
+        seo.seo_datasource a LEFT JOIN  seo.seo_datasource_database b on a.ID = b.SOURCE_ID
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND a.ID = #{params.ID}
+        </if>
+        <if test="params.DATABASE_ID!=null and params.DATABASE_ID != ''">
+            AND b.ID = #{params.DATABASE_ID}
+        </if>
+        <if test="params.DATASOURCE_NAME!=null and params.DATASOURCE_NAME != ''">
+            AND a.DATASOURCE_NAME like '%${params.DATASOURCE_NAME}%'
+        </if>
+        <if test="params.DRIVERCLASS_NAME!=null and params.DRIVERCLASS_NAME != ''">
+            AND b.DRIVERCLASS_NAME like '%${params.DRIVERCLASS_NAME}%'
+        </if>
+        <if test="params.DATASOURCE_URL!=null and params.DATASOURCE_URL != ''">
+            AND b.DATASOURCE_URL like '%${params.DATASOURCE_URL}%'
+        </if>
+        <if test="params.TYPE!=null and params.TYPE != ''">
+            AND a.TYPE = #{params.TYPE}
+        </if>
+        <if test="params.BEGIN_TIME !=null and params.BEGIN_TIME != ''">
+            AND a.CREATE_TIME <![CDATA[>=]]> #{params.BEGIN_TIME}
+        </if>
+        <if test="params.END_TIME !=null and params.END_TIME != ''">
+            AND a.CREATE_TIME <![CDATA[<=]]> #{params.END_TIME}
+        </if>
+        <if test="params.CREATE_USER !=null and params.CREATE_USER != ''">
+            AND a.CREATE_USER = #{params.CREATE_USER}
+        </if>
+        <if test="params.STATE !=null and params.STATE != ''">
+            AND b.STATE = #{params.STATE}
+        </if>
+        <if test="params.DBNAME!=null and params.DBNAME != ''">
+            AND b.DBNAME like '%${params.DBNAME}%'
+        </if>
+        <if test="params.IP!=null and params.IP != ''">
+            AND a.IP like '%${params.IP}%'
+        </if>
+        <if test="params.PORT!=null and params.PORT != ''">
+            AND a.PORT like '%${params.PORT}%'
+        </if>
+        order by a.DATASOURCE_NAME,a.TYPE,a.IP,a.PORT,b.CREATE_TIME DESC
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="countDataSource" resultType="java.lang.Integer">
+        SELECT count(*) FROM
+        seo.seo_datasource a LEFT JOIN  seo.seo_datasource_database b on a.ID = b.SOURCE_ID
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND a.ID = #{params.ID}
+        </if>
+        <if test="params.DATABASE_ID!=null and params.DATABASE_ID != ''">
+            AND b.ID = #{params.DATABASE_ID}
+        </if>
+        <if test="params.DATASOURCE_NAME!=null and params.DATASOURCE_NAME != ''">
+            AND a.DATASOURCE_NAME like '%${params.DATASOURCE_NAME}%'
+        </if>
+        <if test="params.DRIVERCLASS_NAME!=null and params.DRIVERCLASS_NAME != ''">
+            AND b.DRIVERCLASS_NAME like '%${params.DRIVERCLASS_NAME}%'
+        </if>
+        <if test="params.DATASOURCE_URL!=null and params.DATASOURCE_URL != ''">
+            AND b.DATASOURCE_URL like '%${params.DATASOURCE_URL}%'
+        </if>
+        <if test="params.TYPE!=null and params.TYPE != ''">
+            AND a.TYPE = #{params.TYPE}
+        </if>
+        <if test="params.BEGIN_TIME !=null and params.BEGIN_TIME != ''">
+            AND a.CREATE_TIME <![CDATA[>=]]> #{params.BEGIN_TIME}
+        </if>
+        <if test="params.END_TIME !=null and params.END_TIME != ''">
+            AND a.CREATE_TIME <![CDATA[<=]]> #{params.END_TIME}
+        </if>
+        <if test="params.CREATE_USER !=null and params.CREATE_USER != ''">
+            AND a.CREATE_USER = #{params.CREATE_USER}
+        </if>
+        <if test="params.STATE !=null and params.STATE != ''">
+            AND b.STATE = #{params.STATE}
+        </if>
+        <if test="params.DBNAME!=null and params.DBNAME != ''">
+            AND b.DBNAME like '%${params.DBNAME}%'
+        </if>
+        <if test="params.IP!=null and params.IP != ''">
+            AND a.IP like '%${params.IP}%'
+        </if>
+        <if test="params.PORT!=null and params.PORT != ''">
+            AND a.PORT like '%${params.PORT}%'
+        </if>
+    </select>
+
+    <insert id="addDataSource" >
+        INSERT INTO seo.seo_datasource
+        VALUES
+        (
+        #{params.ID},
+        #{params.DATASOURCE_NAME},
+        #{params.TYPE},
+        #{params.CREATE_TIME},
+        #{params.CREATE_USER},
+        #{params.IP},
+        #{params.PORT}
+        )
+    </insert>
+
+    <insert id="addDataBase" >
+        INSERT INTO seo.seo_datasource_database
+        VALUES
+        (
+        #{params.ID},
+        #{params.SOURCE_ID},
+        #{params.DBNAME},
+        #{params.USERNAME},
+        #{params.PASSWORD},
+        #{params.STATE},
+        #{params.CREATE_TIME},
+        #{params.CREATE_USER},
+        #{params.DRIVERCLASS_NAME},
+        #{params.DATASOURCE_URL}
+        )
+    </insert>
+
+    <update id="editDataSource">
+        UPDATE seo.seo_datasource SET
+        <if test=" params.DATASOURCE_NAME != null and params.DATASOURCE_NAME != ''">
+            DATASOURCE_NAME = #{params.DATASOURCE_NAME},
+        </if>
+        <if test=" params.TYPE != null and params.TYPE != ''">
+            TYPE = #{params.TYPE},
+        </if>
+        <if test=" params.IP != null and params.IP != ''">
+            IP = #{params.IP},
+        </if>
+        <if test=" params.PORT != null and params.PORT != ''">
+            PORT = #{params.PORT},
+        </if>
+        ID = #{params.ID}
+        WHERE ID = #{params.ID}
+    </update>
+
+    <delete id="delDataSource" >
+        DELETE
+        FROM
+        seo.seo_datasource
+        WHERE 1 = 1
+        AND ID = #{params.ID}
+    </delete>
+
+    <delete id="delDataBase" >
+        DELETE
+        FROM
+        seo.seo_datasource_database
+        WHERE 1 = 1
+        AND SOURCE_ID = #{params.SOURCE_ID}
+    </delete>
+
+    <select id="getDataSource" resultType="java.util.Map">
+        SELECT a.ID,
+        a.DATASOURCE_NAME,
+        a.TYPE,
+        a.IP,
+        a.PORT,
+        b.ID as DATABASE_ID,
+        b.DBNAME,
+        b.USERNAME,
+        b.PASSWORD,
+        b.STATE,
+        b.DRIVERCLASS_NAME,
+        b.DATASOURCE_URL,
+        b.CREATE_TIME
+        FROM
+        seo.seo_datasource a LEFT JOIN  seo.seo_datasource_database b on a.ID = b.SOURCE_ID
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND a.ID = #{params.ID}
+        </if>
+        <if test="params.DATABASE_ID!=null and params.DATABASE_ID != ''">
+            AND b.ID = #{params.DATABASE_ID}
+        </if>
+        <if test="params.DATASOURCE_NAME!=null and params.DATASOURCE_NAME != ''">
+            AND a.DATASOURCE_NAME like '%${params.DATASOURCE_NAME}%'
+        </if>
+        <if test="params.DRIVERCLASS_NAME!=null and params.DRIVERCLASS_NAME != ''">
+            AND b.DRIVERCLASS_NAME like '%${params.DRIVERCLASS_NAME}%'
+        </if>
+        <if test="params.DATASOURCE_URL!=null and params.DATASOURCE_URL != ''">
+            AND b.DATASOURCE_URL like '%${params.DATASOURCE_URL}%'
+        </if>
+        <if test="params.TYPE!=null and params.TYPE != ''">
+            AND a.TYPE = #{params.TYPE}
+        </if>
+        <if test="params.BEGIN_TIME !=null and params.BEGIN_TIME != ''">
+            AND a.CREATE_TIME <![CDATA[>=]]> #{params.BEGIN_TIME}
+        </if>
+        <if test="params.END_TIME !=null and params.END_TIME != ''">
+            AND a.CREATE_TIME <![CDATA[<=]]> #{params.END_TIME}
+        </if>
+        <if test="params.CREATE_USER !=null and params.CREATE_USER != ''">
+            AND a.CREATE_USER = #{params.CREATE_USER}
+        </if>
+        <if test="params.STATE !=null and params.STATE != ''">
+            AND b.STATE = #{params.STATE}
+        </if>
+        <if test="params.DBNAME!=null and params.DBNAME != ''">
+            AND b.DBNAME like '%${params.DBNAME}%'
+        </if>
+        <if test="params.IP!=null and params.IP != ''">
+            AND a.IP like '%${params.IP}%'
+        </if>
+        <if test="params.PORT!=null and params.PORT != ''">
+            AND a.PORT like '%${params.PORT}%'
+        </if>
+        order by a.DATASOURCE_NAME,a.TYPE,a.IP,a.PORT,b.CREATE_TIME DESC
+    </select>
+
+    <select id="getDataSourceEnum" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_datasource_enum a
+        where 1=1
+        <if test="params.TYPE!=null and params.TYPE != ''">
+            AND a.DATASOURCE = #{params.TYPE}
+        </if>
+    </select>
+
+    <select id="getDataSourceEnumSelect" resultType="java.util.Map">
+        SELECT DATASOURCE as id,DATASOURCE as name FROM
+        seo.seo_datasource_enum a
+        where 1=1
+    </select>
+
+    <select id="getDataBase" resultType="java.util.Map">
+        SELECT * FROM
+        seo.seo_datasource_database a
+        where 1=1
+        <if test="params.SOURCE_ID!=null and params.SOURCE_ID != ''">
+            AND a.SOURCE_ID = #{params.SOURCE_ID}
+        </if>
+        <if test="params.DBNAME!=null and params.DBNAME != ''">
+            AND a.DBNAME = #{params.DBNAME}
+        </if>
+    </select>
+
+    <select id="getDataSourceName" resultType="java.util.Map">
+        SELECT *
+        FROM
+        seo.seo_datasource a
+        where 1=1
+        <if test="params.ID!=null and params.ID != ''">
+            AND a.ID != #{params.ID}
+        </if>
+        <if test="params.DATASOURCE_NAME!=null and params.DATASOURCE_NAME != ''">
+            AND a.DATASOURCE_NAME = #{params.DATASOURCE_NAME}
+        </if>
+    </select>
+
+</mapper>

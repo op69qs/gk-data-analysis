@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.triber.analysis.dao.mapper.KeyIndicatorsMonitorMapper">
+
+    <!--    获取重点指标-->
+    <select id="getKeyIndicators" resultType="hashmap">
+        SELECT a.ID AS value,a.index_name AS label
+        FROM `system_docking`.api_platform_index_info a
+        LEFT JOIN `system_docking`.api_interface_system_platform_info b ON a.platform_id=b.ID
+        LEFT JOIN `system_docking`.api_interface_system_info c ON b.system_id=c.ID
+        WHERE a.is_enable='1' AND b.is_enable='1' AND c.is_enable='1' and a.is_keyPoint='1'
+        <if test="params.is_monitor != null and params.is_monitor != ''">
+            AND a.is_monitor=#{params.is_monitor}
+        </if>
+        <if test="params.platform != null and params.platform != ''">
+            AND a.platform_id=#{params.platform}
+        </if>
+        <if test="params.indexType != null and params.indexType != ''">
+            AND a.index_type=#{params.indexType}
+        </if>
+        <if test="params.systemType != null and params.systemType != ''">
+            AND c.system_code IN (${params.systemType})
+        </if>
+    </select>
+
+    <!--    获取指标平台-->
+    <select id="getIndexPlatform" resultType="hashmap">
+        SELECT a.ID AS value,a.platfrom_name AS label
+        FROM `system_docking`.api_interface_system_platform_info a
+        LEFT JOIN `system_docking`.api_interface_system_info b ON a.system_id=b.ID
+        WHERE a.is_enable='1' AND b.is_enable='1'
+        <if test="params.type != null and params.type != ''">
+            AND b.system_code=#{params.systemType}
+        </if>
+        <if test="params.is_keyPoint != null and params.is_keyPoint != ''">
+            AND EXISTS (SELECT DISTINCT c.platform_id FROM `system_docking`.api_platform_index_info c WHERE c.index_type='1' AND c.is_enable='1' AND c.is_keyPoint='${params.is_keyPoint}' AND a.ID=c.platform_id)
+        </if>
+    </select>
+
+    <!--    查询数据库中的数据表-->
+    <select id="getTableByDataBase" resultType="hashmap">
+        SELECT table_name FROM information_schema.tables
+        WHERE table_schema=#{params.dataBase}
+        <if test="params.table_name != null and params.table_name != ''">
+            AND table_name ${params.table_name}
+        </if>
+    </select>
+
+    <select id="getResourceTop" resultType="hashmap">
+        SELECT b.resource_code AS value,a.resource_desc AS label,MAX(CAST(b.content AS SIGNED)) AS content
+        FROM system_docking.api_system_resource a
+        LEFT JOIN upm.api_interface_system_data20201002 b ON a.resource_code=b.resource_code
+        WHERE a.is_enable='1'
+        <if test="params.index_id != null and params.index_id != ''">
+            AND b.index_id=#{params.index_id}
+        </if>
+        GROUP BY index_id
+        ORDER BY content DESC
+        LIMIT ${params.top}
+    </select>
+
+    <!--    获取重点指标监测视图数据-->
+    <select id="getKeyIndicatorMonitorDada" resultType="hashmap">
+        ${params.analysisSQL}
+    </select>
+
+</mapper>

@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dockingProjects.mapper.mysql.ConfigMapper">
+
+    <!--    获取进程-->
+    <select id="getProcessConfig" resultType="hashmap">
+        SELECT ID,task_code,task_name,task_desc,task_thread_type,task_start_params,task_start_postfix,task_thread_count,tesk_sort
+        FROM system_docking.api_task_ins
+        WHERE is_enable='1'
+    </select>
+
+    <!--    根据进程ID获取进程的线程-->
+    <select id="getProcessThreadConfig" resultType="hashmap">
+        SELECT ID,task_id,task_thread_desc,task_thread_cron,tesk_thread_sort
+        FROM system_docking.api_task_thread_ins
+        WHERE task_id=#{processId} AND is_enable='1'
+        ORDER BY tesk_thread_sort
+    </select>
+
+    <!--    获取对接系统-->
+    <select id="getSystemConfig" resultType="hashmap">
+        SELECT f.ID,f.system_code,f.system_name,f.system_desc
+        FROM system_docking.api_task_ins a
+        LEFT JOIN system_docking.api_task_thread_ins b on a.id=b.task_id and b.is_enable='1'
+        LEFT JOIN system_docking.api_task_thread_index c on b.id=c.thread_id
+        LEFT JOIN system_docking.api_platform_index_info d on c.index_id=d.id and d.is_enable='1'
+        LEFT JOIN system_docking.api_interface_system_platform_info e on d.platform_id=e.id and e.is_enable='1'
+        LEFT JOIN system_docking.api_interface_system_info f on e.system_id=f.id and f.is_enable='1'
+        WHERE a.is_enable='1' AND (f.id IS NOT NULL OR f.id <![CDATA[<>]]> '' )
+        <if test="processId != null and processId != ''">
+            AND a.id=#{processId}
+        </if>
+        GROUP BY f.id
+    </select>
+
+    <!--            获取对接系统对应的平台-->
+    <select id="getPlatformConfig" resultType="hashmap">
+        SELECT ID,system_id,platfrom_code,platfrom_name,platform_desc
+        FROM system_docking.api_interface_system_platform_info
+        WHERE system_id=#{systemId} AND is_enable='1'
+    </select>
+
+    <!--    获取系统平台信息对应的指标-->
+    <select id="getTargetConfig" resultType="hashmap">
+        SELECT ID,platform_id,index_code,index_name,index_desc
+        FROM system_docking.api_platform_index_info
+        WHERE platform_id=#{platformId} AND is_enable='1'
+    </select>
+
+    <!--    获取系统平台对应的资源-->
+    <select id="getResourcesConfig" resultType="hashmap">
+        SELECT ID,platform_id,resource_code,resource_mac,resource_desc
+        FROM system_docking.api_system_resource
+        WHERE platform_id=#{platformId} AND is_enable='1'
+    </select>
+
+    <!--    获取系统平台资源对应的IP-->
+    <select id="getResourcesIPConfig" resultType="hashmap">
+        SELECT ID,resource_id,ip_address
+        FROM system_docking.api_system_resource_ip
+        WHERE resource_id=#{resourceId} AND is_enable='1'
+    </select>
+
+    <!--    获取优云系统请求调用接口-->
+    <select id="getUcloudInterfaceConfig" resultType="hashmap">
+        SELECT
+        a.id AS process_id,
+        a.task_code,
+        a.task_name,
+        b.ID AS thread_id,
+        b.task_thread_desc,
+        f.ID AS system_id,
+        f.system_code,
+        f.system_desc,
+        d.platform_id,
+        e.platfrom_code,
+        h.ID AS api_id,
+        c.index_id,
+        h.api_contract,
+        h.api_type AS httpMethod,
+        h.api_method,
+        h.api_wildcard,
+        h.api_index_code,
+        h.api_resource_code,
+        h.api_time_start,
+        h.api_time_end,
+        h.api_time_unit,
+        k.resource_id,
+        l.ip_address AS resource_ip,
+        GROUP_CONCAT( DISTINCT CONCAT( '"', i.api_head_code, '":"', i.api_head_content, '"' ) ) AS headers,
+        GROUP_CONCAT(
+        DISTINCT CONCAT(
+        '"',
+        j.api_params_code,
+        CASE WHEN j.api_params_value_type = '4' THEN
+        CONCAT( '":', j.api_params_value ) ELSE CONCAT( '":"', j.api_params_value, '"' )
+        END
+        )
+        ) AS paramaters
+        FROM system_docking.api_task_ins a
+        LEFT JOIN system_docking.api_task_thread_ins b ON a.id = b.task_id
+        LEFT JOIN system_docking.api_task_thread_index c ON b.id = c.thread_id
+        LEFT JOIN system_docking.api_platform_index_info d ON c.index_id = d.id
+        LEFT JOIN system_docking.api_interface_system_platform_info e ON d.platform_id = e.id
+        LEFT JOIN system_docking.api_interface_system_info f ON e.system_id = f.id
+        LEFT JOIN system_docking.api_system_api_index o ON d.id = o.index_id
+        LEFT JOIN system_docking.api_system_api_info h ON o.api_id = h.id
+        LEFT JOIN system_docking.api_system_api_head_info i ON h.ID = i.api_id AND i.api_head_type = '1'
+        LEFT JOIN system_docking.api_system_api_params j ON h.ID = j.api_id
+        LEFT JOIN system_docking.api_system_api_resource k ON h.ID = k.api_id
+        LEFT JOIN system_docking.api_system_resource_ip l ON k.resource_id = l.resource_id
+        LEFT JOIN system_docking.api_system_resource m ON m.ID = k.resource_id AND m.is_enable = '1'
+        WHERE a.is_enable = '1' AND b.is_enable = '1' AND d.is_enable = '1' AND e.is_enable = '1' AND f.is_enable = '1'
+        AND h.is_enable = '1' AND ( h.ID IS NOT NULL OR h.ID <![CDATA[<>]]> '' )
+        <if test="processId != null and processId != ''">
+            AND a.id=#{processId}
+        </if>
+        GROUP BY h.ID
+        ORDER BY h.ID
+    </select>
+
+    <!--    获取UPM系统请求调用接口-->
+    <select id="getUPMInterfaceConfig" resultType="hashmap">
+        SELECT
+        a.id AS process_id,
+        a.task_code,
+        a.task_name,
+        b.ID AS thread_id,
+        b.task_thread_desc,
+        f.ID AS system_id,
+        f.system_code,
+        f.system_desc,
+        d.platform_id,
+        e.platfrom_code,
+        h.ID AS api_id,
+        c.index_id,
+        h.api_contract,
+        h.api_type AS httpMethod,
+        h.api_method,
+        h.api_wildcard,
+        h.api_index_code,
+        h.api_time_start,
+        h.api_time_end,
+        h.api_time_unit,
+        GROUP_CONCAT( DISTINCT CONCAT( '"', i.api_head_code, '":"', i.api_head_content, '"' ) ) AS headers,
+        '' AS paramaters
+        FROM system_docking.api_task_ins a
+        LEFT JOIN system_docking.api_task_thread_ins b ON a.id = b.task_id
+        LEFT JOIN system_docking.api_task_thread_index c ON b.id = c.thread_id
+        LEFT JOIN system_docking.api_platform_index_info d ON c.index_id = d.id
+        LEFT JOIN system_docking.api_interface_system_platform_info e ON d.platform_id = e.id
+        LEFT JOIN system_docking.api_interface_system_info f ON e.system_id = f.id
+        LEFT JOIN system_docking.api_system_api_index o ON d.id = o.index_id
+        LEFT JOIN system_docking.api_system_api_info h ON o.api_id = h.id
+        LEFT JOIN system_docking.api_system_api_head_info i ON h.ID = i.api_id AND i.api_head_type = '1'
+        WHERE a.is_enable = '1' AND b.is_enable = '1' AND d.is_enable = '1' AND e.is_enable = '1'
+        AND f.is_enable = '1' AND h.is_enable = '1' AND ( h.ID IS NOT NULL OR h.ID <![CDATA[<>]]> '' )
+        <if test="processId != null and processId != ''">
+            AND a.id=#{processId}
+        </if>
+        GROUP BY h.ID
+        ORDER BY h.ID
+    </select>
+
+    <!--    获取调用失败的Api接口-->
+    <select id="selectFailedApi" resultType="hashmap">
+        SELECT * FROM ${params.dataBase}.api_system_records
+        WHERE api_status <![CDATA[<>]]> '200' AND api_count <![CDATA[<]]> ${params.restartCount}
+    </select>
+
+    <!--    插入进程执行状态记录-->
+    <insert id="insertProcessRecords">
+        INSERT INTO `system_docking`.api_task_ins_records
+        VALUES
+        (
+        #{params.ID},
+        #{params.task_id},
+        #{params.task_status},
+        #{params.addTime}
+        )
+    </insert>
+
+    <!--    修改调用失败的Api接口信息-->
+    <update id="updateFailedApiData">
+        <foreach collection="params.records" item="item" separator=";">
+            UPDATE ${params.dataBase}.api_system_records
+            SET api_status=#{item.statusCode},
+            add_time=#{item.addTime},
+            api_count=(api_count + #{item.restartCount})
+            WHERE ID=#{item.ID}
+        </foreach>
+    </update>
+
+    <!--    插入接口调用记录-->
+    <insert id="insertApiRecords">
+        INSERT INTO ${params.dataBase}.api_system_records
+        VALUES
+            (
+            #{params.ID},
+            #{params.system_id},
+            #{params.system_code},
+            #{params.platform_id},
+            #{params.platfrom_code},
+            #{params.index_id},
+            #{params.api_contract},
+            '${params.headers}',
+            '${params.httpMethod}',
+            #{params.api_method},
+            '${params.paramaters}',
+            #{params.statusCode},
+            '1',
+            #{params.content},
+            #{params.addTime}
+            )
+    </insert>
+
+    <!--    插入接口获取数据-->
+    <insert id="insertData">
+        INSERT INTO ${params.dataBase}.${params.tableName}
+        VALUES
+        <foreach collection="params.saveList" item="item" separator=",">
+            (
+            #{item.ID},
+            #{item.system_id},
+            #{item.platform_id},
+            #{item.index_id},
+            #{item.resource_id},
+            #{item.resource_code},
+            #{item.resource_ip},
+            #{item.time},
+            #{item.content},
+            #{item.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--    插入网络/SDN性能警报日志表数据-->
+    <insert id="insertNetPerformanceEventLogData">
+        INSERT INTO upm.netperformanceeventlog_${params.tableMonth}
+        VALUES
+        <foreach collection="params.saveList" item="item" separator=",">
+            (
+            #{item.ID},
+            #{item.category},
+            #{item.name},
+            #{item.lineId},
+            #{item.netsegmentId1},
+            #{item.netsegmentId2},
+            #{item.level},
+            #{item.time},
+            #{item.content},
+            #{item.probeId},
+            #{item.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--    插入异常行为日志表数据-->
+    <insert id="insertAlarmLogAbnormalBehaviorData">
+        INSERT INTO upm.alarmlogabnormalbehavior_${params.tableMonth}
+        VALUES
+        <foreach collection="params.saveList" item="item" separator=",">
+            (
+            #{item.ID},
+            #{item.category},
+            #{item.name},
+            #{item.clientIpAddr},
+            #{item.clientPort},
+            #{item.clientNetsegmentId},
+            #{item.serverIpAddr},
+            #{item.serverPort},
+            #{item.serverNetsegmentId},
+            #{item.ipAddr},
+            #{item.netsegmentId},
+            #{item.level},
+            #{item.time},
+            #{item.content},
+            #{item.probeId},
+            #{item.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--    查询表是否存在-->
+    <select id="queryTableCount" resultType="int">
+        SELECT COUNT(1) FROM information_schema.TABLES t
+        WHERE t.TABLE_SCHEMA =#{params.dataBase} and t.TABLE_NAME =#{params.tableName}
+    </select>
+
+    <!--    动态建表-->
+    <select id="createTable">
+       CREATE TABLE IF NOT EXISTS ${params.dataBase}.${params.tableName} (
+            `ID` varchar(32) COLLATE utf8_bin COLLATE utf8_bin NOT NULL COMMENT '主键',
+            `system_id` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '系统ID',
+            `platform_id` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '平台ID',
+            `index_id` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '指标ID',
+            `resource_id` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '资源ID',
+            `resource_code` varchar(500) COLLATE utf8_bin DEFAULT NULL COMMENT '资源code',
+            `resource_ip` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '资源IP',
+            `time` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '时间',
+            `content` text COLLATE utf8_bin DEFAULT NULL COMMENT '内容',
+            `ADD_DATE` varchar(20) COLLATE utf8_bin DEFAULT NULL COMMENT '新增时间',
+            INDEX(`system_id`),INDEX(`platform_id`),INDEX(`index_id`),INDEX(`time`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='${params.tableDesc}';
+    </select>
+
+    <!--    创建网络/SDN性能警报日志表-->
+    <select id="createNetPerformanceEventLog">
+        CREATE TABLE IF NOT EXISTS upm.netperformanceeventlog_${params.tableMonth}  (
+          `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+          `category` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '分类',
+          `name` varchar(500) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '名称',
+          `lineId` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '链路Id',
+          `netsegmentId1` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '网段1',
+          `netsegmentId2` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '网段2',
+          `level` varchar(10) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '警报等级',
+          `time` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '告警时间',
+          `triggerCondition` text CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '触发条件',
+          `probeId` varchar(40) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '探针',
+          `ADD_DATE` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL DEFAULT NULL COMMENT '新增时间',
+          PRIMARY KEY (`id`),INDEX(`name`),INDEX(`lineId`),INDEX(`level`),INDEX(`probeId`)
+        )  ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='网络/SDN性能警报日志';
+    </select>
+
+    <!--    创建异常行为日志表-->
+    <select id="createAlarmLogAbnormalBehavior">
+        CREATE TABLE IF NOT EXISTS upm.alarmlogAbnormalbehavior_${params.tableMonth}  (
+          `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
+          `category` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '分类',
+          `name` varchar(500) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '名称',
+          `clientIpAddr` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '客户端',
+          `clientPort` varchar(10) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '客户端端口',
+          `clientNetsegmentId` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '客户器网段',
+          `serverIpAddr` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '服务器',
+          `serverPort` varchar(10) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '服务器端口',
+          `serverNetsegmentId` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '服务器网段',
+          `ipAddr` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT 'IP地址',
+          `netsegmentId` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '网段',
+          `level` varchar(10) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '警报等级',
+          `time` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '告警时间',
+          `triggerCondition` text CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '触发条件',
+          `probeId` varchar(40) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '探针',
+          `ADD_DATE` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL DEFAULT NULL COMMENT '新增时间',
+          PRIMARY KEY (`id`),INDEX(`category`),INDEX(`clientIpAddr`),
+          INDEX(`serverIpAddr`),INDEX(`ipAddr`),INDEX(`level`),INDEX(`probeId`)
+        )  ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='异常行为日志表';
+    </select>
+
+    <!--    插入监测器告警数据-->
+    <insert id="insertAlarmData">
+        INSERT INTO ucloud.api_interface_alarm_data
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.ID},
+            #{item.name},
+            #{item.entityName},
+            #{item.entityAddr},
+            #{item.count},
+            #{item.firstOccurTime},
+            #{item.lastOccurTime},
+            #{item.description},
+            #{item.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--    调用优云告警汇总存储过程-->
+    <select id="callUcloudAlarmProcedure" statementType="CALLABLE">
+        CALL ucloud.ucloud_api_interface_alarm_data(#{params.tableName},#{params.date}, #{params.returnVal,mode=OUT,jdbcType=VARCHAR});
+    </select>
+
+    <!--    调用优云指标汇总存储过程-->
+    <select id="callUcloudIndexProcedure" statementType="CALLABLE">
+        CALL ucloud.ucloud_api_interface_system_data(#{params.tableName},#{params.date}, #{params.returnVal,mode=OUT,jdbcType=VARCHAR});
+    </select>
+
+    <!--    调用UPM异常行为告警汇总存储过程-->
+    <select id="callUPMAlarmLogProcedure" statementType="CALLABLE">
+        CALL upm.upm_proc_api_alarm_summary_alarmlog(#{params.tableName}, #{params.returnVal,mode=OUT,jdbcType=VARCHAR});
+    </select>
+
+    <!--    调用UPM网络性能告警汇总存储过程-->
+    <select id="callUPMnetperLogProcedure" statementType="CALLABLE">
+        CALL upm.upm_proc_api_alarm_summary_netper(#{params.tableName}, #{params.returnVal,mode=OUT,jdbcType=VARCHAR});
+    </select>
+
+    <!--    调用UPM指标汇总存储过程-->
+    <select id="callUPMIndexProcedure" statementType="CALLABLE">
+        CALL upm.upm_proc_api_alarm_summary_interface(#{params.tableName}, #{params.returnVal,mode=OUT,jdbcType=VARCHAR});
+    </select>
+
+</mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionTypeClassMapper">
+    <!-- author: Samer 检查类型分类-->
+
+    <!-- 获取检查类型分类 -->
+    <select id="getInspectionTypeClass" resultType="java.util.HashMap">
+        SELECT
+            a.`TYPE_ID_1` AS pid,
+            a.`TYPE_DSCR_1` AS pName,
+            a.`TYPE_ID_2` AS id,
+            a.`TYPE_DSCR_2` AS name
+        FROM
+            `inspection`.`inspection_type_class` a
+        ORDER BY a.TYPE_ID_1,a.`TYPE_ID_2`
+    </select>
+
+</mapper>

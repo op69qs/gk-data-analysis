@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.triber.analysis.dao.mapper.ForecastThresholdParameterMapper">
+
+    <!--    获取监测器指标-->
+    <select id="getMonitorIndexData" resultType="hashmap">
+        SELECT a.id AS value,REPLACE(a.index_name,'告警次数','') AS label
+        FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.id
+        LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.id
+        WHERE a.is_enable='1' AND b.is_enable='1' AND c.is_enable='1' AND a.is_monitor='1'
+        <if test="params.type != null and params.type != ''">
+            AND c.system_code = #{params.type}
+        </if>
+        <if test="params.index_type != null and params.index_type != ''">
+            AND a.index_type = #{params.index_type}
+        </if>
+    </select>
+
+    <!--    获取监测器指标资源-->
+    <select id="getIndexResourceData" resultType="hashmap">
+        <if test='params.type == "ucloud"'>
+            SELECT a.ID AS value,CONCAT(a.resource_desc,'(',f.ip_address,')') AS label
+            FROM `system_docking`.api_system_resource a
+            LEFT JOIN `system_docking`.api_system_index_resource b ON a.ID=b.resource_id
+            LEFT JOIN `system_docking`.api_platform_index_info c ON b.index_id=c.ID
+            LEFT JOIN `system_docking`.api_interface_system_platform_info d ON c.platform_id=d.ID
+            LEFT JOIN `system_docking`.api_interface_system_info e ON d.system_id=e.ID
+            LEFT JOIN `system_docking`.api_system_resource_ip f ON a.ID=f.resource_id
+            WHERE a.is_enable='1' AND c.is_enable='1' AND d.is_enable='1' AND e.is_enable='1'
+            <if test="params.indicators != null and params.indicators != ''">
+                AND c.ID=#{params.indicators}
+            </if>
+            <if test="params.type != null and params.type != ''">
+                AND e.system_code = #{params.type}
+            </if>
+            GROUP BY a.ID,label ORDER BY label
+        </if>
+        <if test='params.type == "upm"'>
+            SELECT a.resource_code AS value,a.resource_desc AS label
+            FROM `system_docking`.api_system_resource a
+            LEFT JOIN `system_docking`.api_interface_system_platform_info b ON a.platform_id=b.ID
+            LEFT JOIN `system_docking`.api_platform_index_info c ON b.ID=c.platform_id
+            LEFT JOIN `system_docking`.api_interface_system_info d ON b.system_id=d.ID
+            WHERE a.is_enable='1' AND b.is_enable='1' AND d.is_enable='1'
+            <if test="params.indicators != null and params.indicators != ''">
+                AND c.ID=#{params.indicators}
+            </if>
+            <if test="params.type != null and params.type != ''">
+                AND d.system_code = #{params.type}
+            </if>
+            GROUP BY a.ID,label ORDER BY label
+        </if>
+    </select>
+
+    <!--    获取预测阈值参数个数-->
+    <select id="getThresholdCount" resultType="int">
+        SELECT count(1)
+        FROM system_docking.api_prediction_threshold_info a
+        WHERE 1=1
+        <if test="params.indicators != null and params.indicators != ''">
+            AND a.index_id = #{params.indicators}
+        </if>
+        <if test="params.business_type != null and params.business_type != ''">
+            AND a.business_type=#{params.business_type}
+        </if>
+    </select>
+
+    <!--    获取预测阈值参数-->
+    <select id="getThresholdData" resultType="hashmap">
+        SELECT a.id,a.index_id,REPLACE(a.index_name,'告警次数','') AS index_name,a.data_type,a.resource,a.resource_name,a.business_type,a.threshold_type,a.operator,a.operator_value,a.description,
+        CASE WHEN threshold_type = '0' THEN CONCAT('预测值与实际值差距超过',operator_value)
+        WHEN threshold_type = '1' THEN CONCAT('预测值与实际值差距超过',operator_value,'%')
+        ELSE '' END AS threshold_parameter
+        FROM system_docking.api_prediction_threshold_info a
+        WHERE 1=1
+        <if test="params.indicators != null and params.indicators != ''">
+            AND a.index_id = #{params.indicators}
+        </if>
+        <if test="params.business_type != null and params.business_type != ''">
+            AND a.business_type=#{params.business_type}
+        </if>
+        <if test="params.page != null and params.page != ''">
+            LIMIT ${params.page},${params.rows}
+        </if>
+    </select>
+
+    <!--   新增预测阈值参数-->
+    <insert id="insertThresholdData">
+        INSERT INTO
+        system_docking.api_prediction_threshold_info
+        VALUES (
+        #{params.ID},
+        #{params.business_type},
+        #{params.data_type},
+        #{params.index_id},
+        #{params.index_name},
+        #{params.resource},
+        #{params.resource_name},
+        #{params.threshold_type},
+        #{params.operator},
+        #{params.operator_value},
+        #{params.description},
+        #{params.userName},
+        #{params.addDate},
+        NULL,
+        NULL
+        )
+    </insert>
+
+    <!--    修改预测阈值参数-->
+    <update id="updateThresholdData">
+        UPDATE
+        system_docking.api_prediction_threshold_info
+        SET
+        MODIFIER=#{params.userName}
+        ,MODIFY_DATE=#{params.modifyDate}
+        <if test="params.business_type != null and params.business_type != ''">
+            ,business_type=#{params.business_type}
+        </if>
+        <if test="params.data_type != null and params.data_type != ''">
+            ,data_type=#{params.data_type}
+        </if>
+        <if test="params.index_id != null and params.index_id != ''">
+            ,index_id=#{params.index_id}
+        </if>
+        <if test="params.index_name != null and params.index_name != ''">
+            ,index_name=#{params.index_name}
+        </if>
+        <if test="params.resource != null and params.resource != ''">
+            ,resource=#{params.resource}
+        </if>
+        <if test="params.resource_name != null and params.resource_name != ''">
+            ,resource_name=#{params.resource_name}
+        </if>
+        <if test="params.threshold_type != null and params.threshold_type != ''">
+            ,threshold_type=#{params.threshold_type}
+        </if>
+        <if test="params.operator != null and params.operator != ''">
+            ,operator=#{params.operator}
+        </if>
+        <if test="params.operator_value != null and params.operator_value != ''">
+            ,operator_value=#{params.operator_value}
+        </if>
+        <if test="params.description != null and params.description != ''">
+            ,description=#{params.description}
+        </if>
+        WHERE ID=#{params.ID}
+    </update>
+
+    <!--    删除预测阈值参数-->
+    <delete id="deleteThresholdData">
+        DELETE FROM system_docking.api_prediction_threshold_info WHERE ID=#{params.ID}
+    </delete>
+
+    <!--   新增参数维护指标预测数据-->
+    <insert id="insertForecastData">
+        INSERT INTO
+        ${params.dataBase}.api_forecast_alarm_records
+        VALUES (
+        #{params.ID},
+        #{params.index_id},
+        #{params.index_name},
+        #{params.resource_name},
+        #{params.alarm_time},
+        #{params.forecastValue},
+        #{params.actualValue},
+        #{params.errorValue},
+        #{params.is_shared},
+        #{params.add_time}
+        )
+    </insert>
+</mapper>

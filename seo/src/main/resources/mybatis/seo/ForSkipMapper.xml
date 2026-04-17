@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.seo.dao.mapper.ForSkipMapper">
+
+
+    <select id="getFileList" resultType="java.util.Map">
+        SELECT  DISTINCT '${params.tableName}' as downFileName   ,
+        b.PATH ,
+        ifnull(c.ZLMC,REVERSE(SUBSTR(REVERSE(b.PATH),1,POSITION(REVERSE(b.PATH),'/')-1)))   AS FILE_NAME  ,'${params.S_INFO_ID}'  AS S_INFO_ID
+        FROM
+        ${params.table} a
+        LEFT JOIN
+        ods.PT_GY_FILES b
+        ON a.UUID=b.PCUUID
+        LEFT JOIN
+        ods.PT_GY_TSZL c
+        ON c.ZLNO=b.PCUUID
+        where 1=1
+        <if test="params.ATTA_ID!=null and params.ATTA_ID != ''">
+            AND a.ATTA_ID = #{params.ATTA_ID}
+        </if>
+        <if test="params.S_INFO_ID!=null and params.S_INFO_ID != ''">
+            AND a.${params.info} = #{params.S_INFO_ID}
+        </if>
+        limit 5
+    </select>
+
+</mapper>

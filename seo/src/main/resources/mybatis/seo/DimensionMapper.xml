@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.seo.dao.mapper.DimensionMapper">
+
+
+    <select id="getMainPage" resultType="java.util.Map">
+        SELECT * FROM
+        ods.seo_dimension_main a
+        where 1=1
+        <if test="params.id!=null and params.id != ''">
+            AND a.id = #{params.id}
+        </if>
+        <if test="params.name!=null and params.name != ''">
+            AND a.name like '%${params.name}%'
+        </if>
+        order by a.name ASC
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="getMainAll" resultType="java.util.Map">
+        SELECT *
+        FROM
+        ods.seo_dimension_main a
+        where 1=1
+        <if test="params.id!=null and params.id != ''">
+            AND a.id = #{params.id}
+        </if>
+        <if test="params.name!=null and params.name != ''">
+            AND a.name like '%${params.name}%'
+        </if>
+        order by a.name ASC
+    </select>
+
+    <select id="checkMain" resultType="java.util.Map">
+        SELECT *
+        FROM
+        ods.seo_dimension_main a
+        where 1=1
+        <if test="params.id!=null and params.id != ''">
+            AND a.id != #{params.id}
+        </if>
+        <if test="params.name!=null and params.name != ''">
+            AND a.name = #{params.name}
+        </if>
+    </select>
+
+    <select id="countMain" resultType="java.lang.Integer">
+        SELECT count(*) FROM
+        ods.seo_dimension_main a
+        where 1=1
+        <if test="params.id!=null and params.id != ''">
+            AND a.id = #{params.id}
+        </if>
+        <if test="params.name!=null and params.name != ''">
+            AND a.name like '%${params.name}%'
+        </if>
+    </select>
+
+    <insert id="addMain">
+        INSERT INTO ods.seo_dimension_main
+        VALUES
+        (
+        #{params.id},
+        #{params.name}
+        )
+    </insert>
+
+    <update id="editMain">
+        ${params.sql}
+    </update>
+
+    <delete id="delMain">
+       ${params.sql}
+    </delete>
+
+    <select id="getSubPage" resultType="java.util.Map">
+        SELECT *
+        FROM
+        ods.seo_dimension_sub a
+        where 1=1
+        <if test="params.id!=null and params.id != ''">
+            AND a.id = #{params.id}
+        </if>
+        <if test="params.code!=null and params.code != ''">
+            AND a.code = #{params.code}
+        </if>
+        <if test="params.main_id!=null and params.main_id != ''">
+            AND a.main_id = #{params.main_id}
+        </if>
+        <if test="params.name!=null and params.name != ''">
+            AND a.name like '%${params.name}%'
+        </if>
+        order by a.name ASC
+        LIMIT ${params.page},${params.rows}
+    </select>
+
+    <select id="getSubAll" resultType="java.util.Map">
+        SELECT *
+        FROM
+        ods.seo_dimension_sub a
+        where 1=1
+        <if test="params.id!=null and params.id != ''">
+            AND a.id = #{params.id}
+        </if>
+        <if test="params.code!=null and params.code != ''">
+            AND a.code = #{params.code}
+        </if>
+        <if test="params.main_id!=null and params.main_id != ''">
+            AND a.main_id = #{params.main_id}
+        </if>
+        <if test="params.name!=null and params.name != ''">
+            AND a.name like '%${params.name}%'
+        </if>
+        order by a.name ASC
+    </select>
+
+    <select id="checkSub" resultType="java.util.Map">
+        SELECT *
+        FROM
+        ods.seo_dimension_sub a
+        where 1=1
+        <if test="params.id!=null and params.id != ''">
+            AND a.id != #{params.id}
+        </if>
+        <if test="params.code!=null and params.code != ''">
+            AND a.code = #{params.code}
+        </if>
+        <if test="params.name!=null and params.name != ''">
+            AND a.name like '%${params.name}%'
+        </if>
+    </select>
+
+    <select id="countSub" resultType="java.lang.Integer">
+        SELECT count(*) FROM
+        ods.seo_dimension_sub a
+        where 1=1
+        <if test="params.id!=null and params.id != ''">
+            AND a.id = #{params.id}
+        </if>
+        <if test="params.code!=null and params.code != ''">
+            AND a.code = #{params.code}
+        </if>
+        <if test="params.main_id!=null and params.main_id != ''">
+            AND a.main_id = #{params.main_id}
+        </if>
+        <if test="params.name!=null and params.name != ''">
+            AND a.name like '%${params.name}%'
+        </if>
+    </select>
+
+    <insert id="addSub">
+        INSERT INTO ods.seo_dimension_sub
+        VALUES
+        (
+        #{params.id},
+        #{params.code},
+        #{params.name},
+        #{params.main_id}
+        )
+    </insert>
+
+    <update id="editSub">
+        ${params.sql}
+    </update>
+
+    <delete id="delSub">
+        ${params.sql}
+    </delete>
+
+
+</mapper>

@@ -1,0 +1,214 @@
+body, a, a:link {
+    font-size: 17px !important;
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.content > div:nth-child(1) {
+    flex: .2;
+    border: 1px solid #e1e1e1;
+    margin-right: 20px;
+    max-height: 450px;
+    overflow-y: auto;
+    overflow: -moz-scrollbars-none;
+    overflow-y: auto;
+
+}
+
+.content > div:nth-child(2) {
+    flex: .8;
+}
+
+/*筛选条件样式*/
+#toolbar .toolbar,
+#toolbar1 .toolbar {
+    width: 100%;
+    padding: 15px 20px 15px 0;
+}
+
+#toolbar .toolbar > div,
+#toolbar1 .toolbar > div {
+    display: inline-block;
+    width: 24%;
+    padding-bottom: 15px;
+}
+
+#toolbar .toolbar > div > span:nth-child(1),
+#toolbar1 .toolbar > div > span:nth-child(1) {
+    display: inline-block;
+    text-align: right;
+    width: 33%;
+}
+
+#toolbar .toolbar > .toolbarButton,
+#toolbar1 .toolbar > .toolbarButton {
+    float: right;
+    text-align: right;
+    margin-right: 3.5%;
+    width: 22%;
+    padding-bottom: 0;
+}
+
+#toolbar .toolbar > div span.textbox,
+#toolbar1 .toolbar > div span.textbox {
+    width: 64% !important;
+    height: 30px !important;
+}
+
+#toolbar .toolbar > div span .textbox-text,
+#toolbar1 .toolbar > div span .textbox-text {
+    width: 100% !important;
+}
+
+.tableButton {
+    color: #0d8ddc !important;
+}
+
+/*编辑框*/
+#edit {
+    padding: 20px 30px;
+}
+
+#edit > div > form > div {
+    padding-bottom: 10px;
+}
+
+#edit > div > form > div > .titleSpan {
+    display: inline-block;
+    width: 19%;
+    text-align: right;
+    padding-right: 8px;
+}
+
+#edit > div > form > div > .textbox {
+    width: 75% !important;
+}
+
+#edit > div > form > div > .Wdate {
+    width: 75% !important;
+}
+
+#edit > div > form > div > .textbox > .textbox-text {
+    width: 100% !important;
+}
+
+.dialog-button {
+    text-align: right !important;
+}
+
+/*tree 选中颜色设置*/
+.tree-node-selected {
+    color: #ffffff;
+    background: #b4b4b4;
+}
+
+/*datagrid herder*/
+.datagrid-header-row td[field] {
+    text-align: center !important;
+}
+
+/*清除浮动*/
+.clearfloat:after {
+    display: block;
+    clear: both;
+    content: "";
+    visibility: hidden;
+    height: 0
+}
+
+/*文件详情*/
+#fileDetails > div > span {
+    display: inline-block;
+    text-align: center;
+}
+
+#fileDetails > div > span:nth-child(1) {
+    width: 60%;
+    padding-right: 20px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.toolbarButton .easyui-linkbutton {
+    width: 60px!important;
+    height: 30px!important;
+    text-align: center;
+}
+#addButton{
+    background: #0d8ddc !important;
+    color: #ffffff;
+}
+#fileDetails > div > a {
+    float: right;
+    color: #0d8ddc;
+}
+
+.annexSize > div {
+    float: right;
+    color: #898989;
+    margin-right: 5%;
+}
+
+/*时间控件*/
+.Wdate {
+    border-color: #ccc !important;
+    height: 30px;
+    line-height: 26px;
+    width: 54%;
+}
+
+/*附件*/
+#addAttachments > div {
+    margin: 5px 0 0 19.5%;
+    display: flex;
+    align-items: center;
+}
+
+/*文件控件美好*/
+.file {
+    position: relative;
+    display: inline-block;
+    background: #D0EEFF;
+    border: 1px solid #99D3F5;
+    border-radius: 4px;
+    padding: 4px 12px;
+    overflow: hidden;
+    color: #1E88C7;
+    text-decoration: none;
+    text-indent: 0;
+    line-height: 20px;
+}
+
+.file input {
+    position: absolute;
+    font-size: 100px;
+    right: 0;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    opacity: 0;
+    width: 100%;
+}
+
+.file:hover {
+    background: #AADFFD;
+    border-color: #78C3F3;
+    color: #004974;
+    text-decoration: none;
+}
+
+/*导航/面包屑*/
+#bread {
+    padding: 20px 0;
+    font-size: 16px;
+    color: #969696;
+}
+
+/*tab*/
+.tabs-header, .tabs-panels {
+    width: 99.4% !important;
+}

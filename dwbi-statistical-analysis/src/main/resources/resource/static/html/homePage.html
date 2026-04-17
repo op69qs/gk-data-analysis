@@ -1,0 +1,136 @@
+<link href="statisticalAnalysis/static/css/homePage/styles.css" type="text/css" rel="stylesheet"/>
+<link href="statisticalAnalysis/static/css/homePage/home-styles.css" type="text/css" rel="stylesheet"/>
+<div id="base" class="" style="width: 95%">
+    <!-- Unnamed (矩形) -->
+    <div id="yy_box" class="ax_default box_1">
+        <div class="box_title">
+            <div class="title_lf">
+                <img class="img " src="statisticalAnalysis/static/images/u117.png"/>
+                <p>运维预警</p>
+            </div>
+            <p class="more" onclick="devOpsMore()">更多 &gt;&gt;</p>
+        </div>
+        <div id="devOps_list" class="box_list"></div>
+    </div>
+    <div id="newwork_box" class="ax_default box_1">
+        <div class="box_title">
+            <div class="title_lf">
+                <img class="img " src="statisticalAnalysis/static/images/u117.png"/>
+                <p>网络预警</p>
+            </div>
+            <p class="more" onclick="networkMore()">更多 &gt;&gt;</p>
+        </div>
+        <div id="network_list" class="box_list"></div>
+    </div>
+
+</div>
+<script>
+    var devOpsData = []; //运维预测数据
+    var networkData = []; //网络预测数据
+
+    $(function () {
+        initValue();
+    });
+
+    //页面加载设值
+    function initValue() {
+        $.ajax({
+            type: 'post',
+            url: './statisticalAnalysis/forecastAnalysis/getForecastData',
+            data: '',
+            dataType: "json",
+            success: function (result) {
+                if (result) {
+                    //运维预警
+                    var devOps_div = '';
+                    for (var i = 0; i < result.devOpsResult.length; i++) {
+                        devOps_div += '<div class="list_card">\n<div class="list_title">\n' + result.devOpsResult[i].index_name + '</div>\n'
+                            + '<div class="list_dec">\n<p>\n<span class="spantitle">实际值：</span>\n<span class="spanvalue">' + result.devOpsResult[i].actual_value + '</span>\n</p>\n'
+                            + '<p>\n<span class="spantitle">预测值：</span>\n<span class="spanvalue">' + result.devOpsResult[i].forecast_value + '</span>\n</p>\n'
+                            + '</div>\n</div>';
+                    }
+                    $("#devOps_list").html(devOps_div);
+                    //表格数据
+                    devOpsData = result.devOpsData;
+
+                    //网络预警
+                    var network_div = '';
+                    for (var i = 0; i < result.networkResult.length; i++) {
+                        network_div += '<div class="list_card">\n<div class="list_title">\n' + result.networkResult[i].index_name + '</div>\n'
+                            + '<div class="list_dec">\n<p>\n<span class="spantitle">实际值：</span>\n<span class="spanvalue">' + result.networkResult[i].actual_value + '</span>\n</p>\n'
+                            + '<p>\n<span class="spantitle">预测值：</span>\n<span class="spanvalue">' + result.networkResult[i].forecast_value + '</span>\n</p>\n'
+                            + '</div>\n</div>';
+                    }
+                    $("#network_list").html(network_div);
+                    //表格数据
+                    networkData = result.networkData;
+                }
+            }
+        });
+    }
+
+    //运维更多
+    function devOpsMore() {
+        $("#base").css("width", "98%");
+        var param = {};
+        //查询表格数据
+        $('#base').datagrid({
+            url: '',
+            toolbar: '#toolbar',
+            singleSelect: true,
+            pagination: true,
+            maxHeight: 600,
+            queryParams: param || {},
+            columns: [[
+                {field: "alarm_time", title: "预警时间", width: '15%', align: 'center'},
+                {field: "index_name", title: "指标名称", width: '15%', align: 'center'},
+                {field: "resource_name", title: "资源名称", width: '20%', align: 'center'},
+                {field: "forecast_value", title: "预测值", width: '15%', align: 'center'},
+                {field: "actual_value", title: "实际值", width: '15%', align: 'center'},
+                {field: "error_value", title: "预测值与实际值差", width: '15%', align: 'center'}
+            ]],
+            data: devOpsData
+        });
+    }
+
+    //网络更多
+    function networkMore() {
+        $("#base").css("width", "98%");
+        var param = {};
+        //查询表格数据
+        $('#base').datagrid({
+            url: '',
+            toolbar: '#toolbar',
+            singleSelect: true,
+            pagination: true,
+            maxHeight: 600,
+            queryParams: param || {},
+            columns: [[
+                {field: "alarm_time", title: "预警时间", width: '15%', align: 'center'},
+                {field: "index_name", title: "指标名称", width: '15%', align: 'center'},
+                {field: "resource_name", title: "资源名称", width: '20%', align: 'center'},
+                {field: "forecast_value", title: "预测值", width: '15%', align: 'center'},
+                {field: "actual_value", title: "实际值", width: '15%', align: 'center'},
+                {field: "error_value", title: "预测值与实际值差", width: '15%', align: 'center'}
+            ]],
+            data: networkData
+        });
+    }
+
+    var xhrOnProgress = function (fun) {
+        xhrOnProgress.onprogress = fun; //绑定监听
+        //使用闭包实现监听绑
+        return function () {
+            //通过$.ajaxSettings.xhr();获得XMLHttpRequest对象
+            var xhr = $.ajaxSettings.xhr();
+            //判断监听函数是否为函数
+            if (typeof xhrOnProgress.onprogress !== 'function')
+                return xhr;
+            //如果有监听函数并且xhr对象支持绑定时就把监听函数绑定上去
+            if (xhrOnProgress.onprogress && xhr.upload) {
+                xhr.upload.onprogress = xhrOnProgress.onprogress;
+            }
+            return xhr;
+        }
+    }
+</script>

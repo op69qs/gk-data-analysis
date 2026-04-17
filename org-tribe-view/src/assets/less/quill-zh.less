@@ -1,0 +1,86 @@
+.quill-editor {
+  /deep/ .ql-container,
+  /deep/ .ql-editor {
+    font-weight: normal;
+    min-height: 200px;
+  }
+  /deep/ .ql-snow {
+    line-height: 30px !important;
+    // .ql-picker-options{
+
+    // }
+    .ql-picker-label {
+      outline: none;
+      line-height: 26px;
+    }
+    .ql-picker-options .ql-picker-item {
+      height: 30px;
+      padding: 0 0;
+    }
+    .ql-tooltip[data-mode='link']::before {
+      content: '请输入链接地址:';
+    }
+    .ql-tooltip.ql-editing a.ql-action::after {
+      border-right: 0px;
+      content: '保存' !important;
+      padding-right: 0px;
+    }
+    .ql-tooltip[data-mode='video']::before {
+      content: '请输入视频地址:' !important;
+    }
+    .ql-picker.ql-size .ql-picker-label::before,
+    .ql-picker.ql-size .ql-picker-item::before {
+      content: '14px' !important;
+    }
+    .ql-picker.ql-size .ql-picker-label[data-value='large']::before,
+    .ql-picker.ql-size .ql-picker-item[data-value='large']::before {
+      content: '18px' !important;
+    }
+    .ql-picker.ql-size .ql-picker-label[data-value='huge']::before,
+    .ql-picker.ql-size .ql-picker-item[data-value='huge']::before {
+      content: '32px' !important;
+    }
+
+    .ql-picker.ql-header .ql-picker-label::before,
+    .ql-picker.ql-header .ql-picker-item::before {
+      content: '文本' !important;
+    }
+    .ql-picker.ql-header .ql-picker-label[data-value='1']::before,
+    .ql-picker.ql-header .ql-picker-item[data-value='1']::before {
+      content: '标题1' !important;
+    }
+    .ql-picker.ql-header .ql-picker-label[data-value='2']::before,
+    .ql-picker.ql-header .ql-picker-item[data-value='2']::before {
+      content: '标题2' !important;
+    }
+    .ql-picker.ql-header .ql-picker-label[data-value='3']::before,
+    .ql-picker.ql-header .ql-picker-item[data-value='3']::before {
+      content: '标题3' !important;
+    }
+    .ql-picker.ql-header .ql-picker-label[data-value='4']::before,
+    .ql-picker.ql-header .ql-picker-item[data-value='4']::before {
+      content: '标题4' !important;
+    }
+    .ql-picker.ql-header .ql-picker-label[data-value='5']::before,
+    .ql-picker.ql-header .ql-picker-item[data-value='5']::before {
+      content: '标题5' !important;
+    }
+    .ql-picker.ql-header .ql-picker-label[data-value='6']::before,
+    .ql-picker.ql-header .ql-picker-item[data-value='6']::before {
+      content: '标题6' !important;
+    }
+
+    .ql-picker.ql-font .ql-picker-label::before,
+    .ql-picker.ql-font .ql-picker-item::before {
+      content: '标准字体' !important;
+    }
+    .ql-picker.ql-font .ql-picker-label[data-value='serif']::before,
+    .ql-picker.ql-font .ql-picker-item[data-value='serif']::before {
+      content: '衬线字体' !important;
+    }
+    .ql-picker.ql-font .ql-picker-label[data-value='monospace']::before,
+    .ql-picker.ql-font .ql-picker-item[data-value='monospace']::before {
+      content: '等宽字体' !important;
+    }
+  }
+}

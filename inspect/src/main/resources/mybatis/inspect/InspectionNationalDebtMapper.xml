@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionNationalDebtMapper">
+
+    <!--    查询国债巡查信息tree list-->
+    <select id="getInspectionNationalDebtTreeList" resultType="hashmap">
+        SELECT a.NATIONAL_DEBT_ID,
+        b.GUOKU_ID,
+        b.GUOKU_PID,
+        b.GUOKU_DSCR,
+        b.LEVEL,
+        CONCAT(b.isleaf,'') AS isleaf,
+        a.CHECK_DATE,
+        a.CHECK_COUNT,
+        a.SUMMARY_STATE
+        FROM inspection.inspection_national_debt a
+        LEFT JOIN dmcode.cm_guoku_dimnsn b ON a.CHECK_GK=b.GUOKU_ID
+        WHERE 1=1
+        <if test="params.parentId != null and params.parentId != ''">
+            AND a.NATIONAL_DEBT_ID IN(SELECT NATIONAL_DEBT_ID FROM inspection.inspection_national_debt WHERE PARENT_GK = #{params.parentId} AND SUMMARY_STATE = '2')
+        </if>
+        <if test="params.CHECK_DATE != null and params.CHECK_DATE != ''">
+            AND a.CHECK_DATE = #{params.CHECK_DATE}
+        </if>
+        <if test="(params.CURRENT_GK != null and params.CURRENT_GK != '') and (params.GUOKU_ID == null or params.GUOKU_ID == '') and (params.parentId == null or params.parentId == '')">
+            AND a.CHECK_GK = #{params.CURRENT_GK}
+        </if>
+        <if test="params.queryByKey != null">
+            AND a.NATIONAL_DEBT_ID IN
+            <foreach collection="params.queryByKey" item="item" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        ORDER BY a.CHECK_DATE DESC
+    </select>
+
+    <select id="getqQeryConditon" resultType="string">
+        SELECT CASE WHEN LEVEL = 2 THEN
+                    CASE WHEN ${params.GUOKU_ID} = ${params.CURRENT_GK} THEN
+                        (SELECT GROUP_CONCAT(IFNULL(NATIONAL_DEBT_ID,'')) FROM inspection.inspection_national_debt
+                        WHERE
+                        <if test="params.parentId != null and params.parentId != ''">
+                            PARENT_GK = #{params.GUOKU_ID}
+                        </if>
+                        <if test="params.parentId == null or params.parentId == ''">
+                            CHECK_GK = #{params.GUOKU_ID}
+                        </if>
+
+                        <if test="params.CHECK_DATE != null and params.CHECK_DATE != ''">
+                            AND CHECK_DATE = #{params.CHECK_DATE}
+                        </if>
+                        )
+                    ELSE
+                        (SELECT CASE WHEN LEVEL = 3 THEN
+                                    (SELECT GROUP_CONCAT(IFNULL(NATIONAL_DEBT_ID,'')) FROM inspection.inspection_national_debt
+                                    WHERE SUMMARY_STATE = '2' AND CHECK_GK = #{params.GUOKU_ID}
+                                    <if test="params.CHECK_DATE != null and params.CHECK_DATE != ''">
+                                        AND CHECK_DATE = #{params.CHECK_DATE}
+                                    </if>
+                                    )
+                                ELSE
+                                    (SELECT GROUP_CONCAT(IFNULL(t.NATIONAL_DEBT_ID,'')) FROM inspection.inspection_national_debt t
+                                    RIGHT JOIN
+                                    (
+                                    SELECT CASE WHEN d.SUMMARY_STATE ='2' THEN d.NATIONAL_DEBT_ID END AS NATIONAL_DEBT_ID,d.CHECK_DATE
+                                    FROM inspection.inspection_national_debt d
+                                    WHERE CHECK_GK = (
+                                                    SELECT DISTINCT PARENT_GK FROM inspection.inspection_national_debt WHERE SUMMARY_STATE = '2' and CHECK_GK = #{params.GUOKU_ID}
+                                                    <if test="params.CHECK_DATE != null and params.CHECK_DATE != ''">
+                                                        AND CHECK_DATE = #{params.CHECK_DATE}
+                                                    </if>
+                                                    )
+                                    ) v ON t.CHECK_DATE=v.CHECK_DATE AND v.NATIONAL_DEBT_ID IS NOT NULL
+                                    WHERE t.CHECK_GK = #{params.GUOKU_ID}
+                                    <if test="params.CHECK_DATE != null and params.CHECK_DATE != ''">
+                                        AND t.CHECK_DATE = #{params.CHECK_DATE}
+                                    </if>
+                                    )
+                                END
+                        FROM dmcode.cm_guoku_dimnsn WHERE GUOKU_ID = #{params.GUOKU_ID})
+                    END
+             WHEN LEVEL = 3 THEN
+                (SELECT GROUP_CONCAT(IFNULL(NATIONAL_DEBT_ID,'')) FROM inspection.inspection_national_debt
+                WHERE SUMMARY_STATE = '2' AND CHECK_GK = #{params.GUOKU_ID} AND PARENT_GK = #{params.CURRENT_GK}
+                <if test="params.CHECK_DATE != null and params.CHECK_DATE != ''">
+                    AND CHECK_DATE = #{params.CHECK_DATE}
+                </if>
+                )
+             ELSE
+                (SELECT GROUP_CONCAT(IFNULL(NATIONAL_DEBT_ID,'')) FROM inspection.inspection_national_debt WHERE CHECK_GK = #{params.GUOKU_ID}
+                <if test="params.CHECK_DATE != null and params.CHECK_DATE != ''">
+                    AND CHECK_DATE = #{params.CHECK_DATE}
+                </if>
+                )
+             END AS GUOKU_ID
+        FROM dmcode.cm_guoku_dimnsn WHERE GUOKU_ID = #{params.CURRENT_GK}
+    </select>
+
+    <!--    查询指定国库的下级检查国库信息，以便于巡查汇总-->
+    <select id="selectNationalDebtChildren" resultType="hashmap">
+        SELECT NATIONAL_DEBT_ID,CHECK_GK,PARENT_GK,CHECK_DATE,CHECK_COUNT,SUMMARY_STATE
+        FROM inspection.inspection_national_debt
+        WHERE 1=1
+        <if test="params.parentId != null and params.parentId != ''">
+            AND PARENT_GK = #{params.parentId}
+        </if>
+        <if test="params.CHECK_DATE != null and params.CHECK_DATE != ''">
+            AND CHECK_DATE = #{params.CHECK_DATE}
+        </if>
+        <if test="params.SUMMARY_STATE != null and params.SUMMARY_STATE != ''">
+            AND SUMMARY_STATE = #{params.SUMMARY_STATE}
+        </if>
+    </select>
+
+    <!--    查询国债巡查检查次数-->
+    <select id="selectCheckCount" resultType="int">
+        SELECT COUNT(1)
+        FROM (SELECT PROJECT_ID FROM inspection.inspection_project_rate
+        WHERE CHECK_GK = #{params.CHECK_GK} AND CHECK_DATE = #{params.CHECK_DATE}
+        GROUP BY PROJECT_ID) V
+    </select>
+
+    <!--    校验当前国库是否存在于国债巡查中-->
+    <select id="selectNationalDebtCount" resultType="int">
+        SELECT COUNT(1) FROM inspection.inspection_national_debt
+        WHERE CHECK_GK = #{params.CHECK_GK} AND CHECK_DATE = #{params.CHECK_DATE}
+    </select>
+
+    <!--    新增国债巡查信息-->
+    <insert id="insertInspectionNationalDebtData">
+        INSERT INTO
+        inspection.inspection_national_debt
+        VALUES
+        <foreach collection="list" item="params" separator=",">
+            (
+            #{params.NATIONAL_DEBT_ID},
+            #{params.CHECK_GK},
+            #{params.PARENT_GK},
+            #{params.CHECK_DATE},
+            #{params.CHECK_COUNT},
+            #{params.SUMMARY_STATE},
+            #{params.ADD_DATE},
+            #{params.ADD_USERID},
+            null,
+            null
+            )
+        </foreach>
+    </insert>
+
+    <!--    根据国库Id和检查日期查询当前国库不存在的上级巡查信息-->
+    <select id="getParentNationalDebt" resultType="hashmap">
+        SELECT * FROM inspection.inspection_national_debt
+        WHERE CHECK_DATE = #{params.CHECK_DATE} AND CHECK_GK IN
+        <foreach collection="params.array" item="guokuId" open="(" close=")" separator=",">
+            #{guokuId}
+        </foreach>
+    </select>
+
+    <!--    修改巡查记录表信息-->
+    <update id="updateNationalDebtData">
+        UPDATE
+        inspection.inspection_national_debt
+        SET
+        <if test="params.CHECK_COUNT != null and params.CHECK_COUNT != ''">
+            CHECK_COUNT = #{params.CHECK_COUNT},
+        </if>
+        <if test="params.SUMMARY_STATE != null and params.SUMMARY_STATE != ''">
+            SUMMARY_STATE = #{params.SUMMARY_STATE},
+        </if>
+        MODIFY_DATE = #{params.MODIFY_DATE},
+        MODIFY_USERID = #{params.MODIFY_USERID}
+        WHERE NATIONAL_DEBT_ID = #{params.NATIONAL_DEBT_ID}
+    </update>
+
+    <!--    省、市级国库汇总数据-->
+    <select id="getProjectSummaryList" resultType="hashmap">
+        ${summarySQL}
+    </select>
+
+    <!--    新增考评项目评分信息-->
+    <insert id="insertInspectionProjectRate">
+        INSERT INTO
+        inspection.inspection_project_rate
+        VALUES
+        <foreach collection="list" item="params" separator=",">
+            (
+            #{params.PROJECT_ID},
+            #{params.NATIONAL_DEBT_ID},
+            #{params.CHECK_GK},
+            #{params.ITEM_ID},
+            #{params.BANK_CODE},
+            #{params.SCORE},
+            #{params.CHECK_DATE},
+            #{params.CHECK_COUNT},
+            #{params.ADD_DATE},
+            #{params.ADD_USERID}
+            )
+        </foreach>
+    </insert>
+
+    <!--    删除考评项目评分信息-->
+    <delete id="deleteInspectionProjectRate">
+        DELETE FROM inspection.inspection_project_rate WHERE PROJECT_ID = #{params.PROJECT_ID}
+    </delete>
+
+    <!--    查看考评项目评分信息-->
+    <select id="selectInspectionProjectRate" resultType="hashmap">
+        SELECT PROJECT_ID,NATIONAL_DEBT_ID,ITEM_ID,BANK_CODE,SCORE,CHECK_DATE,CHECK_COUNT
+        FROM inspection.inspection_project_rate
+        WHERE NATIONAL_DEBT_ID = #{params.NATIONAL_DEBT_ID}
+        AND CHECK_DATE = #{params.CHECK_DATE}
+        <if test="params.CHECK_COUNT != null and params.CHECK_COUNT != ''">
+            AND CHECK_COUNT = #{params.CHECK_COUNT}
+        </if>
+    </select>
+
+    <!--    考评项目评分汇总-->
+    <select id="selectProjectSummary" resultType="hashmap">
+        SELECT PROJECT_ID,NATIONAL_DEBT_ID,ITEM_ID,BANK_CODE,SUM(SCORE) AS SCORE,CHECK_DATE,CHECK_COUNT
+        FROM (
+        SELECT PROJECT_ID,NATIONAL_DEBT_ID,ITEM_ID,BANK_CODE,CASE WHEN SCORE = '√' THEN '0' ELSE SCORE END AS SCORE,CHECK_DATE,CHECK_COUNT
+        FROM inspection.inspection_project_rate
+        WHERE NATIONAL_DEBT_ID = #{params.NATIONAL_DEBT_ID}
+        ) V
+         GROUP BY BANK_CODE,ITEM_ID
+    </select>
+
+    <!--    查询考评项目是否有清零项-->
+    <select id="selectClearZeroProjects" resultType="hashmap">
+        SELECT ITEM_ID,BANK_CODE
+        FROM inspection.inspection_project_rate
+        WHERE CHECK_DATE = #{params.CHECK_DATE}
+        AND CHECK_GK IN
+        <foreach collection="array" item="guokuId" open="(" close=")" separator=",">
+            #{guokuId}
+        </foreach>
+        AND ITEM_ID IN
+        <foreach collection="list" item="itemId" open="(" close=")" separator=",">
+            #{itemId}
+        </foreach>
+        GROUP BY BANK_CODE,ITEM_ID
+    </select>
+
+    <!--    新增考评项目评分汇总信息-->
+    <insert id="insertInspectionProjectSummary">
+        INSERT INTO
+        inspection.inspection_project_summary
+        VALUES
+        <foreach collection="list" item="params" separator=",">
+            (
+            #{params.PROJECT_ID},
+            #{params.NATIONAL_DEBT_ID},
+            #{params.CHECK_GK},
+            #{params.ITEM_ID},
+            #{params.BANK_CODE},
+            #{params.SCORE},
+            #{params.CHECK_DATE},
+            #{params.ADD_DATE},
+            #{params.ADD_USERID}
+            )
+        </foreach>
+    </insert>
+
+    <!--    撤销考评项目评分汇总信息-->
+    <delete id="deleteInspectionProjectSummary">
+        DELETE FROM inspection.inspection_project_summary WHERE NATIONAL_DEBT_ID = #{params.NATIONAL_DEBT_ID}
+    </delete>
+
+    <!--    查看考评项目评分汇总信息-->
+    <select id="selectInspectionProjectSummary" resultType="hashmap">
+        SELECT PROJECT_ID,NATIONAL_DEBT_ID,ITEM_ID,BANK_CODE,SCORE,CHECK_DATE
+        FROM inspection.inspection_project_summary
+        WHERE NATIONAL_DEBT_ID = #{params.NATIONAL_DEBT_ID} AND CHECK_DATE = #{params.CHECK_DATE}
+    </select>
+
+    <!--    查看考评项目评分汇总数量-->
+    <select id="selectProjectSummaryCount" resultType="int">
+        SELECT COUNT(1) FROM inspection.inspection_project_summary
+        WHERE NATIONAL_DEBT_ID = #{params.NATIONAL_DEBT_ID} AND CHECK_DATE = #{params.CHECK_DATE}
+    </select>
+
+    <!--    根据当前国库Id查询所有该国库的信息-->
+    <select id="getGuoKuDataById" resultType="hashmap">
+        SELECT GUOKU_ID,GUOKU_DSCR,GUOKU_SHUXING_ID,GUOKU_SHUXING_DSCR,GUOKU_PID,
+            LEVEL,LEVEL_DSCR,AREA_NO_ID,AREA_DSCR,BOOKORGCODE,BOOKORGNAME
+            FROM dmcode.cm_guoku_dimnsn WHERE GUOKU_ID  = #{params.CHECK_GK}
+    </select>
+
+    <!--    根据当前巡查主键查询所有该国库的信息-->
+    <select id="getGuoKuDataByKey" resultType="hashmap">
+        SELECT GUOKU_ID,GUOKU_DSCR,GUOKU_SHUXING_ID,GUOKU_SHUXING_DSCR,GUOKU_PID,
+            LEVEL,LEVEL_DSCR,AREA_NO_ID,AREA_DSCR,BOOKORGCODE,BOOKORGNAME
+            FROM dmcode.cm_guoku_dimnsn
+            WHERE GUOKU_ID  = (
+                SELECT CHECK_GK FROM inspection.inspection_national_debt WHERE NATIONAL_DEBT_ID = #{params.NATIONAL_DEBT_ID}
+            )
+    </select>
+
+    <!--    根据当前国库Id查询所有该国库的上级国库-->
+    <select id="getAllParentGuoKu" resultType="hashmap">
+        <!--  中心支库  -->
+        <if test='params.LEVEL == "3"'>
+            SELECT GUOKU_ID,GUOKU_PID FROM dmcode.cm_guoku_dimnsn
+            WHERE GUOKU_ID = (SELECT GUOKU_PID FROM dmcode.cm_guoku_dimnsn WHERE GUOKU_ID = #{params.CHECK_GK})
+            UNION
+            SELECT GUOKU_ID,GUOKU_PID FROM dmcode.cm_guoku_dimnsn WHERE GUOKU_ID = #{params.CHECK_GK}
+        </if>
+        <!--  县（区）支库  -->
+        <if test='params.LEVEL == "4"'>
+            <!--  昆明中支下的县区级国库特殊处理 -->
+            <if test='params.PARENT_GK == "2401000000"'>
+                SELECT GUOKU_ID,GUOKU_PID FROM dmcode.cm_guoku_dimnsn
+                WHERE GUOKU_ID = (SELECT GUOKU_PID FROM dmcode.cm_guoku_dimnsn
+                WHERE GUOKU_ID = (SELECT GUOKU_PID FROM dmcode.cm_guoku_dimnsn WHERE GUOKU_ID = #{params.CHECK_GK}))
+                UNION
+            </if>
+            SELECT GUOKU_ID,GUOKU_PID FROM dmcode.cm_guoku_dimnsn
+            WHERE GUOKU_ID = (SELECT GUOKU_PID FROM dmcode.cm_guoku_dimnsn WHERE GUOKU_ID = #{params.CHECK_GK})
+            UNION
+            SELECT GUOKU_ID,GUOKU_PID FROM dmcode.cm_guoku_dimnsn WHERE GUOKU_ID = #{params.CHECK_GK}
+        </if>
+    </select>
+
+    <!--    获取考评项目的清零项和加总评分项 -->
+    <select id="getClearZeroProjectItems" resultType="hashmap">
+        SELECT ITEM_ID,SCORE_CLASSIFY FROM inspection.inspection_evaluation_item WHERE SCORE_CLASSIFY IN('1','2')
+    </select>
+
+    <!--    查询国库检查次数最大值-->
+    <select id="getMaxCheckCount" resultType="hashmap">
+        SELECT MAX(CHECK_COUNT) AS CHECK_COUNT,GROUP_CONCAT(CHECK_GK) AS CHECK_GK FROM
+        inspection.inspection_national_debt
+        WHERE CHECK_DATE = #{params.CHECK_DATE}
+        <!--  省级国库 -->
+        <if test='params.LEVEL == "2"'>
+            AND (CHECK_GK = #{params.GUOKU_ID} OR SUMMARY_STATE = '2' AND PARENT_GK = #{params.GUOKU_ID}
+            OR CHECK_GK IN (SELECT CHECK_GK FROM inspection.inspection_national_debt
+            WHERE PARENT_GK IN (SELECT CHECK_GK FROM inspection.inspection_national_debt
+            WHERE PARENT_GK = #{params.GUOKU_ID}))
+            )
+        </if>
+        <!--  市级国库 -->
+        <if test='params.LEVEL == "3"'>
+            AND (CHECK_GK = #{params.GUOKU_ID} OR SUMMARY_STATE = '2' AND PARENT_GK = #{params.GUOKU_ID})
+        </if>
+        <!--  县级国库 -->
+        <if test='params.LEVEL == "4"'>
+            AND CHECK_GK = #{params.GUOKU_ID}
+        </if>
+    </select>
+
+    <!--    组装考评评分明细查询SQL-->
+    <select id="getCheckDataList" resultType="hashmap">
+        ${checkDataSQL}
+    </select>
+
+    <!--    获取到处需要的数据-->
+    <select id="getExprotData" resultType="hashmap">
+        ${exportSQL}
+    </select>
+</mapper>

@@ -1,0 +1,254 @@
+
+/*body{
+	background: -webkit-linear-gradient( left,#000722,#000722);
+}*/
+body{
+	position: relative;
+}
+.panel-body {
+	padding: 0px !important;
+	/*overflow_x: hidden;*/
+}
+.panel-header {
+	padding: 10px 0px !important;
+}
+
+.panel{
+	border: 0px !important;
+	border-radius: 0px !important;
+}
+.backcolor{
+	box-shadow: 0px 0px 5px gray;
+	padding: 2px 5px;
+}
+.paddbord{
+	margin: 0px 15px;
+}
+#timeselect{
+	height:30px;
+}
+#select_item{
+	width: 170px;
+	display: inline-block;
+	border: 1px solid rgba(225,225,225,0.5);
+
+}
+.suspend_input select{
+	border: 1px solid rgba(225,225,225,0.5);
+}
+#select_item .title{
+	width: 147px;
+	white-space:nowrap;
+	/*display: inline-block;*/
+	overflow:hidden;
+	text-overflow:ellipsis;
+}
+.title input{
+	width: 136px;
+	display: inline-block;
+}
+#select_item .triangle{
+	width: 0;
+	height: 0;
+	border-left: 5px solid transparent;
+	border-right: 5px solid transparent;
+	border-top: 10px solid #4D4D4D;
+	display: inline-block;
+	/*vertical-align: text-top;*/
+	margin-top: 0px;
+}
+#select_item,#item{
+	cursor: pointer;
+}
+#item{
+	position: absolute;
+	z-index: 1000;
+	display: none;
+	width: 198px;
+	height: 200px;
+	overflow:auto;
+	margin-left: 46px;
+	border:1px solid #0C0C0C;
+
+}
+.panel-header, .panel-body{
+	border-style:none !important;
+}
+#navTop{
+	height:49px !important;
+}
+#select_item> ul{
+	border: 1px solid #0C0C0C;
+}
+select,input{
+	height:31px;
+}
+/*.panel ,.combo-p{*/
+/*opacity: 0;*/
+/*}*/
+
+#item div{
+	/*border:1px solid #777777;*/
+	border-top:none;
+	white-space:nowrap;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	padding: 2px 3px;
+	background: white;
+}
+#item div:hover{
+	background: #C4C4C4;
+}
+form{
+	width: 200px;
+	font-size: 16px;
+	font-weight: 800;
+	color:#0066FF;
+}
+form input:hover{
+	cursor: pointer;
+}
+.container-fluid{
+	margin-top:20px;
+}
+.time_header{
+	position: relative;
+}
+.time_axix{
+	width: 95%;
+	/*border: 2px solid #FF8533;*/
+	height: 5px;
+	background:  -webkit-linear-gradient(left, #FFFACD,#FFE7BA,#F3B250,#FAA46B ,#EB8948, #FF8533);
+	box-shadow: 1px 3px 6px darkgray;
+}
+#triangle-right {
+	position: absolute;
+	top:-6px;
+	right: 4.5%;
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-left: 8px solid #FF8533;
+    border-bottom: 8px solid transparent;
+}
+
+.left_box{
+	text-align: center;
+	margin: 10px 0px 20px 40px;
+}
+.left_box .title{
+	font-size:17px;
+	text-align: left;
+	font-weight: 800;
+	font-family: "arial";
+}
+.left_box span{
+	display: inline-block;
+	padding: 10px 0;
+	color: #0066FF;
+	font-size: 28px;
+	font-weight: 600;
+}
+.echart_part1_numer span{
+	color: #333;
+}
+.tabheader{
+	position: relative;
+}
+.tabTitle{
+	position: absolute;
+	left: -10%;
+text-align: left;
+margin-top: 30px;	
+}
+.tabTitle ul li{
+ display: inline-block;
+ list-style: none;
+}
+.tabTitle ul li a:hover{
+	cursor: pointer;
+	color: #F16441;
+}
+.tabTitle ul li a{	
+	/*border: 1px solid red;*/
+	text-decoration:none;
+	padding: 4px 4px;
+	font-size: 18px;
+	color: #1A6BE6;	
+	font-weight: 500;
+}
+.tabTitle ul li.active a {
+ color: #F16441;
+ text-decoration: none;
+ border: none; 
+}
+/*.top10 ul .first a{
+	color: #e4393c;
+}*/
+
+.time_axix_sort{
+text-align: center;	
+margin-top: 8px;
+margin-left: -10%;
+width: 100%;
+}
+.time_axix_sort li{
+  display: inline-block;
+  list-style: none;
+}
+.time_axix_sort ul li a:hover{
+	cursor: pointer;
+	color: #F16441;
+}
+.time_axix_sort ul li a{	
+	/*border: 1px solid red;*/
+	text-decoration:none;
+	padding: 2px 4px;
+	/*margin: 0px 2px;*/
+	font-size: 18px;
+	color: #1A6BE6;	
+	display: inline-block;
+}
+.time_axix_sort ul li.active a {
+ color: #F16441;
+ text-decoration: none;
+ border: none; 
+}
+.legend{
+text-align: left;	
+margin-top: 8px;
+margin-left: -10%;
+width: 100%;
+}
+.legend li{
+  display: inline-block;
+  list-style: none;
+}
+.legend ul li a:hover{
+	cursor: pointer;
+}
+.legend ul li a{	
+	/*border: 1px solid red;*/
+	text-decoration:none;
+	padding: 2px 5px;
+	/*margin: 0px 2px;*/
+	font-size: 14px;
+	color: #999999;	
+	display: inline-block;
+}
+.legend ul li.active a {
+ color: #0F0F0F;
+ text-decoration:none;
+ border: none; 
+}
+.legend ul li span{
+	display: inline-block;
+	width: 20px;
+	height: 10px;
+	border-radius: 20%;
+	background: #999999;
+}
+.legend ul li .active_rect{
+	background: #4889EB;
+}
+

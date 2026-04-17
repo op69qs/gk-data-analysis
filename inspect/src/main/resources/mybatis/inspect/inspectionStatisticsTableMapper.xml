@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.inspect.dao.mapper.inspect.InspectionStatisticsTableMapper">
+    <!-- author: Samer  被查国库统计表-->
+
+    <!-- 查询当前任务问题台账中的一级问题分类 -->
+    <select id="getCurTaskQuestion_1" resultType="java.util.HashMap">
+        SELECT
+            a.`QUESTION_ID_1` AS QUESTION_ID,
+            a.`QUESTION_DSCR_1` AS QUESTION_DSCR
+        FROM
+            `inspection`.`inspection_question_ledger` a
+        WHERE
+            a.`TASK_ID` = #{params.TASK_ID}
+        GROUP BY a.`QUESTION_ID_1`
+    </select>
+
+    <!-- 根据问题编码查询描述 -->
+    <select id="getQuestionDscrById" resultType="String">
+        SELECT
+            a.`QUESTION_DSCR`
+        FROM
+            `inspection`.`inspection_question_bank` a
+        WHERE
+            a.`QUESTION_ID` = #{QUESTION_ID}
+    </select>
+    
+    <!-- 获取被查国库统计表 -->
+    <select id="getStatisticsTable" resultType="java.util.HashMap">
+        SELECT
+        <foreach collection="params.columns" item="column" separator=",">
+            <if test=' column == "INSPECTED_GUOKU_DSCR" '>
+                b.guoku_DSCR AS `${column}`
+            </if>
+            <if test=' column != "INSPECTED_GUOKU_DSCR" '>
+                CASE WHEN COUNT(CASE WHEN a.QUERY_ITME = '${column}' AND LENGTH('${column}')&lt;&gt;32 THEN a.ITME_VALUE END) > 0
+                     THEN FORMAT(SUM(CASE WHEN a.QUERY_ITME = '${column}' AND LENGTH('${column}')&lt;&gt;32 THEN a.ITME_VALUE END), 0)
+                     ELSE 0 END AS `${column}`
+            </if>
+        </foreach>
+        FROM
+        `inspection`.`inspection_statistical_table` a
+        LEFT JOIN
+        dmcode.`cm_guoku_dimnsn` b
+        ON a.`ITME_VALUE` = b.`guoku_id`
+        WHERE 1=1
+        <if test=' params.TASK_ID!=null and params.TASK_ID!="" '>
+            AND a.`TASK_ID` = #{params.TASK_ID}
+        </if>
+        GROUP BY
+        a.TASK_ID
+    </select>
+
+
+    <!-- 检查统计表同步过程调用 -->
+    <select id="callStatisticsTableSYNC_TYPE">
+        CALL INSPECTION.`p_inspection_statistics_table_${params.procCode}`(#{params.TASK_ID});
+    </select>
+
+
+</mapper>

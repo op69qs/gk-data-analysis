@@ -1,0 +1,1 @@
+export default function deepClone(v) { return JSON.parse(JSON.stringify(v)) }
