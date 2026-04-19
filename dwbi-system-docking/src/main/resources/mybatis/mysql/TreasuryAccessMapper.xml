@@ -3,7 +3,7 @@
 <mapper namespace="org.dockingProjects.mapper.mysql.TreasuryAccessMapper">
 
     <!--    三证合一_个体开业、注销信息  接口信息-->
-    <!--    调用三证合一_个体开业、注销信息存储过程-->hh
+    <!--    调用三证合一_个体开业、注销信息存储过程-->
     <select id="callThreeCertificatesSyncretic" statementType="CALLABLE">
         CALL ods.P_TRS_INFO_PRACTICE_CANCEL_TEMPORARY();
     </select>

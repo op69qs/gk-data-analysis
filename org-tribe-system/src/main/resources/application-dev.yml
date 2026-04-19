@@ -57,6 +57,10 @@ spring:
   autoconfigure:
     exclude: com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
   datasource:
+    url: jdbc:mysql://cui02:3308/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
+    username: root
+    password: 1i&Lutjh2#RtC&
+    driver-class-name: com.mysql.jdbc.Driver
     druid:
       stat-view-servlet:
         enabled: true
@@ -93,10 +97,10 @@ spring:
         master:
 #          url: jdbc:mysql://192.168.100.127:3306/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
 #          url: jdbc:mysql://10.10.127.21:3306/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
-          url: jdbc:mysql://192.168.100.39:3306/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
-#          url: jdbc:mysql://192.168.100.127:3306/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
+#          url: jdbc:mysql://192.168.100.39:3306/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
+          url: jdbc:mysql://cui02:3308/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
           username: root
-          password: root
+          password: 1i&Lutjh2#RtC&
           driver-class-name: com.mysql.jdbc.Driver
           # 多数据源配置
           #multi-datasource1:
@@ -107,7 +111,7 @@ spring:
   #redis 配置
   redis:
     database: 0
-    host: localhost
+    host: 192.168.160.30
     lettuce:
       pool:
         max-active: 8   #最大连接数据库连接数,设 0 为没有限制
@@ -153,7 +157,7 @@ eureka:
     lease-expiration-duration-in-seconds: 2
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/,http://localhost:8762/eureka/
+      defaultZone: http://192.168.160.244:8761/eureka/
 
 zuul:
   host:

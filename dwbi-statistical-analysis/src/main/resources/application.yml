@@ -7,10 +7,10 @@ server:
 
 spring:
   redis:
-     hostName: localhost
-     port: 6379
-     timeout: 0
-     pool:
+    host: 192.168.160.30
+    port: 6379
+    timeout: 0
+    pool:
       maxActive: 8
       maxWait: -1
       maxIdle: 8
@@ -21,9 +21,9 @@ spring:
     static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,classpath:/resource/
   # mysql
   datasource:
-    url: jdbc:mysql://11.8.160.2:3306/dps?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&allowMultiQueries=true
+    url: jdbc:mysql://cui02:3308/dps?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&allowMultiQueries=true
     username: root
-    password: chongqing
+    password: "1i&Lutjh2#RtC&"
     driver-class-name: com.mysql.jdbc.Driver
     # 下面为连接池的补充设置，应用到上面所有数据源中
     # 初始化大小，最小，最大
@@ -62,4 +62,7 @@ casSecurityEnable: false
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://192.168.160.244:8761/eureka/
+
+mybatis-plus:
+  mapper-locations: classpath*:/mybatis/**/*.xml

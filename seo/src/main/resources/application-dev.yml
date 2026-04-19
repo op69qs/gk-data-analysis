@@ -104,7 +104,7 @@ spring:
   #redis 配置
   redis:
     database: 0
-    host: localhost
+    host: 192.168.160.30
     lettuce:
       pool:
         max-active: 8   #最大连接数据库连接数,设 0 为没有限制
@@ -133,4 +133,4 @@ mybatis-plus:
 eureka:
   client:
     service-url:
-      defaultZone: http://192.168.100.126:8761/eureka/,http://192.168.100.126:8762/eureka/
+      defaultZone: http://192.168.160.244:8761/eureka/

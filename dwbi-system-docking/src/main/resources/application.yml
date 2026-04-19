@@ -9,9 +9,9 @@ spring:
 #    type: com.alibaba.druid.pool.DruidDataSource
     mysql:
 #      jdbc-url: jdbc:mysql://10.10.127.33:3306/system_docking?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&allowMultiQueries=true
-      jdbc-url: jdbc:mysql://localhost:3306/system_docking?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&allowMultiQueries=true
+      jdbc-url: jdbc:mysql://cui02:3308/system_docking?useUnicode=true&characterEncoding=utf-8&autoReconnect=true&useSSL=false&allowMultiQueries=true
       username: root
-      password: root
+      password: 1i&Lutjh2#RtC&
       driver-class-name: com.mysql.jdbc.Driver
       druid: # 全局druid参数，绝大部分值和默认保持一致。(现已支持的参数如下,不清楚含义不要乱设置)
         # 连接池的配置信息
@@ -47,7 +47,7 @@ spring:
 
   redis:
     database: 0
-    host: localhost
+    host: 192.168.160.30
     lettuce:
       pool:
         max-active: 8   #最大连接数据库连接数,设 0 为没有限制
