@@ -16,8 +16,8 @@
                     '1' AS disabled,
                     a.depart_name table_en
                 FROM
-                    EDW.`fm_trs_guoku_base_table` t,
-                    `jeecg-boot-os`.sys_depart a
+                    edw.fm_trs_guoku_base_table t,
+					"jeecg-boot-os".sys_depart a
                 WHERE
                     t.FIRST_CLASSIFY = a.id
                 UNION
@@ -30,7 +30,7 @@
                         '1' AS disabled,
                         t.SECOND_CLASSIFY table_en
                     FROM
-                        EDW.`fm_trs_guoku_base_table` t
+                        edw.fm_trs_guoku_base_table t
                     WHERE
                         t.SECOND_CLASSIFY IS NOT NULL
                     UNION
@@ -40,7 +40,7 @@
                                 '▲',
                                 t.TABLE_SIGN,
                                 '▲',
-                                IFNULL(t.FOR_SKIP, '')
+                                COALESCE(t.FOR_SKIP, '')
                             ) id,
                             t.TABLE_NAME name,
                             t.TABLE_WORD dscr,
@@ -49,19 +49,19 @@
                             '0' AS disabled,
                             t.TABLE_SIGN table_en
                         FROM
-                            EDW.`fm_trs_guoku_base_table` t
+                            edw.fm_trs_guoku_base_table t
                         WHERE
                             t.STATE = 0
                         AND t.SECOND_CLASSIFY IS NOT NULL
             ) a
         WHERE
             a.id IS NOT NULL
-        AND a.`name` IS NOT NULL
+        AND a.name IS NOT NULL
     </select>
 
     <select id="getColumn" resultType="java.util.Map">
         SELECT CONCAT(TABLE_SIGN,'.',FIELD_SIGN,'▲',INPUT_TYPE)as FIELD_SIGN,FIELD_NAME,FIELD_SIGN as FIELD_EN , FOR_SKIP as FOR_SKIP FROM
-        EDW.`fm_trs_guoku_base_table`
+        edw.fm_trs_guoku_base_table
         where 1=1
         <if test="params.TABLE_SIGN!=null and params.TABLE_SIGN != ''">
             AND TABLE_SIGN = #{params.TABLE_SIGN}
@@ -139,7 +139,7 @@
             AND CREATE_TIME <![CDATA[<=]]> #{params.END_TIME}
         </if>
         order by CREATE_TIME DESC
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <select id="countMain" resultType="java.lang.Integer">

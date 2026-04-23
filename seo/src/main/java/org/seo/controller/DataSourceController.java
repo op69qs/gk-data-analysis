@@ -248,6 +248,13 @@ public class DataSourceController extends BaseController {
                 temp = DBHelper.initMysql(url,pd.getString("USERNAME"),pd.getString("PASSWORD"),false);
                 conn = (Connection)temp.get("conn");
             }
+            if (TYPE.equals("Vastbase") || TYPE.equals("PostgreSQL")){
+                url = "jdbc:postgresql://ip:port/DBNAME".replace("ip",pd.getString("IP"));
+                url = url.replace("port",pd.getString("PORT"));
+                url = url.replace("DBNAME",pd.getString("DBNAME"));
+                temp = DBHelper.initPostgresql(url,pd.getString("USERNAME"),pd.getString("PASSWORD"),false);
+                conn = (Connection)temp.get("conn");
+            }
             if (TYPE.equals("DB2")){
                 url = "jdbc:db2://ip:port/DBNAME".replace("ip",pd.getString("IP"));
                 url = url.replace("port",pd.getString("PORT"));

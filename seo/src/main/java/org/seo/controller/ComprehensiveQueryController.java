@@ -523,9 +523,9 @@ public class ComprehensiveQueryController extends BaseController {
             sql += " order by " + order.replace("▲", " ");
         }
         if (null != pageNo && null != pageSize) {
-            if (type.equals("Mysql") || type.equals("Clickhouse")) {
+            if (type.equals("Mysql") || type.equals("Clickhouse") || type.equals("Vastbase") || type.equals("PostgreSQL")) {
                 pageNo = (pageNo - 1) * pageSize;
-                sql += " LIMIT " + pageNo + " , " + pageSize;
+                sql += " LIMIT " + pageSize + " OFFSET " + pageNo;
             }
             if (type.equals("DB2")) {
                 pageNo = (pageNo - 1) * pageSize;
@@ -632,10 +632,9 @@ public class ComprehensiveQueryController extends BaseController {
 
                     }
                     if (WHERE_TYPE[i].equals("N")) {
-                        if (type.equals("Mysql")) {
+                        if (type.equals("Mysql") || type.equals("Vastbase") || type.equals("PostgreSQL")) {
                             sql += " and " + WHERE_LEFT[i] + " " + WHERE_MIDDLE[i] + " " + "'" + WHERE_RIGHT[i] + "'";
                         } else if (type.equals("Clickhouse")) {
-//                            sql += " and cast(ifNull(" + WHERE_LEFT[i] + ",0) as decimal(28,2)) " + WHERE_MIDDLE[i] + " cast(" + WHERE_RIGHT[i] + " as decimal(28,2))";
                             sql += " and toDecimal128OrZero(" + WHERE_LEFT[i] + ",2) " + WHERE_MIDDLE[i] + " " + "toDecimal128OrZero('" + WHERE_RIGHT[i] + "',2) ";
                         } else {
                             sql += " and " + WHERE_LEFT[i] + " " + WHERE_MIDDLE[i] + " " + "'" + WHERE_RIGHT[i] + "'";
@@ -654,7 +653,7 @@ public class ComprehensiveQueryController extends BaseController {
                         String[] temps = WHERE_RIGHT[i].split("▲");
                         String temp = "'" + temps[0] + "' and " + "'" + temps[1] + "'";
                         String left = "";
-                        if (type.equals("Mysql")) {
+                        if (type.equals("Mysql") || type.equals("Vastbase") || type.equals("PostgreSQL")) {
                             left = " CASE LENGTH(" + WHERE_LEFT[i] + ") " +
                                     " WHEN 10 THEN " +
                                     " REPLACE (" + WHERE_LEFT[i] + ", '/', '-') " +
@@ -1082,7 +1081,7 @@ public class ComprehensiveQueryController extends BaseController {
                                 String column) {
         PageData pd = new PageData();
         String countSql = "";
-        if (type.equals("Mysql")) {
+        if (type.equals("Mysql") || type.equals("Vastbase") || type.equals("PostgreSQL")) {
             countSql = "select avg(" + column + ") as avgnum ";
         }
         if (type.equals("Clickhouse")) {
@@ -1196,7 +1195,7 @@ public class ComprehensiveQueryController extends BaseController {
                 for (int i = 1; i <= tempsize; i++) {
                     System.out.println("开始第" + i + "个页签,当前页签从" + ((i - 1) * rowMaxCount + 1) + "到" + (i == tempsize ? count : i * rowMaxCount));
                     pageNo = ((i - 1) * rowMaxCount + 1);
-                    String executeSql = sql + " LIMIT " + pageNo + " , " + rowMaxCount;
+                    String executeSql = sql + " LIMIT " + rowMaxCount + " OFFSET " + pageNo;
                     pd.put("sql", executeSql);
                     list = comprehensiveQueryService.executeSql(pd, tables[0]);
 
@@ -1292,7 +1291,7 @@ public class ComprehensiveQueryController extends BaseController {
                                 String column) {
         PageData pd = new PageData();
         String countSql = "";
-        if (type.equals("Mysql")) {
+        if (type.equals("Mysql") || type.equals("Vastbase") || type.equals("PostgreSQL")) {
             countSql = "select sum(" + column + ") as sumnum";
         }
         if (type.equals("Clickhouse")) {

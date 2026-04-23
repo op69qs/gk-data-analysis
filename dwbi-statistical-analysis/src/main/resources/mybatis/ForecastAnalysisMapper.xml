@@ -5,9 +5,9 @@
     <!--    获取指标-->
     <select id="getIndexData" resultType="hashmap">
         SELECT a.ID AS value,REPLACE(a.index_name,'告警次数','') AS label
-        FROM `system_docking`.api_platform_index_info a
-        LEFT JOIN `system_docking`.api_interface_system_platform_info b ON a.platform_id=b.ID
-        LEFT JOIN `system_docking`.api_interface_system_info c ON b.system_id=c.ID
+        FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.ID
+        LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.ID
         WHERE a.is_enable='1' AND b.is_enable='1' AND c.is_enable='1'
         <if test="params.isStatus != null and params.isStatus != ''">
             AND a.index_type=#{params.isStatus}
@@ -23,13 +23,13 @@
     <!--    获取资源-->
     <select id="getResourceData" resultType="hashmap">
         <if test='params.systemType == "ucloud"'>
-            SELECT a.ID AS value,CONCAT(a.resource_desc,'(',f.ip_address,')') AS label
-            FROM `system_docking`.api_system_resource a
-            LEFT JOIN `system_docking`.api_system_index_resource b ON a.ID=b.resource_id
-            LEFT JOIN `system_docking`.api_platform_index_info c ON b.index_id=c.ID
-            LEFT JOIN `system_docking`.api_interface_system_platform_info d ON c.platform_id=d.ID
-            LEFT JOIN `system_docking`.api_interface_system_info e ON d.system_id=e.ID
-            LEFT JOIN `system_docking`.api_system_resource_ip f ON a.ID=f.resource_id
+            SELECT DISTINCT a.ID AS value,CONCAT(a.resource_desc,'(',f.ip_address,')') AS label
+            FROM system_docking.api_system_resource a
+            LEFT JOIN system_docking.api_system_index_resource b ON a.ID=b.resource_id
+            LEFT JOIN system_docking.api_platform_index_info c ON b.index_id=c.ID
+            LEFT JOIN system_docking.api_interface_system_platform_info d ON c.platform_id=d.ID
+            LEFT JOIN system_docking.api_interface_system_info e ON d.system_id=e.ID
+            LEFT JOIN system_docking.api_system_resource_ip f ON a.ID=f.resource_id
             WHERE a.is_enable='1' AND c.is_enable='1' AND d.is_enable='1' AND e.is_enable='1'
             <if test="params.indicators != null and params.indicators != ''">
                 AND c.ID=#{params.indicators}
@@ -37,14 +37,14 @@
             <if test="params.systemType != null and params.systemType != ''">
                 AND e.system_code = #{params.systemType}
             </if>
-            GROUP BY a.ID,label ORDER BY label
+            ORDER BY label
         </if>
         <if test='params.systemType == "upm"'>
-            SELECT a.resource_code AS value,a.resource_desc AS label
-            FROM `system_docking`.api_system_resource a
-            LEFT JOIN `system_docking`.api_interface_system_platform_info b ON a.platform_id=b.ID
-            LEFT JOIN `system_docking`.api_platform_index_info c ON b.ID=c.platform_id
-            LEFT JOIN `system_docking`.api_interface_system_info d ON b.system_id=d.ID
+            SELECT DISTINCT a.resource_code AS value,a.resource_desc AS label
+            FROM system_docking.api_system_resource a
+            LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.ID
+            LEFT JOIN system_docking.api_platform_index_info c ON b.ID=c.platform_id
+            LEFT JOIN system_docking.api_interface_system_info d ON b.system_id=d.ID
             WHERE a.is_enable='1' AND b.is_enable='1' AND d.is_enable='1'
             <if test="params.indicators != null and params.indicators != ''">
                 AND c.ID=#{params.indicators}
@@ -52,7 +52,7 @@
             <if test="params.systemType != null and params.systemType != ''">
                 AND d.system_code = #{params.systemType}
             </if>
-            GROUP BY a.ID,label ORDER BY label
+            ORDER BY label
         </if>
     </select>
 
@@ -63,7 +63,10 @@
 
     <!--    获取历史分析数据-->
     <select id="getHistoryAnalysisDada" resultType="hashmap">
-        SELECT a.alarm_time,a.index_name,a.resource_name,FORMAT(a.forecast_value,2) AS forecast_value,FORMAT(a.actual_value,2) AS actual_value,FORMAT(a.error_value,2) AS error_value
+        SELECT a.alarm_time,a.index_name,a.resource_name,
+               ROUND(CAST(COALESCE(NULLIF(a.forecast_value, ''), '0') AS NUMERIC), 2) AS forecast_value,
+               ROUND(CAST(COALESCE(NULLIF(a.actual_value, ''), '0') AS NUMERIC), 2) AS actual_value,
+               ROUND(CAST(COALESCE(NULLIF(a.error_value, ''), '0') AS NUMERIC), 2) AS error_value
         FROM ${params.dataBase}.api_forecast_alarm_records a
         WHERE 1=1
         <if test="params.is_shared!= null and params.is_shared != ''">

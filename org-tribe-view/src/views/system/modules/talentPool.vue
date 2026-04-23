@@ -284,6 +284,6 @@
   }
 </script>
 
-<style scoped>
+<style lang="less" scoped>
   @import '~@assets/less/common.less';
 </style>

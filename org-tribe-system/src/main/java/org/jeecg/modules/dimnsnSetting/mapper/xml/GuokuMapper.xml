@@ -56,33 +56,33 @@
         <if test=" params.INSPECTION_GUOKU != null  and params.INSPECTION_GUOKU != ''">
               AND (a.bookorgcodepid LIKE
                    CONCAT('%',(SELECT
-                                   LEFT(a.`guoku_id`,(
+                                   LEFT(a.guoku_id,(
                                                          SELECT
                                                              b.level-1
                                                          FROM
-                                                             dmcode.`cm_guoku_dimnsn` b
+                                                             dmcode.cm_guoku_dimnsn b
                                                          WHERE
                                                              b.guoku_id = #{params.INSPECTION_GUOKU}
                                                      )*2 )
                                FROM
-                                   dmcode.`cm_guoku_dimnsn` a
+                                   dmcode.cm_guoku_dimnsn a
                                WHERE
-                                   a.`guoku_id` = #{params.INSPECTION_GUOKU}),'%')
+                                   a.guoku_id = #{params.INSPECTION_GUOKU}),'%')
                    OR
                    a.bookorgcode LIKE
                    CONCAT('%',(SELECT
-                                   LEFT(a.`guoku_id`,(
+                                   LEFT(a.guoku_id,(
                                                          SELECT
                                                              b.level-1
                                                          FROM
-                                                             dmcode.`cm_guoku_dimnsn` b
+                                                             dmcode.cm_guoku_dimnsn b
                                                          WHERE
                                                              b.guoku_id = #{params.INSPECTION_GUOKU}
                                                      )*2 )
                                FROM
-                                   dmcode.`cm_guoku_dimnsn` a
+                                   dmcode.cm_guoku_dimnsn a
                                WHERE
-                                   a.`guoku_id` = #{params.INSPECTION_GUOKU}),'%'))
+                                   a.guoku_id = #{params.INSPECTION_GUOKU}),'%'))
          </if>
         ORDER BY pid, a.bookorgcode
     </select>
@@ -123,7 +123,7 @@
     </insert>
 
     <update id="updateAddBookOrg">
-        UPDATE DMCODE.`cm_guoku_bookorg` SET  isleaf=1
+        UPDATE DMCODE.cm_guoku_bookorg SET  isleaf=1
          where id='${params.bookorgcodepid}'
     </update>
 
@@ -151,7 +151,7 @@
 
     <select id="isDelBookOrg"  resultType="int" >
         SELECT
-           a.`state`  as state
+           a.state  as state
         FROM
         dmcode.cm_guoku_bookorg a
         WHERE 1 = 1  and
@@ -159,7 +159,7 @@
     </select>
 
     <update id="delBookOrg" >
-         UPDATE DMCODE.`cm_guoku_bookorg` SET STATE ='${params.state}'
+         UPDATE DMCODE.cm_guoku_bookorg SET STATE ='${params.state}'
         ,statedesc =( case when  '${params.state}'='0'
         then  '启用'
         else  '禁用' end )
@@ -167,7 +167,7 @@
     </update>
 
     <update id="delBookOrgParent">
-        UPDATE DMCODE.`cm_guoku_bookorg` SET STATE ='${params.state}'
+        UPDATE DMCODE.cm_guoku_bookorg SET STATE ='${params.state}'
         ,statedesc =( case when  '${params.state}'='0'
         then  '启用'
         else  '禁用' end )
@@ -312,7 +312,7 @@
 
         <where>
             <if test=" params.par == '1'.toString()">
-                a.`guoku_pid` =''
+                a.guoku_pid =''
             </if>
             <if test=" params.par == '2'.toString()">
 
@@ -348,7 +348,7 @@
         dmcode.cm_guoku_bookorg a
         <where>
             <if test=" params.par == '1'.toString()">
-                a.`bookorgcodepid` =''
+                a.bookorgcodepid =''
             </if>
             <if test=" params.par == '2'.toString()">
 
@@ -380,30 +380,30 @@
                 ELSE a.guoku_pid
               END AS pid
             FROM
-              dmcode.`cm_guoku_dimnsn` a
+              dmcode.cm_guoku_dimnsn a
             WHERE 1 = 1
             AND a.state = '0'
             <if test=' params.guoku_id != null and params.guoku_id !="" '>
                 and a.guoku_id LIKE
                 CONCAT('%',(SELECT
-                LEFT(a.`guoku_id`,(
+                LEFT(a.guoku_id,(
                 SELECT
                 b.level-1
                 FROM
-                dmcode.`cm_guoku_dimnsn` b
+                dmcode.cm_guoku_dimnsn b
                 WHERE
                 b.guoku_id = #{params.guoku_id}
                 )*2 )
                 FROM
-                dmcode.`cm_guoku_dimnsn` a
+                dmcode.cm_guoku_dimnsn a
                 WHERE
-                a.`guoku_id` = #{params.guoku_id}),'%')
+                a.guoku_id = #{params.guoku_id}),'%')
             </if>
     </select>
     <select id="getAreaTree" resultType="java.util.HashMap">
           SELECT
-              a.`AREA_NO_ID` as id,
-              a.`AREA_DSCR` as name,
+              a.AREA_NO_ID as id,
+              a.AREA_DSCR as name,
               CASE WHEN a.level =1
               THEN  a.area_no_id_1
               WHEN  a.level =2
@@ -413,7 +413,7 @@
               ELSE a.area_no_id
               END AS pid
             FROM
-              dmcode.`t_area_code` a
+              dmcode.t_area_code a
     </select>
 
 
@@ -468,7 +468,7 @@
     </insert>
 
     <update id="updateAddGuoku">
-        UPDATE DMCODE.`cm_guoku_dimnsn` SET  isleaf=1
+        UPDATE DMCODE.cm_guoku_dimnsn SET  isleaf=1
          where id='${params.guoku_pid}'
     </update>
 
@@ -520,7 +520,7 @@
 
     <select id="isDelGuoku"  resultType="java.lang.Integer" >
         SELECT
-           a.`state`  as state
+           a.state  as state
         FROM
         dmcode.cm_guoku_dimnsn a
         WHERE 1 = 1  and
@@ -528,7 +528,7 @@
     </select>
 
     <update id="delGuoku" >
-         UPDATE DMCODE.`cm_guoku_dimnsn` SET STATE ='${params.state}'
+         UPDATE DMCODE.cm_guoku_dimnsn SET STATE ='${params.state}'
         ,statedesc =( case when  '${params.state}'='0'
         then  '启用'
         else  '禁用' end )
@@ -536,7 +536,7 @@
     </update>
 
     <update id="delGuokuParent">
-        UPDATE DMCODE.`cm_guoku_dimnsn` SET STATE ='${params.state}'
+        UPDATE DMCODE.cm_guoku_dimnsn SET STATE ='${params.state}'
         ,statedesc =( case when  '${params.state}'='0'
         then  '启用'
         else  '禁用' end )

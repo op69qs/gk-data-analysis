@@ -61,7 +61,7 @@ public class AlarmDetailsController extends BaseController {
             Integer page = Integer.parseInt(pageData.getString("page"));//页码
             Integer rows = Integer.parseInt(pageData.getString("rows"));//行数
             pageData.put("page", (page - 1) * rows);
-            pageData.put("limit", "LIMIT " + pageData.get("page") + "," + pageData.get("rows"));
+            pageData.put("limit", "LIMIT " + pageData.get("rows") + " OFFSET " + pageData.get("page"));
 
             map.put("total", alarmDetailsService.getAlarmDetailsDataTotal(pageData));
             List<Map<String, Object>> dataList = alarmDetailsService.getAlarmDetailsData(pageData);

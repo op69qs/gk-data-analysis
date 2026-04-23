@@ -8,7 +8,7 @@
         SELECT
             *
         FROM
-            `jeecg-boot-os`.`sys_microservice_cif` a
+            "jeecg-boot-os".sys_microservice_cif a
         WHERE a.STATUS = '0'
         <if test=' params.applicationName != "" and  params.applicationName != null '>
             AND a.APPLICATION = #{params.applicationName}

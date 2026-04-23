@@ -15,7 +15,7 @@ public interface DataSourceInfoMapper {
             "\tb.DRIVERCLASS_NAME,\n" +
             "\tb.DATASOURCE_URL,\n" +
             "\tb.USERNAME AS DATASOURCE_USERNAME,\n" +
-            "\tb.`PASSWORD` AS DATASOURCE_PASSWORD\n" +
+            "\tb.PASSWORD AS DATASOURCE_PASSWORD\n" +
             "FROM\n" +
             "\tseo.seo_datasource a,\n" +
             "\tseo.seo_datasource_database b\n" +

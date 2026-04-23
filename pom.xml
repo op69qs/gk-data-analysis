@@ -23,6 +23,7 @@
         <lombok.version>1.18.32</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <deploy.package.dir>${project.basedir}/deploy-package</deploy.package.dir>
         <org-tribe-common.version>2.1.0</org-tribe-common.version>
         <commons.version>2.6</commons.version>
         <commons-lang3.version>3.1</commons-lang3.version>
@@ -31,7 +32,7 @@
         <druid-starter.version>1.1.17</druid-starter.version>
         <dynamic-datasource.version>2.5.4</dynamic-datasource.version>
         <fastjson.version>1.2.56</fastjson.version>
-        <mysql.version>5.1.47</mysql.version>
+        <postgresql.version>42.2.27</postgresql.version>
         <clickhouse.version>0.1.53</clickhouse.version>
         <hutool.version>4.5.15</hutool.version>
         <aliyun-java-sdk-core.version>3.2.3</aliyun-java-sdk-core.version>
@@ -43,6 +44,7 @@
         <xwpf.converter.version>1.0.4</xwpf.converter.version>
         <spring-cloud.netflix.version>2.0.1.RELEASE</spring-cloud.netflix.version>
         <spring-cloud.legacy.version>1.2.5.RELEASE</spring-cloud.legacy.version>
+        <bes.version>9.5.5.025</bes.version>
     </properties>
 
     <dependencyManagement>
@@ -98,9 +100,9 @@
                 <version>${fastjson.version}</version>
             </dependency>
             <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql.version}</version>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.version}</version>
             </dependency>
             <dependency>
                 <groupId>ru.yandex.clickhouse</groupId>
@@ -187,6 +189,21 @@
                 <artifactId>spring-cloud-starter-zuul</artifactId>
                 <version>${spring-cloud.legacy.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.bes.appserver</groupId>
+                <artifactId>bes-lite-spring-boot-2.x-starter</artifactId>
+                <version>${bes.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bes.appserver</groupId>
+                <artifactId>bes-websocket</artifactId>
+                <version>${bes.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.bes.appserver</groupId>
+                <artifactId>bes-jasper</artifactId>
+                <version>${bes.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -197,6 +214,7 @@
         <module>indicatorsLibv-1.0</module>
         <module>org-tribe-system</module>
         <module>seo</module>
+        <module>deploy-package-assembly</module>
     </modules>
 
     <repositories>

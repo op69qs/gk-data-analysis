@@ -6,7 +6,7 @@
     <select id="getFileList" resultType="java.util.Map">
         SELECT  DISTINCT '${params.tableName}' as downFileName   ,
         b.PATH ,
-        ifnull(c.ZLMC,REVERSE(SUBSTR(REVERSE(b.PATH),1,POSITION(REVERSE(b.PATH),'/')-1)))   AS FILE_NAME  ,'${params.S_INFO_ID}'  AS S_INFO_ID
+        COALESCE(c.ZLMC, regexp_replace(b.PATH, '^.*/', '')) AS FILE_NAME  ,'${params.S_INFO_ID}'  AS S_INFO_ID
         FROM
         ${params.table} a
         LEFT JOIN
@@ -22,7 +22,7 @@
         <if test="params.S_INFO_ID!=null and params.S_INFO_ID != ''">
             AND a.${params.info} = #{params.S_INFO_ID}
         </if>
-        limit 5
+        LIMIT 5
     </select>
 
 </mapper>

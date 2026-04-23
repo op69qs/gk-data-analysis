@@ -5,23 +5,23 @@
     <!--    获取综合查询平台(不查监测器)-->
     <select id="getPlatformData" resultType="hashmap">
         SELECT a.ID AS value,a.platfrom_name AS label
-        FROM `system_docking`.api_interface_system_platform_info a
-        LEFT JOIN `system_docking`.api_interface_system_info b ON a.system_id=b.ID
+        FROM system_docking.api_interface_system_platform_info a
+        LEFT JOIN system_docking.api_interface_system_info b ON a.system_id=b.ID
         WHERE a.is_enable='1' AND b.is_enable='1'
         <if test="params.type != null and params.type != ''">
             AND b.system_code =#{params.systemType}
         </if>
         <if test="params.is_monitor != null and params.is_monitor != ''">
-            AND EXISTS (SELECT DISTINCT c.platform_id FROM `system_docking`.api_platform_index_info c WHERE c.is_enable='1' AND c.is_monitor='${params.is_monitor}' AND a.ID=c.platform_id)
+            AND EXISTS (SELECT DISTINCT c.platform_id FROM system_docking.api_platform_index_info c WHERE c.is_enable='1' AND c.is_monitor='${params.is_monitor}' AND a.ID=c.platform_id)
         </if>
     </select>
 
     <!--    获取运维综合查询指标下拉选(不查监测器)-->
     <select id="getDevOpsIndicatorsData" resultType="hashmap">
         SELECT a.ID AS value,a.index_name AS label
-        FROM `system_docking`.api_platform_index_info a
-        LEFT JOIN `system_docking`.api_interface_system_platform_info b ON a.platform_id=b.ID
-        LEFT JOIN `system_docking`.api_interface_system_info c ON b.system_id=c.ID
+        FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.ID
+        LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.ID
         WHERE a.is_enable='1' AND b.is_enable='1' AND c.is_enable='1' and a.is_monitor='0' AND c.system_code='ucloud'
         <if test="params.platform != null and params.platform != ''">
             AND a.platform_id=#{params.platform}
@@ -32,9 +32,9 @@
     <!--    获取网络综合查询指标下拉选-->
     <select id="getNetworkIndicatorsData" resultType="hashmap">
         SELECT a.ID AS value,a.index_name AS label
-        FROM `system_docking`.api_platform_index_info a
-        LEFT JOIN `system_docking`.api_interface_system_platform_info b ON a.platform_id=b.ID
-        LEFT JOIN `system_docking`.api_interface_system_info c ON b.system_id=c.ID
+        FROM system_docking.api_platform_index_info a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.ID
+        LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.ID
         WHERE a.is_enable='1' AND b.is_enable='1' AND c.is_enable='1' AND c.system_code='upm'
         <if test="params.platform != null and params.platform != ''">
             AND a.platform_id=#{params.platform}
@@ -44,31 +44,31 @@
 
     <!--    获取运维综合查询资源下拉选-->
     <select id="getDevOpsResourceData" resultType="hashmap">
-            SELECT a.ID AS value,CONCAT(a.resource_desc,'(',f.ip_address,')') AS label
-            FROM `system_docking`.api_system_resource a
-            LEFT JOIN `system_docking`.api_system_index_resource b ON a.ID=b.resource_id
-            LEFT JOIN `system_docking`.api_platform_index_info c ON b.index_id=c.ID
-            LEFT JOIN `system_docking`.api_interface_system_platform_info d ON c.platform_id=d.ID
-            LEFT JOIN `system_docking`.api_interface_system_info e ON d.system_id=e.ID
-            LEFT JOIN `system_docking`.api_system_resource_ip f ON a.ID=f.resource_id
+            SELECT DISTINCT a.ID AS value,CONCAT(a.resource_desc,'(',f.ip_address,')') AS label
+            FROM system_docking.api_system_resource a
+            LEFT JOIN system_docking.api_system_index_resource b ON a.ID=b.resource_id
+            LEFT JOIN system_docking.api_platform_index_info c ON b.index_id=c.ID
+            LEFT JOIN system_docking.api_interface_system_platform_info d ON c.platform_id=d.ID
+            LEFT JOIN system_docking.api_interface_system_info e ON d.system_id=e.ID
+            LEFT JOIN system_docking.api_system_resource_ip f ON a.ID=f.resource_id
             WHERE a.is_enable='1' AND c.is_enable='1' AND d.is_enable='1' AND e.is_enable='1' AND e.system_code = 'ucloud'
             <if test="params.indicators != null and params.indicators != ''">
                 AND c.ID=#{params.indicators}
             </if>
-            GROUP BY a.ID,label ORDER BY label
+                ORDER BY label
     </select>
 
     <!--    获取网络综合查询资源-->
     <select id="getNetworkResourceData" resultType="hashmap">
-        SELECT a.resource_code AS value,a.resource_desc AS label
-        FROM `system_docking`.api_system_resource a
-        LEFT JOIN `system_docking`.api_interface_system_platform_info b ON a.platform_id=b.ID
-        LEFT JOIN `system_docking`.api_interface_system_info c ON b.system_id=c.ID
+        SELECT DISTINCT a.resource_code AS value,a.resource_desc AS label
+        FROM system_docking.api_system_resource a
+        LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.ID
+        LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.ID
         WHERE a.is_enable='1' AND b.is_enable='1' AND c.is_enable='1' AND c.system_code='upm'
         <if test="params.platform != null and params.platform != ''">
             AND b.ID=#{params.platform}
         </if>
-        GROUP BY resource_code
+        ORDER BY label
     </select>
 
     <!--    获取综合查询数据-->

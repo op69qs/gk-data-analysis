@@ -105,7 +105,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         }
         builder.append("SELECT ");
         Arrays.asList(condition.get("columns").toString().split(",")).forEach(key -> {
-            builder.append(" IFNULL(FORMAT(SUM(CASE WHEN V1.COLID = '" + key + "' THEN VALUE END ),2),'') AS '" + key + "',");
+            builder.append(" COALESCE(CAST(ROUND(SUM(CASE WHEN V1.COLID = '" + key + "' THEN VALUE END),2) AS TEXT),'') AS \"" + key + "\",");
         });
         builder.append("ACCOUNT_DATE," +
                 " CASE WHEN INSTR(V1.ACCOUNT_PERIOD,'Q1') THEN REPLACE(V1.ACCOUNT_PERIOD,'Q1','年第一季度')"
@@ -127,7 +127,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         keys.forEach(map -> {
             builder.append(" SELECT '" + map.get("colId") + "' AS COLID,ACCOUNT_PERIOD AS ACCOUNT_DATE,ACCOUNT_PERIOD,INDEX_DIM_CODE as CODE,INDEX_DIM_DESCR as GK,C_BDGLEVEL,JURISDICTION,");
             builder.append("CASE WHEN '" + map.get("type").toString() + "'='1' THEN ROUND((INDEX_VALUE*100),2) ELSE ROUND(INDEX_VALUE/" + Integer.parseInt(condition.get("price").toString()) + ",2)  END AS VALUE "); //根据指标类型(0数值/1比率)处理指标值
-            builder.append(" FROM indicators_lib.`" + map.get("tableName") + "` ");
+            builder.append(" FROM indicators_lib." + map.get("tableName") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("dimCode"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + condition.get("dimCode").toString().replaceAll(",", "','") + "') ");
@@ -143,13 +143,13 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                     if (startDate.toString().equals(endDate.toString())) {
                         builder.append(" AND ACCOUNT_PERIOD ='" + startDate.toString() + "'");
                     } else {
-                        builder.append(" AND CONVERT(REPLACE(ACCOUNT_PERIOD,'Q','0'), SIGNED) BETWEEN " + startDate.toString().replace("Q", "0") + " AND " + endDate.toString().replace("Q", "0"));
+                        builder.append(" AND CAST(REPLACE(ACCOUNT_PERIOD,'Q','0') AS NUMERIC) BETWEEN " + startDate.toString().replace("Q", "0") + " AND " + endDate.toString().replace("Q", "0"));
                     }
                 } else {
                     if (startDate.toString().equals(endDate.toString())) {
                         builder.append(" AND ACCOUNT_PERIOD ='" + startDate.toString() + "'");
                     } else {
-                        builder.append(" AND STR_TO_DATE(ACCOUNT_PERIOD, '%Y-%m-%d') BETWEEN  STR_TO_DATE('" + startDate.toString() + "', '%Y-%m-%d') AND STR_TO_DATE('" + endDate.toString() + "', '%Y-%m-%d')");
+                        builder.append(" AND TO_DATE(ACCOUNT_PERIOD, 'YYYY-MM-DD') BETWEEN TO_DATE('" + startDate.toString() + "', 'YYYY-MM-DD') AND TO_DATE('" + endDate.toString() + "', 'YYYY-MM-DD')");
                     }
                 }
             }
@@ -186,8 +186,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         // 主查询
         builder.append("SELECT ");
         Arrays.asList(condition.get("columns").toString().split(",")).forEach(key -> {
-            //  builder.append(" IFNULL(FORMAT(SUM(CASE WHEN aa.COLID = '" + key + "' THEN VALUE END ),2),'') AS '" + key + "',");
-            builder.append(" IFNULL(FORMAT(SUM(IF(aa.COLID = '" + key + "', VALUE, NULL)),2),'') AS '" + key + "',");
+            builder.append(" COALESCE(CAST(ROUND(SUM(CASE WHEN aa.COLID = '" + key + "' THEN VALUE END),2) AS TEXT),'') AS \"" + key + "\",");
         });
         builder.append(" aa.COLID,\n" +
                 "aa.ACCOUNT_DATE,\n" +
@@ -224,7 +223,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
             if ("0".equals(map.get("type").toString())) {
                 builder.append("ROUND(INDEX_VALUE/" + Integer.parseInt(condition.get("price").toString()) + ",2) AS VALUE "); //根据指标类型(0数值/1比率)处理指标值
             }
-            builder.append(" FROM indicators_lib.`" + map.get("tableName") + "` ");
+            builder.append(" FROM indicators_lib." + map.get("tableName") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("dimCode"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + condition.get("dimCode").toString().replaceAll(",", "','") + "') ");
@@ -236,13 +235,13 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                     if (startDate.toString().equals(endDate.toString())) {
                         builder.append(" AND ACCOUNT_PERIOD ='" + startDate.toString() + "'");
                     } else {
-                        builder.append(" AND CONVERT(REPLACE(ACCOUNT_PERIOD,'Q','0'), SIGNED) BETWEEN " + startDate.toString().replace("Q", "0") + " AND " + endDate.toString().replace("Q", "0"));
+                        builder.append(" AND CAST(REPLACE(ACCOUNT_PERIOD,'Q','0') AS NUMERIC) BETWEEN " + startDate.toString().replace("Q", "0") + " AND " + endDate.toString().replace("Q", "0"));
                     }
                 } else {
                     if (startDate.toString().equals(endDate.toString())) {
                         builder.append(" AND ACCOUNT_PERIOD ='" + startDate.toString() + "'");
                     } else {
-                        builder.append(" AND STR_TO_DATE(ACCOUNT_PERIOD, '%Y-%m-%d') BETWEEN  STR_TO_DATE('" + startDate.toString() + "', '%Y-%m-%d') AND STR_TO_DATE('" + endDate.toString() + "', '%Y-%m-%d')");
+                        builder.append(" AND TO_DATE(ACCOUNT_PERIOD, 'YYYY-MM-DD') BETWEEN TO_DATE('" + startDate.toString() + "', 'YYYY-MM-DD') AND TO_DATE('" + endDate.toString() + "', 'YYYY-MM-DD')");
                     }
                 }
             }
@@ -269,7 +268,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                         if ("GK,ACCOUNT_PERIOD".contains(filterName)) {
                             if ("ACCOUNT_PERIOD".equals(filterName)) { //账期的季指标过滤条件需要特殊处理
                                 if (!"3".equals(mainCondition.get("periodFlag"))) {
-                                    filterName = "CONVERT(REPLACE(aa." + filterName + ",'-',''), SIGNED)";
+                                    filterName = "CAST(REPLACE(aa." + filterName + ",'-','') AS NUMERIC)";
                                     filternumber = whereMap.get("filternumber").toString().replace("-", "");
                                 }
                             }
@@ -291,7 +290,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                                 builder.append(" AND " + filterName + filterlogic + "'" + filternumber + "'");
                             } else { //数字
                                 if ((filternumber.contains(",") || filternumber.contains("，")) && filterName.contains("aa.COLID")) { //含有千分位的数字
-                                    builder.append(" AND " + filterName + filterlogic + "CONVERT(REPLACE('" + filternumber + "',',',''), DECIMAL)" + " ELSE FALSE END");
+                                    builder.append(" AND " + filterName + filterlogic + "CAST(REPLACE('" + filternumber + "',',','') AS DECIMAL)" + " ELSE FALSE END");
                                 } else {
                                     if (filterName.contains("aa.COLID")) {
                                         builder.append(" AND " + filterName + filterlogic + filternumber + " ELSE FALSE END");
@@ -381,13 +380,13 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                         if ("GK,ACCOUNT_PERIOD,C_BDGLEVEL,JURISDICTION_NAME".contains(filterName)) {
                             if ("ACCOUNT_PERIOD".equals(filterName)) { //账期的季指标过滤条件需要特殊处理
                                 if (!"3".equals(mainCondition.get("periodFlag"))) {
-                                    filterName = "CONVERT(REPLACE(" + filterName + ",'-',''), SIGNED)";
+                                    filterName = "CAST(REPLACE(" + filterName + ",'-','') AS NUMERIC)";
                                     filternumber = whereMap.get("filternumber").toString().replace("-", "");
                                 }
                             }
                         } else {
                             //千分位分隔符、监测值标注
-                            filterName = "CONVERT(REPLACE(REPLACE(" + filterName + ",',',''),'RGB_',''), DECIMAL)";
+                            filterName = "CAST(REPLACE(REPLACE(" + filterName + ",',',''),'RGB_','') AS DECIMAL)";
                         }
 
                         if ("like".equals(filterlogic)) { //包含
@@ -403,7 +402,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                                 builder.append(" AND " + filterName + filterlogic + "'" + filternumber + "'");
                             } else { //数字
                                 if (filternumber.contains(",") || filternumber.contains("，")) { //含有千分位的数字
-                                    builder.append(" AND " + filterName + filterlogic + "CONVERT(REPLACE('" + filternumber + "',',',''), DECIMAL)");
+                                    builder.append(" AND " + filterName + filterlogic + "CAST(REPLACE('" + filternumber + "',',','') AS DECIMAL)");
                                 } else {
                                     builder.append(" AND " + filterName + filterlogic + filternumber);
                                 }

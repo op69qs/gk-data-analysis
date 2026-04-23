@@ -83,6 +83,22 @@ public class DBHelper {
         return result;
     }
 
+    public static Map<String,Object> initPostgresql(String jdbcurl, String username, String password, boolean autoCommit) {
+        Map<String, Object> result = new HashMap<>();
+        Connection conn = null;
+        try {
+            Class.forName("org.postgresql.Driver");
+            conn = DriverManager.getConnection(jdbcurl, username, password);
+            conn.setAutoCommit(autoCommit);
+            result.put("conn", conn);
+        } catch (Exception se) {
+            System.out.println("POSTGRESQL连接失败" + se);
+            result.put("se", se.getMessage());
+            return result;
+        }
+        return result;
+    }
+
     /**
      * @author zc
      * @description 创建SQLServer连接信息

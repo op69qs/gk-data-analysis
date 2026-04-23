@@ -59,7 +59,7 @@
             AND a.PORT like '%${params.PORT}%'
         </if>
         order by a.DATASOURCE_NAME,a.TYPE,a.IP,a.PORT,b.CREATE_TIME DESC
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <select id="countDataSource" resultType="java.lang.Integer">

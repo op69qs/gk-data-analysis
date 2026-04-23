@@ -26,8 +26,8 @@
     <select id="findVisitCount" resultType="java.util.HashMap">
         select count(*) as visit,
         	   count(distinct(ip)) as ip,
-        	   DATE_FORMAT(create_time, '%Y-%m-%d') as tian,
-        	   DATE_FORMAT(create_time, '%m-%d') as type
+	       	   TO_CHAR(create_time, 'YYYY-MM-DD') as tian,
+	       	   TO_CHAR(create_time, 'MM-DD') as type
          from sys_log 
          where log_type = 1 and create_time &gt;= #{dayStart} and create_time &lt; #{dayEnd}
          group by tian,type

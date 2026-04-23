@@ -34,6 +34,8 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
 		try {
 			executeLogin(request, response);
 			return true;
+		} catch (AuthenticationException e) {
+			throw e;
 		} catch (Exception e) {
 			throw new AuthenticationException("Token失效，请重新登录", e);
 		}
@@ -48,6 +50,9 @@ public class JwtFilter extends BasicHttpAuthenticationFilter {
 		String token = httpServletRequest.getHeader(DefContants.X_ACCESS_TOKEN);
 		if( token ==  null ){
 			token = httpServletRequest.getParameter(DefContants.X_ACCESS_TOKEN);
+		}
+		if (token == null || token.trim().isEmpty()) {
+			throw new AuthenticationException("token为空!");
 		}
 		if( token.endsWith("#/") ){
 			StringBuilder tokenTemp = new StringBuilder(token);

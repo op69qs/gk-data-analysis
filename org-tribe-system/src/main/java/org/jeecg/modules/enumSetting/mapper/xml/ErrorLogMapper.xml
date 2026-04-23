@@ -5,7 +5,7 @@
     <select id="getData" resultType="java.util.HashMap">
         SELECT
         *
-        FROM etl.`edw_proc_error_log` a
+        FROM etl.edw_proc_error_log a
         where 1=1
         <if test=" params.PROC_NAME != null and params.PROC_NAME != ''">
             AND a.PROC_NAME like '%${params.PROC_NAME}%'
@@ -17,13 +17,13 @@
             AND a.START_TIME  <![CDATA[<=]]>  #{params.end_time}
         </if>
         order by a.START_TIME DESC
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <select id="getCount" resultType="java.lang.Integer">
         SELECT
         COUNT(*)
-        FROM etl.`edw_proc_error_log` a
+        FROM etl.edw_proc_error_log a
         where 1=1
         <if test=" params.PROC_NAME != null and params.PROC_NAME != ''">
             AND a.PROC_NAME like '%${params.PROC_NAME}%'

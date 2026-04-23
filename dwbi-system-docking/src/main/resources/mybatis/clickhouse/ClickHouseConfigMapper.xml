@@ -290,16 +290,16 @@
     <!--    动态建表-->
     <select id="createTable">
        CREATE TABLE IF NOT EXISTS ${params.dataBase}.${params.tableName} (
-            `ID` String,
-          `system_id` Nullable(String),
-          `platform_id` Nullable(String),
-          `index_id` Nullable(String),
-          `resource_id` Nullable(String),
-          `resource_code` Nullable(String),
-          `resource_ip` Nullable(String),
-          `time` Nullable(String),
-          `content` Nullable(String),
-          `ADD_DATE` Date
+                        `ID` String,
+                    `system_id` Nullable(String),
+                    `platform_id` Nullable(String),
+                    `index_id` Nullable(String),
+                    `resource_id` Nullable(String),
+                    `resource_code` Nullable(String),
+                    `resource_ip` Nullable(String),
+                    `time` Nullable(String),
+                    `content` Nullable(String),
+                    `ADD_DATE` Date
         ) ENGINE=MergeTree(ADD_DATE,(ID),8192);
     </select>
 

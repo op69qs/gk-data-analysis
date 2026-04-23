@@ -206,7 +206,7 @@ public class ComprehensiveQueryController extends BaseController {
                 } else {
                     //按分页查询
                     pageData.put("page", (page - 1) * rows);
-                    pageData.put("analysisSQL", "SELECT v.* FROM(" + querySQL + ") v LIMIT " + pageData.get("page") + "," + pageData.get("rows"));
+                    pageData.put("analysisSQL", "SELECT v.* FROM(" + querySQL + ") v LIMIT " + pageData.get("rows") + " OFFSET " + pageData.get("page"));
                     System.out.println("limit:"+pageData.getString("analysisSQL"));
                     dataList = this.getSQLResults(pageData.getString("analysisSQL")); //comprehensiveQueryService.getComprehensiveQueryData(pageData);
                     map.put("rows", dataList);
@@ -240,7 +240,7 @@ public class ComprehensiveQueryController extends BaseController {
             builder.append("<th>时间</th><th>指标名称</th><th>平台</th><th>资源</th><th>资源IP</th><th>数值</th>");
             builder.append("</tr>");
             //查询数据
-            pageData.put("analysisSQL", "SELECT v.* FROM(" + pageData.get("querySQL") + ") v LIMIT 0,50000");
+            pageData.put("analysisSQL", "SELECT v.* FROM(" + pageData.get("querySQL") + ") v LIMIT 50000");
             List<Map<String, Object>> dataList = this.getSQLResults(pageData.getString("analysisSQL")); //comprehensiveQueryService.getComprehensiveQueryData(pageData);
 
             for (Map<String, Object> map : dataList) {
@@ -290,7 +290,7 @@ public class ComprehensiveQueryController extends BaseController {
     //导出为excel文件
     public void exportExcel(HttpServletRequest request, HttpServletResponse response, PageData pageData) throws Exception {
         //查询总条数
-        pageData.put("analysisSQL", "SELECT v.* FROM(" + pageData.get("querySQL") + ") v LIMIT 0,50000");
+        pageData.put("analysisSQL", "SELECT v.* FROM(" + pageData.get("querySQL") + ") v LIMIT 50000");
         List<Map<String, Object>> dataList = this.getSQLResults(pageData.getString("analysisSQL")); //comprehensiveQueryService.getComprehensiveQueryData(pageData);
         //按日期设定当前Excel表格的名字
 

@@ -6,26 +6,26 @@
     <!-- 获取行业门类 -->
     <select id="getIndustryLv1" resultType="java.util.HashMap">
         SELECT
-            a.`lev_1_id` AS id,
-            a.`lev_1_dscr` AS name
+            a.lev_1_id AS id,
+            a.lev_1_dscr AS name
         FROM
-            `dmcode`.`t_guoku_industry` a
+            dmcode.t_guoku_industry a
         WHERE
-            a.`LEVEL` = '1'
-        GROUP BY a.`lev_1_id`
+            a.LEVEL = '1'
+        GROUP BY a.lev_1_id, a.lev_1_dscr
     </select>
 
     <!-- 获取行业大类 -->
     <select id="getIndustryLv2" resultType="java.util.HashMap">
         SELECT
-            a.`lev_1_id` AS pid,
-            a.`lev_2_id` AS id,
-            a.`lev_2_dscr` AS name
+            a.lev_1_id AS pid,
+            a.lev_2_id AS id,
+            a.lev_2_dscr AS name
         FROM
-            `dmcode`.`t_guoku_industry` a
+            dmcode.t_guoku_industry a
         WHERE
-            a.`LEVEL` = '2'
-        GROUP BY a.`lev_1_id`, a.`lev_2_id`
+            a.LEVEL = '2'
+        GROUP BY a.lev_1_id, a.lev_2_id, a.lev_2_dscr
     </select>
 
 

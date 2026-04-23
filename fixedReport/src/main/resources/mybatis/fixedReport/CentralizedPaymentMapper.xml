@@ -40,7 +40,10 @@
 
             </if>
             <if test=" params.guoku_id != params.GUOKU_ID_PREFIX">
-                AND a.`GUOKU_ID` = #{params.guoku_id} or a.`GUOKU_LVL_ID_3` = #{params.guoku_id}
+                AND (
+                a.GUOKU_ID = #{params.guoku_id}
+                OR a.GUOKU_LVL_ID_3 = #{params.guoku_id}
+                )
             </if>
 
         </if>
@@ -50,8 +53,8 @@
             </if>
             <if test=" params.OLD_GUOKU_ID != params.GUOKU_ID_PREFIX">
                 AND (
-                a.`OLD_GUOKU_ID` = #{params.OLD_GUOKU_ID}
-                OR a.`GUOKU_ID` = #{params.OLD_GUOKU_ID}
+                a.OLD_GUOKU_ID = #{params.OLD_GUOKU_ID}
+                OR a.GUOKU_ID = #{params.OLD_GUOKU_ID}
                 )
             </if>
 

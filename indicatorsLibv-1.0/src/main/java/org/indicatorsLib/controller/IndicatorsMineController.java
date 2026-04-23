@@ -222,22 +222,22 @@ public class IndicatorsMineController extends BaseController {
         pd.put("ADD_DATE", dateNow);
 
         String[] indexType = pd.getString("INDEX_PERIOD").split(",");
-        String EXE_DEL = "DELETE FROM `indicators_lib`." + tableName + " WHERE INDEX_ID ='" + pd.getString("INDEX_ID") + "' AND (";
+        String EXE_DEL = "DELETE FROM indicators_lib." + tableName + " WHERE INDEX_ID ='" + pd.getString("INDEX_ID") + "' AND (";
 //        String EXE_WHERE = " INDEX_ID ='" + pd.getString("INDEX_ID") + "'AND (";
         for (int i = 0; i < indexType.length; i++) {
             String dateStr = "";
             switch (indexType[i]) {
                 case ("1"):
-                    dateStr = "DATE_FORMAT(@DATA_DATE, '%Y-%m-%d')";
+                    dateStr = "to_char(@DATA_DATE, 'YYYY-MM-DD')";
                     break;
                 case ("2"):
-                    dateStr = "DATE_FORMAT(@DATA_DATE, '%Y-%m')";
+                    dateStr = "to_char(@DATA_DATE, 'YYYY-MM')";
                     break;
                 case ("3"):
-                    dateStr = "CONCAT(YEAR(@DATA_DATE),'Q',QUARTER(@DATA_DATE))";
+                    dateStr = "CONCAT(EXTRACT(YEAR FROM @DATA_DATE),'Q',EXTRACT(QUARTER FROM @DATA_DATE))";
                     break;
                 case ("4"):
-                    dateStr = "DATE_FORMAT(@DATA_DATE, '%Y')";
+                    dateStr = "to_char(@DATA_DATE, 'YYYY')";
                     break;
             }
             EXE_DEL += "ACCOUNT_PERIOD = " + dateStr;
@@ -635,16 +635,16 @@ public class IndicatorsMineController extends BaseController {
                 String dateStr = "";
                 switch (periodArray[i]) {
                     case ("1"):
-                        dateStr = "DATE_FORMAT(@DATA_DATE, '%Y-%m-%d')";
+                        dateStr = "to_char(@DATA_DATE, 'YYYY-MM-DD')";
                         break;
                     case ("2"):
-                        dateStr = "DATE_FORMAT(@DATA_DATE, '%Y-%m')";
+                        dateStr = "to_char(@DATA_DATE, 'YYYY-MM')";
                         break;
                     case ("3"):
-                        dateStr = "CONCAT(YEAR(@DATA_DATE),'Q',QUARTER(@DATA_DATE))";
+                        dateStr = "CONCAT(EXTRACT(YEAR FROM @DATA_DATE),'Q',EXTRACT(QUARTER FROM @DATA_DATE))";
                         break;
                     case ("4"):
-                        dateStr = "DATE_FORMAT(@DATA_DATE, '%Y')";
+                        dateStr = "to_char(@DATA_DATE, 'YYYY')";
                         break;
                 }
                 for (int j = 0; j < dimnsnArray.length; j++) {

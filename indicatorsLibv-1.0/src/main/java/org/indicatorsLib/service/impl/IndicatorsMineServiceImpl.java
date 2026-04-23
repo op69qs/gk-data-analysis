@@ -100,7 +100,7 @@ public class IndicatorsMineServiceImpl implements IndicatorsMineService {
         try {
             conn = dataSource.getConnection(); //获取数据库连接
             String countSQL = "SELECT COUNT(1) FROM (" + runSQL + ") V"; //查询条数
-            runSQL = runSQL + " LIMIT 0,10"; //先查试运行sql的千10条数据
+            runSQL = runSQL + " LIMIT 10"; //先查试运行sql的前10条数据
             pst = conn.prepareStatement(runSQL); //先试运行sql看看是不是报错
             resultSet = pst.executeQuery();
             if (resultSet.next()) { //如果sql试运行不抱错则查数据条数

@@ -141,7 +141,6 @@ public class ReportCenterController extends BaseController {
 //                query1+="toFloat32(S_ENTRUSTDATE) BETWEEN   toFloat32(REPLACE('2020-02-02','-',''))   AND toFloat32(REPLACE('2020-12-02','-',''))"
             }
             if(!"".equals(pd.containsKey("S_ENDTIME")? pd.get("S_ENDTIME"):"")){
-//                query1+=" AND date_format(S_ENTRUSTDATE, '%Y-%m-%d') <= date_format('"+pd.getString("S_ENDTIME")+"', '%Y-%m-%d')";
                 query1+=" AND toString(S_ENTRUSTDATE)  <= toString(REPLACE('"+pd.getString("S_ENDTIME")+"','-','')) ";
             }
             if(!"".equals(pd.containsKey("S_PAYMODE")? pd.get("S_PAYMODE"):"")){
@@ -247,7 +246,7 @@ public class ReportCenterController extends BaseController {
             List<Map<String, Object>> dataList ;
             Integer pageNo= page>2? (page - 1) * rows:0;
             Integer rowsNo= page>2? page * rows:10;
-            String dataPage= " limit "+ pageNo + "," + rowsNo;
+            String dataPage = " LIMIT " + rowsNo + " OFFSET " + pageNo;
             query1+=dataPage;
             System.out.println(query1);
             dataList = this.getSQLResults(query1); //comprehensiveQueryService.getComprehensiveQueryData(pageData);
@@ -280,7 +279,7 @@ public class ReportCenterController extends BaseController {
 
             //      执行SQL语句
 
-            String query1=" select  round(IFNULL(sum(F_PAYAMT),0)/"+pd.getString("S_AMTUNIT")+",2)"+
+            String query1=" select  round(COALESCE(sum(F_PAYAMT),0)/"+pd.getString("S_AMTUNIT")+",2)"+
                     "        adm.trs_stat_agentbankpay_detail WHERE  1 = 1";
             if(!"".equals(pd.containsKey("S_TRECODE")? pd.get("S_TRECODE"):"")){
                 query1+=" AND S_TRECODE in (concat('"+pd.getString("S_TRECODE")+"',''))";
@@ -290,7 +289,6 @@ public class ReportCenterController extends BaseController {
 //                query1+="toFloat32(S_ENTRUSTDATE) BETWEEN   toFloat32(REPLACE('2020-02-02','-',''))   AND toFloat32(REPLACE('2020-12-02','-',''))"
             }
             if(!"".equals(pd.containsKey("S_ENDTIME")? pd.get("S_ENDTIME"):"")){
-//                query1+=" AND date_format(S_ENTRUSTDATE, '%Y-%m-%d') <= date_format('"+pd.getString("S_ENDTIME")+"', '%Y-%m-%d')";
                 query1+=" AND toString(S_ENTRUSTDATE)  <= toString(REPLACE('"+pd.getString("S_ENDTIME")+"','-','')) ";
             }
             if(!"".equals(pd.containsKey("S_PAYMODE")? pd.get("S_PAYMODE"):"")){
@@ -460,7 +458,6 @@ public class ReportCenterController extends BaseController {
 //                query1+="toFloat32(S_ENTRUSTDATE) BETWEEN   toFloat32(REPLACE('2020-02-02','-',''))   AND toFloat32(REPLACE('2020-12-02','-',''))"
             }
             if(!"".equals(pd.containsKey("S_ENDTIME")? pd.get("S_ENDTIME"):"")){
-//                query1+=" AND date_format(S_ENTRUSTDATE, '%Y-%m-%d') <= date_format('"+pd.getString("S_ENDTIME")+"', '%Y-%m-%d')";
                 query1+=" AND toString(S_ENTRUSTDATE)  <= toString(REPLACE('"+pd.getString("S_ENDTIME")+"','-','')) ";
             }
             if(!"".equals(pd.containsKey("S_PAYMODE")? pd.get("S_PAYMODE"):"")){
@@ -505,7 +502,6 @@ public class ReportCenterController extends BaseController {
 //                queryTotal+="toFloat32(S_ENTRUSTDATE) BETWEEN   toFloat32(REPLACE('2020-02-02','-',''))   AND toFloat32(REPLACE('2020-12-02','-',''))"
             }
             if(!"".equals(pd.containsKey("S_ENDTIME")? pd.get("S_ENDTIME"):"")){
-//                queryTotal+=" AND date_format(S_ENTRUSTDATE, '%Y-%m-%d') <= date_format('"+pd.getString("S_ENDTIME")+"', '%Y-%m-%d')";
                 queryTotal+=" AND toString(S_ENTRUSTDATE)  <= toString(REPLACE('"+pd.getString("S_ENDTIME")+"','-','')) ";
             }
             if(!"".equals(pd.containsKey("S_PAYMODE")? pd.get("S_PAYMODE"):"")){
@@ -543,7 +539,7 @@ public class ReportCenterController extends BaseController {
             List<Map<String, Object>> dataList ;
             Integer pageNo= page>2? (page - 1) * rows:0;
             Integer rowsNo= page>2? page * rows:10;
-            String dataPage= " limit "+ pageNo + "," + rowsNo;
+            String dataPage = " LIMIT " + rowsNo + " OFFSET " + pageNo;
             query1+=dataPage;
             System.out.println(query1);
             dataList = this.getSQLResults(query1); //comprehensiveQueryService.getComprehensiveQueryData(pageData);
@@ -576,7 +572,7 @@ public class ReportCenterController extends BaseController {
             Integer page = Integer.parseInt(pd.getString("page"));//页码
             Integer rows = Integer.parseInt(pd.getString("rows"));//行数
             //      执行SQL语句
-            String query1=" select  round(IFNULL(sum(F_PAYAMT),0)/"+pd.getString("S_AMTUNIT")+",2)"+
+            String query1=" select  round(COALESCE(sum(F_PAYAMT),0)/"+pd.getString("S_AMTUNIT")+",2)"+
                     "        adm.trs_stat_agentbankpay_back_detail WHERE  S_BACKTYPE = '2'";
             if(!"".equals(pd.containsKey("S_TRECODE")? pd.get("S_TRECODE"):"")){
                 query1+=" AND S_TRECODE in (concat('"+pd.getString("S_TRECODE")+"',''))";
@@ -586,7 +582,6 @@ public class ReportCenterController extends BaseController {
 //                query1+="toFloat32(S_ENTRUSTDATE) BETWEEN   toFloat32(REPLACE('2020-02-02','-',''))   AND toFloat32(REPLACE('2020-12-02','-',''))"
             }
             if(!"".equals(pd.containsKey("S_ENDTIME")? pd.get("S_ENDTIME"):"")){
-//                query1+=" AND date_format(S_ENTRUSTDATE, '%Y-%m-%d') <= date_format('"+pd.getString("S_ENDTIME")+"', '%Y-%m-%d')";
                 query1+=" AND toString(S_ENTRUSTDATE)  <= toString(REPLACE('"+pd.getString("S_ENDTIME")+"','-','')) ";
             }
             if(!"".equals(pd.containsKey("S_PAYMODE")? pd.get("S_PAYMODE"):"")){
@@ -641,7 +636,7 @@ public class ReportCenterController extends BaseController {
             List<Map<String, Object>> dataList = this.getSQLResults(query1); //comprehensiveQueryService.getComprehensiveQueryData(pageData);
             //按分页查询
             pd.put("page", (page - 1) * rows);
-            String dataPage= "LIMIT "+pd.get("page")+","+pd.get("rows");
+            String dataPage = "LIMIT " + pd.get("rows") + " OFFSET " + pd.get("page");
             query1+=dataPage;
             dataList = this.getSQLResults(query1); //comprehensiveQueryService.getComprehensiveQueryData(pageData);
             jsonMap.put("rows", dataList);
@@ -811,7 +806,6 @@ public class ReportCenterController extends BaseController {
 //                query1+="toFloat32(S_ENTRUSTDATE) BETWEEN   toFloat32(REPLACE('2020-02-02','-',''))   AND toFloat32(REPLACE('2020-12-02','-',''))"
         }
         if(!"".equals(pd.containsKey("S_ENDTIME")? pd.get("S_ENDTIME"):"")){
-//                query1+=" AND date_format(S_ENTRUSTDATE, '%Y-%m-%d') <= date_format('"+pd.getString("S_ENDTIME")+"', '%Y-%m-%d')";
             query1+=" AND toString(S_ENTRUSTDATE)  <= toString(REPLACE('"+pd.getString("S_ENDTIME")+"','-','')) ";
         }
         if(!"".equals(pd.containsKey("S_PAYMODE")? pd.get("S_PAYMODE"):"")){
@@ -1073,7 +1067,6 @@ public class ReportCenterController extends BaseController {
 //                query1+="toFloat32(S_ENTRUSTDATE) BETWEEN   toFloat32(REPLACE('2020-02-02','-',''))   AND toFloat32(REPLACE('2020-12-02','-',''))"
         }
         if(!"".equals(pd.containsKey("S_ENDTIME")? pd.get("S_ENDTIME"):"")){
-//                query1+=" AND date_format(S_ENTRUSTDATE, '%Y-%m-%d') <= date_format('"+pd.getString("S_ENDTIME")+"', '%Y-%m-%d')";
             query1+=" AND toString(S_ENTRUSTDATE)  <= toString(REPLACE('"+pd.getString("S_ENDTIME")+"','-','')) ";
         }
         if(!"".equals(pd.containsKey("S_PAYMODE")? pd.get("S_PAYMODE"):"")){

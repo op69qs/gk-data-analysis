@@ -21,7 +21,7 @@
 
     <!--    获取监测告警明细表数据-->
     <select id="getAlarmDetailsData" resultType="hashmap">
-        SELECT a.lastOccurTime AS alarm_time,b.index_name,c.platfrom_name,a.resource_ip,
+        SELECT DISTINCT a.lastOccurTime AS alarm_time,b.index_name,c.platfrom_name,a.resource_ip,
         a.resource_name AS resource_desc,a.alarm_count AS alarm_value,a.description
         FROM ucloud.api_interface_alarm_data a
         LEFT JOIN  system_docking.api_platform_index_info b ON a.index_code=b.index_code
@@ -35,7 +35,6 @@
         <if test="params.times != null and params.times != ''">
             AND LEFT(a.lastOccurTime,10) ${params.times}
         </if>
-        GROUP BY a.id
         ORDER BY alarm_time
         <if test="params.limit != null and params.limit != ''">
             ${params.limit}

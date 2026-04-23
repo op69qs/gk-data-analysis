@@ -169,6 +169,6 @@
     },
   }
 </script>
-<style scoped>
-  @import '~@assets/less/common.less'
+<style lang="less" scoped>
+  @import '~@assets/less/common.less';
 </style>

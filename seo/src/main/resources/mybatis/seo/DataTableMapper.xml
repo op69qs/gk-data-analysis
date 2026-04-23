@@ -5,10 +5,10 @@
     <!--    查询数据源Tree-->
     <select id="getDataSourceTree" resultType="hashmap">
         SELECT V.* FROM (
-            SELECT a.ID AS id,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS lable,'' AS pId FROM seo.`seo_datasource` a
+            SELECT a.ID AS id,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS lable,'' AS pId FROM seo.seo_datasource a
             <where>
                 <if test="params.tableName != null and params.tableName.length > 0">
-                    EXISTS(SELECT SOURCE_ID FROM edw.`fm_trs_guoku_base_table` WHERE a.ID=SOURCE_ID AND STATE IN('0','1') AND TABLE_ID IS NOT NULL AND
+                    EXISTS(SELECT SOURCE_ID FROM edw.fm_trs_guoku_base_table WHERE a.ID=SOURCE_ID AND STATE IN('0','1') AND TABLE_ID IS NOT NULL AND
                     <foreach collection="params.tableName" item="tableName" index="index" open="(" close=")" separator="OR">
                         (TABLE_SIGN LIKE '%${tableName}%' OR TABLE_NAME LIKE '%${tableName}%')
                     </foreach>
@@ -16,18 +16,18 @@
                 </if>
             </where>
             UNION
-            SELECT b.ID AS id,b.DBNAME AS lable,b.SOURCE_ID AS pId FROM seo.`seo_datasource_database` b
+            SELECT b.ID AS id,b.DBNAME AS lable,b.SOURCE_ID AS pId FROM seo.seo_datasource_database b
             WHERE b.STATE = '0'
             <if test="params.tableName != null and params.tableName.length > 0">
-                AND EXISTS(SELECT DATABASE_ID FROM edw.`fm_trs_guoku_base_table` WHERE b.ID=DATABASE_ID AND STATE IN('0','1') AND TABLE_ID IS NOT NULL AND
+                AND EXISTS(SELECT DATABASE_ID FROM edw.fm_trs_guoku_base_table WHERE b.ID=DATABASE_ID AND STATE IN('0','1') AND TABLE_ID IS NOT NULL AND
                 <foreach collection="params.tableName" item="tableName" index="index" open="(" close=")" separator="OR">
                     (TABLE_SIGN LIKE '%${tableName}%' OR TABLE_NAME LIKE '%${tableName}%')
                 </foreach>
                 )
             </if>
             UNION
-            SELECT r.TABLE_ID AS id,CONCAT(r.TABLE_SIGN, '(', r.TABLE_NAME, ')▲',CASE WHEN STATE='0' THEN '启用' ELSE '停用' END) AS lable,r.DATABASE_ID AS pId
-            FROM edw.`fm_trs_guoku_base_table` r
+            SELECT DISTINCT r.TABLE_ID AS id,CONCAT(r.TABLE_SIGN, '(', r.TABLE_NAME, ')▲',CASE WHEN STATE='0' THEN '启用' ELSE '停用' END) AS lable,r.DATABASE_ID AS pId
+            FROM edw.fm_trs_guoku_base_table r
             WHERE r.STATE IN('0','1') AND r.TABLE_ID IS NOT NULL
             <if test="params.tableName != null and params.tableName.length > 0">
                 AND
@@ -35,17 +35,15 @@
                     (r.TABLE_SIGN LIKE '%${tableName}%' OR r.TABLE_NAME LIKE '%${tableName}%')
                 </foreach>
             </if>
-            GROUP BY r.TABLE_ID
         ) V
     </select>
 
     <!--    根据Tree父节点查询数据源关系表Tree-->
     <select id="getRelationTree" resultType="hashmap">
         SELECT * FROM (
-        SELECT r.TABLE_ID AS id,CONCAT(r.TABLE_SIGN, '(', r.TABLE_NAME, ')') AS lable,r.DATABASE_ID AS pId
-        FROM edw.`fm_trs_guoku_base_table` r
+        SELECT DISTINCT r.TABLE_ID AS id,CONCAT(r.TABLE_SIGN, '(', r.TABLE_NAME, ')') AS lable,r.DATABASE_ID AS pId
+        FROM edw.fm_trs_guoku_base_table r
         WHERE r.STATE = '0' AND r.DATABASE_ID = #{params.parentId}
-        group by r.TABLE_ID
         ) v where 1=1
         <if test="params.tableName != null and params.tableName.length > 0">
             AND
@@ -58,21 +56,21 @@
     <!--    查询数据源关系表数据-->
     <select id="getRelationData" resultType="hashmap">
         SELECT r.*,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS DATASOURCE_NAME,b.DBNAME
-        FROM edw.`fm_trs_guoku_base_table` r
-        LEFT JOIN seo.`seo_datasource` a ON a.ID = r.SOURCE_ID
-        LEFT JOIN seo.`seo_datasource_database` b ON b.ID = r.DATABASE_ID
+        FROM edw.fm_trs_guoku_base_table r
+        LEFT JOIN seo.seo_datasource a ON a.ID = r.SOURCE_ID
+        LEFT JOIN seo.seo_datasource_database b ON b.ID = r.DATABASE_ID
         WHERE r.TABLE_ID = #{params.TABLE_ID}
     </select>
 
     <!--    判断选择的数据表是否已新增-->
     <select id="getTableCount" resultType="int">
-        SELECT COUNT(1) FROM edw.`fm_trs_guoku_base_table` r
+        SELECT COUNT(1) FROM edw.fm_trs_guoku_base_table r
         WHERE r.SOURCE_ID = #{params.SOURCE_ID} AND r.DATABASE_ID = #{params.DATABASE_ID} AND r.TABLE_SIGN = #{params.TABLE_SIGN}
     </select>
 
     <!--    新增数据表-->
     <insert id="addDataTable">
-        INSERT INTO edw.`fm_trs_guoku_base_table`
+        INSERT INTO edw.fm_trs_guoku_base_table
         VALUES
         <foreach collection="list" item="params" separator=",">
             (
@@ -97,7 +95,7 @@
 
     <!--    删除数据表-->
     <delete id="deleteDataTable">
-        DELETE FROM edw.`fm_trs_guoku_base_table` WHERE TABLE_ID = #{tableId}
+        DELETE FROM edw.fm_trs_guoku_base_table WHERE TABLE_ID = #{tableId}
     </delete>
 
 </mapper>

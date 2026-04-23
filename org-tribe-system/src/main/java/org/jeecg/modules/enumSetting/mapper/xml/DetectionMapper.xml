@@ -16,7 +16,7 @@
         then '在用'
         else '停用'
         end as STATE_DSCR
-        FROM `ENUMSET`.`CM_GUOKU_DETECTION` a
+        FROM enumset.cm_guoku_detection a
         where DETECTION_TYPE_ID='${params.DETECTION_TYPE_ID}'
 
         <if test=" params.STATE != null and params.STATE != ''">
@@ -27,13 +27,13 @@
         </if>
 
         order by DETECTION_ID
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
 
     </select>
     <select id="getCount" resultType="java.lang.Integer">
         SELECT
         COUNT(*)
-        FROM `ENUMSET`.`CM_GUOKU_DETECTION` a
+        FROM enumset.cm_guoku_detection a
         where DETECTION_TYPE_ID='${params.DETECTION_TYPE_ID}'
 
         <if test=" params.STATE != null and params.STATE != ''">
@@ -49,7 +49,7 @@
         distinct DETECTION_ID id
         ,DETECTION_DSCR name
         FROM
-        `ENUMSET`.`CM_GUOKU_DETECTION`
+        enumset.cm_guoku_detection
         WHERE STATE= 0
         <if test=" params.DETECTION_TYPE_ID != null and params.DETECTION_TYPE_ID != ''">
             and DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
@@ -61,7 +61,7 @@
         distinct DETECTION_TYPE_ID id
         ,DETECTION_TYPE_DSCR name
         FROM
-        `ENUMSET`.`CM_GUOKU_DETECTION`
+        enumset.cm_guoku_detection
         WHERE STATE= 0
         <if test=" params.DETECTION_TYPE_DSCR != null and params.DETECTION_TYPE_DSCR != ''">
             and DETECTION_TYPE_DSCR like '%${params.DETECTION_TYPE_DSCR}%'
@@ -71,7 +71,7 @@
     <select id="checkCode" resultType="java.util.HashMap">
         SELECT *
         FROM
-            `ENUMSET`.`CM_GUOKU_DETECTION`
+            enumset.cm_guoku_detection
         WHERE
              DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
             AND ( DETECTION_ID = '${params.DETECTION_ID}'
@@ -85,7 +85,7 @@
 
 
     <insert id="addDetection">
-        INSERT INTO `ENUMSET`.`CM_GUOKU_DETECTION`
+        INSERT INTO enumset.cm_guoku_detection
         (
             DETECTION_TYPE_ID,
             DETECTION_TYPE_DSCR,
@@ -107,7 +107,7 @@
             )
     </insert>
     <update id="editDetection">
-        UPDATE `ENUMSET`.`CM_GUOKU_DETECTION` SET
+        UPDATE enumset.cm_guoku_detection SET
         <if test=" params.DETECTION_DSCR != null">
             DETECTION_DSCR = '${params.DETECTION_DSCR}',
         </if>
@@ -129,12 +129,12 @@
         and STATE = '0'
     </update>
     <update id="delDetection">
-         UPDATE `ENUMSET`.`CM_GUOKU_DETECTION` SET STATE ='${params.STATE}'
+            UPDATE enumset.cm_guoku_detection SET STATE ='${params.STATE}'
          where DETECTION_ID='${params.DETECTION_ID}'
           AND DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
     </update>
     <update id="delDetectionNo">
-         UPDATE `ENUMSET`.`CM_GUOKU_DETECTION` SET STATE='0'
+            UPDATE enumset.cm_guoku_detection SET STATE='0'
          where DETECTION_ID='${params.DETECTION_ID}'
           and DETECTION_TYPE_ID = '${params.DETECTION_TYPE_ID}'
           and STATE = '1'

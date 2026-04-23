@@ -333,16 +333,16 @@ public class IndexRelationController extends BaseController {
                     for (int i = 0; i < columns.length; i++) {
                         if (valueMap.get(columns[i]) != null) {
                             columnBuilder.append(" CASE WHEN " + valueMap.get(columns[i]).toString().replace("@VALUE", "V." + columns[i]).replace("@UNIT", price));
-                            columnBuilder.append(" THEN CONCAT('RGB_',FORMAT(V." + columns[i] + ",2))");
-                            columnBuilder.append(" ELSE CASE WHEN V." + columns[i] + "='' THEN '' ELSE FORMAT(V." + columns[i] + ",2) END END AS '" + columns[i] + "',");
+                            columnBuilder.append(" THEN CONCAT('RGB_', CAST(ROUND(CAST(V." + columns[i] + " AS NUMERIC),2) AS TEXT))");
+                            columnBuilder.append(" ELSE CASE WHEN COALESCE(CAST(V." + columns[i] + " AS TEXT),'')='' THEN '' ELSE CAST(ROUND(CAST(V." + columns[i] + " AS NUMERIC),2) AS TEXT) END END AS '" + columns[i] + "',");
                         } else {
-                            columnBuilder.append("CASE WHEN V." + columns[i] + "='' THEN '' ELSE FORMAT(V." + columns[i] + ",2) END AS '" + columns[i] + "',");
+                            columnBuilder.append("CASE WHEN COALESCE(CAST(V." + columns[i] + " AS TEXT),'')='' THEN '' ELSE CAST(ROUND(CAST(V." + columns[i] + " AS NUMERIC),2) AS TEXT) END AS '" + columns[i] + "',");
                         }
                     }
                     columnBuilder.append("V.ACCOUNT_DATE,V.ACCOUNT_PERIOD,V.CODE,V.GK");
                     schemeSql = schemeSql.replace("V.*", columnBuilder.toString());
                 }
-                schemeSql += " LIMIT " + pageNo + "," + pageSize;
+                schemeSql += " LIMIT " + pageSize + " OFFSET " + pageNo;
                 List<Map<String, Object>> dataList = indexRelationService.getIndicatorsTable(schemeSql);
                 result.put("result", "success");
                 result.put("total", count);//total键 存放总记录数，必须的

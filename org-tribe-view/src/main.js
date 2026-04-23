@@ -368,9 +368,12 @@ new Vue({
   router,
   store,
   mounted() {
+    const storedLayoutMode = Vue.ls.get(DEFAULT_LAYOUT_MODE, config.layout)
+    const layoutMode = storedLayoutMode === 'sidemenu' ? 'topmenu' : storedLayoutMode
+
     store.commit('SET_SIDEBAR_TYPE', Vue.ls.get(SIDEBAR_TYPE, true))
     store.commit('TOGGLE_THEME', Vue.ls.get(DEFAULT_THEME, config.navTheme))
-    store.commit('TOGGLE_LAYOUT_MODE', Vue.ls.get(DEFAULT_LAYOUT_MODE, config.layout))
+    store.commit('TOGGLE_LAYOUT_MODE', layoutMode)
     store.commit('TOGGLE_FIXED_HEADER', Vue.ls.get(DEFAULT_FIXED_HEADER, config.fixedHeader))
     store.commit('TOGGLE_FIXED_SIDERBAR', Vue.ls.get(DEFAULT_FIXED_SIDEMENU, config.fixSiderbar))
     store.commit('TOGGLE_CONTENT_WIDTH', Vue.ls.get(DEFAULT_CONTENT_WIDTH_TYPE, config.contentWidth))

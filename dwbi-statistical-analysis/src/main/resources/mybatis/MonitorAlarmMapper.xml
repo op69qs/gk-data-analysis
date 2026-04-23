@@ -4,7 +4,7 @@
 
     <!--    查询监测指标-->
     <select id="getAlarmIndexData" resultType="hashmap">
-        SELECT a.id AS value,a.index_name AS label
+        SELECT DISTINCT a.id AS value,a.index_name AS label
 		FROM system_docking.api_platform_index_info a
         LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id = b.id
         LEFT JOIN system_docking.api_interface_system_info c ON b.system_id = c.id
@@ -18,12 +18,11 @@
         <if test="params.index_type != null and params.index_type != ''">
             AND a.index_type=#{params.index_type}
         </if>
-        GROUP BY a.id
     </select>
 
     <!--    查询监测器平台-->
     <select id="getAlarmPlatformData" resultType="hashmap">
-        SELECT a.id AS value,a.platfrom_name AS label
+        SELECT DISTINCT a.id AS value,a.platfrom_name AS label
 		FROM system_docking.api_interface_system_platform_info a
         LEFT JOIN system_docking.api_interface_system_info b ON a.system_id = b.id
         WHERE a.is_enable = '1' AND b.is_enable = '1'
@@ -31,14 +30,13 @@
             AND b.system_code=#{params.system_code}
         </if>
         <if test="params.is_monitor != null and params.is_monitor != ''">
-            AND EXISTS (SELECT DISTINCT c.platform_id FROM `system_docking`.api_platform_index_info c WHERE c.is_enable='1' AND c.is_monitor='${params.is_monitor}' AND a.ID=c.platform_id)
+            AND EXISTS (SELECT DISTINCT c.platform_id FROM system_docking.api_platform_index_info c WHERE c.is_enable='1' AND c.is_monitor='${params.is_monitor}' AND a.ID=c.platform_id)
         </if>
-        GROUP BY a.id
     </select>
 
     <!--    查询监测器设备资源-->
     <select id="getAlarmResourceData" resultType="hashmap">
-        SELECT b.id AS value,b.resource_desc AS label
+        SELECT DISTINCT b.id AS value,b.resource_desc AS label
         FROM system_docking.api_system_index_resource a
 		LEFT JOIN system_docking.api_system_resource b ON a.resource_id=b.id
 		LEFT JOIN system_docking.api_platform_index_info c ON a.index_id=c.id
@@ -48,7 +46,6 @@
         <if test="params.system_code != null and params.system_code != ''">
             AND e.system_code=#{params.system_code}
         </if>
-        GROUP BY b.id
     </select>
 
     <!--    查询监测器告警数据-->

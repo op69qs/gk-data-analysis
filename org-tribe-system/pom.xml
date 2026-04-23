@@ -12,6 +12,13 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
+	<properties>
+		<frontend.working.directory>${project.basedir}/../org-tribe-view</frontend.working.directory>
+		<frontend.dist.directory>${project.basedir}/../org-tribe-view/dist</frontend.dist.directory>
+		<frontend.node.version>v14.21.3</frontend.node.version>
+		<frontend.npm.version>8.19.4</frontend.npm.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.tribe.boot</groupId>
@@ -20,6 +27,16 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.bes.appserver</groupId>
+			<artifactId>bes-lite-spring-boot-2.x-starter</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -45,6 +62,26 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.bes.appserver</groupId>
+			<artifactId>bes-websocket</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-loader</artifactId>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -127,8 +164,8 @@
 			<artifactId>hutool-all</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -202,6 +239,81 @@
 		</resources>
 		<plugins>
 			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.15.0</version>
+				<configuration>
+					<workingDirectory>${frontend.working.directory}</workingDirectory>
+					<installDirectory>${project.build.directory}/frontend</installDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>install-node-and-npm</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>install-node-and-npm</goal>
+						</goals>
+						<configuration>
+							<nodeVersion>${frontend.node.version}</nodeVersion>
+							<npmVersion>${frontend.npm.version}</npmVersion>
+						</configuration>
+					</execution>
+					<execution>
+						<id>npm-install</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<configuration>
+							<arguments>ci --registry=https://registry.npmmirror.com --legacy-peer-deps</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>npm-build</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>npm</goal>
+						</goals>
+						<configuration>
+							<arguments>run build</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>clean-frontend-workdir</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<delete dir="${frontend.working.directory}/node_modules" quiet="true"/>
+								<delete dir="${frontend.dist.directory}" quiet="true"/>
+							</target>
+						</configuration>
+					</execution>
+					<execution>
+						<id>prepare-frontend-static-dir</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<configuration>
+							<target>
+								<delete dir="${project.build.outputDirectory}/static"/>
+								<mkdir dir="${project.build.outputDirectory}/static"/>
+							</target>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
@@ -258,6 +370,21 @@
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
+					<execution>
+						<id>copy-frontend-static</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<resources>
+								<resource>
+									<directory>${frontend.dist.directory}</directory>
+								</resource>
+							</resources>
+							<outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+						</configuration>
+					</execution>
 					<execution>
 						<id>copy-resources</id>
 						<phase>package</phase>

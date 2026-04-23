@@ -36,7 +36,7 @@
         <if test="params.platformId != null and params.platformId != ''">
             AND a.platform_id=#{params.platformId}
         </if>
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <!--    修改重点指标维护参数-->

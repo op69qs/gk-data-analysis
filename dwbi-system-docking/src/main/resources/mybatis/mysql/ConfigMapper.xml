@@ -19,7 +19,7 @@
 
     <!--    获取对接系统-->
     <select id="getSystemConfig" resultType="hashmap">
-        SELECT f.ID,f.system_code,f.system_name,f.system_desc
+        SELECT DISTINCT f.ID,f.system_code,f.system_name,f.system_desc
         FROM system_docking.api_task_ins a
         LEFT JOIN system_docking.api_task_thread_ins b on a.id=b.task_id and b.is_enable='1'
         LEFT JOIN system_docking.api_task_thread_index c on b.id=c.thread_id
@@ -30,7 +30,6 @@
         <if test="processId != null and processId != ''">
             AND a.id=#{processId}
         </if>
-        GROUP BY f.id
     </select>
 
     <!--            获取对接系统对应的平台-->
@@ -64,38 +63,36 @@
     <!--    获取优云系统请求调用接口-->
     <select id="getUcloudInterfaceConfig" resultType="hashmap">
         SELECT
-        a.id AS process_id,
-        a.task_code,
-        a.task_name,
-        b.ID AS thread_id,
-        b.task_thread_desc,
-        f.ID AS system_id,
-        f.system_code,
-        f.system_desc,
-        d.platform_id,
-        e.platfrom_code,
+        MAX(a.id) AS process_id,
+        MAX(a.task_code) AS task_code,
+        MAX(a.task_name) AS task_name,
+        MAX(b.ID) AS thread_id,
+        MAX(b.task_thread_desc) AS task_thread_desc,
+        MAX(f.ID) AS system_id,
+        MAX(f.system_code) AS system_code,
+        MAX(f.system_desc) AS system_desc,
+        MAX(d.platform_id) AS platform_id,
+        MAX(e.platfrom_code) AS platfrom_code,
         h.ID AS api_id,
-        c.index_id,
-        h.api_contract,
-        h.api_type AS httpMethod,
-        h.api_method,
-        h.api_wildcard,
-        h.api_index_code,
-        h.api_resource_code,
-        h.api_time_start,
-        h.api_time_end,
-        h.api_time_unit,
-        k.resource_id,
-        l.ip_address AS resource_ip,
-        GROUP_CONCAT( DISTINCT CONCAT( '"', i.api_head_code, '":"', i.api_head_content, '"' ) ) AS headers,
-        GROUP_CONCAT(
-        DISTINCT CONCAT(
-        '"',
-        j.api_params_code,
+        MAX(c.index_id) AS index_id,
+        MAX(h.api_contract) AS api_contract,
+        MAX(h.api_type) AS httpMethod,
+        MAX(h.api_method) AS api_method,
+        MAX(h.api_wildcard) AS api_wildcard,
+        MAX(h.api_index_code) AS api_index_code,
+        MAX(h.api_resource_code) AS api_resource_code,
+        MAX(h.api_time_start) AS api_time_start,
+        MAX(h.api_time_end) AS api_time_end,
+        MAX(h.api_time_unit) AS api_time_unit,
+        MAX(k.resource_id) AS resource_id,
+        MAX(l.ip_address) AS resource_ip,
+        string_agg(DISTINCT '"' || i.api_head_code || '":"' || i.api_head_content || '"', ',') AS headers,
+        string_agg(
+        DISTINCT '"' || j.api_params_code ||
         CASE WHEN j.api_params_value_type = '4' THEN
-        CONCAT( '":', j.api_params_value ) ELSE CONCAT( '":"', j.api_params_value, '"' )
-        END
-        )
+        '":' || j.api_params_value ELSE '":"' || j.api_params_value || '"'
+        END,
+        ','
         ) AS paramaters
         FROM system_docking.api_task_ins a
         LEFT JOIN system_docking.api_task_thread_ins b ON a.id = b.task_id
@@ -122,27 +119,27 @@
     <!--    获取UPM系统请求调用接口-->
     <select id="getUPMInterfaceConfig" resultType="hashmap">
         SELECT
-        a.id AS process_id,
-        a.task_code,
-        a.task_name,
-        b.ID AS thread_id,
-        b.task_thread_desc,
-        f.ID AS system_id,
-        f.system_code,
-        f.system_desc,
-        d.platform_id,
-        e.platfrom_code,
+        MAX(a.id) AS process_id,
+        MAX(a.task_code) AS task_code,
+        MAX(a.task_name) AS task_name,
+        MAX(b.ID) AS thread_id,
+        MAX(b.task_thread_desc) AS task_thread_desc,
+        MAX(f.ID) AS system_id,
+        MAX(f.system_code) AS system_code,
+        MAX(f.system_desc) AS system_desc,
+        MAX(d.platform_id) AS platform_id,
+        MAX(e.platfrom_code) AS platfrom_code,
         h.ID AS api_id,
-        c.index_id,
-        h.api_contract,
-        h.api_type AS httpMethod,
-        h.api_method,
-        h.api_wildcard,
-        h.api_index_code,
-        h.api_time_start,
-        h.api_time_end,
-        h.api_time_unit,
-        GROUP_CONCAT( DISTINCT CONCAT( '"', i.api_head_code, '":"', i.api_head_content, '"' ) ) AS headers,
+        MAX(c.index_id) AS index_id,
+        MAX(h.api_contract) AS api_contract,
+        MAX(h.api_type) AS httpMethod,
+        MAX(h.api_method) AS api_method,
+        MAX(h.api_wildcard) AS api_wildcard,
+        MAX(h.api_index_code) AS api_index_code,
+        MAX(h.api_time_start) AS api_time_start,
+        MAX(h.api_time_end) AS api_time_end,
+        MAX(h.api_time_unit) AS api_time_unit,
+        string_agg(DISTINCT '"' || i.api_head_code || '":"' || i.api_head_content || '"', ',') AS headers,
         '' AS paramaters
         FROM system_docking.api_task_ins a
         LEFT JOIN system_docking.api_task_thread_ins b ON a.id = b.task_id
@@ -170,7 +167,7 @@
 
     <!--    插入进程执行状态记录-->
     <insert id="insertProcessRecords">
-        INSERT INTO `system_docking`.api_task_ins_records
+        INSERT INTO system_docking.api_task_ins_records
         VALUES
         (
         #{params.ID},
@@ -290,60 +287,58 @@
     <!--    动态建表-->
     <select id="createTable">
        CREATE TABLE IF NOT EXISTS ${params.dataBase}.${params.tableName} (
-            `ID` varchar(32) COLLATE utf8_bin COLLATE utf8_bin NOT NULL COMMENT '主键',
-            `system_id` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '系统ID',
-            `platform_id` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '平台ID',
-            `index_id` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '指标ID',
-            `resource_id` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '资源ID',
-            `resource_code` varchar(500) COLLATE utf8_bin DEFAULT NULL COMMENT '资源code',
-            `resource_ip` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '资源IP',
-            `time` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '时间',
-            `content` text COLLATE utf8_bin DEFAULT NULL COMMENT '内容',
-            `ADD_DATE` varchar(20) COLLATE utf8_bin DEFAULT NULL COMMENT '新增时间',
-            INDEX(`system_id`),INDEX(`platform_id`),INDEX(`index_id`),INDEX(`time`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='${params.tableDesc}';
+            ID varchar(32) NOT NULL,
+            system_id varchar(32),
+            platform_id varchar(32),
+            index_id varchar(32),
+            resource_id varchar(32),
+            resource_code varchar(500),
+            resource_ip varchar(32),
+            time varchar(32),
+            content text,
+            ADD_DATE varchar(20)
+        );
     </select>
 
     <!--    创建网络/SDN性能警报日志表-->
     <select id="createNetPerformanceEventLog">
         CREATE TABLE IF NOT EXISTS upm.netperformanceeventlog_${params.tableMonth}  (
-          `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-          `category` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '分类',
-          `name` varchar(500) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '名称',
-          `lineId` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '链路Id',
-          `netsegmentId1` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '网段1',
-          `netsegmentId2` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '网段2',
-          `level` varchar(10) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '警报等级',
-          `time` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '告警时间',
-          `triggerCondition` text CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '触发条件',
-          `probeId` varchar(40) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '探针',
-          `ADD_DATE` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL DEFAULT NULL COMMENT '新增时间',
-          PRIMARY KEY (`id`),INDEX(`name`),INDEX(`lineId`),INDEX(`level`),INDEX(`probeId`)
-        )  ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='网络/SDN性能警报日志';
+                    id varchar(32) NOT NULL,
+                    category varchar(100),
+                    name varchar(500),
+                    lineId varchar(100),
+                    netsegmentId1 varchar(20),
+                    netsegmentId2 varchar(20),
+                    level varchar(10),
+                    time varchar(32),
+                    triggerCondition text,
+                    probeId varchar(40),
+                    ADD_DATE varchar(20),
+                    PRIMARY KEY (id)
+                );
     </select>
 
     <!--    创建异常行为日志表-->
     <select id="createAlarmLogAbnormalBehavior">
         CREATE TABLE IF NOT EXISTS upm.alarmlogAbnormalbehavior_${params.tableMonth}  (
-          `id` varchar(32) CHARACTER SET utf8 COLLATE utf8_bin NOT NULL,
-          `category` varchar(100) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '分类',
-          `name` varchar(500) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '名称',
-          `clientIpAddr` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '客户端',
-          `clientPort` varchar(10) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '客户端端口',
-          `clientNetsegmentId` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '客户器网段',
-          `serverIpAddr` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '服务器',
-          `serverPort` varchar(10) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '服务器端口',
-          `serverNetsegmentId` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '服务器网段',
-          `ipAddr` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT 'IP地址',
-          `netsegmentId` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '网段',
-          `level` varchar(10) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '警报等级',
-          `time` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '告警时间',
-          `triggerCondition` text CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '触发条件',
-          `probeId` varchar(40) CHARACTER SET utf8 COLLATE utf8_bin NULL COMMENT '探针',
-          `ADD_DATE` varchar(20) CHARACTER SET utf8 COLLATE utf8_bin NULL DEFAULT NULL COMMENT '新增时间',
-          PRIMARY KEY (`id`),INDEX(`category`),INDEX(`clientIpAddr`),
-          INDEX(`serverIpAddr`),INDEX(`ipAddr`),INDEX(`level`),INDEX(`probeId`)
-        )  ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='异常行为日志表';
+                    id varchar(32) NOT NULL,
+                    category varchar(100),
+                    name varchar(500),
+                    clientIpAddr varchar(20),
+                    clientPort varchar(10),
+                    clientNetsegmentId varchar(20),
+                    serverIpAddr varchar(20),
+                    serverPort varchar(10),
+                    serverNetsegmentId varchar(20),
+                    ipAddr varchar(20),
+                    netsegmentId varchar(20),
+                    level varchar(10),
+                    time varchar(32),
+                    triggerCondition text,
+                    probeId varchar(40),
+                    ADD_DATE varchar(20),
+                    PRIMARY KEY (id)
+                );
     </select>
 
     <!--    插入监测器告警数据-->

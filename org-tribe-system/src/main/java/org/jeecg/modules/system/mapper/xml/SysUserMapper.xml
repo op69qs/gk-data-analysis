@@ -8,19 +8,19 @@
 			(SELECT
 					   b.guoku_dscr
 				   FROM
-					   dmcode.`cm_guoku_dimnsn` b
+					   dmcode.cm_guoku_dimnsn b
 				   WHERE b.guoku_id = a.guoku_id) AS guokuDscr,
-			GROUP_CONCAT(c.`id` SEPARATOR ',') AS roleId,
-			GROUP_CONCAT(c.`role_name` SEPARATOR ',') AS roleName
+			string_agg(c.id::text, ',') AS roleId,
+			string_agg(c.role_name, ',') AS roleName
 		FROM
-			`jeecg-boot-os`.`sys_user` a
+			"jeecg-boot-os".sys_user a
 			JOIN
-			`jeecg-boot-os`.`sys_user_role` b ON a.id = b.`user_id`
+			"jeecg-boot-os".sys_user_role b ON a.id = b.user_id
 			JOIN
-			`jeecg-boot-os`.`sys_role` c ON b.`role_id` = c.`id`
+			"jeecg-boot-os".sys_role c ON b.role_id = c.id
 		where a.username = #{username}
 			  and a.del_flag = '0'
-		GROUP BY a.`id`
+		GROUP BY a.id
 	</select>
 	<select id="getUserList" resultType="map">
 		SELECT
@@ -46,10 +46,10 @@
 		(SELECT
 		b.guoku_dscr
 		FROM
-		dmcode.`cm_guoku_dimnsn` b
+		dmcode.cm_guoku_dimnsn b
 		WHERE b.guoku_id = a.guoku_id) AS guokuDscr,
-		(SELECT GROUP_CONCAT(b.guoku_dscr) FROM  dmcode.`cm_guoku_dimnsn` b  WHERE guoku_id IN (SELECT  guoku_id  FROM   `jeecg-boot-os`.t_sc_user_guoku_relation  WHERE  login_id=a.id))  AS viewableGuokuDscr,
-		(SELECT  GROUP_CONCAT(guoku_id)  FROM   `jeecg-boot-os`.t_sc_user_guoku_relation  WHERE  login_id=a.id) AS viewableguoku,
+		(SELECT string_agg(b.guoku_dscr, ',') FROM dmcode.cm_guoku_dimnsn b WHERE guoku_id IN (SELECT guoku_id FROM "jeecg-boot-os".t_sc_user_guoku_relation WHERE login_id = a.id)) AS viewableGuokuDscr,
+		(SELECT string_agg(guoku_id::text, ',') FROM "jeecg-boot-os".t_sc_user_guoku_relation WHERE login_id = a.id) AS viewableguoku,
 		CASE
 		WHEN STATUS = '1'
 		THEN '正常'
@@ -67,15 +67,15 @@
 		THEN '同步'
 		ELSE '不同步'
 		END AS activiti_sync_dictText,
-		IFNULL( DATE_FORMAT(a.`birthday`, '%Y-%m-%d'), '' ) AS birthday,
-		GROUP_CONCAT(c.id SEPARATOR "，") AS roleId,
-		GROUP_CONCAT(c.role_name SEPARATOR "，") AS roleName
-		FROM `jeecg-boot-os`.`sys_user` a
+		COALESCE(TO_CHAR(a.birthday, 'YYYY-MM-DD'), '') AS birthday,
+		string_agg(c.id::text, '，') AS roleId,
+		string_agg(c.role_name, '，') AS roleName
+		FROM "jeecg-boot-os".sys_user a
 		LEFT JOIN
-		`jeecg-boot-os`.`sys_user_role` b
+		"jeecg-boot-os".sys_user_role b
 		ON a.id = b.user_id
 		LEFT JOIN
-		`jeecg-boot-os`.`sys_role` c
+		"jeecg-boot-os".sys_role c
 		ON b.role_id = c.id
 		WHERE del_flag = '0'
 		<if test="params.username!=null and params.username != ''">
@@ -95,10 +95,10 @@
 		</if>
 		GROUP BY a.id
         ORDER BY a.update_time DESC
-		LIMIT ${params.page},${params.rows}
+		LIMIT ${params.rows} OFFSET ${params.page}
 	</select>
 	<select id="getUserListCount" resultType="int">
-		SELECT count(1)    FROM `jeecg-boot-os`.`sys_user` a
+		SELECT count(1)    FROM "jeecg-boot-os".sys_user a
 		where del_flag = '0'
 		<if test="params.username!=null and params.username != ''">
 			AND a.username like  '%${params.username}%'
@@ -151,7 +151,7 @@
 	select * from  sys_user  where email = #{email} and del_flag = '0'
 	</select>
 	<insert id="addUserGuoku">
-		insert into `jeecg-boot-os`.`t_sc_user_guoku_relation` (
+		insert into "jeecg-boot-os".t_sc_user_guoku_relation (
 		login_id,
 		guoku_id
 		)
@@ -161,7 +161,7 @@
 		)
 	</insert>
 	<delete id="DelUserGuoku">
-		delete from `jeecg-boot-os`.`t_sc_user_guoku_relation` where login_id='${params.userRelationID}'
+		delete from "jeecg-boot-os".t_sc_user_guoku_relation where login_id='${params.userRelationID}'
 	</delete>
 
     <!-- 同步更新时间 -->

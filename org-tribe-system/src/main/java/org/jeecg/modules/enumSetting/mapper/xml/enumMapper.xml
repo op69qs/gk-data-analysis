@@ -14,7 +14,7 @@
         then '在用'
         else '停用'
         end as STATE_DSCR
-        FROM enumset.`cm_guoku_enumeration` a
+        FROM enumset.cm_guoku_enumeration a
         where ENUM_TYPE_ID='${params.ENUM_TYPE_ID}'
 
         <if test=" params.STATE != null and params.STATE != ''">
@@ -25,13 +25,13 @@
         </if>
 
         order by ENUM_ID
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
 
     </select>
     <select id="getCount" resultType="java.lang.Integer">
         SELECT
         COUNT(*)
-        FROM enumset.`cm_guoku_enumeration` a
+        FROM enumset.cm_guoku_enumeration a
         where ENUM_TYPE_ID='${params.ENUM_TYPE_ID}'
 
         <if test=" params.STATE != null and params.STATE != ''">
@@ -55,7 +55,7 @@
         <if test=" params.content != null and params.content != ''">
             and ENUM_ID in ('002','003','004')
         </if>
-        ORDER BY CAST(ENUM_ID AS SIGNED)
+        ORDER BY CAST(ENUM_ID AS NUMERIC)
     </select>
     <!--枚举类型-->
     <select id="getEnumType" resultType="java.util.HashMap">
@@ -72,7 +72,7 @@
     <select id="checkCode" resultType="java.util.HashMap">
         SELECT *
         FROM
-            enumset.`cm_guoku_enumeration`
+            enumset.cm_guoku_enumeration
         WHERE
              ENUM_TYPE_ID = '${params.ENUM_TYPE_ID}'
             AND (ENUM_ID = '${params.ENUM_ID}'
@@ -82,12 +82,12 @@
     <!--    查询逻辑运算符号-->
     <select id="getLogicalOperator" resultType="java.util.HashMap">
         SELECT distinct ENUM_ID id,ENUM_DSCR name
-         FROM enumset.`cm_guoku_enumeration`
+         FROM enumset.cm_guoku_enumeration
         WHERE ENUM_TYPE_ID = '20' AND STATE='0' AND ENUM_ID NOT LIKE '%like%'
     </select>
 
     <insert id="addEnum">
-        INSERT INTO enumset.`cm_guoku_enumeration`
+        INSERT INTO enumset.cm_guoku_enumeration
         (
               ENUM_TYPE_ID
             ,ENUM_TYPE_DSCR
@@ -105,7 +105,7 @@
             )
     </insert>
     <update id="editEnum">
-        UPDATE enumset.`cm_guoku_enumeration` SET
+        UPDATE enumset.cm_guoku_enumeration SET
         <if test=" params.ENUM_DSCR != null">
             ENUM_DSCR = '${params.ENUM_DSCR}',
         </if>
@@ -121,12 +121,12 @@
         and STATE = '0'
     </update>
     <update id="delEnum">
-         UPDATE enumset.`cm_guoku_enumeration` SET STATE ='${params.STATE}'
+         UPDATE enumset.cm_guoku_enumeration SET STATE ='${params.STATE}'
          where ENUM_ID='${params.ENUM_ID}'
           and ENUM_TYPE_ID = '${params.ENUM_TYPE_ID}'
     </update>
     <update id="delEnumNo">
-         UPDATE enumset.`cm_guoku_enumeration` SET STATE='0'
+         UPDATE enumset.cm_guoku_enumeration SET STATE='0'
          where ENUM_ID='${params.ENUM_ID}'
           and ENUM_TYPE_ID = '${params.ENUM_TYPE_ID}'
           and STATE = '1'
@@ -138,7 +138,7 @@
         a.illustrate AS name,
         '' AS pid
         FROM
-        enumset.`cm_guoku_enumeration` a
+        enumset.cm_guoku_enumeration a
         where 1 = 1
         <if test=" params.STATE != null and params.STATE != ''">
             and STATE = #{params.STATE}
@@ -151,7 +151,7 @@
         b.ENUM_TYPE_DSCR AS name,
         b.illustrate AS pid
         FROM
-        enumset.`cm_guoku_enumeration` b
+        enumset.cm_guoku_enumeration b
         where 1 = 1
         <if test=" params.STATE != null and params.STATE != ''">
             and STATE = #{params.STATE}
@@ -164,7 +164,7 @@
         c.ENUM_DSCR AS NAME,
         c.ENUM_TYPE_ID AS pid
         FROM
-        enumset.`cm_guoku_enumeration` c
+        enumset.cm_guoku_enumeration c
         where 1 = 1
         <if test=" params.STATE != null and params.STATE != ''">
             and STATE = #{params.STATE}

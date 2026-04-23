@@ -341,7 +341,7 @@ public class IndexSchemeController extends BaseController {
             String schemeSql = indexSchemeService.selectSchemeSQL(schemeId);
             if (StringUtils.isNotBlank(schemeSql)) {
                 Integer count = indexRelationService.getIndicatorsCount(schemeSql);
-                schemeSql = schemeSql + " LIMIT " + ((pageNo - 1) * pageSize) + "," + pageSize;
+                schemeSql = schemeSql + " LIMIT " + pageSize + " OFFSET " + ((pageNo - 1) * pageSize);
                 List<Map<String, Object>> dataList = indexRelationService.getIndicatorsTable(schemeSql);
                 result.put("result", "success");
                 result.put("total", count);//total键 存放总记录数，必须的

@@ -5,13 +5,13 @@
     <!-- 获取指标父级信息 -->
     <select id="getIndexParentInfo" resultType="java.util.HashMap">
         SELECT
-            a.`INDEX_ID` AS id,
-            a.`INDEX_NAME` AS `text`,
-            a.`PARENT_ID` AS pId
+            a.INDEX_ID AS id,
+            a.INDEX_NAME AS text,
+            a.PARENT_ID AS pId
         FROM
-            `indicators_lib`.`lib_index_relation` a
+            indicators_lib.lib_index_relation a
         WHERE
-            a.`IS_FINAL` = '1'
+            a.IS_FINAL = '1'
     </select>
 
     <!--    根据指标查询指标的维度-->
@@ -20,10 +20,10 @@
         CASE WHEN V.INDEX_DIMNSN=1 THEN '国库' WHEN V.INDEX_DIMNSN=2 THEN '地区'
         ELSE '' END INDEX_DIMNSN_DSCR
         FROM(
-        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(a.INDEX_DIMNSN, ',', b.help_topic_id + 1 ), ',',- 1) INDEX_DIMNSN
+        SELECT trim(v.INDEX_DIMNSN) AS INDEX_DIMNSN
         FROM indicators_lib.lib_index_relation a
-        JOIN mysql.help_topic b ON b.help_topic_id <![CDATA[<]]> (LENGTH(a.INDEX_DIMNSN) - LENGTH(REPLACE(a.INDEX_DIMNSN, ',', '' )) + 1)
-        WHERE (a.INDEX_DIMNSN <![CDATA[<>]]> '' OR a.INDEX_DIMNSN IS NOT NULL)
+        CROSS JOIN LATERAL regexp_split_to_table(COALESCE(a.INDEX_DIMNSN, ''), ',') AS v(INDEX_DIMNSN)
+        WHERE COALESCE(a.INDEX_DIMNSN, '') <![CDATA[<>]]> ''
         <if test='indexArray != null and indexArray.length > 0'>
             AND a.INDEX_ID IN
             <foreach collection="indexArray" item="inedxId" open="(" separator="," close=")">
@@ -45,10 +45,10 @@
         WHEN V.INDEX_PERIOD=3 THEN '季' WHEN V.INDEX_PERIOD=4 THEN '年'
         ELSE '' END INDEX_PERIOD_DSCR
         FROM(
-        SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(a.INDEX_PERIOD, ',', b.help_topic_id + 1 ), ',',- 1) INDEX_PERIOD
+        SELECT trim(v.INDEX_PERIOD) AS INDEX_PERIOD
         FROM indicators_lib.lib_index_relation a
-        JOIN mysql.help_topic b ON b.help_topic_id <![CDATA[<]]> (LENGTH(a.INDEX_PERIOD) - LENGTH(REPLACE(a.INDEX_PERIOD, ',', '' )) + 1)
-        WHERE (a.INDEX_PERIOD <![CDATA[<>]]> '' OR a.INDEX_DIMNSN IS NOT NULL)
+        CROSS JOIN LATERAL regexp_split_to_table(COALESCE(a.INDEX_PERIOD, ''), ',') AS v(INDEX_PERIOD)
+        WHERE COALESCE(a.INDEX_PERIOD, '') <![CDATA[<>]]> ''
         <if test='indexArray != null and indexArray.length > 0'>
             AND a.INDEX_ID IN
             <foreach collection="indexArray" item="inedxId" open="(" separator="," close=")">
@@ -64,12 +64,12 @@
     </select>
     <!--    公共指标对应数据表删除指标信息-->
     <update id="detelePublicRelation">
-        UPDATE indicators_lib.`lib_index_relation` SET INDEX_STATUS='1' WHERE INDEX_ID=#{params.INDEX_ID}
+        UPDATE indicators_lib.lib_index_relation SET INDEX_STATUS='1' WHERE INDEX_ID=#{params.INDEX_ID}
     </update>
 
     <!--    查询用户是否有管理员角色-->
     <select id="selectRoleByUserId" resultType="int">
-        SELECT COUNT(1) FROM `jeecg-boot-os`.`sys_user_role` r
+        SELECT COUNT(1) FROM "jeecg-boot-os".sys_user_role r
         WHERE r.role_id IN('0515710a3d73da87c3d8fad580bc43f6','f6817f48af4fb3af11b9e8bf182f618b')
         AND r.USER_ID = #{params.USERID}
     </select>
@@ -87,47 +87,47 @@
         WHEN a.RUN_BATCH_STATUS ='1' THEN '进行中'
         WHEN a.RUN_BATCH_STATUS ='2' THEN '已完成'
         ELSE '' END AS RUN_BATCH_DSCR,
-        IFNULL(f.BUILD_TYPE,'') AS BUILD_TYPE,
-        IFNULL(f.ORIGINAL_DSCR,'') AS ORIGINAL_DSCR,
-        IFNULL(f.ORIGINAL_DSCR_ARRY,'') AS ORIGINAL_DSCR_ARRY,
-        IFNULL(f.INDEX_DSCR,'') AS INDEX_DSCR,
-        IFNULL(f.INDEX_DSCR_ARRY,'') AS INDEX_DSCR_ARRY,
+        COALESCE(f.BUILD_TYPE,'') AS BUILD_TYPE,
+        COALESCE(f.ORIGINAL_DSCR,'') AS ORIGINAL_DSCR,
+        COALESCE(f.ORIGINAL_DSCR_ARRY,'') AS ORIGINAL_DSCR_ARRY,
+        COALESCE(f.INDEX_DSCR,'') AS INDEX_DSCR,
+        COALESCE(f.INDEX_DSCR_ARRY,'') AS INDEX_DSCR_ARRY,
         f.EXE_DEL,
         f.EXE_INSERT,
-        IFNULL(f.EXE_SQL,'') AS EXE_SQL,
-        IFNULL(f.EXE_WHERE,'') AS EXE_WHERE,
-        IFNULL(f.HTML_STR,'') AS HTML_STR,
-        IFNULL(aap.app_result, '') AS app_result
-        FROM `indicators_lib`.`lib_index_relation` a
-        LEFT JOIN `indicators_lib`.`lib_index_formula` f
+        COALESCE(f.EXE_SQL,'') AS EXE_SQL,
+        COALESCE(f.EXE_WHERE,'') AS EXE_WHERE,
+        COALESCE(f.HTML_STR,'') AS HTML_STR,
+        COALESCE(aap.app_result, '') AS app_result
+        FROM indicators_lib.lib_index_relation a
+        LEFT JOIN indicators_lib.lib_index_formula f
         ON a.INDEX_ID=f.ID
-        LEFT JOIN `approval`.`appr_approval` aap
+        LEFT JOIN approval.appr_approval aap
         ON a.INDEX_ID = aap.subject_id
         WHERE a.INDEX_STATUS ='0' AND f.BUILD_TYPE IS NOT NULL
         <if test='params.PERSONAL_FLAG == "0"'>
-            AND a.PERSONAL_FLAG = '0' AND a.`ADD_USERID` = #{params.USERID}
+            AND a.PERSONAL_FLAG = '0' AND a.ADD_USERID = #{params.USERID}
         </if>
         <if test='params.PERSONAL_FLAG == "1"'>
             AND a.PERSONAL_FLAG = '1'
         </if>
         <if test='params.INDEX_ID != null and params.INDEX_ID !=""'>
-            AND a.`INDEX_ID` = #{params.INDEX_ID}
+            AND a.INDEX_ID = #{params.INDEX_ID}
         </if>
         <if test='params.INDEX_NAME != null and params.INDEX_NAME !=""'>
-            AND a.`INDEX_NAME` LIKE '%${params.INDEX_NAME}%'
+            AND a.INDEX_NAME LIKE '%${params.INDEX_NAME}%'
         </if>
         <if test='params.INDEX_TYPE != null and params.INDEX_TYPE !=""'>
-            AND a.`INDEX_TYPE` = #{params.INDEX_TYPE}
+            AND a.INDEX_TYPE = #{params.INDEX_TYPE}
         </if>
         <if test='params.INDEX_DIMNSN != null and params.INDEX_DIMNSN !=""'>
-            AND FIND_IN_SET( #{params.INDEX_DIMNSN},a.`INDEX_DIMNSN`)
+            AND #{params.INDEX_DIMNSN} = ANY(string_to_array(COALESCE(a.INDEX_DIMNSN, ''), ','))
         </if>
         <if test='params.INDEX_PERIOD != null and params.INDEX_PERIOD !=""'>
-            AND FIND_IN_SET(#{params.INDEX_PERIOD},a.`INDEX_PERIOD`)
+            AND #{params.INDEX_PERIOD} = ANY(string_to_array(COALESCE(a.INDEX_PERIOD, ''), ','))
         </if>
 
-        ORDER BY a.`ADD_DATE` DESC
-        LIMIT ${params.page},${params.rows}
+        ORDER BY a.ADD_DATE DESC
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <!-- 指标管理获取指标计数 -->
@@ -135,29 +135,29 @@
         SELECT
         COUNT(1)
         FROM
-        `indicators_lib`.`lib_index_relation` a
-        LEFT JOIN `indicators_lib`.`lib_index_formula` f ON a.INDEX_ID=f.ID
+        indicators_lib.lib_index_relation a
+        LEFT JOIN indicators_lib.lib_index_formula f ON a.INDEX_ID=f.ID
         WHERE a.INDEX_STATUS ='0' AND f.BUILD_TYPE IS NOT NULL
         <if test='params.PERSONAL_FLAG == "0"'>
-            AND a.PERSONAL_FLAG = '0' AND a.`ADD_USERID` = #{params.USERID}
+            AND a.PERSONAL_FLAG = '0' AND a.ADD_USERID = #{params.USERID}
         </if>
         <if test='params.PERSONAL_FLAG == "1"'>
             AND a.PERSONAL_FLAG = '1'
         </if>
         <if test='params.INDEX_ID != null and params.INDEX_ID !=""'>
-            AND a.`INDEX_ID` = #{params.INDEX_ID}
+            AND a.INDEX_ID = #{params.INDEX_ID}
         </if>
         <if test='params.INDEX_NAME != null and params.INDEX_NAME !=""'>
-            AND a.`INDEX_NAME` LIKE '%${params.INDEX_NAME}%'
+            AND a.INDEX_NAME LIKE '%${params.INDEX_NAME}%'
         </if>
         <if test='params.INDEX_TYPE != null and params.INDEX_TYPE !=""'>
-            AND a.`INDEX_TYPE` = #{params.INDEX_TYPE}
+            AND a.INDEX_TYPE = #{params.INDEX_TYPE}
         </if>
         <if test='params.INDEX_DIMNSN != null and params.INDEX_DIMNSN !=""'>
-            AND FIND_IN_SET( #{params.INDEX_DIMNSN},a.`INDEX_DIMNSN`)
+            AND #{params.INDEX_DIMNSN} = ANY(string_to_array(COALESCE(a.INDEX_DIMNSN, ''), ','))
         </if>
         <if test='params.INDEX_PERIOD != null and params.INDEX_PERIOD !=""'>
-            AND FIND_IN_SET(#{params.INDEX_PERIOD},a.`INDEX_PERIOD`)
+            AND #{params.INDEX_PERIOD} = ANY(string_to_array(COALESCE(a.INDEX_PERIOD, ''), ','))
         </if>
     </select>
 
@@ -170,7 +170,7 @@
     <select id="getMaxSeq" resultType="java.util.HashMap">
         SELECT MAX(a.IDENTITY_PROPERTY) AS SEQ
         FROM
-            `indicators_lib`.`lib_index_relation` a
+            indicators_lib.lib_index_relation a
     </select>
 
     <!-- 获取指标信息 -->
@@ -178,17 +178,17 @@
         SELECT
         *
         FROM
-        `indicators_lib`.`lib_index_relation` a
+        indicators_lib.lib_index_relation a
         WHERE 1=1
         <if test=' params.INDEX_ID != null and params.INDEX_ID !="" '>
-            AND a.`INDEX_ID` = #{params.INDEX_ID}
+            AND a.INDEX_ID = #{params.INDEX_ID}
         </if>
     </select>
 
     <!-- 新增指标对应数据表我的指标信息 -->
     <insert id="addMineNewRelation">
          INSERT INTO
-            `indicators_lib`.`lib_index_relation`
+            indicators_lib.lib_index_relation
             (
             INDEX_ID
             ,PARENT_ID
@@ -235,7 +235,7 @@
 
     <!--    指标对应数据表修改指标信息-->
     <update id="updateMineRelation" parameterType="hashmap">
-        UPDATE indicators_lib.`lib_index_relation`
+        UPDATE indicators_lib.lib_index_relation
          SET
             INDEX_NAME = #{params.INDEX_NAME},
             INDEX_DESCR = #{params.INDEX_DESCR},
@@ -247,13 +247,13 @@
 
     <!--    指标对应数据表删除指标信息-->
     <delete id="deteleMineRelation" parameterType="hashmap">
-        DELETE FROM indicators_lib.`lib_index_relation` WHERE INDEX_ID=#{params.INDEX_ID}
+        DELETE FROM indicators_lib.lib_index_relation WHERE INDEX_ID=#{params.INDEX_ID}
     </delete>
 
     <!-- 新增指标公式表信息 -->
     <insert id="addFormula">
         INSERT INTO
-        `indicators_lib`.`lib_index_formula`
+        indicators_lib.lib_index_formula
         VALUES (
             #{params.INDEX_ID},
             #{params.ORIGINAL_DSCR},
@@ -279,7 +279,7 @@
     <!-- 修改指标公式表信息 -->
     <update id="updateFormula" parameterType="hashmap">
         UPDATE
-            `indicators_lib`.`lib_index_formula`
+            indicators_lib.lib_index_formula
         SET
             ORIGINAL_DSCR = #{params.ORIGINAL_DSCR},
             ORIGINAL_DSCR_ARRY = #{params.ORIGINAL_DSCR_ARRY},
@@ -295,40 +295,40 @@
 
     <!-- 删除指标公式表信息 -->
     <delete id="deleteFormula" parameterType="hashmap">
-        DELETE FROM `indicators_lib`.`lib_index_formula` WHERE ID =  #{params.INDEX_ID}
+        DELETE FROM indicators_lib.lib_index_formula WHERE ID =  #{params.INDEX_ID}
     </delete>
 
     <!-- 新建指标表 -->
     <select id="createIndexTable">
-        CREATE TABLE `indicators_lib`.${params.INDEX_CORRE_TABLE} (
-            `INDEX_ID` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '指标id',
-            `ACCOUNT_PERIOD` varchar(10) COLLATE utf8_bin DEFAULT NULL COMMENT '账期',
-            `INDEX_DIM_CODE` varchar(12) COLLATE utf8_bin DEFAULT NULL COMMENT '指标维度编码',
-            `INDEX_DIM_DESCR` varchar(100) COLLATE utf8_bin DEFAULT NULL COMMENT '指标维度描述',
-            `DIMENSION_FLAG` varchar(2) COLLATE utf8_bin DEFAULT NULL COMMENT '维度标识(1国库，2地区，3核算主体)',
-            `PERIOD_FLAG` varchar(2) COLLATE utf8_bin DEFAULT NULL COMMENT '周期标识(1日，2月，3季，4年)',
-            `INDEX_VALUE` decimal(28,2) DEFAULT NULL COMMENT '指标值',
-            `ADD_USERID` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '新增人ID',
-            `ADD_DATE` varchar(20) COLLATE utf8_bin DEFAULT NULL COMMENT '新增时间',
-            `MODIFY_USERID` varchar(32) COLLATE utf8_bin DEFAULT NULL COMMENT '修改人ID',
-            `MODIFY_DATE` varchar(20) COLLATE utf8_bin DEFAULT NULL COMMENT '修改时间'
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='${params.INDEX_NAME}'
+        CREATE TABLE indicators_lib.${params.INDEX_CORRE_TABLE} (
+            INDEX_ID varchar(32),
+            ACCOUNT_PERIOD varchar(10),
+            INDEX_DIM_CODE varchar(12),
+            INDEX_DIM_DESCR varchar(100),
+            DIMENSION_FLAG varchar(2),
+            PERIOD_FLAG varchar(2),
+            INDEX_VALUE decimal(28,2),
+            ADD_USERID varchar(32),
+            ADD_DATE varchar(20),
+            MODIFY_USERID varchar(32),
+            MODIFY_DATE varchar(20)
+        )
     </select>
 
     <!-- 删除指标表 -->
     <select id="dropIndexTable">
-        DROP TABLE IF EXISTS `indicators_lib`.${params.INDEX_CORRE_TABLE}
+        DROP TABLE IF EXISTS indicators_lib.${params.INDEX_CORRE_TABLE}
     </select>
 
     <!-- 手动调用加工逻辑 -->
     <select id="callExeFormulaHand">
-        CALL `indicators_lib`.`p_exe_formula_hand`(#{params.exeDate}, #{params.INDEX_ID});
+        CALL indicators_lib.p_exe_formula_hand(#{params.exeDate}, #{params.INDEX_ID});
     </select>
 
     <!-- 新增指标和个人关系表信息 -->
     <insert id="addIndexUser">
         INSERT INTO
-        `indicators_lib`.`lib_index_user`
+        indicators_lib.lib_index_user
         VALUES (
         #{params.ID},
         #{params.INDEX_ID},
@@ -339,7 +339,7 @@
 
     <!-- 提交个人指标到公共指标 -->
     <update id="submitIndexData">
-        UPDATE indicators_lib.`lib_index_relation`
+        UPDATE indicators_lib.lib_index_relation
         SET
             PERSONAL_FLAG = #{params.PERSONAL_FLAG},
             USER_ID = #{params.MODIFY_USERID},
@@ -349,23 +349,23 @@
 
     <!-- 修改指标和个人关系表信息 -->
     <update id="updateIndexUser">
-        UPDATE `indicators_lib`.`lib_index_user`
+        UPDATE indicators_lib.lib_index_user
         SET USER_ID = #{params.MODIFY_USERID}
         WHERE INDEX_ID = #{params.INDEX_ID}
     </update>
 
     <!-- 删除指标和个人关系表信息 -->
     <delete id="deleteIndexUser">
-        DELETE FROM  `indicators_lib`.`lib_index_user`  WHERE INDEX_ID = #{params.INDEX_ID}
+        DELETE FROM indicators_lib.lib_index_user WHERE INDEX_ID = #{params.INDEX_ID}
     </delete>
 
     <!--    手动调指标历史数据跑批-->
     <select id="indexHistoryRunBatch" statementType="CALLABLE" resultType="string">
-        CALL `indicators_lib`.`p_exe_formula_history_hand`(#{params.INDEX_PERIOD}, #{params.INDEX_ID}, #{params.returnVal,mode=OUT,jdbcType=VARCHAR})
+        CALL indicators_lib.p_exe_formula_history_hand(#{params.INDEX_PERIOD}, #{params.INDEX_ID}, #{params.returnVal,mode=OUT,jdbcType=VARCHAR})
     </select>
 
     <update id="updateHistoryState">
-        UPDATE indicators_lib.`lib_index_relation` SET RUN_BATCH_STATUS = #{params.RUN_BATCH_STATUS} WHERE INDEX_ID = #{params.INDEX_ID}
+        UPDATE indicators_lib.lib_index_relation SET RUN_BATCH_STATUS = #{params.RUN_BATCH_STATUS} WHERE INDEX_ID = #{params.INDEX_ID}
     </update>
 
 </mapper>

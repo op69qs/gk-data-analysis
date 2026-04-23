@@ -7,23 +7,23 @@
     <select id="getRelationTalentPoolName" resultType="java.util.HashMap">
         SELECT
             a.*,
-            c.`UUID`,
-            c.`NAME`
+            c.UUID,
+            c.NAME
         FROM
-            `jeecg-boot-os`.`sys_user` a
+            "jeecg-boot-os".sys_user a
             LEFT JOIN
-            inspection.`inspection_sysuser_talentpool_relation` b
-                ON a.`id` = b.`SYS_USERID`
+            inspection.inspection_sysuser_talentpool_relation b
+                ON a.id = b.SYS_USERID
             LEFT JOIN
-            inspection.`cm_guoku_talentpool` c
-                ON b.`TALENTPOOL_ID` = c.`UUID`
+            inspection.cm_guoku_talentpool c
+                ON b.TALENTPOOL_ID = c.UUID
         WHERE
-            a.`id` = #{params.id}
+            a.id = #{params.id}
     </select>
 
     <!-- 修改关联关系 -->
     <insert id="editTalentPoolSysUserRelation">
-        UPDATE `inspection`.`inspection_sysuser_talentpool_relation`
+        UPDATE inspection.inspection_sysuser_talentpool_relation
         SET
             TALENTPOOL_ID = #{params.TALENTPOOL_ID}
         WHERE
@@ -35,7 +35,7 @@
         SELECT
         *
         FROM
-        `inspection`.`inspection_sysuser_talentpool_relation` a
+        inspection.inspection_sysuser_talentpool_relation a
         WHERE
         <if test=' params.SYS_USERID != null and params.SYS_USERID != "" '>
             a.SYS_USERID = #{params.SYS_USERID}
@@ -50,7 +50,7 @@
     <!-- 删除已有关系 -->
     <delete id="delExistRelation">
         DELETE FROM
-        `inspection`.`inspection_sysuser_talentpool_relation`
+        inspection.inspection_sysuser_talentpool_relation
         WHERE (
         SYS_USERID = #{params.SYS_USERID}
         OR
@@ -60,7 +60,7 @@
 
     <!-- 新增关联关系 -->
     <insert id="addTalentPoolSysUserRelation">
-        INSERT INTO `inspection`.`inspection_sysuser_talentpool_relation`
+        INSERT INTO inspection.inspection_sysuser_talentpool_relation
         VALUES (
             #{params.SYS_USERID},
             #{params.TALENTPOOL_ID},

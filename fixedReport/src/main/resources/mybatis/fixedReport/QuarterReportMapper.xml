@@ -3,309 +3,309 @@
 <mapper namespace="org.fixedReport.dao.mapper.fixedReport.QuarterReportMapper">
     <!-- 获取生成报告的报表参数信息 -->
     <select id="getTableParams" resultType="java.util.HashMap">
-        select    ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+        select    COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000012` a
+            indicators_lib.lib_indicators_000012 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000012'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000012'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000013` a
+            indicators_lib.lib_indicators_000013 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000013'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000013'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000018` a
+            indicators_lib.lib_indicators_000018 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000018'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000018'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000019` a
+            indicators_lib.lib_indicators_000019 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000019'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000019'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000262` a
+            indicators_lib.lib_indicators_000262 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000262'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000262'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000263` a
+            indicators_lib.lib_indicators_000263 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000263'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000263'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000264` a
+            indicators_lib.lib_indicators_000264 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000264'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000264'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000265` a
+            indicators_lib.lib_indicators_000265 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000265'
-			,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000265'
+			,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000024` a
+            indicators_lib.lib_indicators_000024 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000024'
-			,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000024'
+			,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000025` a
+            indicators_lib.lib_indicators_000025 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000025'
-			,           ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000025'
+			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000037` a
+            indicators_lib.lib_indicators_000037 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000037'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000037'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000038` a
+            indicators_lib.lib_indicators_000038 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000038'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000038'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000043` a
+            indicators_lib.lib_indicators_000043 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000043'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000043'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000044` a
+            indicators_lib.lib_indicators_000044 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000044'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000044'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000266` a
+            indicators_lib.lib_indicators_000266 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000266'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000266'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000267` a
+            indicators_lib.lib_indicators_000267 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000267'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000267'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000268` a
+            indicators_lib.lib_indicators_000268 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000268'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000268'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000269` a
+            indicators_lib.lib_indicators_000269 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000269'
-			,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000269'
+			,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000049` a
+            indicators_lib.lib_indicators_000049 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000049'
-			,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000049'
+			,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000050` a
+            indicators_lib.lib_indicators_000050 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000050'
-			,           ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000050'
+			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000401` a
+            indicators_lib.lib_indicators_000401 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000401'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000401'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000402` a
+            indicators_lib.lib_indicators_000402 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000402'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000402'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000403` a
+            indicators_lib.lib_indicators_000403 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000403'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000403'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000404` a
+            indicators_lib.lib_indicators_000404 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000404'
-			,           ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000404'
+			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000444` a
+            indicators_lib.lib_indicators_000444 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000407'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000407'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000445` a
+            indicators_lib.lib_indicators_000445 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000408'
-			,           ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000408'
+			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000397` a
+            indicators_lib.lib_indicators_000397 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000397'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000397'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000398` a
+            indicators_lib.lib_indicators_000398 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000398'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000398'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000399` a
+            indicators_lib.lib_indicators_000399 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000399'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000399'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000400` a
+            indicators_lib.lib_indicators_000400 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000400'
-			,           ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000400'
+			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000446` a
+            indicators_lib.lib_indicators_000446 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000405'
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000405'
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000447` a
+            indicators_lib.lib_indicators_000447 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000406'
-			,           ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000406'
+			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000005` a
+            indicators_lib.lib_indicators_000005 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000005'
-			,           ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000005'
+			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000443` a
+            indicators_lib.lib_indicators_000443 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') * 100,2),',','|'),'/')  AS '000006'
-            , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+            AND a.INDEX_DIM_CODE='500000') * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000006'
+            , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000441` a
+        indicators_lib.lib_indicators_000441 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),' '),'/') AS '000441'
-			,  ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000441'
+			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_00033001` a
+            indicators_lib.lib_indicators_00033001 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000031 '
-	        ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000031 '
+	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_00033002` a
+            indicators_lib.lib_indicators_00033002 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000') *100,2),',','|'),'/')  AS '000032'
-    ,concat(REPLACE(FORMAT(a.lib_000442 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000442'
-		  ,concat(REPLACE(FORMAT(a.lib_000443 * 100 ,2),',','|'),' ') AS '000443'
-		  ,concat(REPLACE(FORMAT(a.lib_000444 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000444'
-		  ,concat(REPLACE(FORMAT(a.lib_000445 * 100 ,2),',','|'),' ') AS '000445'
-		  ,concat(REPLACE(FORMAT(a.lib_000446 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000446'
-		  ,concat(REPLACE(FORMAT(a.lib_000447 * 100 ,2),',','|'),' ') AS '000447'
-		   ,concat(REPLACE(FORMAT(a.lib_00033001/${params.AMT_UNIT} ,2),',','|'),' ') AS '00033001'
+            AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000032'
+    ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000442 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000442'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000443 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000443'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000444 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000444'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000445 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000445'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000446 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000446'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000447 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000447'
+		   ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_00033001/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '00033001'
 		,CASE WHEN a.lib_00033002  &gt;  0
-         THEN  CONCAT('增长',concat(REPLACE(FORMAT(a.lib_00033002*100,2),',','|'),' '))
-         ELSE  CONCAT('下降',concat(REPLACE(FORMAT(ABS(a.lib_00033002)*100,2),',','|'),' '))
+         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_00033002*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
+         ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_00033002)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          END AS '00033002'
 	,CASE WHEN a.lib_000423  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000423 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000423) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000423 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000423) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000423'
          	,CASE WHEN a.lib_000505  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000505 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000505) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000505 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000505) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000505'
          ,CASE WHEN a.lib_000517  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000517 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000517) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000517 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000517) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000517'
           ,CASE WHEN a.lib_000412  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000412 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000412) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000412 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000412) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000412'
          ,CASE WHEN a.lib_000502  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000502 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000502) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000502 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000502) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000502'
       ,CASE WHEN a.lib_000510  &gt;  0
-             THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000510 * 100,2),',','|') ,' '))
-             ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000510) * 100,2),',','|')))
+             THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000510 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+             ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000510) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
              END AS '000510'
              ,CASE WHEN a.lib_000414  &gt;  0
-             THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000414 * 100,2),',','|') ,' '))
-             ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000414) * 100,2),',','|')))
+             THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000414 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+             ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000414) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
              END AS '000414'
                 ,CASE WHEN a.lib_000512  &gt;  0
-             THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000512 * 100,2),',','|') ,' '))
-             ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000512) * 100,2),',','|')))
+             THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000512 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+             ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000512) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
              END AS '000512'
-     from  `report`.`quarter_report_text` a
+     from  report.quarter_report_text a
               WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000'
@@ -313,149 +313,149 @@
     <!-- 获取生成报告的报表参数信息 -->
     <select id="getTableParams2" resultType="java.util.HashMap">
            select
-            ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000389` a
+            indicators_lib.lib_indicators_000389 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000389'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000389'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000390` a
+            indicators_lib.lib_indicators_000390 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000390'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000390'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000391` a
+            indicators_lib.lib_indicators_000391 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000391'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000391'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000378` a
+            indicators_lib.lib_indicators_000378 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000378'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000378'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000379` a
+            indicators_lib.lib_indicators_000379 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000379'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000379'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000380` a
+            indicators_lib.lib_indicators_000380 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000380'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000380'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000386` a
+            indicators_lib.lib_indicators_000386 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000386'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000386'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000387` a
+            indicators_lib.lib_indicators_000387 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000387'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000387'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000388` a
+            indicators_lib.lib_indicators_000388 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000388'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000388'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000384` a
+            indicators_lib.lib_indicators_000384 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000384'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000384'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000385` a
+            indicators_lib.lib_indicators_000385 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000385'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000385'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000333` a
+            indicators_lib.lib_indicators_000333 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000333'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000333'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000368` a
+            indicators_lib.lib_indicators_000368 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000368'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000368'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000369` a
+            indicators_lib.lib_indicators_000369 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000369'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000369'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000370` a
+            indicators_lib.lib_indicators_000370 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000370'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000370'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000381` a
+            indicators_lib.lib_indicators_000381 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000381'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000381'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000382` a
+            indicators_lib.lib_indicators_000382 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000382'
-            ,ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000382'
+            ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000383` a
+            indicators_lib.lib_indicators_000383 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')*100,2),',','|'),'/')  AS '000383'
+            AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000383'
    </select>
     <!-- 获取生成报告的报表参数信息 -->
     <select id="getTableParams3" resultType="java.util.HashMap">
            SELECT a.AREA_DSCR,
-       IFNULL(CONCAT(FORMAT(v.`INDEX_VALUE`/ ${params.AMT_UNIT},2),' '),'')  AS INDEX_VALUE,
-        IFNULL(CONCAT(FORMAT(v.`INDEX_VALUE_2`/ ${params.AMT_UNIT},2),' '),'')  AS INDEX_VALUE_2,
-        IFNULL(CONCAT(FORMAT(v.`INDEX_VALUE_3` / ${params.AMT_UNIT},2),' '),'')  AS INDEX_VALUE_3
-        FROM    report.`area_sort` a LEFT JOIN  (
+       COALESCE(CONCAT(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),' '),'')  AS INDEX_VALUE,
+        COALESCE(CONCAT(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_2/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),' '),'')  AS INDEX_VALUE_2,
+        COALESCE(CONCAT(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_3 / ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),' '),'')  AS INDEX_VALUE_3
+        FROM    report.area_sort a LEFT JOIN  (
         select
         AREA_DSCR,
-        SUM(c.`INDEX_VALUE`)   AS INDEX_VALUE,
-        SUM(c.`INDEX_VALUE_2`)  AS INDEX_VALUE_2,
-        SUM(c.`INDEX_VALUE_3`)    AS INDEX_VALUE_3
+        SUM(c.INDEX_VALUE)   AS INDEX_VALUE,
+        SUM(c.INDEX_VALUE_2)  AS INDEX_VALUE_2,
+        SUM(c.INDEX_VALUE_3)    AS INDEX_VALUE_3
         from (
         SELECT
         a.INDEX_DIM_CODE,
-        a.`INDEX_VALUE` AS INDEX_VALUE,
+        a.INDEX_VALUE AS INDEX_VALUE,
         0 AS INDEX_VALUE_2,
         0 AS INDEX_VALUE_3
         FROM
@@ -468,10 +468,10 @@
         SELECT
         a.INDEX_DIM_CODE,
         0 AS INDEX_VALUE,
-        a.`INDEX_VALUE`  AS INDEX_VALUE_2,
+        a.INDEX_VALUE  AS INDEX_VALUE_2,
         0  AS INDEX_VALUE_3
         FROM
-        indicators_lib.`lib_indicators_00017604` a
+        indicators_lib.lib_indicators_00017604 a
         WHERE a.DIMENSION_FLAG = '2'
         AND a.PERIOD_FLAG = '3' and  a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
 
@@ -480,38 +480,38 @@
         a.INDEX_DIM_CODE,
         0 AS INDEX_VALUE,
         0 AS INDEX_VALUE_2,
-          a.`INDEX_VALUE` AS INDEX_VALUE_3
-        FROM  indicators_lib.`lib_indicators_00017602` a
+          a.INDEX_VALUE AS INDEX_VALUE_3
+        FROM  indicators_lib.lib_indicators_00017602 a
         WHERE a.DIMENSION_FLAG = '2'
         AND a.PERIOD_FLAG = '3' and  a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
 
         ) c
-        LEFT JOIN `report`.`area_sort` b
-        ON c.INDEX_DIM_CODE = b.`AREA_NO_ID`
-        where  b.`area_dscr` IS NOT  NULL
-        group by  c.`INDEX_DIM_CODE`
+        LEFT JOIN report.area_sort b
+        ON c.INDEX_DIM_CODE = b.AREA_NO_ID
+        where  b.area_dscr IS NOT  NULL
+        group by  c.INDEX_DIM_CODE
 
         ) v
-        ON a.`area_dscr`=v.AREA_DSCR
-         ORDER BY a.`area_no_id`,v.`INDEX_VALUE` DESC
+        ON a.area_dscr=v.AREA_DSCR
+         ORDER BY a.area_no_id,v.INDEX_VALUE DESC
 
     </select>
 
     <select id="getTableParams4" resultType="java.util.HashMap">
                  SELECT a.AREA_DSCR,
-       IFNULL(CONCAT(FORMAT(v.`INDEX_VALUE`/ ${params.AMT_UNIT},2),' '),'')  AS INDEX_VALUE,
-        IFNULL(CONCAT(FORMAT(v.`INDEX_VALUE_2`/ ${params.AMT_UNIT},2),' '),'')  AS INDEX_VALUE_2,
-        IFNULL(CONCAT(FORMAT(v.`INDEX_VALUE_3` / ${params.AMT_UNIT},2),' '),'')  AS INDEX_VALUE_3
-        FROM    report.`area_sort` a LEFT JOIN  (
+       COALESCE(CONCAT(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),' '),'')  AS INDEX_VALUE,
+        COALESCE(CONCAT(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_2/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),' '),'')  AS INDEX_VALUE_2,
+        COALESCE(CONCAT(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_3 / ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),' '),'')  AS INDEX_VALUE_3
+        FROM    report.area_sort a LEFT JOIN  (
         select
         AREA_DSCR,
-        SUM(c.`INDEX_VALUE`)   AS INDEX_VALUE,
-        SUM(c.`INDEX_VALUE_2`)  AS INDEX_VALUE_2,
-        SUM(c.`INDEX_VALUE_3`)    AS INDEX_VALUE_3
+        SUM(c.INDEX_VALUE)   AS INDEX_VALUE,
+        SUM(c.INDEX_VALUE_2)  AS INDEX_VALUE_2,
+        SUM(c.INDEX_VALUE_3)    AS INDEX_VALUE_3
         from (
         SELECT
         a.INDEX_DIM_CODE,
-        a.`INDEX_VALUE` AS INDEX_VALUE,
+        a.INDEX_VALUE AS INDEX_VALUE,
         0 AS INDEX_VALUE_2,
         0 AS INDEX_VALUE_3
         FROM
@@ -524,10 +524,10 @@
         SELECT
         a.INDEX_DIM_CODE,
         0 AS INDEX_VALUE,
-        a.`INDEX_VALUE`  AS INDEX_VALUE_2,
+        a.INDEX_VALUE  AS INDEX_VALUE_2,
         0  AS INDEX_VALUE_3
         FROM
-        indicators_lib.`lib_indicators_00017604` a
+        indicators_lib.lib_indicators_00017604 a
         WHERE a.DIMENSION_FLAG = '2'
         AND a.PERIOD_FLAG = '3' and  a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
 
@@ -536,52 +536,52 @@
         a.INDEX_DIM_CODE,
         0 AS INDEX_VALUE,
         0 AS INDEX_VALUE_2,
-          a.`INDEX_VALUE` AS INDEX_VALUE_3
-        FROM  indicators_lib.`lib_indicators_00017602` a
+          a.INDEX_VALUE AS INDEX_VALUE_3
+        FROM  indicators_lib.lib_indicators_00017602 a
         WHERE a.DIMENSION_FLAG = '2'
         AND a.PERIOD_FLAG = '3' and  a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
 
         ) c
-        LEFT JOIN `report`.`area_sort` b
-        ON c.INDEX_DIM_CODE = b.`AREA_NO_ID`
-        where  b.`area_dscr` IS NOT  NULL
-        group by  c.`INDEX_DIM_CODE`
+        LEFT JOIN report.area_sort b
+        ON c.INDEX_DIM_CODE = b.AREA_NO_ID
+        where  b.area_dscr IS NOT  NULL
+        group by  c.INDEX_DIM_CODE
 
         ) v
-        ON a.`area_dscr`=v.AREA_DSCR
-         ORDER BY a.`area_no_id`,v.`INDEX_VALUE` DESC
+        ON a.area_dscr=v.AREA_DSCR
+         ORDER BY a.area_no_id,v.INDEX_VALUE DESC
 
     </select>
     <!-- 获取生成报告的图形参数信息 -->
     <select id="getGraphParams" resultType="java.util.HashMap">
                    (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE/${params.AMT_UNIT},2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000410` a
+            indicators_lib.lib_indicators_000410 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
                  GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000013` a
+            indicators_lib.lib_indicators_000013 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
                  GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
@@ -590,65 +590,65 @@
  <!-- 获取生成报告的图形参数信息 -->
     <select id="getGraphParams2" resultType="java.util.HashMap">
            (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE/${params.AMT_UNIT},2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000409` a
+            indicators_lib.lib_indicators_000409 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100 ,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000398` a
+            indicators_lib.lib_indicators_000398 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD )
 			 union all
 
 			 (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE/${params.AMT_UNIT},2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
             '3' as id
           FROM
-            `indicators_lib`.`lib_indicators_000008` a
+            indicators_lib.lib_indicators_000008 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-            AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+            AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
              GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE *100 ,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
             '4' as id
           FROM
-            `indicators_lib`.`lib_indicators_000013` a
+            indicators_lib.lib_indicators_000013 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
@@ -657,50 +657,50 @@
     <!-- 获取生成报告的图形参数信息  饼图  -->
    <select id="getGraphParams3" resultType="java.util.HashMap">
            (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100 ,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000342` a
+            indicators_lib.lib_indicators_000342 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100 ,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000347` a
+            indicators_lib.lib_indicators_000347 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
              )
 			 union all
 
 			(SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE *100 ,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
             '3' as id
           FROM
-            `indicators_lib`.`lib_indicators_000345` a
+            indicators_lib.lib_indicators_000345 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-           AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+           AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
             GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD
             )
@@ -709,49 +709,49 @@
    <!-- 获取生成报告的图形参数信息 -->
    <select id="getGraphParams4" resultType="java.util.HashMap">
            (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE   *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000250` a
+            indicators_lib.lib_indicators_000250 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000007` a
+            indicators_lib.lib_indicators_000007 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD )
 			 union all
 
 			 (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE   *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE   *100,2)),'') MIN_VAL,
             '3' as id
           FROM
-            `indicators_lib`.`lib_indicators_000245` a
+            indicators_lib.lib_indicators_000245 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-            AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+            AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
              GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
@@ -760,49 +760,49 @@
     <!-- 获取生成报告的图形参数信息  饼图  -->
     <select id="getGraphParams5" resultType="java.util.HashMap">
              (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000293` a
+            indicators_lib.lib_indicators_000293 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000297` a
+            indicators_lib.lib_indicators_000297 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-            AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+            AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
              GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD )
 			 union all
 
 			(SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '3' as id
           FROM
-            `indicators_lib`.`lib_indicators_000291` a
+            indicators_lib.lib_indicators_000291 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-           AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+           AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
             GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD
             )
@@ -811,49 +811,49 @@
     <!-- 获取生成报告的图形参数信息 -->
     <select id="getGraphParams6" resultType="java.util.HashMap">
       (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000351` a
+            indicators_lib.lib_indicators_000351 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-            AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+            AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
              GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000354` a
+            indicators_lib.lib_indicators_000354 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD )
 			 union all
 
 			(SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '3' as id
           FROM
-            `indicators_lib`.`lib_indicators_000305` a
+            indicators_lib.lib_indicators_000305 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-           AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+           AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
             GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
@@ -862,49 +862,49 @@
     <!-- 获取生成报告的图形参数信息  饼图  -->
     <select id="getGraphParams7" resultType="java.util.HashMap">
          (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE/${params.AMT_UNIT},2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000365` a
+            indicators_lib.lib_indicators_000365 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-            AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+            AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
              GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000119` a
+            indicators_lib.lib_indicators_000119 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD )
 			 union all
 
 			(SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '3' as id
           FROM
-            `indicators_lib`.`lib_indicators_000241` a
+            indicators_lib.lib_indicators_000241 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-           AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+           AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
             GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD
             )
@@ -913,49 +913,49 @@
     <!-- 获取生成报告的图形参数信息  饼图  -->
     <select id="getGraphParams8" resultType="java.util.HashMap">
          (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000365` a
+            indicators_lib.lib_indicators_000365 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-            AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+            AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
              GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000119` a
+            indicators_lib.lib_indicators_000119 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                     ORDER BY ACCOUNT_PERIOD )
 			 union all
 
 			(SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '3' as id
           FROM
-            `indicators_lib`.`lib_indicators_000241` a
+            indicators_lib.lib_indicators_000241 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-            AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+            AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
              GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                    ORDER BY ACCOUNT_PERIOD
             )
@@ -964,51 +964,51 @@
     <!-- 获取生成报告的图形参数信息  饼图  -->
     <select id="getGraphParams9" resultType="java.util.HashMap">
          (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2) ORDER BY ACCOUNT_PERIOD),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '1' as id
           FROM
-            `indicators_lib`.`lib_indicators_000365` a
+            indicators_lib.lib_indicators_000365 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   
             ORDER BY ACCOUNT_PERIOD
             )
             UNION ALL
           (SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2)),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","")),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ','),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ','),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '2' as id
           FROM
-            `indicators_lib`.`lib_indicators_000119` a
+            indicators_lib.lib_indicators_000119 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-             AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+             AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
               GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   
              ORDER BY ACCOUNT_PERIOD )
 			 union all
 
 			(SELECT
-            IFNULL(GROUP_CONCAT(ROUND(INDEX_VALUE  *100,2)),'') VAL  ,
-            IFNULL(GROUP_CONCAT(REPLACE(ACCOUNT_PERIOD,"-","")),'') ACCOUNT_PERIOD,
-            IFNULL(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            IFNULL(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ','),'') VAL  ,
+            COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ','),'') ACCOUNT_PERIOD,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
             '3' as id
           FROM
-            `indicators_lib`.`lib_indicators_000241` a
+            indicators_lib.lib_indicators_000241 a
           WHERE a.PERIOD_FLAG = '3'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-            AND ACCOUNT_PERIOD   BETWEEN CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
+            AND ACCOUNT_PERIOD   BETWEEN CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'Q1') AND '${params.ACCOUNT_PERIOD}'
              GROUP  BY a.PERIOD_FLAG  , DIMENSION_FLAG  ,INDEX_DIM_CODE
                   
             ORDER BY ACCOUNT_PERIOD
@@ -1020,32 +1020,32 @@
    <select id="getGraphParams10" resultType="java.util.HashMap">
          SELECT
          CONCAT(
-		  SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) - 4,
+      CAST(SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) AS NUMERIC) - 4,
 		  ',',
-		  SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) - 3,
+      CAST(SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) AS NUMERIC) - 3,
 		  ',',
-		  SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) - 2,
+      CAST(SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) AS NUMERIC) - 2,
 		  ',',
-		  SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) - 1,
+      CAST(SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) AS NUMERIC) - 1,
 		  ',',
 		  SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4)
 		) AS data_dateYear,
-           CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'')  data_dateYear1,
-        CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-3,'')  data_dateYear2,
-           CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-2,'')  data_dateYear3,
-           CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-1,'')  data_dateYear4,
+            CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'')  data_dateYear1,
+          CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-3,'')  data_dateYear2,
+            CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-2,'')  data_dateYear3,
+            CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-1,'')  data_dateYear4,
            SUBSTR('${params.ACCOUNT_PERIOD}',1,4)    data_dateYear5,
-           GROUP_CONCAT(ROUND(ifnull(INDEX_VALUE,0.00)/${params.AMT_UNIT},2) ORDER BY ACCOUNT_PERIOD) series ,
-           GROUP_CONCAT(replace(ACCOUNT_PERIOD,"-","") ORDER BY ACCOUNT_PERIOD) data_dateAll
+           string_agg(ROUND(COALESCE(INDEX_VALUE,0.00)/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD) series ,
+           string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD) data_dateAll
           FROM
-            `indicators_lib`.`lib_indicators_000183` a
+            indicators_lib.lib_indicators_000183 a
           WHERE a.PERIOD_FLAG = '1'
             AND DIMENSION_FLAG = '2'
             AND INDEX_DIM_CODE = '500000'
-              and a.`ACCOUNT_PERIOD` between CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4)-4,'-01-01')  and
+              and a.ACCOUNT_PERIOD between CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'-01-01')  and
               CONCAT(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),CASE WHEN RIGHT('${params.ACCOUNT_PERIOD}',1) ='1' THEN '-03'
               WHEN RIGHT('${params.ACCOUNT_PERIOD}',1) ='2' THEN '-06' WHEN RIGHT('${params.ACCOUNT_PERIOD}',1) ='3' THEN '-09' ELSE '-12' END,'-31')
-            GROUP BY SUBSTR(a.`ACCOUNT_PERIOD`,1,4)
+            GROUP BY SUBSTR(a.ACCOUNT_PERIOD,1,4)
          </select>
  <!-- 获取生成报告的文本及参数信息 -->
     <select id="getTextAndParams" resultType="java.util.HashMap">
@@ -1067,48 +1067,48 @@
 			ELSE '12' END
 		),'01')),9,2),' ') AS LAST_DAY,
 		SUBSTR('${params.ACCOUNT_PERIOD}',6,1) as qtr,
-		cast(SUBSTR('${params.ACCOUNT_PERIOD}',6,1)-1 as SIGNED )   lastQtr
+    cast(SUBSTR('${params.ACCOUNT_PERIOD}',6,1)-1 as NUMERIC )   lastQtr
 		 ,CASE WHEN a.lib_000175  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000175 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000175) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000175 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000175) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000175'
           ,CASE WHEN a.lib_000412  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000412 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000412) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000412 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000412) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000412'
-		  ,concat(REPLACE(FORMAT(a.lib_000177/${params.AMT_UNIT},2),',','|'),' ') AS '000177'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000177/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000177'
 		   ,CASE WHEN a.lib_000334  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000334 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000334) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000334 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000334) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END  AS '000334'
 		  ,CASE WHEN a.lib_000178  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000178 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000178) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000178 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000178) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000178'
-		 ,concat(REPLACE(FORMAT(a.lib_000179 *100 ,2),',','|'),' ') AS '000179'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000179 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000179'
 		 	 ,CASE WHEN a.lib_000336  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000336 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000336) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000336 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000336) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000336'
-		 ,concat(REPLACE(FORMAT(a.lib_000180 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000180'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000180 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000180'
 		 ,CASE WHEN a.lib_000337  &gt;  0
-         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000337 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000337) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增加',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000337 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000337) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000337'
 		  ,CASE WHEN a.lib_000181  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000181 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000181) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000181 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000181) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000181'
 		 ,CASE WHEN a.lib_000182  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000182 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000182) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000182 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000182) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000182'
 		  ,CASE WHEN a.lib_000339  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000339 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000339) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000339 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000339) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000339'
 		  ,(SELECT
-		cast(replace(GROUP_CONCAT(INDEX_DIM_DESCR),',','、') as char) as INDEX_DIM_DESCR
+    cast(string_agg(INDEX_DIM_DESCR,'、') as char) as INDEX_DIM_DESCR
 		from (
 		select *
 	      FROM
@@ -1120,17 +1120,17 @@
 	      order BY c.INDEX_VALUE DESC
 	      LIMIT 3) d) AS stock_area_1,
 	  (SELECT
-	     replace(GROUP_CONCAT(CONCAT(REPLACE(FORMAT(m.INDEX_VALUE /  ${params.AMT_UNIT}, 2),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END ))),',','、')
+       string_agg(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((m.INDEX_VALUE /  ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END )),'、')
 	  FROM  (select INDEX_VALUE from
 	    indicators_lib.lib_indicators_00017601 c
 	  WHERE c.PERIOD_FLAG = '3'
 	    AND c.DIMENSION_FLAG = '2'
 	    AND c.INDEX_DIM_CODE <![CDATA[  <> ]]> '500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-	  GROUP BY c.INDEX_VALUE DESC
+    ORDER BY c.INDEX_VALUE DESC
 	  LIMIT 3) m) AS value_7,
 	  (SELECT
-		cast(replace(GROUP_CONCAT(INDEX_DIM_DESCR),',','、') as char) as  INDEX_DIM_DESCR
+    cast(string_agg(INDEX_DIM_DESCR,'、') as char) as  INDEX_DIM_DESCR
 		from (
 		select *
 	      FROM
@@ -1142,7 +1142,7 @@
 	      order  BY c.INDEX_VALUE
 	      LIMIT 3) d)   AS stock_area_2,
 	  (SELECT
-	     REPLACE(GROUP_CONCAT(CONCAT(REPLACE(FORMAT(m.INDEX_VALUE /  ${params.AMT_UNIT}, 2),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END ))),',','、')
+       string_agg(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((m.INDEX_VALUE /  ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END )),'、')
 	  FROM  (select INDEX_VALUE from
 	    indicators_lib.lib_indicators_00017601 c
 	  WHERE c.PERIOD_FLAG = '3'
@@ -1151,319 +1151,319 @@
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
 	  order  BY c.INDEX_VALUE
 	  LIMIT 3) m) AS value_8
-	  ,concat(REPLACE(FORMAT(a.lib_000031 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000031'
+	  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000031 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000031'
 		,CASE WHEN a.lib_000331  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000331 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000331) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000331 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000331) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000331'
 		  ,CASE WHEN a.lib_000332  &gt;  0
-         THEN  CONCAT('增支',CONCAT(REPLACE(FORMAT(a.lib_000332 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减支',CONCAT(REPLACE(FORMAT(ABS(a.lib_000332) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增支',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000332 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减支',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000332) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000332'
 		 ,CASE WHEN a.lib_000038  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000038 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000038) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000038 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000038) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000038'
-		 ,concat(REPLACE(FORMAT(a.lib_000368 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000368'
-		 	,concat(REPLACE(FORMAT(a.lib_000370 *100,2),',','|'),' ') AS '000370'
-		 ,concat(REPLACE(FORMAT(a.lib_000372 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000372'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000368 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000368'
+		 	,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000370 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000370'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000372 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000372'
 		,CASE WHEN a.lib_000374  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000374 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000374) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000374 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000374) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000374'
 		 ,CASE WHEN a.lib_000373  &gt;  0
-         THEN  CONCAT('增幅',CONCAT(REPLACE(FORMAT(a.lib_000373 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('降幅',CONCAT(REPLACE(FORMAT(ABS(a.lib_000373) * 100,2),',','|')))
+         THEN  CONCAT('增幅',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000373 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('降幅',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000373) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000373'
-		  ,concat(REPLACE(FORMAT(a.lib_000376 *100 ,2),',','|'),' ') AS '000376'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000376 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000376'
 		 ,CASE WHEN a.lib_000377  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000377 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000377) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000377 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000377) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000377'
-		,  ifnull((SELECT
-	    replace(GROUP_CONCAT(c.SUBJECT_DSCR  ORDER BY  INDEX_VALUE DESC),',','、')
+		,  COALESCE((SELECT
+      string_agg(c.SUBJECT_DSCR,'、' ORDER BY INDEX_VALUE DESC)
 	  FROM
-	    `report`.`lib_indicators_000144` c
+	    report.lib_indicators_000144 c
 	  WHERE c.PERIOD_FLAG = '3'
 	    AND c.DIMENSION_FLAG = '2'
 		AND c.INDEX_DIM_CODE='500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'),'') AS subject_1
 
-	    ,ifnull((SELECT
-	     REPLACE(GROUP_CONCAT(CONCAT(REPLACE(FORMAT(m.INDEX_VALUE /  ${params.AMT_UNIT}, 2),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END )) ORDER BY INDEX_VALUE DESC  ),',','、')
+	    ,COALESCE((SELECT
+       string_agg(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((m.INDEX_VALUE /  ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END )),'、' ORDER BY INDEX_VALUE DESC)
 	  FROM ( select INDEX_VALUE from
 	    report.lib_indicators_000144 c
 	  WHERE c.PERIOD_FLAG = '3'
 	    AND c.DIMENSION_FLAG = '2'
 	    AND c.INDEX_DIM_CODE = '500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}')m),'') AS value_4,
-	  ifnull((SELECT
-	    replace(GROUP_CONCAT(concat(replace(FORMAT(c.AMOUNT_RATIO * 100,2),',','|'),'%')),',','、')
+	  COALESCE((SELECT
+      string_agg(concat(replace(TO_CHAR(ROUND(CAST(NULLIF(((c.AMOUNT_RATIO * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'%'),'、')
 	  FROM
 	    report.lib_indicators_000144 c
 	  WHERE c.PERIOD_FLAG = '3'
 	    AND c.DIMENSION_FLAG = '2'
 	    AND c.INDEX_DIM_CODE = '500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'),'') AS ratio_1
-		,concat(REPLACE(FORMAT(a.lib_000230 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000230'
+		,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000230 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000230'
 		,CASE WHEN a.lib_000283  &gt;  0
-         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000283 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000283) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增加',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000283 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000283) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000283'
 		 ,CASE WHEN a.lib_000231  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000231 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000231) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000231 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000231) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000231'
 		 ,CASE WHEN a.lib_000427  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000427 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000427) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000427 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000427) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000427'
-		 ,           ifnull(replace(FORMAT((SELECT
-            ifnull(a.`INDEX_VALUE`,'') as INDEX_VALUE
+		 ,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000005` a
+            indicators_lib.lib_indicators_000005 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT},2),',','|'),'/')  AS '000005'
+            AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000005'
 		  ,CASE WHEN a.lib_000441  &gt;  0
-         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000441 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000441) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增加',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000441 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000441) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000441'
-		 ,concat(REPLACE(FORMAT(a.lib_000007 *100 ,2),',','|'),' ') AS '000007'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000007 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000007'
 		 ,CASE WHEN a.lib_000284  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000284 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000284) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000284 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000284) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000284'
 		 ,CASE WHEN a.lib_000278  &gt;  0
-         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000278 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000278) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增加',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000278 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000278) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000278'
 		 ,CASE WHEN a.lib_000209  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000209 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000209) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000209 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000209) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000209'
-		 ,concat(REPLACE(FORMAT(a.lib_000259 *100 ,2),',','|'),' ') AS '000259'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000259 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000259'
 		 ,CASE WHEN a.lib_000279  &gt;  0
-         THEN  CONCAT('提升',CONCAT(REPLACE(FORMAT(a.lib_000279 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000279) * 100,2),',','|')))
+         THEN  CONCAT('提升',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000279 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000279) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000279'
-		 ,concat(REPLACE(FORMAT(a.lib_000204 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000204'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000204 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000204'
 		,CASE WHEN a.lib_000280  &gt;  0
-         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000280 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000280) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增加',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000280 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000280) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000280'
 		 ,CASE WHEN a.lib_000205  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000205 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000205) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000205 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000205) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000205'
-	   ,concat(REPLACE(FORMAT(a.lib_000249 *100  ,2),',','|'),' ') AS '000249'
+	   ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000249 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000249'
 		 ,CASE WHEN a.lib_000282  &gt;  0
-         THEN  CONCAT('升高',CONCAT(REPLACE(FORMAT(a.lib_000282 *100 ,2),',','|') ,' '))
+         THEN  CONCAT('升高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000282 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
          WHEN a.lib_000282  =  0
 		 then '持平'
-		 ELSE  CONCAT('降低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000282) *100 ,2),',','|')))
+		 ELSE  CONCAT('降低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000282) *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000282'
-		  ,concat(REPLACE(FORMAT(a.lib_000365 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000365'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000365 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000365'
 		,CASE WHEN a.lib_000393  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000393 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000393) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000393 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000393) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000393'
 		 ,CASE WHEN a.lib_000119  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000119 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000119) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000119 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000119) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000119'
 		 ,CASE WHEN a.lib_000319  &gt;  0
-         THEN  CONCAT('扩大',CONCAT(REPLACE(FORMAT(a.lib_000319 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('收窄',CONCAT(REPLACE(FORMAT(ABS(a.lib_000319) * 100,2),',','|')))
+         THEN  CONCAT('扩大',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000319 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('收窄',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000319) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000319'
-	   ,concat(REPLACE(FORMAT(a.lib_000366 *100 ,2),',','|'),' ') AS '000366'
+	   ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000366 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000366'
 		 ,CASE WHEN a.lib_000367  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000367 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000367) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000367 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000367) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000367'
 		 ,CASE WHEN a.lib_000320  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000320 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000320) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000320 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000320) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000320'
-		 ,concat(REPLACE(FORMAT(a.lib_000394 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000394'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000394 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000394'
 		,CASE WHEN a.lib_000395  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000395 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000395) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000395 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000395) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000395'
 		 ,CASE WHEN a.lib_000396  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000396 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000396) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000396 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000396) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000396'
-		  ,concat(REPLACE(FORMAT(a.lib_000356 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000356'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000356 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000356'
 		,CASE WHEN a.lib_000323  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000323 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000323) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000323 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000323) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000323'
 		 ,CASE WHEN a.lib_000357  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000357 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000357) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000357 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000357) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000357'
 		 ,CASE WHEN a.lib_000326  &gt;  0
-         THEN  CONCAT('扩大',CONCAT(REPLACE(FORMAT(a.lib_000326 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('收窄',CONCAT(REPLACE(FORMAT(ABS(a.lib_000326) * 100,2),',','|')))
+         THEN  CONCAT('扩大',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000326 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('收窄',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000326) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000326'
-	  ,concat(REPLACE(FORMAT(a.lib_000401/${params.AMT_UNIT},2),',','|'),' ') AS '000401'
+	  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000401/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000401'
 		,CASE WHEN a.lib_000417  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000417 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000417) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000417 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000417) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000417'
 		,CASE WHEN a.lib_000402  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000402 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000402) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000402 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000402) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000402'
-	   ,concat(REPLACE(FORMAT(a.lib_000419 *100 ,2),',','|'),' ') AS '000419'
+	   ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000419 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000419'
 	   ,CASE WHEN a.lib_000420  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000420 *100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000420) *100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000420 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000420) *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000420'
-		  ,concat(REPLACE(FORMAT(a.lib_000397/${params.AMT_UNIT},2),',','|'),' ') AS '000397'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000397/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000397'
 		,CASE WHEN a.lib_000421  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000421 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000421) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000421 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000421) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000421'
 		,CASE WHEN a.lib_000398  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000398 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000398) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000398 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000398) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000398'
 		 ,CASE WHEN a.lib_000398  &gt;  0
-         THEN  CONCAT('扩大',CONCAT(REPLACE(FORMAT(a.lib_000422 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('收窄',CONCAT(REPLACE(FORMAT(ABS(a.lib_000422) * 100,2),',','|')))
+         THEN  CONCAT('扩大',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000422 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('收窄',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000422) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000422'
-		  ,concat(REPLACE(FORMAT(a.lib_000271 *100 ,2),',','|'),' ') AS '000271'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000271 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000271'
 		,CASE WHEN a.lib_000272  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000272 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000272) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000272 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000272) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000272'
-		 ,concat(REPLACE(FORMAT(a.lib_000012/${params.AMT_UNIT},2),',','|'),' ') AS '000012'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000012/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000012'
 		,CASE WHEN a.lib_000392  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000392 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000392) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000392 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000392) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000392'
 		,CASE WHEN a.lib_000013  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000013 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000013) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000013 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000013) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000013'
 		  ,CASE WHEN a.lib_000424  &gt;  0
-         THEN  CONCAT('增加',CONCAT(REPLACE(FORMAT(a.lib_000424  /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减少',CONCAT(REPLACE(FORMAT(ABS(a.lib_000424)  /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增加',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000424  /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减少',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000424)  /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000424'
-		 ,concat(REPLACE(FORMAT(a.lib_000341 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000341'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000341 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000341'
 		  ,CASE WHEN a.lib_000342  &gt;  0
-         THEN  CONCAT('上升',CONCAT(REPLACE(FORMAT(a.lib_000342 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000342) * 100,2),',','|')))
+         THEN  CONCAT('上升',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000342 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000342) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000342'
-		 , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+		 , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000345` a
+        indicators_lib.lib_indicators_000345 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')* 100,2),',','|'),' '),'/') AS '000345'
+        AND a.INDEX_DIM_CODE='500000')* 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000345'
 		,CASE WHEN a.lib_000275  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000275 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000275) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000275 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000275) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000275'
-		 ,concat(REPLACE(FORMAT(a.lib_000346/${params.AMT_UNIT},2),',','|'),' ') AS '000346'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000346/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000346'
 		,CASE WHEN a.lib_000347  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000347 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000347) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000347 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000347) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000347'
-	   , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+	   , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000216` a
+        indicators_lib.lib_indicators_000216 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT} ,2),',','|'),' '),'/') AS '000216'
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000216'
         ,
         (select CASE WHEN INDEX_VALUE <![CDATA[ > ]]> 0
-        THEN  CONCAT('增长',FORMAT(INDEX_VALUE*100,2))
+        THEN  CONCAT('增长',TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'))
         WHEN INDEX_VALUE <![CDATA[  < ]]> 0
-        THEN  CONCAT('下降',FORMAT(ABS(INDEX_VALUE)*100,2))
+        THEN  CONCAT('下降',TO_CHAR(ROUND(CAST(NULLIF(((ABS(INDEX_VALUE)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'))
         ELSE '持平'
         END AS aa
         FROM
-        `indicators_lib`.`lib_indicators_000217` a
+        indicators_lib.lib_indicators_000217 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
         AND a.INDEX_DIM_CODE    = '500000'
         ) as  '000217'
-    , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+    , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000218` a
+        indicators_lib.lib_indicators_000218 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT} ,2),',','|'),' '),'/') AS '000218'
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000218'
         ,
         (select CASE WHEN INDEX_VALUE <![CDATA[ > ]]> 0
-        THEN  CONCAT('增长',FORMAT(INDEX_VALUE*100,2))
+        THEN  CONCAT('增长',TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'))
         WHEN INDEX_VALUE <![CDATA[  < ]]> 0
-        THEN  CONCAT('下降',FORMAT(ABS(INDEX_VALUE)*100,2))
+        THEN  CONCAT('下降',TO_CHAR(ROUND(CAST(NULLIF(((ABS(INDEX_VALUE)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'))
         ELSE '持平'
         END AS aa
         FROM
-        `indicators_lib`.`lib_indicators_000219` a
+        indicators_lib.lib_indicators_000219 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
         AND a.INDEX_DIM_CODE    = '500000'
         )  AS '000219'
-	  ,concat(REPLACE(FORMAT(a.lib_000287 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000287'
-	  ,concat(REPLACE(FORMAT(a.lib_000006 *100 ,2),',','|'),' ') AS '000006'
-	  ,concat(REPLACE(FORMAT(a.lib_000496  ,2),',','|'),' ') AS '000496'
-	  ,concat(REPLACE(FORMAT(a.lib_000410  /${params.AMT_UNIT} ,2),',','|'),' ') AS '000410'
+	  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000287 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000287'
+	  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000006 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000006'
+	  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000496))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000496'
+	  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000410  /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000410'
       ,CASE WHEN a.lib_000423  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000423 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000423) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000423 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000423) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000423'
-      ,concat(REPLACE(FORMAT(a.lib_000498  ,2),',','|'),' ') AS '000498'
-       ,concat(REPLACE(FORMAT(a.lib_000499 *100 ,2),',','|'),' ') AS '000499'
-       ,concat(REPLACE(FORMAT(a.lib_000503 *100 ,2),',','|'),' ') AS '000503'
-       ,concat(REPLACE(FORMAT(a.lib_000208   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000208'
-       ,concat(REPLACE(FORMAT(a.lib_000501   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000501'
-       ,concat(REPLACE(FORMAT(a.lib_000504   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000504'
-       ,concat(REPLACE(FORMAT(a.lib_000506   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000506'
-       ,concat(REPLACE(FORMAT(a.lib_000411   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000411'
-       ,concat(REPLACE(FORMAT(a.lib_000509   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000509'
-       ,concat(REPLACE(FORMAT(a.lib_000413   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000413'
-       ,concat(REPLACE(FORMAT(a.lib_000516   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000516'
-       ,concat(REPLACE(FORMAT(a.lib_000511   /${params.AMT_UNIT}  ,2),',','|'),' ') AS '000511'
+      ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000498))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000498'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000499 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000499'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000503 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000503'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000208   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000208'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000501   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000501'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000504   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000504'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000506   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000506'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000411   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000411'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000509   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000509'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000413   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000413'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000516   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000516'
+       ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000511   /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000511'
        ,CASE WHEN a.lib_000502  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000502 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000502) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000502 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000502) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000502'
       ,CASE WHEN a.lib_000505  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000505 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000505) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000505 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000505) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000505'
          ,CASE WHEN a.lib_000507  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000507 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000507) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000507 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000507) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000507'
       ,CASE WHEN a.lib_000512  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000512 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000512) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000512 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000512) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000512'
          ,CASE WHEN a.lib_000510  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000510 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000510) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000510 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000510) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000510'
       ,CASE WHEN a.lib_000414  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000414 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000414) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000414 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000414) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000414'
          ,CASE WHEN a.lib_000517  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000517 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000517) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000517 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000517) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000517'
       ,CASE WHEN a.lib_000512  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000512 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000512) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000512 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000512) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000512',
       '' as payoutname,
       '' as payoutfmt,
@@ -1472,161 +1472,161 @@
       '' as Three2
 
 		,CASE WHEN a.lib_000288  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000288 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000288) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000288 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000288) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000288'
 		 ,CASE WHEN a.lib_000289  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000289 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000289) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000289 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000289) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000289'
-		 ,concat(REPLACE(FORMAT(a.lib_000291 *100 ,2),',','|'),' ') AS '000291'
-		,concat(REPLACE(FORMAT(a.lib_000292 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000292'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000291 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000291'
+		,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000292 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000292'
 		,CASE WHEN a.lib_000293  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000293 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000293) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000293 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000293) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000293'
-		 ,concat(REPLACE(FORMAT(a.lib_000295 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000295'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000295 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000295'
 		,CASE WHEN a.lib_000296  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000296 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000296) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000296 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000296) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000296'
 		 ,CASE WHEN a.lib_000297  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000297 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000297) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000297 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000297) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000297'
-	   ,concat(REPLACE(FORMAT(a.lib_000301 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000301'
+	   ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000301 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000301'
 		,CASE WHEN a.lib_000302  &gt;  0
-         THEN  CONCAT('增收',CONCAT(REPLACE(FORMAT(a.lib_000302 /${params.AMT_UNIT},2),',','|') ,' '))
-         ELSE  CONCAT('减收',CONCAT(REPLACE(FORMAT(ABS(a.lib_000302) /${params.AMT_UNIT},2),',','|')))
+         THEN  CONCAT('增收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000302 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('减收',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000302) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000302'
 		 ,CASE WHEN a.lib_000303  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000303 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000303) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000303 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000303) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000303'
-		 ,concat(REPLACE(FORMAT(a.lib_000305 *100 ,2),',','|'),' ') AS '000305'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000305 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000305'
 		,CASE WHEN a.lib_000306  &gt;  0
-         THEN  CONCAT('高',CONCAT(REPLACE(FORMAT(a.lib_000306 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('低',CONCAT(REPLACE(FORMAT(ABS(a.lib_000306) * 100,2),',','|')))
+         THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000306 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000306) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000306'
-		 ,concat(REPLACE(FORMAT(a.lib_000350 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000350'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000350 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000350'
 		,CASE WHEN a.lib_000351  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000351 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000351) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000351 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000351) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000351'
-		,concat(REPLACE(FORMAT(a.lib_000353 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000353'
+		,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000353 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000353'
 		 ,CASE WHEN a.lib_000354  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000354 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000354) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000354 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000354) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000354'
-	    ,concat(REPLACE(FORMAT(a.lib_000444 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000444'
+	    ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000444 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000444'
 		 ,CASE WHEN a.lib_000445  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000445 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000445) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000445 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000445) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000445'
-		 ,concat(REPLACE(FORMAT(a.lib_000401/${params.AMT_UNIT},2),',','|'),' ') AS '000401'
-	   ,concat(REPLACE(FORMAT(a.lib_000403/${params.AMT_UNIT},2),',','|'),' ') AS '000403'
-		,concat(REPLACE(FORMAT(a.lib_000418 * 100 ,2),',','|'),' ') AS '000418'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000401/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000401'
+	   ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000403/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000403'
+		,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000418 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000418'
 		 ,CASE WHEN a.lib_000404  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000404 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000404) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000404 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000404) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000404'
-		 ,concat(REPLACE(FORMAT(a.lib_000206/${params.AMT_UNIT},2),',','|'),' ') AS '000206'
-		  ,concat(REPLACE(FORMAT(a.lib_000416 * 100 ,2),',','|'),' ') AS '000416'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000206/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000206'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000416 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000416'
 		   ,CASE WHEN a.lib_000207  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000207 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000207) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000207 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000207) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000207'
 		 ,CASE WHEN a.lib_000032  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000032 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000032) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000032 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000032) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000032'
-	   ,concat(REPLACE(FORMAT(a.lib_000037/${params.AMT_UNIT},2),',','|'),' ') AS '000037'
-		 ,concat(REPLACE(FORMAT(a.lib_000043/${params.AMT_UNIT},2),',','|'),' ') AS '000043'
+	   ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000037/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000037'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000043/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000043'
 		,CASE WHEN a.lib_000044  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000044 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000044) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000044 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000044) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000044'
-		 ,concat(REPLACE(FORMAT(a.lib_000260/${params.AMT_UNIT},2),',','|'),' ') AS '000260'
+		 ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000260/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000260'
 		,CASE WHEN a.lib_000261  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000261 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000261) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000261 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000261) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000261'
-		  ,concat(REPLACE(FORMAT(a.lib_000172 /${params.AMT_UNIT} ,2),',','|'),' ') AS '000172'
+		  ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000172 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000172'
 		  ,CASE WHEN a.lib_000176  &gt;  0
-         THEN  CONCAT('增长',CONCAT(REPLACE(FORMAT(a.lib_000176 * 100,2),',','|') ,' '))
-         ELSE  CONCAT('下降',CONCAT(REPLACE(FORMAT(ABS(a.lib_000176) * 100,2),',','|')))
+         THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000176 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+         ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000176) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000176'
-         , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+         , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000488` a
+        indicators_lib.lib_indicators_000488 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT} ,2),',','|'),' '),'/') AS '000488'
-		 , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000488'
+		 , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000489` a
+        indicators_lib.lib_indicators_000489 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')*100 ,2),',','|'),' '),'/') AS '000489'
-		 , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+        AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000489'
+		 , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000490` a
+        indicators_lib.lib_indicators_000490 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT} ,2),',','|'),' '),'/') AS '000490'
-		  , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000490'
+		  , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000491` a
+        indicators_lib.lib_indicators_000491 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')*100 ,2),',','|'),' '),'/') AS '000491'
-		 , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+        AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000491'
+		 , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000492` a
+        indicators_lib.lib_indicators_000492 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT} ,2),',','|'),' '),'/') AS '000492'
-		 , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000492'
+		 , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000493` a
+        indicators_lib.lib_indicators_000493 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')*100 ,2),',','|'),' '),'/') AS '000493'
-		 , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+        AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000493'
+		 , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000494` a
+        indicators_lib.lib_indicators_000494 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT} ,2),',','|'),' '),'/') AS '000494'
-		  , ifnull(concat(replace(FORMAT((SELECT
-        a.`INDEX_VALUE`
+        AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000494'
+		  , COALESCE(concat(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
+        a.INDEX_VALUE
         FROM
-        `indicators_lib`.`lib_indicators_000495` a
+        indicators_lib.lib_indicators_000495 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE='500000')*100 ,2),',','|'),' '),'/') AS '000495'
-        , IFNULL(CONCAT(REPLACE(FORMAT((SELECT
+        AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000495'
+        , COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
                COUNT(1)
                 FROM
-                `indicators_lib`.`lib_indicators_000402` a
+                indicators_lib.lib_indicators_000402 a
                 WHERE a.DIMENSION_FLAG = '2'
                  AND a.INDEX_VALUE &gt; 0
                 AND  a.PERIOD_FLAG = '3'   AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-                AND a.INDEX_DIM_CODE <![CDATA[ <> ]]>'500000') ,0),',','|'),' '),'/') AS 'sum000402big'
+                AND a.INDEX_DIM_CODE <![CDATA[ <> ]]>'500000')))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' '),'/') AS 'sum000402big'
                 ,
-              IFNULL((SELECT INDEX_DIM_DESCR FROM    `indicators_lib`.`lib_indicators_000402` a
-              WHERE a.`INDEX_VALUE`=(
+              COALESCE((SELECT INDEX_DIM_DESCR FROM    indicators_lib.lib_indicators_000402 a
+              WHERE a.INDEX_VALUE=(
                 SELECT
                 MAX(INDEX_VALUE)
                 FROM
-                `indicators_lib`.`lib_indicators_000402` a
+                indicators_lib.lib_indicators_000402 a
                 WHERE a.DIMENSION_FLAG = '2'
                 AND  a.PERIOD_FLAG = '3'
                 AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
@@ -1635,53 +1635,53 @@
                 AND  a.PERIOD_FLAG = '3'
                 AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
                 AND a.INDEX_DIM_CODE <![CDATA[ <> ]]>'500000'),'') AS max000402Area
-                ,IFNULL(CONCAT(REPLACE(FORMAT((SELECT
+                ,COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
                 MAX(INDEX_VALUE)
                 FROM
-                `indicators_lib`.`lib_indicators_000402` a
+                indicators_lib.lib_indicators_000402 a
                 WHERE a.DIMENSION_FLAG = '2'
                 AND  a.PERIOD_FLAG = '3'
                 AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-                AND a.INDEX_DIM_CODE <![CDATA[ <> ]]>'500000')*100 ,2),',','|'),' '),'/') AS 'max000402'
+                AND a.INDEX_DIM_CODE <![CDATA[ <> ]]>'500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS 'max000402'
          ,(SELECT
-                 REPLACE(IFNULL(GROUP_CONCAT(REPLACE(FORMAT(INDEX_VALUE /${params.AMT_UNIT},2),',','|') ORDER BY a.INDEX_DIM_DESCR ),''),',','、')
+                 COALESCE(string_agg(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'、' ORDER BY a.INDEX_DIM_DESCR),'')
                 FROM
-                `indicators_lib`.`lib_indicators_000518` a
+                indicators_lib.lib_indicators_000518 a
                 WHERE a.DIMENSION_FLAG = '2'
                 AND  a.PERIOD_FLAG = '3'
                  AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
                 AND a.INDEX_DIM_CODE  <![CDATA[ <> ]]> '500000') AS '000518'
                  ,(SELECT
-              REPLACE(IFNULL(GROUP_CONCAT(concat(REPLACE(FORMAT(INDEX_VALUE * 100,2),',','|'),'%') ORDER BY a.INDEX_DIM_DESCR ),''),',','、')
+              COALESCE(string_agg(concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'%'),'、' ORDER BY a.INDEX_DIM_DESCR),'')
                 FROM
-                `indicators_lib`.`lib_indicators_000519` a
+                indicators_lib.lib_indicators_000519 a
                 WHERE a.DIMENSION_FLAG = '2'
                 AND  a.PERIOD_FLAG = '3'
                 AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
                 AND a.INDEX_DIM_CODE <![CDATA[ <> ]]> '500000') AS '000519'
                          ,(SELECT
-             REPLACE(IFNULL(GROUP_CONCAT(concat(REPLACE(FORMAT(INDEX_VALUE * 100,2),',','|'),'%') ORDER BY a.INDEX_DIM_DESCR ),''),',','、')
+             COALESCE(string_agg(concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'%'),'、' ORDER BY a.INDEX_DIM_DESCR),'')
                 FROM
-                `indicators_lib`.`lib_indicators_000520` a
+                indicators_lib.lib_indicators_000520 a
                 WHERE a.DIMENSION_FLAG = '2'
                 AND  a.PERIOD_FLAG = '3'
                 AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
                 AND a.INDEX_DIM_CODE  <![CDATA[ <> ]]> '500000') AS '000520'
-            , IFNULL(CONCAT(REPLACE(FORMAT((SELECT
+            , COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
                COUNT(1)
                 FROM
-                `indicators_lib`.`lib_indicators_000342` a
+                indicators_lib.lib_indicators_000342 a
                 WHERE a.DIMENSION_FLAG = '2'
                  AND a.INDEX_VALUE &gt; 0
                 AND  a.PERIOD_FLAG = '3'   AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-                AND a.INDEX_DIM_CODE <![CDATA[ <> ]]>'500000') ,0),',','|'),' '),'/') AS 'sum000342'
+                AND a.INDEX_DIM_CODE <![CDATA[ <> ]]>'500000')))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' '),'/') AS 'sum000342'
                 ,
-              IFNULL((SELECT INDEX_DIM_DESCR FROM    `indicators_lib`.`lib_indicators_000342` a
-              WHERE a.`INDEX_VALUE`=(
+              COALESCE((SELECT INDEX_DIM_DESCR FROM    indicators_lib.lib_indicators_000342 a
+              WHERE a.INDEX_VALUE=(
                 SELECT
                 MAX(INDEX_VALUE)
                 FROM
-                `indicators_lib`.`lib_indicators_000342` a
+                indicators_lib.lib_indicators_000342 a
                 WHERE a.DIMENSION_FLAG = '2'
                 AND  a.PERIOD_FLAG = '3'
                 AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
@@ -1691,36 +1691,36 @@
                 AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
                 AND a.INDEX_DIM_CODE <![CDATA[ <> ]]>'500000'),'') AS max000342Area
          ,(SELECT
-                 REPLACE(IFNULL(GROUP_CONCAT(REPLACE(FORMAT(INDEX_VALUE /${params.AMT_UNIT},2),',','|') ORDER BY a.INDEX_DIM_DESCR ),''),',','、')
+                 COALESCE(string_agg(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'、' ORDER BY a.INDEX_DIM_DESCR),'')
                 FROM
-                `indicators_lib`.`lib_indicators_000521` a
+                indicators_lib.lib_indicators_000521 a
                 WHERE a.DIMENSION_FLAG = '2'
                 AND  a.PERIOD_FLAG = '3'
                  AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
                 AND a.INDEX_DIM_CODE  <![CDATA[ <> ]]> '500000') AS '000521'
               ,CASE WHEN a.lib_000515  &gt;  0
-                 THEN  CONCAT('扩大',CONCAT(REPLACE(FORMAT(a.lib_000515 * 100,2),',','|') ,' '))
-                 ELSE  CONCAT('收窄',CONCAT(REPLACE(FORMAT(ABS(a.lib_000515) * 100,2),',','|')))
+                 THEN  CONCAT('扩大',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000515 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+                 ELSE  CONCAT('收窄',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000515) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
                  END AS '000515'
               ,CASE WHEN a.lib_000508  &gt;  0
-                 THEN  CONCAT('扩大',CONCAT(REPLACE(FORMAT(a.lib_000508 * 100,2),',','|') ,' '))
-                 ELSE  CONCAT('收窄',CONCAT(REPLACE(FORMAT(ABS(a.lib_000508) * 100,2),',','|')))
+                 THEN  CONCAT('扩大',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000508 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
+                 ELSE  CONCAT('收窄',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000508) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
                  END AS '000508'
                 ,(SELECT
-              REPLACE(IFNULL(GROUP_CONCAT(concat(REPLACE(FORMAT(INDEX_VALUE * 100,2),',','|'),'%') ORDER BY a.INDEX_DIM_DESCR ),''),',','、')
+              COALESCE(string_agg(concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'%'),'、' ORDER BY a.INDEX_DIM_DESCR),'')
                 FROM
-                `indicators_lib`.`lib_indicators_000513` a
+                indicators_lib.lib_indicators_000513 a
                 WHERE a.DIMENSION_FLAG = '2'
                 AND  a.PERIOD_FLAG = '3'
                 AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
                 AND a.INDEX_DIM_CODE <![CDATA[ <> ]]> '500000') AS '000513'
                ,(SELECT
-            cast(REPLACE(IFNULL(GROUP_CONCAT(concat(INDEX_DIM_DESCR,' ') ORDER BY INDEX_VALUE DESC ),''),',','、') AS CHAR)
+            cast(COALESCE(string_agg(concat(INDEX_DIM_DESCR,' '),'、' ORDER BY INDEX_VALUE DESC),'') AS CHAR)
             FROM (
             SELECT
             INDEX_DIM_DESCR,INDEX_VALUE
             FROM
-            `indicators_lib`.`lib_indicators_000514` a
+            indicators_lib.lib_indicators_000514 a
               WHERE a.DIMENSION_FLAG = '2'
                     AND  a.PERIOD_FLAG = '3'
                     AND   ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
@@ -1728,25 +1728,25 @@
             ORDER BY INDEX_VALUE DESC
             LIMIT 3 )v) as '000514'
      		 , (SELECT
-        REPLACE(IFNULL(GROUP_CONCAT(concat(REPLACE(CASE WHEN  INDEX_VALUE <![CDATA[ > ]]>0 THEN CONCAT('增长',FORMAT(INDEX_VALUE *100,2)) WHEN INDEX_VALUE <![CDATA[ < ]]> 0
-        THEN CONCAT('下降',FORMAT(ABS(INDEX_VALUE) *100,2))  ELSE '持平' END ,',','|'),'%') ORDER BY a.INDEX_DIM_DESCR ),''),',','、')
+        COALESCE(string_agg(concat(REPLACE(CASE WHEN  INDEX_VALUE <![CDATA[ > ]]>0 THEN CONCAT('增长',TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00')) WHEN INDEX_VALUE <![CDATA[ < ]]> 0
+        THEN CONCAT('下降',TO_CHAR(ROUND(CAST(NULLIF(((ABS(INDEX_VALUE) *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'))  ELSE '持平' END ,',','|'),'%'),'、' ORDER BY a.INDEX_DIM_DESCR),'')
         FROM
-        `indicators_lib`.`lib_indicators_000522` a
+        indicators_lib.lib_indicators_000522 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3'
         AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
 
         ) AS '000522'
               ,
-        IFNULL(CONCAT(REPLACE((SELECT
+        COALESCE(CONCAT(REPLACE((SELECT
         CASE WHEN MAX(INDEX_VALUE) <![CDATA[ > ]]> 0
-        THEN  CONCAT('增长',FORMAT(MAX(INDEX_VALUE)*100,2))
+        THEN  CONCAT('增长',TO_CHAR(ROUND(CAST(NULLIF(((MAX(INDEX_VALUE)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'))
         WHEN MAX(INDEX_VALUE)  <![CDATA[ < ]]> 0
-        THEN  CONCAT('下降',FORMAT(ABS(MAX(INDEX_VALUE))*100,2))
+        THEN  CONCAT('下降',TO_CHAR(ROUND(CAST(NULLIF(((ABS(MAX(INDEX_VALUE))*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'))
         ELSE '持平'
         END AS aa
         FROM
-        `indicators_lib`.`lib_indicators_000342` a
+        indicators_lib.lib_indicators_000342 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
         AND a.INDEX_DIM_CODE     <![CDATA[ <> ]]>  '500000'),',','|'),' '),'/')  AS 'max000342'
@@ -1754,7 +1754,7 @@
 
 
 
-		from  `report`.`quarter_report_text` a
+		from  report.quarter_report_text a
 		   WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000'

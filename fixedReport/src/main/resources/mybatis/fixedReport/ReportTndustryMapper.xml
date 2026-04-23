@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.fixedReport.dao.mapper.fixedReport.ReportTndustryMapper">
     <select id="getTndustryTaxData" resultType="java.util.HashMap">
-        ${params.sqlCol} from  adm.`trs_mth_income_industry` a
+        ${params.sqlCol} from  adm.trs_mth_income_industry a
         where a.D_ACCT = '${params.D_ACCT}'
         <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
         AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
@@ -14,10 +14,10 @@
             AND S_BELONGFLAG = '${params.S_BELONGFLAG}'
         </if>
         ${params.orderBy}
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
     <select id="getTndustryTaxDataAll" resultType="java.util.HashMap">
-        ${params.sqlCol} from  adm.`trs_mth_income_industry` a
+        ${params.sqlCol} from  adm.trs_mth_income_industry a
         where a.D_ACCT = '${params.D_ACCT}'
         <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
             AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
@@ -32,7 +32,7 @@
     </select>
     <select id="countTndustryTaxData" resultType="java.lang.Integer">
         select count(1) from (
-        ${params.sqlCol} from  adm.`trs_mth_income_industry` a
+        ${params.sqlCol} from  adm.trs_mth_income_industry a
         where a.D_ACCT = '${params.D_ACCT}'
         <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
             AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
@@ -52,15 +52,8 @@
         ${params.sqlCol}
         FROM
         (
-        SELECT    *    ,
-        IF(@p=INDUSTRY_NAME,
-        CASE
-        WHEN @s=ENTERPRISE_CODE THEN @r
-        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
-        END,
-        @r:=1 ) AS rank,
-        @p:=INDUSTRY_NAME,
-        @s:=ENTERPRISE_CODE
+        SELECT a.*,
+        ROW_NUMBER() OVER (PARTITION BY INDUSTRY_NAME ORDER BY ${params.orderBy} DESC) AS rank
         FROM (SELECT
         INDUSTRY_NAME
         ,D_ACCT
@@ -112,7 +105,7 @@
         ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
         ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
         ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
-        from   adm.`trs_mth_income_industry` a
+        from   adm.trs_mth_income_industry a
         where a.D_ACCT = '${params.D_ACCT}'
         <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
             AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
@@ -126,14 +119,13 @@
         group by INDUSTRY_NAME
         ,ENTERPRISE_CODE
         ${params.orderBy} desc
-        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
-        ORDER BY INDUSTRY_NAME,F_AMT_101
+        ) a
         )s
         where 1=1
         <if test="params.ENTERPRISESUM!=null and params.ENTERPRISESUM!='' ">
             AND rank <![CDATA[  <= ]]>  '${params.ENTERPRISESUM}'
         </if>
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <select id="countTndustryTaxData1" resultType="java.lang.Integer">
@@ -142,15 +134,8 @@
         ${params.sqlCol}
         FROM
         (
-        SELECT    *    ,
-        IF(@p=INDUSTRY_NAME,
-        CASE
-        WHEN @s=ENTERPRISE_CODE THEN @r
-        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
-        END,
-        @r:=1 ) AS rank,
-        @p:=INDUSTRY_NAME,
-        @s:=ENTERPRISE_CODE
+        SELECT a.*,
+        ROW_NUMBER() OVER (PARTITION BY INDUSTRY_NAME ORDER BY ${params.orderBy} DESC) AS rank
         FROM (SELECT
         INDUSTRY_NAME
         ,D_ACCT
@@ -202,7 +187,7 @@
         ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
         ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
         ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
-        from   adm.`trs_mth_income_industry` a
+        from   adm.trs_mth_income_industry a
         where a.D_ACCT = '${params.D_ACCT}'
         <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
             AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
@@ -216,8 +201,7 @@
         group by INDUSTRY_NAME
         ,ENTERPRISE_CODE
         ${params.orderBy} desc
-        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
-        ORDER BY INDUSTRY_NAME,F_AMT_101
+        ) a
         )s
         where 1=1
         <if test="params.ENTERPRISESUM!=null and params.ENTERPRISESUM!='' ">
@@ -232,15 +216,8 @@
         ${params.sqlCol}
         FROM
         (
-        SELECT    *    ,
-        IF(@p=INDUSTRY_NAME,
-        CASE
-        WHEN @s=ENTERPRISE_CODE THEN @r
-        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
-        END,
-        @r:=1 ) AS rank,
-        @p:=INDUSTRY_NAME,
-        @s:=ENTERPRISE_CODE
+        SELECT a.*,
+        ROW_NUMBER() OVER (PARTITION BY INDUSTRY_NAME ORDER BY ${params.orderBy} DESC) AS rank
         FROM (SELECT
         INDUSTRY_NAME
         ,D_ACCT
@@ -292,7 +269,7 @@
         ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
         ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
         ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
-        from   adm.`trs_mth_income_industry` a
+        from   adm.trs_mth_income_industry a
         where a.D_ACCT = '${params.D_ACCT}'
         <if test="params.ENTERPRISE_NAME!=null and params.ENTERPRISE_NAME!='' ">
             AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
@@ -306,8 +283,7 @@
         group by INDUSTRY_NAME
         ,ENTERPRISE_CODE
         ${params.orderBy} desc
-        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
-        ORDER BY INDUSTRY_NAME,F_AMT_101
+        ) a
         )s
         where 1=1
         <if test="params.ENTERPRISESUM!=null and params.ENTERPRISESUM!='' ">
@@ -316,17 +292,17 @@
     </select>
 
     <select id="getColALL"  resultType="java.util.HashMap">
-         select distinct CENTER_ID,CHECK_COL,CHECK_COL_NAME FROM   dmcode.`cm_report_title` a
+         select distinct CENTER_ID,CHECK_COL,CHECK_COL_NAME FROM   dmcode.cm_report_title a
          where  center_id='001' and a.CHECK_COL in (${params.tableCol})
          ORDER BY SUBJECT ,CHECK_COL
     </select>
     <select id="getColHeB"  resultType="java.util.HashMap">
-         select distinct subject as id,subject_name  as name FROM   dmcode.`cm_report_title` a
+         select distinct subject as id,subject_name  as name FROM   dmcode.cm_report_title a
          where  center_id='001' and a.CHECK_COL in (${params.tableCol})
          ORDER BY SUBJECT
     </select>
     <select id="getColHeBF"  resultType="java.util.HashMap">
-         select distinct CENTER_ID,CHECK_COL,CHECK_COL_NAME  FROM   dmcode.`cm_report_title` a
+         select distinct CENTER_ID,CHECK_COL,CHECK_COL_NAME  FROM   dmcode.cm_report_title a
          where  center_id='001' and a.CHECK_COL in (${params.tableCol})
           and  SUBJECT <![CDATA[ > ]]>  0
          ORDER BY SUBJECT
@@ -341,15 +317,8 @@
         ${params.sqlCol}
         FROM
         (
-        SELECT    *    ,
-        IF(@p=INDUSTRY_NAME,
-        CASE
-        WHEN @s=ENTERPRISE_CODE THEN @r
-        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
-        END,
-        @r:=1 ) AS rank,
-        @p:=INDUSTRY_NAME,
-        @s:=ENTERPRISE_CODE
+        SELECT a.*,
+        ROW_NUMBER() OVER (PARTITION BY INDUSTRY_NAME ORDER BY ${params.orderBy} DESC) AS rank
         FROM (SELECT
         INDUSTRY_NAME
         ,ENTERPRISE_CODE
@@ -400,7 +369,7 @@
         ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
         ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
         ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
-        FROM   adm.`trs_mth_income_industry` a
+        FROM   adm.trs_mth_income_industry a
         where a.D_ACCT between  '${params.D_ACCT_START}' and   '${params.D_ACCT_START}'
         <if test="params.ENTERPRISE_CODE!=null and params.ENTERPRISE_CODE!='' ">
             AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
@@ -413,25 +382,17 @@
         </if>
         GROUP BY INDUSTRY_NAME  ,ENTERPRISE_CODE
         ${params.orderBy}  DESC
-        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
-        ${params.orderBy}
+        ) a
         )s
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
     <select id="countTndustryTaxDataEnter" resultType="java.lang.Integer">
         select count(1) from (
         ${params.sqlCol}
         FROM
         (
-        SELECT    *    ,
-        IF(@p=INDUSTRY_NAME,
-        CASE
-        WHEN @s=ENTERPRISE_CODE THEN @r
-        WHEN @s:=ENTERPRISE_CODE THEN @r:=@r+1
-        END,
-        @r:=1 ) AS rank,
-        @p:=INDUSTRY_NAME,
-        @s:=ENTERPRISE_CODE
+        SELECT a.*,
+        ROW_NUMBER() OVER (PARTITION BY INDUSTRY_NAME ORDER BY ${params.orderBy} DESC) AS rank
         FROM (SELECT
         INDUSTRY_NAME
         ,ENTERPRISE_CODE
@@ -482,7 +443,7 @@
         ,(SUM(F_AMT_10120)-SUM(F_AMT_10120_YEAR))/SUM(F_AMT_10120_YEAR)   AS F_AMT_10120_YEAR
         ,SUM(F_AMT_99999) /${params.UNIT}              AS F_AMT_99999
         ,(SUM(F_AMT_99999)-SUM(F_AMT_99999_YEAR))/SUM(F_AMT_99999_YEAR)         AS F_AMT_99999_YEAR
-        FROM   adm.`trs_mth_income_industry` a
+        FROM   adm.trs_mth_income_industry a
         where a.D_ACCT between  '${params.D_ACCT_START}' and   '${params.D_ACCT_START}'
         <if test="params.ENTERPRISE_CODE!=null and params.ENTERPRISE_CODE!='' ">
             AND ENTERPRISE_NAME like '%${params.ENTERPRISE_NAME}%'
@@ -495,14 +456,13 @@
         </if>
         GROUP BY INDUSTRY_NAME  ,ENTERPRISE_CODE
         ${params.orderBy}  DESC
-        ) a,(SELECT @p:=NULL,@s:=NULL,@r:=0)r
-        ${params.orderBy}
+        ) a
         )s
 
         )v
     </select>
     <select id="getTndustryTaxAll" resultType="java.util.HashMap">
-        ${params.sqlCol} from  adm.`trs_mth_income_industry` a
+        ${params.sqlCol} from  adm.trs_mth_income_industry a
         where a.D_ACCT='${params.D_ACCT}'
         <if test="params.ENTERPRISE_CODE!=null and params.ENTERPRISE_CODE!='' ">
             AND ENTERPRISE_CODE  ${params.enterpriseCodees}

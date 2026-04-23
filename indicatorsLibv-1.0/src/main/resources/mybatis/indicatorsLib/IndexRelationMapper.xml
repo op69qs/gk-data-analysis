@@ -5,7 +5,7 @@
     <!--    查询指标的检测值-->
     <select id="getDetectionValue" resultType="hashmap">
         SELECT DETECTION_ID,DETECTION_CONDITIONS
-        FROM `ENUMSET`.`CM_GUOKU_DETECTION` a
+        FROM enumset.cm_guoku_detection a
         WHERE DETECTION_TYPE_ID='04' and STATE = '0'
         <if test="indexArray != null and indexArray.length > 0">
             AND DETECTION_ID IN
@@ -25,9 +25,9 @@
         CASE WHEN r.INDEX_TYPE ='0' THEN '数值'
         WHEN r.INDEX_TYPE ='1' THEN '比率'
         END AS INDEX_TYPE_DSCR,
-        ifnull(r.INDEX_DETAILS, '') AS INDEX_DETAILS
+        COALESCE(r.INDEX_DETAILS, '') AS INDEX_DETAILS
         FROM
-        indicators_lib.`lib_index_relation` r
+        indicators_lib.lib_index_relation r
         WHERE 1=1
 	and r.PARENT_ID is not NULL
         <if test="params.personalFlag != null and params.personalFlag != ''">
@@ -49,9 +49,9 @@
     <select id="getIndexDetails" resultType="java.util.HashMap">
         SELECT *
         FROM
-            `indicators_lib`.`lib_index_relation` a
+            indicators_lib.lib_index_relation a
         WHERE
-            a.`INDEX_ID` = #{params.INDEX_ID}
+            a.INDEX_ID = #{params.INDEX_ID}
     </select>
 
 
@@ -68,10 +68,10 @@
         WHEN r.INDEX_TYPE = '1' THEN
         '(%)'
         ELSE '' END as flag,
-        ifnull(r.PARENT_ID,'') as pId,
+        COALESCE(r.PARENT_ID,'') as pId,
         r.PARENT_ID,
         r.IDENTITY_PROPERTY
-        FROM indicators_lib.`lib_index_relation` r
+        FROM indicators_lib.lib_index_relation r
         WHERE INDEX_STATUS='0'
         <if test="params.personalFlag != null and params.personalFlag != ''">
             AND r.PERSONAL_FLAG = #{params.personalFlag}
@@ -103,7 +103,7 @@
         <if test="params.categories != null and params.categories.size() > 0">
             AND
             <foreach collection="params.categories" item="category" open="(" close=")" separator="OR">
-                FIND_IN_SET(#{category}, r.CATEGORY)
+                #{category} = ANY(string_to_array(COALESCE(r.CATEGORY, ''), ','))
             </foreach>
         </if>
 
@@ -126,11 +126,11 @@
             ELSE
             ''
             END AS flag,
-            ifnull(a.PARENT_ID, '') AS pId,
+            COALESCE(a.PARENT_ID, '') AS pId,
             a.PARENT_ID,
             a.IDENTITY_PROPERTY
             FROM
-            indicators_lib.`lib_index_relation` a
+            indicators_lib.lib_index_relation a
             WHERE
             a.PARENT_ID IS NULL
             and a.INDEX_CORRE_TABLE is null
@@ -146,7 +146,7 @@
     <!--    获取自定义指标方案表-->
     <select id="getIndicatorsTableName" resultType="hashmap">
         SELECT r.INDEX_ID as colId,r.INDEX_CORRE_TABLE as tableName,r.INDEX_TYPE as type
-        FROM indicators_lib.`lib_index_relation` r
+        FROM indicators_lib.lib_index_relation r
         where r.INDEX_STATUS='0' AND r.INDEX_ID in
         <foreach collection="array" item="indexId" index="index" open="(" separator="," close=")">
             #{indexId}
@@ -181,7 +181,7 @@
     <!--    根据已选择的维度id查询选择的维度信息-->
     <select id="getDimensionSelectById" resultType="hashmap">
         SELECT r.guoku_id as value,r.guoku_dscr as label
-        FROM dmcode.`cm_guoku_dimnsn` r
+        FROM dmcode.cm_guoku_dimnsn r
         where r.id in
         <foreach collection="codeArry" item="code" index="index" open="(" separator="," close=")">
             #{code}

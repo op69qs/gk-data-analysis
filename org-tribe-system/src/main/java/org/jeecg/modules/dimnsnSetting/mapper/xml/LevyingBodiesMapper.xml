@@ -24,7 +24,7 @@
         '停用'
         END AS STATE_DSCR
         FROM
-        `dmcode`.cm_guoku_taxorg a
+        dmcode.cm_guoku_taxorg a
         WHERE
         1 = 1
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
@@ -49,14 +49,14 @@
             and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
         </if>
         ORDER BY a.TAX_ORG_ID asc
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <select id="getCount" resultType="java.lang.Integer">
         SELECT
         COUNT(*)
         FROM
-        `dmcode`.cm_guoku_taxorg a
+        dmcode.cm_guoku_taxorg a
         WHERE
         1 = 1
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
@@ -93,7 +93,7 @@
         '停用'
         END AS STATE_DSCR
         FROM
-        `dmcode`.cm_guoku_taxorg a
+        dmcode.cm_guoku_taxorg a
         WHERE
         1 = 1
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
@@ -131,7 +131,7 @@
         '停用'
         END AS STATE_DSCR
         FROM
-        `dmcode`.cm_guoku_taxorg a
+        dmcode.cm_guoku_taxorg a
         WHERE
         1 = 1
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
@@ -161,7 +161,7 @@
     <select id="checkRepeat" resultType="java.util.HashMap">
         SELECT
         *
-        FROM  `dmcode`.cm_guoku_taxorg  a
+        FROM  dmcode.cm_guoku_taxorg  a
         where 1=1
         and STATE = '0'
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
@@ -173,7 +173,7 @@
     </select>
 
     <insert id="add">
-        INSERT INTO  `dmcode`.cm_guoku_taxorg
+        INSERT INTO  dmcode.cm_guoku_taxorg
         VALUES
             (
              #{params.TAX_ORG_ID},
@@ -187,7 +187,7 @@
     </insert>
 
     <update id="edit">
-        UPDATE  `dmcode`.cm_guoku_taxorg SET
+        UPDATE  dmcode.cm_guoku_taxorg SET
         <if test=" params.TAX_ORG_DSCR != null">
             TAX_ORG_DSCR = #{params.TAX_ORG_DSCR},
         </if>
@@ -213,7 +213,7 @@
     <delete id="del" >
         DELETE
         FROM
-        `dmcode`.cm_guoku_taxorg
+        dmcode.cm_guoku_taxorg
         WHERE 1 = 1
         <if test="params.TAX_ORG_ID!=null and params.TAX_ORG_ID != ''">
             AND TAX_ORG_ID = #{params.TAX_ORG_ID}

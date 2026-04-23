@@ -115,13 +115,13 @@ public class CreateAnalysisSQL extends BaseController {
     public String geThresholdPredictionSQL(PageData pageData, List<String> dateRange) {
         StringBuilder builder = new StringBuilder();
         if ("ucloud".equals(pageData.get("dataBase"))) {
-            builder.append("SELECT GROUP_CONCAT(v.content) AS value FROM (");
-            builder.append("SELECT a.dateTime,IFNULL(b.Count,0) AS content FROM (");
+            builder.append("SELECT string_agg(v.content::text, ',' ORDER BY v.dateTime) AS value FROM (");
+            builder.append("SELECT a.dateTime,COALESCE(b.Count,0) AS content FROM (");
             for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime FROM DUAL");
+                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime");
             }
             builder.append(") a");
             if ("1".equals(pageData.get("data_type"))) { //业务数据
@@ -131,13 +131,13 @@ public class CreateAnalysisSQL extends BaseController {
             }
             builder.append(" GROUP BY dateTime ORDER BY dateTime) v");
         } else if ("upm".equals(pageData.get("dataBase"))) {
-            builder.append("SELECT GROUP_CONCAT(v.content) AS value FROM (");
-            builder.append("SELECT a.dateTime,MAX(IFNULL(CAST(b.Count AS DECIMAL(16,6)),0)) AS content FROM (");
+            builder.append("SELECT string_agg(v.content::text, ',' ORDER BY v.dateTime) AS value FROM (");
+            builder.append("SELECT a.dateTime,MAX(COALESCE(CAST(b.Count AS DECIMAL(16,6)),0)) AS content FROM (");
             for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime FROM DUAL");
+                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime");
             }
             builder.append(") a");
             builder.append(" LEFT JOIN " + pageData.get("dataBase") + ".api_alarm_summary b ON a.dateTime=b.time AND b.index_id='" + pageData.get("index_id") + "' AND b.period='3' AND (b.lineId='" + pageData.get("resource") + "' OR b.resource_code='" + pageData.get("resource") + "')");
@@ -154,25 +154,25 @@ public class CreateAnalysisSQL extends BaseController {
     public String getForecastSQL(PageData pageData, List<String> dateRange) {
         StringBuilder builder = new StringBuilder();
         if ("devOps".equals(pageData.getString("type"))) { //运维
-            builder.append("SELECT GROUP_CONCAT(v.content) AS value FROM (");
+            builder.append("SELECT string_agg(v.content::text, ',' ORDER BY v.dateTime) AS value FROM (");
             if ("2".equals(pageData.getString("period"))) { //一小时
-                builder.append("SELECT SUBSTR(a.dateTime,12,6) AS dateTime,IFNULL(b.Count,0) AS content FROM(");
+                builder.append("SELECT SUBSTR(a.dateTime,12,6) AS dateTime,COALESCE(b.Count,0) AS content FROM(");
                 for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                     if (i > 0) {
                         builder.append(" UNION ALL ");
                     }
-                    builder.append("SELECT '" + dateRange.get(i) + ":00' AS dateTime FROM DUAL");
+                    builder.append("SELECT '" + dateRange.get(i) + ":00' AS dateTime");
                 }
                 builder.append(") a");
                 builder.append(" LEFT JOIN " + pageData.get("dataBase") + ".api_alarm_summary b ON a.dateTime=b.time AND b.period='" + pageData.get("period") + "'");
                 builder.append(" AND b.index_id='" + pageData.get("indicators") + "' AND b.resource_id='" + pageData.get("resources") + "' AND b.table_name LIKE 'ucloud.api_interface_system_data%'");
             } else if ("3,4,5".contains(pageData.getString("period"))) { //日、月、年
-                builder.append("SELECT SUBSTR(a.dateTime,12,6) AS dateTime,IFNULL(b.Count,0) AS content FROM(");
+                builder.append("SELECT SUBSTR(a.dateTime,12,6) AS dateTime,COALESCE(b.Count,0) AS content FROM(");
                 for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                     if (i > 0) {
                         builder.append(" UNION ALL ");
                     }
-                    builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime FROM DUAL");
+                    builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime");
                 }
                 builder.append(") a");
                 builder.append(" LEFT JOIN " + pageData.get("dataBase") + ".api_alarm_summary b ON a.dateTime=b.time AND b.period='" + pageData.get("period") + "'");
@@ -180,26 +180,26 @@ public class CreateAnalysisSQL extends BaseController {
             }
             builder.append(") v ORDER BY dateTime");
         } else if ("network".equals(pageData.getString("type"))) { //网络
-            builder.append("SELECT GROUP_CONCAT(v.content) AS value FROM (");
+            builder.append("SELECT string_agg(v.content::text, ',' ORDER BY v.dateTime) AS value FROM (");
             if ("2".equals(pageData.getString("period"))) { //一小时
-                builder.append("SELECT SUBSTR(a.dateTime,12,6) AS dateTime,MAX(IFNULL(CAST(b.Count AS DECIMAL(18,6)),0)) AS content FROM(");
+                builder.append("SELECT SUBSTR(a.dateTime,12,6) AS dateTime,MAX(COALESCE(CAST(b.Count AS DECIMAL(18,6)),0)) AS content FROM(");
                 for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                     if (i > 0) {
                         builder.append(" UNION ALL ");
                     }
-                    builder.append("SELECT '" + dateRange.get(i) + ":00' AS dateTime FROM DUAL");
+                    builder.append("SELECT '" + dateRange.get(i) + ":00' AS dateTime");
                 }
                 builder.append(") a");
                 builder.append(" LEFT JOIN " + pageData.get("dataBase") + ".api_alarm_summary b ON a.dateTime=b.time AND b.period='" + pageData.get("period") + "'");
                 builder.append(" AND b.index_id='" + pageData.get("indicators") + "' AND (b.lineId='" + pageData.get("resources") + "' OR b.resource_code='" + pageData.get("resources") + "')");
                 builder.append(" GROUP BY dateTime ORDER BY dateTime");
             } else if ("3,4,5".contains(pageData.getString("period"))) { //日、月、年
-                builder.append("SELECT a.dateTime AS dateTime,MAX(IFNULL(CAST(b.Count AS DECIMAL(18,6)),0)) AS content FROM(");
+                builder.append("SELECT a.dateTime AS dateTime,MAX(COALESCE(CAST(b.Count AS DECIMAL(18,6)),0)) AS content FROM(");
                 for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                     if (i > 0) {
                         builder.append(" UNION ALL ");
                     }
-                    builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime FROM DUAL");
+                    builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime");
                 }
                 builder.append(") a");
                 builder.append(" LEFT JOIN " + pageData.get("dataBase") + ".api_alarm_summary b ON a.dateTime=b.time AND b.period='" + pageData.get("period") + "'");
@@ -218,9 +218,9 @@ public class CreateAnalysisSQL extends BaseController {
      */
     public String getForecastSQL2(PageData pageData, List<String> dateRange) {
         StringBuilder builder = new StringBuilder();
-        builder.append("SELECT GROUP_CONCAT(v.content) AS value FROM (");
+        builder.append("SELECT string_agg(v.content::text, ',' ORDER BY v.dateTime) AS value FROM (");
         if ("1".contains(pageData.getString("period"))) { //半小时
-            builder.append("SELECT SUBSTR(o.dateTime,12,6) AS dateTime,IFNULL(o.Count,0) AS content FROM(");
+            builder.append("SELECT SUBSTR(o.dateTime,12,6) AS dateTime,COALESCE(o.Count,0) AS content FROM(");
             for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                 if (i > 0) {
                     builder.append(" UNION ALL ");
@@ -231,12 +231,12 @@ public class CreateAnalysisSQL extends BaseController {
             }
             builder.append(") o");
         } else if ("2".equals(pageData.getString("period"))) { //一小时
-            builder.append("SELECT SUBSTR(a.dateTime,12,6) AS dateTime,IFNULL(b.Count,0) AS content FROM(");
+            builder.append("SELECT SUBSTR(a.dateTime,12,6) AS dateTime,COALESCE(b.Count,0) AS content FROM(");
             for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + dateRange.get(i) + ":00' AS dateTime FROM DUAL");
+                builder.append("SELECT '" + dateRange.get(i) + ":00' AS dateTime");
             }
             builder.append(") a");
             if ("devOps".equals(pageData.getString("type"))) { //运维
@@ -251,12 +251,12 @@ public class CreateAnalysisSQL extends BaseController {
                 builder.append(" AND b.index_id='" + pageData.get("indicators") + "' AND b.resource_code='" + pageData.get("resources") + "' AND b.table_name LIKE 'ucloud.api_interface_system_data%'");
             }
         } else {
-            builder.append("SELECT a.dateTime,IFNULL(b.Count,0) AS content FROM(");
+            builder.append("SELECT a.dateTime,COALESCE(b.Count,0) AS content FROM(");
             for (int i = 0; i < dateRange.size(); i++) { //防止有日期不存在数据，从而少返回数据
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime FROM DUAL");
+                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime");
             }
             builder.append(") a");
             if ("devOps".equals(pageData.getString("type"))) { //运维
@@ -284,33 +284,33 @@ public class CreateAnalysisSQL extends BaseController {
         StringBuilder builder = new StringBuilder();
         if ("1".equals(pageData.getString("period"))) { //半小时
             String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); //前一天
-            builder.append("SELECT SUBSTR(a.dateTime,12,5) AS dateTime,MAX(CAST(IFNULL(b.content,0) AS DECIMAL(18,2))) AS value FROM(");
+            builder.append("SELECT SUBSTR(a.dateTime,12,5) AS dateTime,MAX(CAST(COALESCE(b.content,0) AS DECIMAL(18,2))) AS value FROM(");
             for (int i = 0; i < dateRange.size(); i++) {//防止有日期不存在数据，从而少返回数据
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + yesterday + " " + dateRange.get(i) + ":00' AS dateTime FROM DUAL");
+                builder.append("SELECT '" + yesterday + " " + dateRange.get(i) + ":00' AS dateTime");
             }
             builder.append(") a LEFT JOIN ucloud.api_interface_system_data" + yesterday.substring(0, 7).replace("-", "") + " b ON a.dateTime=b.time AND b.index_id='" + pageData.get("indicatorsId") + "'");
             builder.append(" GROUP BY dateTime ORDER BY dateTime");
         } else if ("2".equals(pageData.getString("period"))) { //一小时
             String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); //前一天
-            builder.append("SELECT SUBSTR(a.dateTime,12,5) AS dateTime,MAX(CAST(IFNULL(b.Count,0) AS DECIMAL(18,2))) AS value FROM(");
+            builder.append("SELECT SUBSTR(a.dateTime,12,5) AS dateTime,MAX(CAST(COALESCE(b.Count,0) AS DECIMAL(18,2))) AS value FROM(");
             for (int i = 0; i < dateRange.size(); i++) {//防止有日期不存在数据，从而少返回数据
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + yesterday + " " + dateRange.get(i) + ":00' AS dateTime FROM DUAL");
+                builder.append("SELECT '" + yesterday + " " + dateRange.get(i) + ":00' AS dateTime");
             }
             builder.append(") a LEFT JOIN ucloud.api_alarm_summary b ON a.dateTime=b.time AND b.period='" + pageData.get("period") + "' AND b.index_id='" + pageData.get("indicatorsId") + "'");
             builder.append(" GROUP BY dateTime ORDER BY dateTime");
         } else if ("3,4,5".contains(pageData.getString("period"))) { //日、月、年
-            builder.append("SELECT a.dateTime AS dateTime,MAX(CAST(IFNULL(b.Count,0) AS DECIMAL(18,2))) AS value FROM(");
+            builder.append("SELECT a.dateTime AS dateTime,MAX(CAST(COALESCE(b.Count,0) AS DECIMAL(18,2))) AS value FROM(");
             for (int i = 0; i < dateRange.size(); i++) {//防止有日期不存在数据，从而少返回数据
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime FROM DUAL");
+                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime");
             }
             builder.append(") a LEFT JOIN ucloud.api_alarm_summary b ON a.dateTime=b.time AND b.period='" + pageData.get("period") + "' AND b.index_id='" + pageData.get("indicatorsId") + "'");
             builder.append(" GROUP BY dateTime ORDER BY dateTime");
@@ -412,24 +412,24 @@ public class CreateAnalysisSQL extends BaseController {
      */
     public String getResourceOrderSQL(PageData pageData, List<String> dateRange) {
         StringBuilder builder = new StringBuilder();
-        builder.append("SELECT v.name,ROUND(IFNULL(v.content,0),2) AS value FROM (");
+        builder.append("SELECT v.name,ROUND(COALESCE(v.content,0),2) AS value FROM (");
         if ("1".contains(pageData.getString("period"))) { //半小时(查明细表)
             String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); //前一天
             builder.append("SELECT b.resource_desc AS name,MAX(CAST(a.content AS DECIMAL(18,12))) AS content");
             builder.append(" FROM ucloud.api_interface_system_data" + yesterday.substring(0, 7).replace("-", "") + " a");
-            builder.append(" LEFT JOIN `system_docking`.api_system_resource b ON a.resource_id=b.ID AND b.is_enable='1'");
+            builder.append(" LEFT JOIN system_docking.api_system_resource b ON a.resource_id=b.ID AND b.is_enable='1'");
             builder.append(" WHERE a.index_id='" + pageData.get("indicatorsId") + "' AND a.time BETWEEN '" + yesterday + " " + dateRange.get(0) + ":00' AND '" + yesterday + " " + dateRange.get(dateRange.size() - 1) + ":00'");
             builder.append(" GROUP BY name ORDER BY content DESC,name LIMIT 15");
         } else if ("2".contains(pageData.getString("period"))) { //一小时
             String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); //前一天
             builder.append("SELECT a.resource_desc AS name,MAX(CAST(b.Count AS DECIMAL(18,12))) AS content");
-            builder.append(" FROM `system_docking`.api_system_resource a");
+            builder.append(" FROM system_docking.api_system_resource a");
             builder.append(" LEFT JOIN ucloud.api_alarm_summary b ON a.ID=b.resource_id AND b.table_name LIKE 'ucloud.api_interface_system_data%'");
             builder.append(" WHERE a.is_enable='1' AND b.index_id='" + pageData.get("indicatorsId") + "' AND b.time BETWEEN '" + yesterday + " " + dateRange.get(0) + ":00' AND '" + yesterday + " " + dateRange.get(dateRange.size() - 1) + ":00'");
             builder.append(" GROUP BY name ORDER BY content DESC,name LIMIT 15");
         } else if ("3,4,5".contains(pageData.getString("period"))) { //日
             builder.append("SELECT a.resource_desc AS name,MAX(CAST(b.Count AS DECIMAL(18,2))) AS content");
-            builder.append(" FROM `system_docking`.api_system_resource a");
+            builder.append(" FROM system_docking.api_system_resource a");
             builder.append(" LEFT JOIN ucloud.api_alarm_summary b ON a.ID=b.resource_id AND b.table_name LIKE 'ucloud.api_interface_system_data%'");
             builder.append(" WHERE a.is_enable='1' AND b.index_id='" + pageData.get("indicatorsId") + "' AND b.time BETWEEN '" + dateRange.get(0) + "' AND '" + dateRange.get(dateRange.size() - 1) + "'");
             builder.append(" GROUP BY name ORDER BY content DESC,name LIMIT 15");
@@ -453,7 +453,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (start > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + data.get("label") + "' as name,IFNULL(SUM(b.Count),0) AS value");
+                builder.append("SELECT '" + data.get("label") + "' as name,COALESCE(SUM(b.Count),0) AS value");
                 builder.append(" FROM system_docking.api_interface_system_platform_info a");
                 builder.append(" LEFT JOIN ucloud.api_alarm_summary b ON a.id=b.platform_id AND b.table_name='ucloud.api_interface_alarm_data' AND b.period='" + pageData.get("period") + "' AND b.platform_id='" + data.get("value") + "' AND b.time BETWEEN '" + yesterday + " " + dateRange.get(0) + ":00' AND '" + yesterday + " " + dateRange.get(dateRange.size() - 1) + ":00'");
                 builder.append(" WHERE EXISTS(select 1 from system_docking.api_system_resource where b.resource_id=id)");
@@ -464,7 +464,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (start > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + data.get("label") + "' as name,IFNULL(SUM(b.Count),0) as value");
+                builder.append("SELECT '" + data.get("label") + "' as name,COALESCE(SUM(b.Count),0) as value");
                 builder.append(" FROM system_docking.api_interface_system_platform_info a");
                 builder.append(" LEFT JOIN ucloud.api_alarm_summary b ON a.id=b.platform_id AND b.table_name='ucloud.api_interface_alarm_data' AND b.period='" + pageData.get("period") + "' AND b.platform_id='" + data.get("value") + "' AND b.time BETWEEN '" + dateRange.get(0) + "' AND '" + dateRange.get(dateRange.size() - 1) + "'");
                 builder.append(" WHERE EXISTS(select 1 from system_docking.api_system_resource where b.resource_id=id)");
@@ -490,7 +490,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (start > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + data.get("label") + "' as name,IFNULL(SUM(b.Count),0) as value");
+                builder.append("SELECT '" + data.get("label") + "' as name,COALESCE(SUM(b.Count),0) as value");
                 builder.append(" FROM system_docking.api_platform_index_info a");
                 builder.append(" LEFT JOIN ucloud.api_alarm_summary b ON a.id=b.index_id AND b.table_name='ucloud.api_interface_alarm_data' AND b.period='" + pageData.get("period") + "' AND a.is_monitor='1' AND b.index_id='" + data.get("value") + "' AND b.time BETWEEN '" + yesterday + " " + dateRange.get(0) + ":00' AND '" + yesterday + " " + dateRange.get(dateRange.size() - 1) + ":00'");
                 builder.append(" WHERE EXISTS(select 1 from system_docking.api_system_resource where b.resource_id=id)");
@@ -502,7 +502,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (start > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + data.get("label") + "' as name,IFNULL(SUM(b.Count),0) as value");
+                builder.append("SELECT '" + data.get("label") + "' as name,COALESCE(SUM(b.Count),0) as value");
                 builder.append(" FROM system_docking.api_platform_index_info a");
                 builder.append(" LEFT JOIN ucloud.api_alarm_summary b ON a.id=b.index_id AND b.table_name='ucloud.api_interface_alarm_data' AND b.period='" + pageData.get("period") + "' AND a.is_monitor='1' AND b.index_id='" + data.get("value") + "' AND b.time BETWEEN '" + dateRange.get(0) + "' AND '" + dateRange.get(dateRange.size() - 1) + "'");
                 builder.append(" WHERE EXISTS(select 1 from system_docking.api_system_resource where b.resource_id=id)");
@@ -527,7 +527,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (start > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT v.name,CONCAT('{\"',v.alarm_time,'\":\"',IFNULL(v.alarm_count,0),'\"}') AS value FROM(");
+                builder.append("SELECT v.name,CONCAT('{\"',v.alarm_time,'\":\"',COALESCE(v.alarm_count,0),'\"}') AS value FROM(");
                 for (int i = 0; i < dateRange.size(); i++) {//防止有日期不存在数据，从而少返回数据
                     if (i > 0) {
                         builder.append(" UNION ALL ");
@@ -546,7 +546,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (start > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT v.name,CONCAT('{\"',v.alarm_time,'\":\"',IFNULL(v.alarm_count,0),'\"}') AS value FROM(");
+                builder.append("SELECT v.name,CONCAT('{\"',v.alarm_time,'\":\"',COALESCE(v.alarm_count,0),'\"}') AS value FROM(");
                 for (int i = 0; i < dateRange.size(); i++) {//防止有日期不存在数据，从而少返回数据
                     if (i > 0) {
                         builder.append(" UNION ALL ");
@@ -583,7 +583,7 @@ public class CreateAnalysisSQL extends BaseController {
                     if (i > 0) {
                         builder.append(" UNION ALL ");
                     }
-                    builder.append("(SELECT a.index_name AS name,'" + dateRange.get(i) + "' AS alarm_time,IFNULL(SUM(d.Count),0) AS alarm_count");
+                    builder.append("(SELECT a.index_name AS name,'" + dateRange.get(i) + "' AS alarm_time,COALESCE(SUM(d.Count),0) AS alarm_count");
                     builder.append(" FROM system_docking.api_platform_index_info a");
                     builder.append(" LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.id");
                     builder.append(" LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.id");
@@ -604,7 +604,7 @@ public class CreateAnalysisSQL extends BaseController {
                     if (i > 0) {
                         builder.append(" UNION ALL ");
                     }
-                    builder.append("(SELECT a.index_name AS name,'" + dateRange.get(i) + "' AS alarm_time,IFNULL(SUM(d.Count),0) AS alarm_count");
+                    builder.append("(SELECT a.index_name AS name,'" + dateRange.get(i) + "' AS alarm_time,COALESCE(SUM(d.Count),0) AS alarm_count");
                     builder.append(" FROM system_docking.api_platform_index_info a");
                     builder.append(" LEFT JOIN system_docking.api_interface_system_platform_info b ON a.platform_id=b.id");
                     builder.append(" LEFT JOIN system_docking.api_interface_system_info c ON b.system_id=c.id");
@@ -633,7 +633,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (i > 0) {
                     builder.append(" UNION ");
                 }
-                builder.append("(SELECT d.id AS value,d.resource_desc AS label,c.index_id,IFNULL(SUM(c.Count),0) AS alarm_count");
+                builder.append("(SELECT d.id AS value,d.resource_desc AS label,c.index_id,COALESCE(SUM(c.Count),0) AS alarm_count");
                 builder.append(" FROM system_docking.api_interface_system_platform_info a");
                 builder.append(" LEFT JOIN system_docking.api_platform_index_info b ON a.id=b.platform_id");
                 builder.append(" LEFT JOIN ucloud.api_alarm_summary c ON b.id=c.index_id");
@@ -647,7 +647,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (i > 0) {
                     builder.append(" UNION ");
                 }
-                builder.append("(SELECT d.id AS value,d.resource_desc AS label,c.index_id,IFNULL(SUM(c.Count),0) AS alarm_count");
+                builder.append("(SELECT d.id AS value,d.resource_desc AS label,c.index_id,COALESCE(SUM(c.Count),0) AS alarm_count");
                 builder.append(" FROM system_docking.api_interface_system_platform_info a");
                 builder.append(" LEFT JOIN system_docking.api_platform_index_info b ON a.id=b.platform_id");
                 builder.append(" LEFT JOIN ucloud.api_alarm_summary c ON b.id=c.index_id");
@@ -728,7 +728,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (start > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + indexMap.get(indexId) + "'AS name,GROUP_CONCAT(IFNULL(v.alarm_count,0)) AS value FROM(");
+                builder.append("SELECT '" + indexMap.get(indexId) + "'AS name,string_agg(COALESCE(CAST(v.alarm_count AS TEXT),'0'), ',') AS value FROM(");
                 for (int i = 0; i < resourceList.size(); i++) {
                     if (i > 0) {
                         builder.append(" UNION ALL ");
@@ -745,7 +745,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (start > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + indexMap.get(indexId) + "'AS name,GROUP_CONCAT(v.alarm_count) AS value FROM(");
+                builder.append("SELECT '" + indexMap.get(indexId) + "'AS name,string_agg(CAST(v.alarm_count AS TEXT), ',') AS value FROM(");
                 for (int i = 0; i < resourceList.size(); i++) {
                     if (i > 0) {
                         builder.append(" UNION ALL ");
@@ -755,7 +755,7 @@ public class CreateAnalysisSQL extends BaseController {
                         if (j > 0) {
                             builder.append(" UNION ALL ");
                         }
-                        builder.append("(SELECT '" + resourceList.get(i) + "'AS id,IFNULL(SUM(a.Count),0) AS alarm_count");
+                        builder.append("(SELECT '" + resourceList.get(i) + "'AS id,COALESCE(SUM(a.Count),0) AS alarm_count");
                         builder.append(" FROM ucloud.api_alarm_summary a");
                         builder.append(" WHERE a.table_name='ucloud.api_interface_alarm_data' AND a.period='" + pageData.get("period") + "' AND a.resource_id='" + resourceList.get(i) + "' AND a.index_id='" + indexId + "' AND a.time='" + dateRange.get(j) + "')");
                     }
@@ -1008,7 +1008,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime,IFNULL(SUM(o.sendData),0) AS sendData,IFNULL(SUM(o.receiveData),0) AS receiveData FROM(");
+                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime,COALESCE(SUM(o.sendData),0) AS sendData,COALESCE(SUM(o.receiveData),0) AS receiveData FROM(");
                 builder.append("(SELECT CASE WHEN a.id='bcb93e91e00e4b0dacd5d16a375d98a7' THEN b.Count END AS sendData,");
                 builder.append("CASE WHEN a.id='786fcbdb07d3423bb13779c172ed6c99' THEN b.Count END AS receiveData");
                 builder.append(" FROM system_docking.api_platform_index_info a");
@@ -1020,7 +1020,7 @@ public class CreateAnalysisSQL extends BaseController {
                 if (i > 0) {
                     builder.append(" UNION ALL ");
                 }
-                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime,IFNULL(SUM(o.sendData),0) AS sendData,IFNULL(SUM(o.receiveData),0) AS receiveData FROM(");
+                builder.append("SELECT '" + dateRange.get(i) + "' AS dateTime,COALESCE(SUM(o.sendData),0) AS sendData,COALESCE(SUM(o.receiveData),0) AS receiveData FROM(");
                 builder.append("(SELECT CASE WHEN a.id='bcb93e91e00e4b0dacd5d16a375d98a7' THEN b.Count END AS sendData,");
                 builder.append("CASE WHEN a.id='786fcbdb07d3423bb13779c172ed6c99' THEN b.Count END AS receiveData");
                 builder.append(" FROM system_docking.api_platform_index_info a");
@@ -1109,7 +1109,7 @@ public class CreateAnalysisSQL extends BaseController {
      */
     public String getConnectionCompositionSQL(PageData pageData, List<String> dateRange, String resourceCode, String compositionId) {
         StringBuilder builder = new StringBuilder();
-        builder.append("SELECT GROUP_CONCAT(IFNULL(v.content,0)) AS value FROM (");
+        builder.append("SELECT string_agg(COALESCE(CAST(v.content AS TEXT),'0'), ',') AS value FROM (");
         if ("1,2".contains(pageData.getString("period"))) { //半小时、一小时
             String yesterday = LocalDate.now().minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")); //前一天
             for (int i = 0; i < dateRange.size(); i++) {

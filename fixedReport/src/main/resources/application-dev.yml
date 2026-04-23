@@ -1,7 +1,8 @@
 server:
   port: 9091
-  tomcat: 
-    max-swallow-size: -1
+  bes:
+    basedir: ../document/bes
+  store-lic-interval: 0
   servlet:
     context-path:
     compression:
@@ -91,18 +92,12 @@ spring:
         connectionProperties: druid.stat.mergeSql\=true;druid.stat.slowSqlMillis\=5000
       datasource:
         master:
-          url: jdbc:mysql://cui02:3308/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
-#          url: jdbc:mysql://192.168.100.127:3306/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
-#          url: jdbc:mysql://192.168.100.39:3306/jeecg-boot-os?characterEncoding=UTF-8&useUnicode=true&useSSL=false
-          username: root
-          password: 1i&Lutjh2#RtC&
-          driver-class-name: com.mysql.jdbc.Driver
+          url: jdbc:postgresql://100.71.11.54:25432/gk_data_analysis?currentSchema=report,indicators_lib,public
+          username: vastbase_test
+          password: 'B$S8*^75foTnE*z1'
+          driver-class-name: org.postgresql.Driver
           # 多数据源配置
           #multi-datasource1:
-          #url: jdbc:mysql://localhost:3306/jeecg-boot2?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&transformedBitIsBoolean=true
-          #username: root
-          #password: root
-          #driver-class-name: com.mysql.jdbc.Driver
   #redis 配置
   redis:
     database: 0

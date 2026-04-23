@@ -14,7 +14,7 @@
             AND a.name like '%${params.name}%'
         </if>
         order by a.name ASC
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <select id="getMainAll" resultType="java.util.Map">
@@ -91,7 +91,7 @@
             AND a.name like '%${params.name}%'
         </if>
         order by a.name ASC
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <select id="getSubAll" resultType="java.util.Map">

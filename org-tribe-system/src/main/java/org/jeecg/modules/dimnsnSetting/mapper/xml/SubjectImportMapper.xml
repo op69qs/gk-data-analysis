@@ -50,7 +50,7 @@
         ADD_USER,
         ADD_DATE
         FROM
-        `ods`.cm_guoku_subject_import a
+        ods.cm_guoku_subject_import a
         WHERE
         1 = 1
         <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
@@ -69,13 +69,13 @@
             and a.T_SUBJECT_TYPE = #{params.T_SUBJECT_TYPE}
         </if>
         ORDER BY a.S_BDGSBTVSION desc,SUBJECT_CODE_4 asc
-        LIMIT ${params.page},${params.rows}
+        LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
     <select id="getCount" resultType="java.lang.Integer">
         SELECT
         COUNT(*)
-        FROM  `ods`.cm_guoku_subject_import  a
+        FROM  ods.cm_guoku_subject_import  a
         where 1=1
         <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
             and a.S_BDGSBTVSION = #{params.S_BDGSBTVSION}
@@ -131,7 +131,7 @@
         ADD_USER,
         ADD_DATE
         FROM
-        `ods`.cm_guoku_subject_import a
+        ods.cm_guoku_subject_import a
         WHERE
         1 = 1
         <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
@@ -189,7 +189,7 @@
         ADD_USER,
         ADD_DATE
         FROM
-        `ods`.cm_guoku_subject_import a
+        ods.cm_guoku_subject_import a
         WHERE
         1 = 1
         <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
@@ -213,7 +213,7 @@
     <select id="checkRepeat" resultType="java.util.HashMap">
         SELECT
         *
-        FROM  `ods`.cm_guoku_subject_import  a
+        FROM ods.cm_guoku_subject_import a
         where 1=1
         <if test=" params.S_BDGSBTVSION != null and params.S_BDGSBTVSION != ''">
             and a.S_BDGSBTVSION = #{params.S_BDGSBTVSION}
@@ -224,7 +224,7 @@
     </select>
 
     <insert id="add">
-        INSERT INTO  `ods`.cm_guoku_subject_import
+        INSERT INTO ods.cm_guoku_subject_import
         VALUES
             (
              #{params.T_SUBJECT_CODE_3},
@@ -242,7 +242,7 @@
     </insert>
 
     <update id="edit">
-        UPDATE  `ods`.cm_guoku_subject_import SET
+        UPDATE ods.cm_guoku_subject_import SET
         <if test=" params.T_SUBJECT_CODE_3 != null">
             T_SUBJECT_CODE_3 = #{params.T_SUBJECT_CODE_3},
         </if>
@@ -268,7 +268,7 @@
     </update>
 
     <update id="editStat">
-        UPDATE  `ods`.cm_guoku_subject_import SET
+        UPDATE ods.cm_guoku_subject_import SET
         <if test=" params.STAT_DSCR_4 != null">
             STAT_DSCR_4 = #{params.STAT_DSCR_4},
         </if>
@@ -279,7 +279,7 @@
     </update>
 
     <update id="editT">
-        UPDATE  `ods`.cm_guoku_subject_import SET
+        UPDATE ods.cm_guoku_subject_import SET
         <if test=" params.T_SUBJECT_CODE_3 != null">
             T_SUBJECT_CODE_3 = #{params.T_SUBJECT_CODE_3},
         </if>
@@ -294,7 +294,7 @@
     <delete id="del" >
         DELETE
         FROM
-        `ods`.cm_guoku_subject_import
+        ods.cm_guoku_subject_import
         WHERE 1 = 1
         <if test="params.SUBJECT_CODE_4!=null and params.SUBJECT_CODE_4 != ''">
             AND SUBJECT_CODE_4 = #{params.SUBJECT_CODE_4}
@@ -305,7 +305,7 @@
     </delete>
 
     <select id="callProc">
-        CALL `ods`.`p_cm_guoku_subject_import`(#{params.S_BDGSBTVSION});
+        CALL ods.p_cm_guoku_subject_import(#{params.S_BDGSBTVSION});
     </select>
 
 </mapper>
