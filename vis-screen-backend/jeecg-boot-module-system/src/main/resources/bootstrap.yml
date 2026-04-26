@@ -1,0 +1,37 @@
+server:
+  port: 9082
+spring:
+  profiles:
+    active: dev
+  application:
+    name: vis
+  cloud:
+    inetutils:
+      preferred-networks:
+        - 192\.168\.160
+      ignored-interfaces:
+        - Tailscale.*
+        - wt.*
+        - vEthernet.*
+vis:
+  eureka:
+    ip: ${VIS_EUREKA_IP:192.168.160.161}
+    host: ${VIS_EUREKA_HOST:${vis.eureka.ip}}
+eureka:
+  instance:
+    hostname: ${vis.eureka.host}
+    ip-address: ${vis.eureka.ip}
+    prefer-ip-address: true
+    instance-id: ${VIS_EUREKA_INSTANCE_ID:${vis.eureka.ip}:${spring.application.name}:${server.port}}
+    non-secure-port: ${server.port}
+    home-page-url: http://${vis.eureka.host}:${server.port}/
+    health-check-url: http://${vis.eureka.host}:${server.port}/actuator/health
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:true}
+    register-with-eureka: ${EUREKA_REGISTER_WITH_EUREKA:${EUREKA_CLIENT_ENABLED:true}}
+    fetch-registry: ${EUREKA_FETCH_REGISTRY:${EUREKA_CLIENT_ENABLED:true}}
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT_ZONE:http://192.168.160.244:8761/eureka/}
+feign:
+  sentinel:
+    enabled: true

@@ -1,0 +1,714 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.dimnsnSetting.mapper.GuokuMapper">
+    <resultMap id="treeMaptest" type="org.jeecg.modules.dimnsnSetting.model.TreeNode">
+        <result column="bookorgcode" jdbcType="VARCHAR" property="bookorgcode"/>
+        <result column="bookorgname" jdbcType="VARCHAR" property="bookorgname"/>
+        <result column="bookorg_level" jdbcType="VARCHAR" property="bookorg_level"/>
+        <result column="bookorgcodepid" jdbcType="VARCHAR" property="bookorgcodepid"/>
+        <result column="state" jdbcType="VARCHAR" property="state"/>
+        <result column="statedesc" jdbcType="VARCHAR" property="statedesc"/>
+        <result column="isleaf" jdbcType="NUMERIC" property="isleaf"/>
+        <result column="statedesc" jdbcType="VARCHAR" property="statedesc"/>
+        <result column="guoku_id" jdbcType="VARCHAR" property="guoku_id"/>
+        <result column="guoku_dscr" jdbcType="VARCHAR" property="guoku_dscr"/>
+    </resultMap>
+    <resultMap id="guokutreeMap" type="org.jeecg.modules.dimnsnSetting.model.GuoKuTreeNode">
+        <result column="guoku_id" jdbcType="VARCHAR" property="guoku_id"/>
+        <result column="guoku_dscr" jdbcType="VARCHAR" property="guoku_dscr"/>
+        <result column="guoku_shuxing_id" jdbcType="VARCHAR" property="guoku_shuxing_id"/>
+        <result column="guoku_shuxing_dscr" jdbcType="VARCHAR" property="guoku_shuxing_dscr"/>
+        <result column="level" jdbcType="NUMERIC" property="level"/>
+        <result column="level_dscr" jdbcType="VARCHAR" property="level_dscr"/>
+        <result column="guoku_pid" jdbcType="VARCHAR" property="guoku_pid"/>
+        <result column="area_no_id" jdbcType="VARCHAR" property="area_no_id"/>
+
+        <result column="area_dscr" jdbcType="VARCHAR" property="area_dscr"/>
+        <result column="pay_bnk_no" jdbcType="VARCHAR" property="pay_bnk_no"/>
+        <result column="pay_bnk_no" jdbcType="VARCHAR" property="pay_bnk_no"/>
+        <result column="rcvbnk_name" jdbcType="VARCHAR" property="rcvbnk_name"/>
+        <result column="guoku_pid" jdbcType="VARCHAR" property="guoku_pid"/>
+        <result column="bookorgcode" jdbcType="VARCHAR" property="bookorgcode"/>
+        <result column="bookorgname" jdbcType="VARCHAR" property="bookorgname"/>
+        <result column="bookorgcode" jdbcType="VARCHAR" property="bookorgcode"/>
+        <result column="bookorgname" jdbcType="VARCHAR" property="bookorgname"/>
+        <result column="guoku_id" jdbcType="VARCHAR" property="guoku_id"/>
+        <result column="guoku_dscr" jdbcType="VARCHAR" property="guoku_dscr"/>
+        <result column="state" jdbcType="VARCHAR" property="state"/>
+        <result column="statedesc" jdbcType="VARCHAR" property="statedesc"/>
+        <result column="isleaf" jdbcType="NUMERIC" property="isleaf"/>
+        <result column="statedesc" jdbcType="VARCHAR" property="statedesc"/>
+    </resultMap>
+
+
+    <select id="getOrgTree" resultType="java.util.HashMap">
+        SELECT
+        a.bookorgcode id,
+        a.bookorgname name,
+        CASE WHEN a.bookorgcodepid ='' THEN
+        a.bookorgcode
+        ELSE a.bookorgcodepid
+        END AS pid
+        FROM
+        dmcode.cm_guoku_bookorg a
+        WHERE 1 = 1
+        <if test=" params.state != null and params.state != ''">
+            and STATE = '${params.state}'
+        </if>
+        <if test=" params.INSPECTION_GUOKU != null  and params.INSPECTION_GUOKU != ''">
+            AND (a.bookorgcodepid LIKE
+            CONCAT('%',(SELECT
+            LEFT(a.`guoku_id`,(
+            SELECT
+            b.level-1
+            FROM
+            dmcode.`cm_guoku_dimnsn` b
+            WHERE
+            b.guoku_id = #{params.INSPECTION_GUOKU}
+            )*2 )
+            FROM
+            dmcode.`cm_guoku_dimnsn` a
+            WHERE
+            a.`guoku_id` = #{params.INSPECTION_GUOKU}),'%')
+            OR
+            a.bookorgcode LIKE
+            CONCAT('%',(SELECT
+            LEFT(a.`guoku_id`,(
+            SELECT
+            b.level-1
+            FROM
+            dmcode.`cm_guoku_dimnsn` b
+            WHERE
+            b.guoku_id = #{params.INSPECTION_GUOKU}
+            )*2 )
+            FROM
+            dmcode.`cm_guoku_dimnsn` a
+            WHERE
+            a.`guoku_id` = #{params.INSPECTION_GUOKU}),'%'))
+        </if>
+        ORDER BY pid, a.bookorgcode
+    </select>
+
+    <select id="checkCode" resultType="java.util.HashMap">
+        SELECT *
+        FROM
+            ${params.TABLENAME}
+        WHERE
+             ${params.COlID} = '${params.bookorgcode}'
+    </select>
+
+    <insert id="addBookOrg">
+        INSERT INTO DMCODE.cm_guoku_bookorg
+        (
+              id
+            ,bookorgcode
+            ,bookorgname
+            ,bookorgcodepid
+            ,bookorg_level
+            ,isleaf
+            ,statedesc
+            ,guoku_id
+            ,guoku_dscr
+        )
+        VALUES
+            (
+                  '${params.bookorgcode}'
+                 , '${params.bookorgcode}'
+                ,'${params.bookorgname}'
+                ,'${params.bookorgcodepid}'
+                ,'${params.bookorg_level}'
+                ,'${params.isleaf}'
+                ,'启用'
+                ,#{params.guoku_id}
+                ,#{params.guoku_dscr}
+            )
+    </insert>
+
+    <update id="updateAddBookOrg">
+        UPDATE DMCODE.`cm_guoku_bookorg` SET  isleaf=1
+         where id='${params.bookorgcodepid}'
+    </update>
+
+    <update id="editBookOrg">
+        UPDATE DMCODE.cm_guoku_bookorg SET
+        <if test=" params.bookorgname != null">
+            bookorgname = '${params.bookorgname}',
+        </if>
+        <if test=" params.bookorgcodepid != null">
+            bookorgcodepid = '${params.bookorgcodepid}',
+        </if>
+        <if test=" params.isleaf != null">
+            isleaf = #{params.isleaf} ,
+        </if>
+        <if test=" params.guoku_id != null">
+            guoku_id = #{params.guoku_id} ,
+        </if>
+        <if test=" params.guoku_dscr != null">
+            guoku_dscr = #{params.guoku_dscr} ,
+        </if>
+        bookorgcode = '${params.bookorgcode}'
+        where id='${params.id}'
+        and STATE = '0'
+    </update>
+
+    <select id="isDelBookOrg" resultType="int">
+        SELECT
+           a.`state`  as state
+        FROM
+        dmcode.cm_guoku_bookorg a
+        WHERE 1 = 1  and
+        id= '${params.bookorgcodepid}'
+    </select>
+
+    <update id="delBookOrg">
+         UPDATE DMCODE.`cm_guoku_bookorg` SET STATE ='${params.state}'
+        ,statedesc =( case when  '${params.state}'='0'
+        then  '启用'
+        else  '禁用' end )
+         where id='${params.id}'
+    </update>
+
+    <update id="delBookOrgParent">
+        UPDATE DMCODE.`cm_guoku_bookorg` SET STATE ='${params.state}'
+        ,statedesc =( case when  '${params.state}'='0'
+        then  '启用'
+        else  '禁用' end )
+         where  id in (
+        select id from (
+          SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid='${params.id}'  -- id
+                UNION
+                 SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid='${params.id}')
+
+                UNION
+
+                SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid IN
+                (
+                 SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid='${params.id}'))
+
+                UNION
+                SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+            WHERE 1 = 1
+                AND  bookorgcodepid IN (
+             SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid IN
+                (
+                 SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.cm_guoku_bookorg a
+                WHERE 1 = 1
+                AND  bookorgcodepid='${params.id}'))
+                )
+        )v
+         )
+
+
+    </update>
+
+
+    <select id="getBookOrgIsN" resultMap="treeMaptest">
+        SELECT
+        bookorgcode AS id
+        ,bookorgname AS title
+        ,bookorgname AS name
+        ,bookorgcodepid as parentId
+        ,bookorgcode
+        ,bookorgname
+        ,bookorg_level
+        ,bookorgcodepid
+        ,state
+        ,statedesc
+        ,isleaf
+        FROM
+        dmcode.cm_guoku_bookorg a
+        WHERE 1 = 1
+        <if test=" params.bookorgname != null  and params.bookorgname != ''">
+            and BOOKORGNAME like '%${params.bookorgname}%'
+        </if>
+        <if test=" params.state != null and params.state != ''">
+            and STATE = '${params.state}'
+        </if>
+        and a.bookorgcodepid not in (
+        SELECT
+        id
+        FROM
+        dmcode.cm_guoku_bookorg a
+        WHERE 1 = 1
+        AND STATE = '1'
+        <if test=" params.bookorgname != null  and params.bookorgname != ''">
+            and BOOKORGNAME like '%${params.bookorgname}%'
+        </if>
+        )
+    </select>
+
+    <select id="getGuoKuTreeList" resultMap="guokutreeMap">
+        SELECT
+        guoku_id AS id
+        ,guoku_dscr AS title
+        ,guoku_dscr AS name
+        ,guoku_pid as parentId
+        ,guoku_id
+        ,guoku_dscr
+        ,guoku_shuxing_id
+        ,guoku_shuxing_dscr
+        ,level
+        ,level_dscr
+        ,guoku_pid
+        ,area_no_id
+        ,area_dscr
+        ,bookorgcode
+        ,bookorgname
+        ,pay_bnk_no
+        ,rcvbnk_name
+        ,state
+        ,statedesc
+        ,isleaf
+        FROM
+        dmcode.cm_guoku_dimnsn a
+
+        <where>
+            <if test=" params.par == '1'.toString()">
+                a.`guoku_pid` =''
+            </if>
+            <if test=" params.par == '2'.toString()">
+
+            </if>
+            <if test=" params.par == '0'.toString()">
+                and guoku_pid = '${params.parentId}'
+            </if>
+            <if test=" params.guoku_dscr != null  and params.guoku_dscr != ''">
+                and guoku_dscr like '%${params.guoku_dscr}%'
+            </if>
+            <if test=" params.state != null and params.state != ''">
+                and STATE = '${params.state}'
+            </if>
+        </where>
+
+    </select>
+    <select id="getBookOrgList" resultMap="treeMaptest">
+        SELECT
+        distinct bookorgcode AS id
+        ,bookorgname AS title
+        ,bookorgname AS name
+        ,bookorgcodepid as parentId
+        ,bookorgcode
+        ,bookorgname
+        ,bookorg_level
+        ,bookorgcodepid
+        ,state
+        ,statedesc
+        ,isleaf
+        ,guoku_id
+        ,guoku_dscr
+        FROM
+        dmcode.cm_guoku_bookorg a
+        <where>
+            <if test=" params.par == '1'.toString()">
+                a.`bookorgcodepid` =''
+            </if>
+            <if test=" params.par == '2'.toString()">
+
+            </if>
+            <if test=" params.par == '0'.toString()">
+                and bookorgcodepid = '${params.parentId}'
+            </if>
+            <if test=" params.bookorgname != null  and params.bookorgname != ''">
+                and BOOKORGNAME like '%${params.bookorgname}%'
+            </if>
+            <if test=" params.state != null and params.state != ''">
+                and STATE = '${params.state}'
+            </if>
+        </where>
+    </select>
+
+
+    <select id="getGuokuTree" resultType="java.util.HashMap">
+        SELECT
+        a.guoku_id id,
+        a.guoku_dscr name ,
+        CASE
+        WHEN a.guoku_pid = ''
+        THEN a.guoku_id
+        ELSE a.guoku_pid
+        END AS pId
+        FROM
+        dmcode.`cm_guoku_dimnsn` a
+        WHERE 1 = 1
+        <if test=' params.state != null and params.state !="" '>
+            AND a.state = #{params.state}
+        </if>
+        <if test=' params.guoku_id != null and params.guoku_id !="" '>
+            and a.guoku_id LIKE
+            CONCAT('%',(SELECT
+            LEFT(a.`guoku_id`,(
+            SELECT
+            b.level-1
+            FROM
+            dmcode.`cm_guoku_dimnsn` b
+            WHERE
+            b.guoku_id = #{params.guoku_id}
+            )*2 )
+            FROM
+            dmcode.`cm_guoku_dimnsn` a
+            WHERE
+            a.`guoku_id` = #{params.guoku_id}),'%')
+        </if>
+    </select>
+    <select id="getAreaTree" resultType="java.util.HashMap">
+          SELECT
+            a.`AREA_NO_ID` AS id,
+            a.`AREA_DSCR` AS name,
+            a.`area_no_pid` AS pId
+        FROM
+            dmcode.`cm_guoku_area_code` a
+    </select>
+
+
+    <select id="checkCodegk" resultType="java.util.HashMap">
+        SELECT *
+        FROM
+            ${params.TABLENAME}
+        WHERE
+             ${params.COlID} = '${params.guoku_id}'
+    </select>
+
+    <insert id="addGuoku">
+        INSERT INTO DMCODE.cm_guoku_dimnsn
+        (
+              id
+            ,guoku_id
+            ,guoku_dscr
+            ,guoku_shuxing_id
+            ,guoku_shuxing_dscr
+            ,level
+            ,level_dscr
+            ,guoku_pid
+            ,area_no_id
+            ,area_dscr
+            ,bookorgcode
+            ,bookorgname
+            ,pay_bnk_no
+            ,rcvbnk_name
+            ,isleaf
+            ,statedesc
+        )
+        VALUES
+            (
+                 '${params.guoku_id}'
+                 ,'${params.guoku_id}'
+                ,'${params.guoku_dscr}'
+                ,'${params.guoku_shuxing_id}'
+                ,'${params.guoku_shuxing_dscr}'
+                ,'${params.level}'
+                ,'${params.level_dscr}'
+                ,'${params.guoku_pid}'
+                ,'${params.area_no_id}'
+                ,'${params.area_dscr}'
+                ,'${params.bookorgcode}'
+                ,'${params.bookorgname}'
+                ,'${params.pay_bnk_no}'
+                ,'${params.rcvbnk_name}'
+                ,'${params.isleaf}'
+                ,'启用'
+            )
+    </insert>
+
+    <update id="updateAddGuoku">
+        UPDATE DMCODE.`cm_guoku_dimnsn` SET  isleaf=1
+         where id='${params.guoku_pid}'
+    </update>
+
+    <update id="editGuoku">
+        UPDATE DMCODE.cm_guoku_dimnsn SET
+        <if test=" params.guoku_dscr != null">
+            guoku_dscr = '${params.guoku_dscr}',
+        </if>
+        <if test=" params.guoku_shuxing_id != null">
+            guoku_shuxing_id = '${params.guoku_shuxing_id}',
+        </if>
+        <if test=" params.guoku_shuxing_dscr != null">
+            guoku_shuxing_dscr = '${params.guoku_shuxing_dscr}',
+        </if>
+        <if test=" params.level != null">
+            level = '${params.level}',
+        </if>
+        <if test=" params.level_dscr != null">
+            level_dscr = '${params.level_dscr}',
+        </if>
+        <if test=" params.guoku_pid != null">
+            guoku_pid = '${params.guoku_pid}',
+        </if>
+        <if test=" params.area_no_id != null">
+            area_no_id = '${params.area_no_id}',
+        </if>
+        <if test=" params.area_dscr != null">
+            area_dscr = '${params.area_dscr}',
+        </if>
+        <if test=" params.bookorgcode != null">
+            bookorgcode = '${params.bookorgcode}',
+        </if>
+        <if test=" params.bookorgname != null">
+            bookorgname = '${params.bookorgname}',
+        </if>
+        <if test=" params.pay_bnk_no != null">
+            pay_bnk_no = '${params.pay_bnk_no}',
+        </if>
+        <if test=" params.rcvbnk_name != null">
+            rcvbnk_name = '${params.rcvbnk_name}',
+        </if>
+        <if test=" params.isleaf != null">
+            isleaf = #{params.isleaf} ,
+        </if>
+        bookorgcode = '${params.guoku_id}'
+        where id='${params.id}'
+        and STATE = '0'
+    </update>
+
+    <select id="isDelGuoku" resultType="java.lang.Integer">
+        SELECT
+           a.`state`  as state
+        FROM
+        dmcode.cm_guoku_dimnsn a
+        WHERE 1 = 1  and
+        id= '${params.guoku_pid}'
+    </select>
+
+    <update id="delGuoku">
+         UPDATE DMCODE.`cm_guoku_dimnsn` SET STATE ='${params.state}'
+        ,statedesc =( case when  '${params.state}'='0'
+        then  '启用'
+        else  '禁用' end )
+         where id='${params.id}'
+    </update>
+
+    <update id="delGuokuParent">
+        UPDATE DMCODE.`cm_guoku_dimnsn` SET STATE ='${params.state}'
+        ,statedesc =( case when  '${params.state}'='0'
+        then  '启用'
+        else  '禁用' end )
+         where  id in (
+        select id from (
+          SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid='${params.id}'  -- id
+                UNION
+                 SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid='${params.id}')
+
+                UNION
+
+                SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid IN
+                (
+                 SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid='${params.id}'))
+
+                UNION
+                SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+            WHERE 1 = 1
+                AND  guoku_pid IN (
+             SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid IN
+                (
+                 SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid IN (
+                  SELECT
+            id
+                FROM
+                dmcode.cm_guoku_dimnsn a
+                WHERE 1 = 1
+                AND  guoku_pid='${params.id}'))
+                )
+        )v
+         )
+
+
+    </update>
+
+
+    <select id="getGuokuIsN" resultType="org.jeecg.modules.dimnsnSetting.model.GuoKuTreeNode">
+        SELECT
+        guoku_id AS id
+        ,guoku_dscr AS title
+        ,guoku_dscr AS name
+        ,guoku_pid as parentId
+        ,guoku_id
+        ,guoku_dscr
+        ,guoku_shuxing_id
+        ,guoku_shuxing_dscr
+        ,level
+        ,level_dscr
+        ,guoku_pid
+        ,area_no_id
+        ,area_dscr
+        ,bookorgcode
+        ,bookorgname
+        ,pay_bnk_no
+        ,rcvbnk_name
+        ,state
+        ,statedesc
+        ,isleaf
+        FROM
+        dmcode.cm_guoku_dimnsn a
+        WHERE 1 = 1
+        <if test=" params.guoku_dscr != null  and params.guoku_dscr != ''">
+            and guoku_dscr like '%${params.guoku_dscr}%'
+        </if>
+        <if test=" params.state != null and params.state != ''">
+            and STATE = '${params.state}'
+        </if>
+        and a.guoku_pid not in (
+        SELECT
+        id
+        FROM
+        dmcode.cm_guoku_dimnsn a
+        WHERE 1 = 1
+        AND STATE = '1'
+        <if test=" params.guoku_dscr != null  and params.guoku_dscr != ''">
+            and guoku_dscr like '%${params.guoku_dscr}%'
+        </if>
+        )
+    </select>
+
+    <select id="getKeMu" resultType="java.util.HashMap">
+        SELECT
+        distinct SUBJECT_code_4 id,
+        SUBJECT_DSCR_4 name,
+        CASE
+        WHEN LEVEL = 0
+        THEN 0
+        WHEN LEVEL = 1
+        THEN SUBJECT_code_1
+        WHEN LEVEL = 2
+        THEN SUBJECT_code_1
+        WHEN LEVEL = 3
+        THEN SUBJECT_code_2
+        WHEN LEVEL = 4
+        THEN SUBJECT_code_3
+        END pId,
+        LEVEL
+        FROM
+        edw.cm_guoku_rcpt_dsb
+        WHERE 1=1
+        AND SUBJECT_CODE_0 = 1
+        AND STATE=0
+        ORDER BY id
+    </select>
+    <select id="getSubjectT" resultType="java.util.HashMap">
+        	SELECT DISTINCT
+	  a.`FUN_CLASS_CODE_1` id,
+	  a.`FUN_CLASS_DSCR_1` AS name,
+	  '' pId
+	FROM
+	  edw.cm_guoku_functional_type a
+	UNION
+	SELECT DISTINCT
+	  a.`FUN_CLASS_CODE_2` id,
+	  a.`FUN_CLASS_DSCR_2` AS name,
+	  a.`FUN_CLASS_CODE_1` AS pId
+	FROM
+	  edw.cm_guoku_functional_type a
+	WHERE a.`FUN_CLASS_CODE_2` NOT IN
+	  (SELECT DISTINCT
+	    a.`FUN_CLASS_CODE_1` id
+	  FROM
+	    edw.cm_guoku_functional_type a)
+	  UNION
+	  SELECT DISTINCT
+	    a.`FUN_CLASS_CODE_3` id,
+	    a.`FUN_CLASS_DSCR_3` AS name,
+	    a.`FUN_CLASS_CODE_2` AS pId
+	  FROM
+	    edw.cm_guoku_functional_type a
+	  WHERE a.`FUN_CLASS_CODE_3` NOT IN
+	    (SELECT DISTINCT
+	      a.`FUN_CLASS_CODE_2` id
+	    FROM
+	      edw.cm_guoku_functional_type a)
+    </select>
+
+
+</mapper>

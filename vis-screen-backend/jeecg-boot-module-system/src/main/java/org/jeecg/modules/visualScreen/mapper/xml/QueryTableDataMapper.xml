@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.visualScreen.mapper.QueryTableDataMapper">
+
+    <sql id="previousPeriodExpr">
+        CASE
+            WHEN a.PERIOD_FLAG = '1' THEN TO_CHAR(CAST(a.DACCT AS DATE) - INTERVAL '1 year', 'YYYY-MM-DD')
+            WHEN a.PERIOD_FLAG = '2' THEN TO_CHAR(TO_DATE(a.DACCT || '-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY-MM')
+            WHEN a.PERIOD_FLAG = '3' THEN CONCAT(
+                TO_CHAR(TO_DATE(SUBSTR(a.DACCT,1,4) || '-01-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY'),
+                'Q',
+                EXTRACT(MONTH FROM TO_DATE(SUBSTR(a.DACCT,1,4) || '-01-01', 'YYYY-MM-DD'))::int
+            )
+            ELSE TO_CHAR(TO_DATE(SUBSTR(a.DACCT,1,4) || '-01-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY')
+        END
+    </sql>
+
+    <sql id="sumIndexExpr">
+        ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE, 0)) / ${params.unit}, 0), 2)
+    </sql>
+
+    <sql id="sumRateExpr">
+        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE, 0)) - SUM(COALESCE(a1.INDEX_VALUE, 0))) / NULLIF(SUM(COALESCE(a1.INDEX_VALUE, 0)), 0)) * 100, 2), 0)
+    </sql>
+
+    <sql id="sumGrowthRateExpr">
+        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE, 0)) - SUM(COALESCE(a.GROWTH_INDEX_VALUE, 0))) / NULLIF(SUM(COALESCE(a.GROWTH_INDEX_VALUE, 0)), 0)) * 100, 2), 0)
+    </sql>
+
+    <sql id="singleIndexExpr">
+        ROUND(COALESCE(MAX(COALESCE(a.INDEX_VALUE, 0)) / ${params.unit}, 0), 2)
+    </sql>
+
+    <sql id="singleRateExpr">
+        COALESCE(ROUND(((MAX(COALESCE(a.INDEX_VALUE, 0)) - MAX(COALESCE(a1.INDEX_VALUE, 0))) / NULLIF(MAX(COALESCE(a1.INDEX_VALUE, 0)), 0)) * 100, 2), 0)
+    </sql>
+
+    <select id="getGrowthBudget" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_growth_public_budget a
+        WHERE
+        1 = 1 and a.area_dscr is not null
+        and a.INDEX_NAME = #{params.INDEX_NAME}
+        AND a.AREA_CODE <![CDATA[  <> ]]>'500000'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.area_dscr
+        order by <include refid="sumIndexExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getGrowthBudgetRate" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumRateExpr"/> AS GROWTH_INDEX_VALUE
+        FROM
+        visual_screen.vs_growth_public_budget a
+        left join visual_screen.vs_growth_public_budget a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        AND a1.AREA_CODE <![CDATA[  <> ]]>'500000'
+        and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE
+        1 = 1  and a.area_dscr is not null
+        and a.INDEX_NAME = #{params.INDEX_NAME}
+        AND a.AREA_CODE <![CDATA[  <> ]]>'500000'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.AREA_DSCR
+        order by <include refid="sumRateExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getGrowthTax" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_budget_revenue a
+        WHERE
+        1 = 1 and a.area_dscr is not null
+        and a.INDEX_NAME = #{params.INDEX_NAME}
+        AND a.AREA_CODE <![CDATA[  <> ]]>'500000'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.area_dscr
+        order by <include refid="sumIndexExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getGrowthTaxRate" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumRateExpr"/> as GROWTH_INDEX_VALUE
+        FROM
+        visual_screen.vs_budget_revenue a
+        LEFT JOIN  visual_screen.vs_budget_revenue a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        AND a1.AREA_CODE <![CDATA[  <> ]]>'500000'
+        and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE
+        1 = 1 and a.area_dscr is not null
+        and a.INDEX_NAME = #{params.INDEX_NAME}
+        AND a.AREA_CODE <![CDATA[  <> ]]>'500000'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.AREA_DSCR
+        order by <include refid="sumRateExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getAmountRegion" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_amount_ranking_by_region a
+        WHERE
+        1 = 1 and a.area_dscr is not null
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by area_dscr
+        order by <include refid="sumIndexExpr"/> desc
+        limit 10
+    </select>
+    <select id="getAmountRegionCQ" resultType="java.util.Map">
+        SELECT rownum
+        FROM (
+            SELECT ROW_NUMBER() OVER (ORDER BY SUM(COALESCE(a.INDEX_VALUE, 0))) AS rownum, a.area_dscr
+            FROM visual_screen.vs_amount_ranking_by_region a
+            WHERE 1 = 1 and a.area_dscr is not null
+            <if test="params.whereInfo !=null and params.whereInfo != ''">
+                ${params.whereInfo}
+            </if>
+            <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+                and PERIOD_FLAG = #{params.PERIOD_FLAG}
+            </if>
+            GROUP BY a.area_dscr
+        ) c
+        WHERE area_dscr = '重庆'
+    </select>
+
+    <select id="getRankingGrowth" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumGrowthRateExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_amount_ranking_by_region a
+        WHERE
+        1 = 1 and a.area_dscr is not null
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by area_dscr
+        order by <include refid="sumGrowthRateExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getTaxRegional" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumIndexExpr"/> as INDEX_VALUE
+
+        FROM
+        visual_screen.vs_regional_taxation a
+        WHERE
+        1 = 1 and a.area_dscr is not null
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.AREA_DSCR
+        order by <include refid="sumIndexExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getTaxRegion" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumGrowthRateExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_regional_taxation a
+        WHERE
+        1 = 1 and a.AREA_DSCR is not null
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.AREA_DSCR
+        order by <include refid="sumGrowthRateExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getFiveProvinces" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE_1, 0)) / ${params.unit}, 0), 2) as INDEX_VALUE,
+        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE_1, 0)) - SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0))) / NULLIF(SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0)), 0)) * 100, 2), 0) as GROWTH_INDEX_VALUE,
+        <include refid="sumIndexExpr"/> as INDEX_VALUE1,
+        <include refid="sumGrowthRateExpr"/> as GROWTH_INDEX_VALUE1
+        FROM
+        visual_screen.vs_five_provinces_in_southwest_china a
+        WHERE
+        1 = 1 and a.AREA_DSCR is not null
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.AREA_DSCR
+        order by a.INDEX_VALUE_1 desc
+    </select>
+
+    <select id="getMunicipalities" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE_1, 0)) / ${params.unit}, 0), 2) as INDEX_VALUE,
+        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE_1, 0)) - SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0))) / NULLIF(SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0)), 0)) * 100, 2), 0) as GROWTH_INDEX_VALUE,
+        <include refid="sumIndexExpr"/> as INDEX_VALUE1,
+        <include refid="sumGrowthRateExpr"/> as GROWTH_INDEX_VALUE1
+        FROM
+        visual_screen.vs_municipalities_directly a
+        WHERE
+        1 = 1 and area_dscr is not null
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by AREA_DSCR
+        order by a.INDEX_VALUE_1 desc
+    </select>
+
+    <select id="getRegionPay" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_region_pay a
+        WHERE
+        1 = 1 and a.area_dscr is not null
+        and a.INDEX_NAME = #{params.INDEX_NAME}
+        AND a.AREA_CODE <![CDATA[  <> ]]>'500000'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.area_dscr
+        order by <include refid="sumIndexExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getRegionPayRate" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="sumGrowthRateExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_region_pay a
+        WHERE
+        1 = 1 and a.area_dscr is not null
+        and a.INDEX_NAME = #{params.INDEX_NAME}
+        AND a.AREA_CODE <![CDATA[  <> ]]> '500000'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.area_dscr
+        order by <include refid="sumGrowthRateExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getInventoryBalance" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="singleIndexExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_inventory_area a
+        WHERE
+        1 = 1 and a.area_dscr is not null  AND a.AREA_CODE <![CDATA[  <> ]]>'500000'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.area_dscr
+        order by <include refid="singleIndexExpr"/> desc
+        limit 10
+    </select>
+
+    <select id="getInventoryBalanceRate" resultType="java.util.Map">
+        SELECT
+        a.AREA_DSCR,
+        <include refid="singleRateExpr"/> as INDEX_VALUE
+        FROM
+        visual_screen.vs_inventory_area a
+        LEFT JOIN  visual_screen.vs_inventory_area a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        AND a1.AREA_CODE <![CDATA[  <> ]]>'500000'
+        WHERE
+        1 = 1 and a.area_dscr is not null  AND a.AREA_CODE <![CDATA[  <> ]]>'500000'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">
+            ${params.whereInfo}
+        </if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG = #{params.PERIOD_FLAG}
+        </if>
+        group by a.area_dscr
+        order by <include refid="singleRateExpr"/> desc
+        limit 10
+    </select>
+
+</mapper>

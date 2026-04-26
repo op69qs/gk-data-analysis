@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.triber.dwbi</groupId>
+        <artifactId>parent</artifactId>
+        <version>1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>deploy-package-assembly</artifactId>
+    <packaging>pom</packaging>
+    <name>deploy-package-assembly</name>
+
+    <properties>
+        <reactor.root.dir>${project.basedir}/..</reactor.root.dir>
+        <deploy.package.dir>${reactor.root.dir}/deploy-package</deploy.package.dir>
+        <build.template.dir>${reactor.root.dir}/build</build.template.dir>
+        <vis.module.dir>${reactor.root.dir}/vis-screen-backend/jeecg-boot-module-system</vis.module.dir>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>assemble-deploy-package</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <delete dir="${deploy.package.dir}/app" quiet="true"/>
+                                <delete dir="${deploy.package.dir}/bin" quiet="true"/>
+                                <delete dir="${deploy.package.dir}/config" quiet="true"/>
+                                <delete dir="${deploy.package.dir}/lib" quiet="true"/>
+                                <delete dir="${deploy.package.dir}/bes" quiet="true"/>
+
+                                <mkdir dir="${deploy.package.dir}/app"/>
+                                <mkdir dir="${deploy.package.dir}/bin"/>
+                                <mkdir dir="${deploy.package.dir}/config/dwbi-statistical-analysis"/>
+                                <mkdir dir="${deploy.package.dir}/config/dwbi-system-docking"/>
+                                <mkdir dir="${deploy.package.dir}/config/fixedReport"/>
+                                <mkdir dir="${deploy.package.dir}/config/indicatorsLibv-1.0"/>
+                                <mkdir dir="${deploy.package.dir}/config/org-tribe-system"/>
+                                <mkdir dir="${deploy.package.dir}/config/seo"/>
+                                <mkdir dir="${deploy.package.dir}/config/vis-screen"/>
+                                <mkdir dir="${deploy.package.dir}/lib/dwbi-statistical-analysis"/>
+                                <mkdir dir="${deploy.package.dir}/lib/dwbi-system-docking"/>
+                                <mkdir dir="${deploy.package.dir}/lib/fixedReport"/>
+                                <mkdir dir="${deploy.package.dir}/lib/indicatorsLibv-1.0"/>
+                                <mkdir dir="${deploy.package.dir}/lib/org-tribe-system"/>
+                                <mkdir dir="${deploy.package.dir}/lib/seo"/>
+                                <mkdir dir="${deploy.package.dir}/bes/vis-screen"/>
+
+                                <copy file="${build.template.dir}/start-all.sh"
+                                      tofile="${deploy.package.dir}/bin/start-all.sh"
+                                      overwrite="true"/>
+                                <copy file="${build.template.dir}/start-all.ps1"
+                                      tofile="${deploy.package.dir}/bin/start-all.ps1"
+                                      overwrite="true"/>
+
+                                <copy todir="${deploy.package.dir}/app" flatten="true" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/dwbi-statistical-analysis/target">
+                                        <include name="dwbi-statisticalAnalysis*.jar"/>
+                                        <exclude name="original-*.jar"/>
+                                        <exclude name="*-sources.jar"/>
+                                        <exclude name="*-javadoc.jar"/>
+                                    </fileset>
+                                    <fileset dir="${reactor.root.dir}/dwbi-system-docking/target">
+                                        <include name="dwbi-system-docking*.jar"/>
+                                        <exclude name="original-*.jar"/>
+                                        <exclude name="*-sources.jar"/>
+                                        <exclude name="*-javadoc.jar"/>
+                                    </fileset>
+                                    <fileset dir="${reactor.root.dir}/fixedReport/target">
+                                        <include name="fixedReport*.jar"/>
+                                        <exclude name="original-*.jar"/>
+                                        <exclude name="*-sources.jar"/>
+                                        <exclude name="*-javadoc.jar"/>
+                                    </fileset>
+                                    <fileset dir="${reactor.root.dir}/indicatorsLibv-1.0/target">
+                                        <include name="indicatorsLib*.jar"/>
+                                        <exclude name="original-*.jar"/>
+                                        <exclude name="*-sources.jar"/>
+                                        <exclude name="*-javadoc.jar"/>
+                                    </fileset>
+                                    <fileset dir="${reactor.root.dir}/org-tribe-system/target">
+                                        <include name="org-tribe-system*.jar"/>
+                                        <exclude name="original-*.jar"/>
+                                        <exclude name="*-sources.jar"/>
+                                        <exclude name="*-javadoc.jar"/>
+                                    </fileset>
+                                    <fileset dir="${reactor.root.dir}/seo/target">
+                                        <include name="seo*.jar"/>
+                                        <exclude name="original-*.jar"/>
+                                        <exclude name="*-sources.jar"/>
+                                        <exclude name="*-javadoc.jar"/>
+                                    </fileset>
+                                </copy>
+
+                                <copy todir="${deploy.package.dir}/app" overwrite="true">
+                                    <fileset dir="${vis.module.dir}/target">
+                                        <include name="jeecg-boot-module-system*.jar"/>
+                                        <exclude name="original-*.jar"/>
+                                        <exclude name="*-sources.jar"/>
+                                        <exclude name="*-javadoc.jar"/>
+                                    </fileset>
+                                    <regexpmapper from="jeecg-boot-module-system-(.*)\.jar" to="vis-screen-\1.jar"/>
+                                </copy>
+
+                                <copy todir="${deploy.package.dir}/config/dwbi-statistical-analysis" flatten="true" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/dwbi-statistical-analysis/target">
+                                        <include name="*.yml"/>
+                                        <include name="*.properties"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/config/dwbi-system-docking" flatten="true" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/dwbi-system-docking/target">
+                                        <include name="*.yml"/>
+                                        <include name="*.properties"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/config/fixedReport" flatten="true" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/fixedReport/target">
+                                        <include name="*.yml"/>
+                                        <include name="*.properties"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/config/indicatorsLibv-1.0" flatten="true" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/indicatorsLibv-1.0/target">
+                                        <include name="*.yml"/>
+                                        <include name="*.properties"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/config/org-tribe-system" flatten="true" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/org-tribe-system/target">
+                                        <include name="*.yml"/>
+                                        <include name="*.properties"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/config/seo" flatten="true" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/seo/target">
+                                        <include name="*.yml"/>
+                                        <include name="*.properties"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/config/vis-screen" flatten="true" overwrite="true">
+                                    <fileset dir="${vis.module.dir}/src/main/resources">
+                                        <include name="application*.yml"/>
+                                        <include name="application*.properties"/>
+                                        <include name="bootstrap.yml"/>
+                                        <include name="logback-spring.xml"/>
+                                        <include name="banner.txt"/>
+                                    </fileset>
+                                </copy>
+
+                                <copy todir="${deploy.package.dir}/lib/dwbi-statistical-analysis" flatten="false" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/dwbi-statistical-analysis/target/lib" erroronmissingdir="false">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/lib/dwbi-system-docking" flatten="false" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/dwbi-system-docking/target/lib" erroronmissingdir="false">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/lib/fixedReport" flatten="false" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/fixedReport/target/lib" erroronmissingdir="false">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/lib/indicatorsLibv-1.0" flatten="false" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/indicatorsLibv-1.0/target/lib" erroronmissingdir="false">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/lib/org-tribe-system" flatten="false" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/org-tribe-system/target/lib" erroronmissingdir="false">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${deploy.package.dir}/lib/seo" flatten="false" overwrite="true">
+                                    <fileset dir="${reactor.root.dir}/seo/target/lib" erroronmissingdir="false">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

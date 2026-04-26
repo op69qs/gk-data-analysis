@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.dimnsnSetting.mapper.IndustryMapper">
+    <!-- author: Samer  行业维度表查询 -->
+
+    <!-- 获取行业门类 -->
+    <select id="getIndustryLv1" resultType="java.util.HashMap">
+        SELECT
+            a.`lev_1_id` AS id,
+            a.`lev_1_dscr` AS name
+        FROM
+            `dmcode`.`t_guoku_industry` a
+        WHERE
+            a.`LEVEL` = '1'
+        GROUP BY a.`lev_1_id`
+    </select>
+
+    <!-- 获取行业大类 -->
+    <select id="getIndustryLv2" resultType="java.util.HashMap">
+        SELECT
+            a.`lev_1_id` AS pid,
+            a.`lev_2_id` AS id,
+            a.`lev_2_dscr` AS name
+        FROM
+            `dmcode`.`t_guoku_industry` a
+        WHERE
+            a.`LEVEL` = '2'
+        GROUP BY a.`lev_1_id`, a.`lev_2_id`
+    </select>
+
+
+</mapper>

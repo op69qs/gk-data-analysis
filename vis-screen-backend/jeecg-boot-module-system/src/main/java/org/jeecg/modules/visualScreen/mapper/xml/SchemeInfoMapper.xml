@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.visualScreen.mapper.SchemeInfoMapper">
+
+    <select id="getPage" resultType="java.util.HashMap">
+        SELECT
+        a.*,
+        b.username
+        FROM visual_screen.vs_scheme_info a
+        LEFT JOIN visual_screen.sys_user b on a.add_user = b.id
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.name != null and params.name != ''">
+            AND a.name like concat(concat('%',#{params.name}),'%')
+        </if>
+        <if test=" params.add_user != null and params.add_user != ''">
+            and a.add_user = #{params.add_user}
+        </if>
+        ORDER BY a.add_time desc
+        LIMIT #{params.rows,jdbcType=INTEGER} OFFSET #{params.page,jdbcType=INTEGER}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM visual_screen.vs_scheme_info a
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.name != null and params.name != ''">
+            AND a.name like concat(concat('%',#{params.name}),'%')
+        </if>
+        <if test=" params.add_user != null and params.add_user != ''">
+            and a.add_user = #{params.add_user}
+        </if>
+    </select>
+
+    <select id="getAll" resultType="java.util.HashMap">
+        SELECT
+        a.*
+        FROM visual_screen.vs_scheme_info a
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.name != null and params.name != ''">
+            AND a.name like concat(concat('%',#{params.name}),'%')
+        </if>
+        <if test=" params.add_user != null and params.add_user != ''">
+            and a.add_user = #{params.add_user}
+        </if>
+        ORDER BY a.add_time desc
+    </select>
+
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM visual_screen.vs_scheme_info a
+        where 1=1
+        <if test=" params.name != null and params.name != ''">
+            and a.name = #{params.name}
+        </if>
+        <if test=" params.id != null and params.id != ''">
+            and a.id != #{params.id}
+        </if>
+    </select>
+
+    <insert id="add">
+        INSERT INTO  visual_screen.vs_scheme_info
+        VALUES
+        (
+        #{params.id},
+        #{params.name},
+        #{params.rotation_interval},
+        #{params.add_user},
+        #{params.add_time}
+        )
+    </insert>
+
+    <update id="edit">
+        UPDATE visual_screen.vs_scheme_info SET
+        <if test=" params.name != null">
+            name = #{params.name},
+        </if>
+        <if test=" params.rotation_interval != null">
+            rotation_interval = #{params.rotation_interval},
+        </if>
+        id = #{params.id}
+        WHERE id = #{params.id}
+    </update>
+
+    <delete id="del">
+        DELETE
+        FROM
+        visual_screen.vs_scheme_info
+        WHERE 1 = 1
+        <if test="params.id!=null and params.id != ''">
+            AND id = #{params.id}
+        </if>
+    </delete>
+
+    <select id="getAllRel" resultType="java.util.HashMap">
+        SELECT
+        a.*
+        FROM visual_screen.vs_scheme_page_rel a
+        where 1=1
+        <if test=" params.scheme_id != null and params.scheme_id != ''">
+            and a.scheme_id = #{params.scheme_id}
+        </if>
+        <if test=" params.page_id != null and params.page_id != ''">
+            and a.page_id = #{params.page_id}
+        </if>
+        ORDER BY CAST(a.sort AS NUMERIC) asc
+    </select>
+
+    <insert id="addRel">
+        INSERT INTO  visual_screen.vs_scheme_page_rel
+        VALUES
+        (
+        #{params.scheme_id},
+        #{params.page_id},
+        #{params.thumbnail},
+        #{params.sort}
+        )
+    </insert>
+
+    <delete id="delRel">
+        DELETE
+        FROM
+        visual_screen.vs_scheme_page_rel
+        WHERE 1 = 1
+        <if test="params.scheme_id!=null and params.scheme_id != ''">
+            AND scheme_id = #{params.scheme_id}
+        </if>
+        <if test="params.page_id!=null and params.page_id != ''">
+            AND page_id = #{params.page_id}
+        </if>
+    </delete>
+
+</mapper>

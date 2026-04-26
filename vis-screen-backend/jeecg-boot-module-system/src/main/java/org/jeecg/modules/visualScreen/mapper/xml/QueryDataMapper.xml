@@ -1,0 +1,589 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.visualScreen.mapper.QueryDataMapper">
+
+    <resultMap id="PageSub" type="org.jeecg.modules.visualScreen.model.PageSub">
+        <result column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="gallery_id" jdbcType="VARCHAR" property="gallery_id"/>
+        <result column="page_id" jdbcType="VARCHAR" property="page_id"/>
+        <result column="time_type" jdbcType="VARCHAR" property="time_type"/>
+        <result column="time_interval" jdbcType="VARCHAR" property="time_interval"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="x" jdbcType="VARCHAR" property="x"/>
+        <result column="y" jdbcType="VARCHAR" property="y"/>
+        <result column="w" jdbcType="VARCHAR" property="w"/>
+        <result column="h" jdbcType="VARCHAR" property="h"/>
+        <result column="i" jdbcType="VARCHAR" property="i"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="option" jdbcType="VARCHAR" property="option"/>
+        <result column="query_path" jdbcType="VARCHAR" property="query_path"/>
+        <result column="unit" jdbcType="VARCHAR" property="unit"/>
+    </resultMap>
+
+    <resultMap id="PageWhere" type="org.jeecg.modules.visualScreen.model.PageWhere">
+        <result column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="page_id" jdbcType="VARCHAR" property="page_id"/>
+        <result column="gallery_id" jdbcType="VARCHAR" property="gallery_id"/>
+        <result column="where_type" jdbcType="VARCHAR" property="where_type"/>
+        <result column="where_key" jdbcType="VARCHAR" property="where_key"/>
+        <result column="where_value" jdbcType="VARCHAR" property="where_value"/>
+    </resultMap>
+
+    <sql id="previousPeriodExpr">
+        CASE
+            WHEN a.PERIOD_FLAG = '1' THEN TO_CHAR(CAST(a.DACCT AS DATE) - INTERVAL '1 year', 'YYYY-MM-DD')
+            WHEN a.PERIOD_FLAG = '2' THEN TO_CHAR(TO_DATE(a.DACCT || '-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY-MM')
+            WHEN a.PERIOD_FLAG = '3' THEN CONCAT(
+                TO_CHAR(TO_DATE(SUBSTR(a.DACCT,1,4) || '-01-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY'),
+                'Q',
+                EXTRACT(MONTH FROM TO_DATE(SUBSTR(a.DACCT,1,4) || '-01-01', 'YYYY-MM-DD'))::int
+            )
+            ELSE TO_CHAR(TO_DATE(SUBSTR(a.DACCT,1,4) || '-01-01', 'YYYY-MM-DD') - INTERVAL '1 year', 'YYYY')
+        END
+    </sql>
+
+    <sql id="sumIndexExpr">
+        ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE, 0)) / ${params.unit}, 0), 2)
+    </sql>
+
+    <sql id="sumRateExpr">
+        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE, 0)) - SUM(COALESCE(a1.INDEX_VALUE, 0))) / NULLIF(SUM(COALESCE(a1.INDEX_VALUE, 0)), 0)) * 100, 2), 0)
+    </sql>
+
+    <sql id="sumGrowthRateExpr">
+        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE, 0)) - SUM(COALESCE(a.GROWTH_INDEX_VALUE, 0))) / NULLIF(SUM(COALESCE(a.GROWTH_INDEX_VALUE, 0)), 0)) * 100, 2), 0)
+    </sql>
+
+    <select id="getPageSub" resultMap="PageSub">
+        SELECT *
+        FROM visual_screen.vs_page_info_sub a
+        WHERE 1 = 1 and a.id = #{params.id}
+    </select>
+
+    <select id="getPageWhere" resultMap="PageWhere">
+        SELECT *
+        FROM visual_screen.vs_page_info_where a
+        WHERE 1 = 1 and a.sub_id = #{params.sub_id}
+    </select>
+
+    <select id="getStructure" resultType="java.util.Map">
+        SELECT a.INDEX_NAME, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_gemini_structure a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.INDEX_NAME
+        order by a.INDEX_NAME
+    </select>
+
+    <select id="getTransferIncome" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_transfer_income a
+        WHERE 1 = 1 and INDEX_NAME = '转移性收入金额'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by a.DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getTransferIncomeRate" resultType="java.util.Map">
+        SELECT DISTINCT
+        <if test='params.PERIOD_FLAG != "4"'>a.DACCT,</if>
+        <if test='params.PERIOD_FLAG == "4"'>LEFT(a.dacct, 4) DACCT,</if>
+        <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_transfer_income a
+        LEFT JOIN visual_screen.vs_transfer_income a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        and a1.INDEX_NAME = '转移性收入金额'
+        WHERE 1 = 1 and a.INDEX_NAME = '转移性收入金额'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test='params.PERIOD_FLAG != "4"'>and a.PERIOD_FLAG = #{params.PERIOD_FLAG} GROUP BY a.dacct</if>
+        <if test='params.PERIOD_FLAG == "4"'>and a.PERIOD_FLAG = #{params.PERIOD_TYPE} GROUP BY LEFT(a.dacct, 4)</if>
+        order BY a.DACCT
+    </select>
+
+    <select id="getLocalFinancial" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_local_financial_resources a
+        WHERE 1 = 1 and a.INDEX_NAME = '地方债收入本期值'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and a.PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getLocalFinancialRate" resultType="java.util.Map">
+        SELECT DISTINCT
+        <if test='params.PERIOD_FLAG != "4"'>a.DACCT,</if>
+        <if test='params.PERIOD_FLAG == "4"'>LEFT(a.dacct, 4) DACCT,</if>
+        <include refid="sumRateExpr"/> AS INDEX_VALUE
+        FROM visual_screen.vs_local_financial_resources a
+        LEFT JOIN visual_screen.vs_local_financial_resources a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        and a1.INDEX_NAME = '地方债收入本期值'
+        WHERE 1 = 1 and a.INDEX_NAME = '地方债收入本期值'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test='params.PERIOD_FLAG != "4"'>and a.PERIOD_FLAG = #{params.PERIOD_FLAG} GROUP BY a.dacct</if>
+        <if test='params.PERIOD_FLAG == "4"'>and a.PERIOD_FLAG = #{params.PERIOD_TYPE} GROUP BY LEFT(a.dacct, 4)</if>
+        order BY a.DACCT
+    </select>
+
+    <select id="getLandTransfer" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_land_transfer a
+        WHERE 1 = 1 and INDEX_NAME = '土地出让收入金额'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getLandTransferRate" resultType="java.util.Map">
+        SELECT DISTINCT
+        <if test='params.PERIOD_FLAG != "4"'>a.DACCT,</if>
+        <if test='params.PERIOD_FLAG == "4"'>LEFT(a.dacct, 4) DACCT,</if>
+        <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_land_transfer a
+        LEFT JOIN visual_screen.vs_land_transfer a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        and a1.INDEX_NAME = '土地出让收入金额'
+        WHERE 1 = 1 and a.INDEX_NAME = '土地出让收入金额'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test='params.PERIOD_FLAG != "4"'>and a.PERIOD_FLAG = #{params.PERIOD_FLAG} GROUP BY a.dacct</if>
+        <if test='params.PERIOD_FLAG == "4"'>and a.PERIOD_FLAG = #{params.PERIOD_TYPE} GROUP BY LEFT(a.dacct, 4)</if>
+        order BY a.DACCT
+    </select>
+
+    <select id="getPublicBudget" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_public_budget a
+        WHERE 1 = 1 and INDEX_NAME = '一般公共预算收入金额'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getPublicBudgetRate" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_public_budget a
+        LEFT JOIN visual_screen.vs_public_budget a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        and a1.INDEX_NAME = '一般公共预算收入金额'
+        WHERE 1 = 1 and a.INDEX_NAME = '一般公共预算收入金额'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and a.PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getThreeBudget" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_three_budget_revenue a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getThreeBudgetRate" resultType="java.util.Map">
+        SELECT DISTINCT
+        <if test='params.PERIOD_FLAG != "4"'>a.DACCT,</if>
+        <if test='params.PERIOD_FLAG == "4"'>LEFT(a.dacct, 4) DACCT,</if>
+        <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_three_budget_revenue a
+        LEFT JOIN visual_screen.vs_three_budget_revenue a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test='params.PERIOD_FLAG != "4"'>and a.PERIOD_FLAG = #{params.PERIOD_FLAG} GROUP BY a.dacct</if>
+        <if test='params.PERIOD_FLAG == "4"'>and a.PERIOD_FLAG = #{params.PERIOD_TYPE} GROUP BY LEFT(a.dacct, 4)</if>
+        ORDER BY a.dacct
+    </select>
+
+    <select id="getTaxRevenue" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_tax_revenue a
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getTaxRevenueRate" resultType="java.util.Map">
+        SELECT DISTINCT
+        <if test='params.PERIOD_FLAG != "4"'>a.DACCT,</if>
+        <if test='params.PERIOD_FLAG == "4"'>LEFT(a.dacct, 4) DACCT,</if>
+        <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_tax_revenue a
+        LEFT JOIN visual_screen.vs_tax_revenue a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE
+        and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test='params.PERIOD_FLAG != "4"'>and a.PERIOD_FLAG = #{params.PERIOD_FLAG} GROUP BY a.dacct</if>
+        <if test='params.PERIOD_FLAG == "4"'>and a.PERIOD_FLAG = #{params.PERIOD_TYPE} GROUP BY LEFT(a.dacct, 4)</if>
+        order BY a.DACCT
+    </select>
+
+    <select id="getIncomePayoutGap" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_income_expenditure a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by a.DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getIndustryTax" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_industry_tax a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by dacct
+        order BY DACCT
+    </select>
+
+    <select id="getMunicipalitiesDirectly" resultType="java.util.Map">
+        SELECT DISTINCT a.AREA_DSCR as name, <include refid="sumIndexExpr"/> as value
+        FROM visual_screen.vs_municipalities_directly a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by a.AREA_DSCR
+        order BY <include refid="sumIndexExpr"/> desc
+    </select>
+
+    <select id="getCustomsRevenue" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_revenue a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getCustomsRevenueRate" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_revenue a
+        LEFT JOIN visual_screen.vs_customs_revenue a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and a.PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getCustomsNonTax" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_non_tax a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getCustomsNonTaxRate" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_non_tax a
+        LEFT JOIN visual_screen.vs_customs_non_tax a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and a.PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getCustomsImportDuties" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_import_duties a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getCustomsImportDutiesRate" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_import_duties a
+        LEFT JOIN visual_screen.vs_customs_import_duties a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and a.PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getCustomsImportVat" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_import_vat a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getCustomsImportVatRate" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_import_vat a
+        LEFT JOIN visual_screen.vs_customs_import_vat a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and a.PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getImportDutyArticles" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_import_duty_on_imported_articles a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getImportDutyArticlesRate" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_import_duty_on_imported_articles a
+        LEFT JOIN visual_screen.vs_import_duty_on_imported_articles a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and a.PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group BY a.DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getBudgetIncomeTop5" resultType="java.util.Map">
+        SELECT DISTINCT a.area_dscr INDEX_NAME, ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE_1, 0)) / ${params.unit}, 0), 2) as INDEX_VALUE
+        FROM visual_screen.vs_five_provinces_in_southwest_china a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.area_dscr
+        ORDER BY ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE_1, 0)) / ${params.unit}, 0), 2) DESC
+    </select>
+
+    <select id="getIndustryType" resultType="java.util.Map">
+        SELECT a.industrial_type as name, <include refid="sumIndexExpr"/> as value
+        FROM visual_screen.vs_industry_tax a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.industrial_type
+        ORDER BY a.industrial_type
+    </select>
+
+    <select id="getIndustryName" resultType="java.util.Map">
+        SELECT a.industrial_name as name, <include refid="sumIndexExpr"/> as value
+        FROM visual_screen.vs_industry_tax a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.industrial_name
+        ORDER BY a.industrial_type
+    </select>
+
+    <select id="getIndustryTop10" resultType="java.util.Map">
+        SELECT a.industrial_name as name, <include refid="sumIndexExpr"/> as value
+        FROM visual_screen.vs_industry_tax a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.industrial_name
+        ORDER BY SUM(COALESCE(a.INDEX_VALUE, 0)) DESC
+        limit 10
+    </select>
+
+    <select id="getIndustryMain" resultType="java.util.Map">
+        SELECT a.DACCT as DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_industry_tax a
+        WHERE 1 = 1 and industrial_name = #{params.industrial_name}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.DACCT
+        ORDER BY a.DACCT
+    </select>
+
+    <select id="getTreasuryIndex" resultType="java.util.Map">
+        SELECT a.DACCT as DACCT, ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE, 0)), 0), 2) as INDEX_VALUE
+        FROM visual_screen.vs_treasury_index a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.DACCT
+        ORDER BY a.DACCT
+    </select>
+
+    <select id="getSubjectPay" resultType="java.util.Map">
+        SELECT a.INDEX_NAME as name, <include refid="sumIndexExpr"/> as value
+        FROM visual_screen.vs_subject_pay a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY INDEX_NAME
+        ORDER BY a.INDEX_NAME
+    </select>
+
+    <select id="getSubjectPaySub" resultType="java.util.Map">
+        SELECT a.INDEX_NAME as name, <include refid="sumIndexExpr"/> as value
+        FROM visual_screen.vs_subject_pay_sub a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY INDEX_NAME
+        ORDER BY a.INDEX_NAME
+    </select>
+
+    <select id="getPurposePay" resultType="java.util.Map">
+        SELECT a.INDEX_NAME as name, <include refid="sumIndexExpr"/> as value
+        FROM visual_screen.vs_purpose_pay a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY INDEX_NAME, AREA_DSCR
+        ORDER BY a.INDEX_NAME
+    </select>
+
+    <select id="getBudgetaryIncome" resultType="java.util.Map">
+        SELECT DISTINCT
+        COALESCE(ROUND(a.BUDGET_COMPLETE / ${params.unit}, 2), 0) as BUDGET_COMPLETE,
+        COALESCE(ROUND(a.BUDGET_NOT_COMPLETE / ${params.unit}, 2), 0) as BUDGET_NOT_COMPLETE,
+        ROUND(a.BUDGET_RATE * 100, 2) as BUDGET_RATE
+        FROM visual_screen.vs_budgetary_income a
+        WHERE 1 = 1 and INDEX_NAME = '${params.INDEX_NAME}'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+    </select>
+
+    <select id="getTypeBudget" resultType="java.util.Map">
+        SELECT DISTINCT SUBJECT_DSCR,
+        ROUND(COALESCE(a.INDEX_VALUE_COMPLETE / ${params.unit}, 0), 2) as INDEX_VALUE_COMPLETE,
+        ROUND(COALESCE(a.INDEX_VALUE_NOT_COMPLETE / ${params.unit}, 0), 2) as INDEX_VALUE_NOT_COMPLETE,
+        ROUND(COALESCE(a.RATE, 0) * 100, 2) as RATE
+        FROM visual_screen.vs_type_budget a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+    </select>
+
+    <select id="getInventoryBalance" resultType="java.util.Map">
+        SELECT a.DACCT as DACCT,
+        <include refid="sumIndexExpr"/> as INDEX_VALUE,
+        <include refid="sumGrowthRateExpr"/> as GROWTH_INDEX_VALUE
+        FROM visual_screen.vs_inventory_analyze a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by DACCT
+        ORDER BY a.DACCT
+    </select>
+
+    <select id="getInventoryForm" resultType="java.util.Map">
+        SELECT a.DACCT as DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_inventory_form a
+        WHERE 1 = 1 and INDEX_NAME = '${params.INDEX_NAME}'
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by DACCT
+        ORDER BY a.DACCT
+    </select>
+
+    <select id="getCustomsIncomeSituationTb" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumRateExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_income_situation a
+        left join visual_screen.vs_customs_income_situation a1
+        ON a1.DACCT = <include refid="previousPeriodExpr"/>
+        AND a.AREA_CODE = a1.AREA_CODE and a1.INDEX_NAME = #{params.INDEX_NAME}
+        WHERE 1 = 1 and a.INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and a.PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by a.DACCT
+        order BY a.DACCT
+    </select>
+
+    <select id="getCustomsIncomeSituation" resultType="java.util.Map">
+        SELECT DISTINCT a.DACCT, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        FROM visual_screen.vs_customs_income_situation a
+        WHERE 1 = 1 and INDEX_NAME = #{params.INDEX_NAME}
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        group by DACCT
+        order BY DACCT
+    </select>
+
+    <select id="getAccountToGuoku" resultType="java.util.Map">
+        SELECT a.ORG_TYPE as name,
+        ROUND(COALESCE(SUM(COALESCE(F_AMT2, 0)) / ${params.unit}, 0), 2) as value
+        FROM visual_screen.vs_guoku_and_bank a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.ORG_TYPE
+        ORDER BY ROUND(COALESCE(SUM(COALESCE(F_AMT2, 0)) / ${params.unit}, 0), 2) DESC
+        limit 10
+    </select>
+
+    <select id="getGuokuToAccount" resultType="java.util.Map">
+        SELECT a.ORG_TYPE as name,
+        ROUND(COALESCE(SUM(COALESCE(F_AMT4, 0)) / ${params.unit}, 0), 2) as value
+        FROM visual_screen.vs_guoku_and_bank a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.ORG_TYPE
+        ORDER BY ROUND(COALESCE(SUM(COALESCE(F_AMT4, 0)) / ${params.unit}, 0), 2) DESC
+        limit 10
+    </select>
+
+    <select id="getGuokuToOrg" resultType="java.util.Map">
+        SELECT a.ORG_TYPE as name,
+        ROUND(COALESCE(SUM(COALESCE(F_AMT3, 0)) / ${params.unit}, 0), 2) as value
+        FROM visual_screen.vs_guoku_and_bank a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.ORG_TYPE
+        ORDER BY ROUND(COALESCE(SUM(COALESCE(F_AMT3, 0)) / ${params.unit}, 0), 2) DESC
+        limit 10
+    </select>
+
+    <select id="getOrgToGuoku" resultType="java.util.Map">
+        SELECT a.ORG_TYPE as name,
+        ROUND(COALESCE(SUM(COALESCE(F_AMT1, 0)) / ${params.unit}, 0), 2) as value
+        FROM visual_screen.vs_guoku_and_bank a
+        WHERE 1 = 1
+        <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        GROUP BY a.ORG_TYPE
+        ORDER BY ROUND(COALESCE(SUM(COALESCE(F_AMT1, 0)) / ${params.unit}, 0), 2) DESC
+        limit 10
+    </select>
+</mapper>

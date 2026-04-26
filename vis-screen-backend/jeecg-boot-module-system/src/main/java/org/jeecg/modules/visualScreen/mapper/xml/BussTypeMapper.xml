@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.visualScreen.mapper.BussTypeMapper">
+
+    <select id="getPage" resultType="java.util.HashMap">
+        SELECT
+        a.*
+        FROM visual_screen.vs_business_info a
+        where 1=1
+        <if test=" params.business_id != null and params.business_id != ''">
+            and a.business_id = #{params.business_id}
+        </if>
+        <if test=" params.business_name != null and params.business_name != ''">
+            AND a.business_name like concat(concat('%',#{params.business_name}),'%')
+        </if>
+        <if test=" params.business_state != null and params.business_state != ''">
+            and a.business_state = #{params.business_state}
+        </if>
+        <if test=" params.dep != null and params.dep != ''">
+            and a.dep = #{params.dep}
+        </if>
+        ORDER BY a.business_id asc
+        LIMIT #{params.rows,jdbcType=INTEGER} OFFSET #{params.page,jdbcType=INTEGER}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM visual_screen.vs_business_info a
+        where 1=1
+        <if test=" params.business_id != null and params.business_id != ''">
+            and a.business_id = #{params.business_id}
+        </if>
+        <if test=" params.business_name != null and params.business_name != ''">
+            AND a.business_name like concat(concat('%',#{params.business_name}),'%')
+        </if>
+        <if test=" params.business_state != null and params.business_state != ''">
+            and a.business_state = #{params.business_state}
+        </if>
+        <if test=" params.dep != null and params.dep != ''">
+            and a.dep = #{params.dep}
+        </if>
+    </select>
+
+    <select id="getAll" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM visual_screen.vs_business_info a
+        where 1=1
+        ORDER BY a.business_id asc
+    </select>
+
+    <select id="getMaxId" resultType="java.lang.String">
+        SELECT
+        MAX(business_id)
+        FROM visual_screen.vs_business_info a
+        where 1=1
+    </select>
+
+    <select id="checkRepeat" resultType="java.util.HashMap">
+        SELECT
+        *
+        FROM visual_screen.vs_business_info a
+        where 1=1
+        <if test=" params.business_name != null and params.business_name != ''">
+            and a.business_name = #{params.business_name}
+        </if>
+        <if test=" params.business_state != null and params.business_state != ''">
+            and a.business_state = #{params.business_state}
+        </if>
+        <if test=" params.business_id != null and params.business_id != ''">
+            and a.business_id != #{params.business_id}
+        </if>
+    </select>
+
+    <insert id="add">
+        INSERT INTO  visual_screen.vs_business_info
+        VALUES
+        (
+        #{params.business_id},
+        #{params.business_name},
+        #{params.business_state},
+        #{params.dep},
+        #{params.add_time},
+        #{params.add_user}
+        )
+    </insert>
+
+    <update id="edit">
+        UPDATE visual_screen.vs_business_info SET
+        <if test=" params.business_name != null">
+            business_name = #{params.business_name},
+        </if>
+        <if test=" params.business_state != null">
+            business_state = #{params.business_state},
+        </if>
+        <if test=" params.dep != null">
+            dep = #{params.dep},
+        </if>
+        <if test=" params.add_time != null">
+            add_time = #{params.add_time},
+        </if>
+        <if test=" params.add_user != null">
+            add_user = #{params.add_user},
+        </if>
+        business_id = #{params.business_id}
+        WHERE business_id = #{params.business_id}
+    </update>
+
+    <delete id="del">
+        DELETE
+        FROM
+        visual_screen.vs_business_info
+        WHERE 1 = 1
+        <if test="params.business_id!=null and params.business_id != ''">
+            AND business_id = #{params.business_id}
+        </if>
+    </delete>
+</mapper>

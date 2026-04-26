@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.visualScreen.mapper.PageSubMapper">
+
+    <resultMap id="PageSub" type="org.jeecg.modules.visualScreen.model.PageSub">
+        <result column="id" jdbcType="VARCHAR" property="id"/>
+        <result column="gallery_id" jdbcType="VARCHAR" property="gallery_id"/>
+        <result column="page_id" jdbcType="VARCHAR" property="page_id"/>
+        <result column="time_type" jdbcType="VARCHAR" property="time_type"/>
+        <result column="time_interval" jdbcType="VARCHAR" property="time_interval"/>
+        <result column="content" jdbcType="VARCHAR" property="content"/>
+        <result column="x" jdbcType="VARCHAR" property="x"/>
+        <result column="y" jdbcType="VARCHAR" property="y"/>
+        <result column="w" jdbcType="VARCHAR" property="w"/>
+        <result column="h" jdbcType="VARCHAR" property="h"/>
+        <result column="i" jdbcType="VARCHAR" property="i"/>
+        <result column="title" jdbcType="VARCHAR" property="title"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="option" jdbcType="VARCHAR" property="option"/>
+        <result column="query_path" jdbcType="VARCHAR" property="query_path"/>
+        <result column="unit" jdbcType="VARCHAR" property="unit"/>
+    </resultMap>
+
+    <select id="getPageSub" resultMap="PageSub">
+        SELECT
+        *
+        FROM
+        visual_screen.vs_page_info_sub a
+        WHERE
+        1 = 1
+        and a.page_id = #{params.page_id}
+        ORDER by sort
+    </select>
+
+    <select id="getPage" resultType="java.util.HashMap">
+        SELECT
+        a.*
+        FROM visual_screen.vs_page_info_sub a
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.gallery_id != null and params.gallery_id != ''">
+            and a.gallery_id = #{params.gallery_id}
+        </if>
+        <if test=" params.page_id != null and params.page_id != ''">
+            and a.page_id = #{params.page_id}
+        </if>
+        ORDER BY a.sort asc
+        LIMIT #{params.rows,jdbcType=INTEGER} OFFSET #{params.page,jdbcType=INTEGER}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM visual_screen.vs_page_info_sub a
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.gallery_id != null and params.gallery_id != ''">
+            and a.gallery_id = #{params.gallery_id}
+        </if>
+        <if test=" params.page_id != null and params.page_id != ''">
+            and a.page_id = #{params.page_id}
+        </if>
+    </select>
+
+    <select id="getAll" resultType="java.util.HashMap">
+        SELECT
+        a.*
+        FROM visual_screen.vs_page_info_sub a
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.gallery_id != null and params.gallery_id != ''">
+            and a.gallery_id = #{params.gallery_id}
+        </if>
+        <if test=" params.page_id != null and params.page_id != ''">
+            and a.page_id = #{params.page_id}
+        </if>
+        ORDER BY a.sort asc
+    </select>
+
+    <insert id="add">
+        INSERT INTO  visual_screen.vs_page_info_sub
+        VALUES
+        (
+        #{params.id},
+        #{params.gallery_id},
+        #{params.page_id},
+        #{params.time_type},
+        #{params.time_interval},
+        #{params.sort},
+        #{params.content},
+        #{params.x},
+        #{params.y},
+        #{params.w},
+        #{params.h},
+        #{params.i},
+        #{params.title},
+        #{params.type},
+        #{params.option},
+        #{params.query_path},
+        #{params.unit}
+        )
+    </insert>
+
+    <update id="edit">
+        UPDATE visual_screen.vs_page_info_sub SET
+        <if test=" params.time_type != null">
+            time_type = #{params.time_type},
+        </if>
+        <if test=" params.time_interval != null">
+            time_interval = #{params.time_interval},
+        </if>
+        <if test=" params.sort != null">
+            sort = #{params.sort},
+        </if>
+        <if test=" params.content != null">
+            content = #{params.content},
+        </if>
+        <if test=" params.x != null">
+            x = #{params.x},
+        </if>
+        <if test=" params.y != null">
+            y = #{params.y},
+        </if>
+        <if test=" params.w != null">
+            w = #{params.w},
+        </if>
+        <if test=" params.h != null">
+            h = #{params.h},
+        </if>
+        <if test=" params.i != null">
+            i = #{params.i},
+        </if>
+        <if test=" params.title != null">
+            title = #{params.title},
+        </if>
+        <if test=" params.type != null">
+            type = #{params.type},
+        </if>
+        <if test=" params.option != null">
+            option = #{params.option},
+        </if>
+        <if test=" query_path != null">
+            query_path = #{params.query_path},
+        </if>
+        <if test=" unit != null">
+            unit = #{params.unit},
+        </if>
+        id = #{params.id}
+        WHERE id = #{params.id}
+    </update>
+
+    <delete id="del">
+        DELETE
+        FROM
+        visual_screen.vs_page_info_sub
+        WHERE 1 = 1
+        <if test="params.id!=null and params.id != ''">
+            AND id = #{params.id}
+        </if>
+        <if test="params.page_id!=null and params.page_id != ''">
+            AND page_id = #{params.page_id}
+        </if>
+        <if test="params.gallery_id!=null and params.gallery_id != ''">
+            AND gallery_id = #{params.gallery_id}
+        </if>
+    </delete>
+</mapper>

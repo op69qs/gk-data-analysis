@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.visualScreen.mapper.PageWhereMapper">
+
+    <select id="getPage" resultType="java.util.HashMap">
+        SELECT
+        a.*
+        FROM visual_screen.vs_page_info_where a
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.gallery_id != null and params.gallery_id != ''">
+            and a.gallery_id = #{params.gallery_id}
+        </if>
+        <if test=" params.page_id != null and params.page_id != ''">
+            and a.page_id = #{params.page_id}
+        </if>
+        <if test=" params.sub_id != null and params.sub_id != ''">
+            and a.sub_id = #{params.sub_id}
+        </if>
+        LIMIT #{params.rows,jdbcType=INTEGER} OFFSET #{params.page,jdbcType=INTEGER}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM visual_screen.vs_page_info_where a
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.gallery_id != null and params.gallery_id != ''">
+            and a.gallery_id = #{params.gallery_id}
+        </if>
+        <if test=" params.page_id != null and params.page_id != ''">
+            and a.page_id = #{params.page_id}
+        </if>
+        <if test=" params.sub_id != null and params.sub_id != ''">
+            and a.sub_id = #{params.sub_id}
+        </if>
+    </select>
+
+    <select id="getAll" resultType="java.util.HashMap">
+        SELECT
+        a.*
+        FROM visual_screen.vs_page_info_where a
+        where 1=1
+        <if test=" params.id != null and params.id != ''">
+            and a.id = #{params.id}
+        </if>
+        <if test=" params.gallery_id != null and params.gallery_id != ''">
+            and a.gallery_id = #{params.gallery_id}
+        </if>
+        <if test=" params.page_id != null and params.page_id != ''">
+            and a.page_id = #{params.page_id}
+        </if>
+        <if test=" params.sub_id != null and params.sub_id != ''">
+            and a.sub_id = #{params.sub_id}
+        </if>
+    </select>
+
+    <insert id="add">
+        INSERT INTO  visual_screen.vs_page_info_where
+        VALUES
+        (
+        #{params.id},
+        #{params.page_id},
+        #{params.gallery_id},
+        #{params.where_type},
+        #{params.where_key},
+        #{params.where_value},
+        #{params.sub_id}
+        )
+    </insert>
+
+    <update id="edit">
+        UPDATE visual_screen.vs_page_info_where SET
+        <if test=" params.where_type != null">
+            where_type = #{params.where_type},
+        </if>
+        <if test=" params.where_key != null">
+            where_key = #{params.where_key},
+        </if>
+        <if test=" params.where_value != null">
+            where_value = #{params.where_value},
+        </if>
+        id = #{params.id}
+        WHERE id = #{params.id}
+    </update>
+
+    <delete id="del">
+        DELETE
+        FROM
+        visual_screen.vs_page_info_where
+        WHERE 1 = 1
+        <if test="params.id!=null and params.id != ''">
+            AND id = #{params.id}
+        </if>
+        <if test="params.page_id!=null and params.page_id != ''">
+            AND page_id = #{params.page_id}
+        </if>
+        <if test="params.gallery_id!=null and params.gallery_id != ''">
+            AND gallery_id = #{params.gallery_id}
+        </if>
+    </delete>
+</mapper>
