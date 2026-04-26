@@ -159,6 +159,9 @@ eureka:
       defaultZone: http://192.168.160.244:8761/eureka/
 
 zuul:
+  ignored-services:
+    - vis
+    - VIS
   host:
     socket-timeout-millis: 600000
     connect-timeout-millis: 600000
@@ -193,6 +196,14 @@ zuul:
       path: /fixedReport/**
       sensitiveHeaders:
       serviceId: fixedReportdj
+    vis:
+      path: /vis/api/**
+      sensitiveHeaders:
+      serviceId: vis
+    visScreen:
+      path: /visScreen/**
+      sensitiveHeaders:
+      serviceId: vis
 
 
 ##timeout config

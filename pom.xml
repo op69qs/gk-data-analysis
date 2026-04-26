@@ -214,6 +214,7 @@
         <module>indicatorsLibv-1.0</module>
         <module>org-tribe-system</module>
         <module>seo</module>
+        <module>vis-screen-backend</module>
         <module>deploy-package-assembly</module>
     </modules>
 

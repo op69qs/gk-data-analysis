@@ -265,7 +265,7 @@
 							<goal>npm</goal>
 						</goals>
 						<configuration>
-							<arguments>ci --registry=https://registry.npmmirror.com --legacy-peer-deps</arguments>
+							<arguments>install --legacy-peer-deps --prefer-offline</arguments>
 						</configuration>
 					</execution>
 					<execution>
@@ -293,14 +293,13 @@
 						</goals>
 						<configuration>
 							<target>
-								<delete dir="${frontend.working.directory}/node_modules" quiet="true"/>
 								<delete dir="${frontend.dist.directory}" quiet="true"/>
 							</target>
 						</configuration>
 					</execution>
 					<execution>
 						<id>prepare-frontend-static-dir</id>
-						<phase>prepare-package</phase>
+						<phase>process-resources</phase>
 						<goals>
 							<goal>run</goal>
 						</goals>
@@ -372,7 +371,7 @@
 				<executions>
 					<execution>
 						<id>copy-frontend-static</id>
-						<phase>prepare-package</phase>
+						<phase>process-resources</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>
