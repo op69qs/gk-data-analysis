@@ -60,6 +60,9 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/sys/common/pdf/**", "anon");//pdf预览
 		filterChainDefinitionMap.put("/generic/**", "anon");//pdf预览需要文件
 		filterChainDefinitionMap.put("/", "anon");
+		filterChainDefinitionMap.put("/BigScreenPreview", "anon");
+		filterChainDefinitionMap.put("/BigScreenPreview/**", "anon");
+		filterChainDefinitionMap.put("/vis", "anon");
 		filterChainDefinitionMap.put("/doc.html", "anon");
 		filterChainDefinitionMap.put("/**/*.js", "anon");
 		filterChainDefinitionMap.put("/**/*.css", "anon");
@@ -105,6 +108,8 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/auto/cgform/**", "anon");
 		//websocket排除
 		filterChainDefinitionMap.put("/websocket/**", "anon");
+		filterChainDefinitionMap.put("/vis/api/**", "jwt");
+		filterChainDefinitionMap.put("/vis/**", "anon");
 
 		//获取portal token
 //		filterChainDefinitionMap.put("/userApi/getUserByNameAndPwd", "anon"); //登录接口排除

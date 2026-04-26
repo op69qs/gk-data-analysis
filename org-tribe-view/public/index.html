@@ -269,10 +269,11 @@
   <!-- 全局配置 -->
   <script>
     window._CONFIG = {};
+    var currentOrigin = window.location.origin || (window.location.protocol + '//' + window.location.host);
     // window._CONFIG['domianURL'] = 'http://192.168.100.37:8080';//党娇
     // window._CONFIG['domianURL'] = 'http://192.168.100.51:8989';//张超
-    window._CONFIG['domianURL'] = 'http://192.168.100.15:8080/'; //杨晓明
-    window._CONFIG['domianURLRequest'] = 'http://192.168.100.15:8080/'; //接口
+    window._CONFIG['domianURL'] = currentOrigin;
+    window._CONFIG['domianURLRequest'] = currentOrigin + '/';
     // window._CONFIG['domianURL'] = 'http://192.168.100.51:8989';
     //window._CONFIG['domianURL'] = 'http://11.78.21.249:9090';
     window._CONFIG['casPrefixUrl'] = 'http://cas.example.org:8443/cas';

@@ -148,7 +148,7 @@ export default {
         this.searchQuery();
       },
     handleRun(record){
-        this.$router.push({ path: '/statistics/indexLibrary',query:record})
+      this.$router.push({ path: '/vis/index-library', query: record })
     },
     handleSubmit(record){
       let userInfo = JSON.parse(localStorage.pro__Login_Userinfo).value

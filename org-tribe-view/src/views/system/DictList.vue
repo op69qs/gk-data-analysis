@@ -72,6 +72,7 @@
     mixins:[JeecgListMixin],
     components: {DictModal, DictItemList},
     data() {
+    const isVisDictRoute = this.$route && this.$route.path === '/vis/system/dict'
       return {
         description: '这是数据字典页面',
         visible: false,
@@ -124,9 +125,9 @@
           sm: {span: 19},
         },
         url: {
-          list: "/sys/dict/list",
+          list: isVisDictRoute ? "/vis/api/visDict/list" : "/sys/dict/list",
           delete: "/sys/dict/delete",
-          exportXlsUrl: "sys/dict/exportXls",
+          exportXlsUrl: isVisDictRoute ? "vis/api/visDict/exportXls" : "sys/dict/exportXls",
           importExcelUrl: "sys/dict/importExcel",
         },
       }

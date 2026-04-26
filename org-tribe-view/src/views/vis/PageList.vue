@@ -68,6 +68,7 @@
 
 <script>
 import { deletePageInfo, editPageState, getPageList } from '@/api/visScreen'
+import { resolveVisMediaUrl } from '@/utils/visMedia'
 
 export default {
   name: 'VisPageList',
@@ -93,13 +94,9 @@ export default {
   methods: {
     resolveMediaUrl(value) {
       if (!value) {
-        return require('@/assets/nodata.png')
+        return require('@/assets/noData.png')
       }
-      if (/^(data:|https?:)?\/\//i.test(value)) {
-        return value
-      }
-      const normalizedPath = value.replace(/^\.?\//, '')
-      return `${window._CONFIG['domianURL']}/${normalizedPath}`
+      return resolveVisMediaUrl(value) || require('@/assets/noData.png')
     },
     resetQuery() {
       this.queryParam = {

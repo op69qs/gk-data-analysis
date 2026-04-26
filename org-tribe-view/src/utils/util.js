@@ -87,7 +87,8 @@ let indexRouter = [{
           meta: { title: '首页' },
           redirect: '/dashboard/analysis',
           children: [
-            ...generateChildRouters(data)
+            ...generateChildRouters(data),
+            ...generateStaticVisRouters()
           ]
         },{
           "path": "*", "redirect": "/404", "hidden": true
@@ -95,16 +96,81 @@ let indexRouter = [{
   return indexRouter;
 }
 
+function generateStaticVisRouters() {
+  return [
+    {
+      path: '/vis',
+      name: 'VisPreviewEntry',
+      component: resolve => require(['@/views/vis/PreviewEntry.vue'], resolve),
+      hidden: true,
+      meta: { title: '可视化大屏', keepAlive: false }
+    },
+    {
+      path: '/vis/preview',
+      name: 'VisPreviewPage',
+      component: resolve => require(['@/views/vis/PreviewEntry.vue'], resolve),
+      hidden: true,
+      meta: { title: '可视化预览', keepAlive: false }
+    },
+    {
+      path: '/BigScreenPreview',
+      name: 'VisLegacyPreviewPage',
+      component: resolve => require(['@/views/vis/PreviewEntry.vue'], resolve),
+      hidden: true,
+      meta: { title: '可视化预览', keepAlive: false }
+    },
+    {
+      path: '/vis/bigscreen/pages/editor',
+      name: 'VisPageEditorEntry',
+      component: resolve => require(['@/views/vis/PageEditorEntry.vue'], resolve),
+      hidden: true,
+      meta: { title: '页面编辑', keepAlive: false }
+    }
+  ]
+}
+
+function normalizeLegacyComponent(component) {
+  const componentMap = {
+    'BigScreen/TemplateList': 'vis/TemplateList',
+    'BigScreen/PageList': 'vis/PageList',
+    'BigScreen/ExhibitionSchemeList': 'vis/SchemeList',
+    'BigScreen/AddTemplate': 'vis/PageEditorEntry',
+    'target/targetScheme': 'vis/SchemeList',
+    'statistics/indexLibrary': 'vis/SchemeList',
+    'statistics/schemeIndex': 'vis/SchemeList'
+  }
+  return componentMap[component] || component
+}
+
+function normalizeLegacyPath(path) {
+  const pathMap = {
+    '/gallery': '/vis/gallery',
+    '/indexLibrary': '/vis/index-library',
+    '/statistics/indexLibrary': '/vis/index-library',
+    '/statistics/schemeIndex': '/vis/index-library',
+    '/vis/preview': '/BigScreenPreview',
+    '/BigScreen': '/vis/bigscreen',
+    '/bigScreen/TemplateList': '/vis/bigscreen/templates',
+    '/BigScreen/PageList': '/vis/bigscreen/pages',
+    '/BigScreen/ExhibitionSchemeList': '/vis/bigscreen/schemes',
+    '/bigScreen/AddTemplate': '/vis/bigscreen/pages/editor'
+  }
+  return pathMap[path] || path
+}
+
 // 生成嵌套路由（子路由）
 
 function  generateChildRouters (data) {
   const routers = [];
   for (var item of data) {
+    const normalizedComponent = normalizeLegacyComponent(item.component)
+    const normalizedPath = normalizeLegacyPath(item.path)
+    const normalizedRedirect = normalizeLegacyPath(item.redirect)
     let component = "";
-    if(item.component.indexOf("layouts")>=0){
-       component = "components/"+item.component;
+    if(normalizedComponent.indexOf("layouts")>=0){
+       component = "components/"+normalizedComponent;
     }else{
-       component = "views/"+item.component;
+       component = "views/"+normalizedComponent;
     }
 
     // eslint-disable-next-line
@@ -114,9 +180,9 @@ function  generateChildRouters (data) {
     }
 
     let menu =  {
-      path: item.path,
+      path: normalizedPath,
       name: item.name,
-      redirect:item.redirect,
+      redirect: normalizedRedirect,
       component: resolve => require(['@/' + component+'.vue'], resolve),
       hidden:item.hidden,
       //component:()=> import(`@/views/${item.component}.vue`),

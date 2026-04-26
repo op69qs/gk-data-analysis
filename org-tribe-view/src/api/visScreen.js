@@ -11,6 +11,8 @@ const api = {
   pageDelete: '/vis/api/pageInfo/del',
   pageSubAll: '/vis/api/pageSub/getAll',
   galleryList: '/vis/api/gallery/getPage',
+  dictList: '/vis/api/visDict/list',
+  dictExport: '/vis/api/visDict/exportXls',
   businessTypeList: '/vis/api/bussType/getAll',
   businessTypePageList: '/vis/api/bussType/getPage',
   treasuryTreeList: '/vis/api/GuokuController/getGuoKuTreeList'
@@ -57,7 +59,7 @@ export function getGalleryList(parameter) {
 }
 
 export function getBusinessTypeList(parameter) {
-  return getAction(api.businessTypeList, parameter)
+  return postAction(api.businessTypeList, parameter || {})
 }
 
 export function getBusinessTypePageList(parameter) {

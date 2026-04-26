@@ -30,6 +30,7 @@
 
 <script>
 import { getBusinessTypeList, getGalleryList } from '@/api/visScreen'
+import { resolveVisMediaUrl } from '@/utils/visMedia'
 
 export default {
   name: 'VisGalleryList',
@@ -40,31 +41,40 @@ export default {
       galleryItems: [],
       loading: false,
       pageNo: 1,
-      pageSize: 12
+      pageSize: 10,
+      total: 0
     }
   },
   created() {
     this.loadBusinessTypes()
-    this.loadGalleryItems()
+    this.loadGalleryItems(true)
+    window.addEventListener('scroll', this.handleWindowScroll, { passive: true })
+  },
+  beforeDestroy() {
+    window.removeEventListener('scroll', this.handleWindowScroll)
   },
   methods: {
     resolveMediaUrl(value) {
-      if (!value) {
-        return ''
-      }
-      if (/^(data:|https?:)?\/\//i.test(value)) {
-        return value
-      }
-      const normalizedPath = value.replace(/^\.?\//, '')
-      return `${window._CONFIG['domianURL']}/${normalizedPath}`
+      return resolveVisMediaUrl(value)
     },
     showImage(item) {
       return item && (item.type === 'b' || item.type === 't')
     },
     handleBusinessChange(key) {
       this.activeBusinessId = key
-      this.pageNo = 1
-      this.loadGalleryItems()
+      this.loadGalleryItems(true)
+    },
+    handleWindowScroll() {
+      if (this.loading || this.galleryItems.length >= this.total) {
+        return
+      }
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+      const windowHeight = document.documentElement.clientHeight || window.innerHeight || 0
+      const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight || 0
+      if (scrollTop + windowHeight >= scrollHeight - 20) {
+        this.pageNo += 1
+        this.loadGalleryItems()
+      }
     },
     loadBusinessTypes() {
       getBusinessTypeList().then((res) => {
@@ -75,7 +85,11 @@ export default {
         this.businessTypes = []
       })
     },
-    loadGalleryItems() {
+    loadGalleryItems(reset) {
+      if (reset) {
+        this.pageNo = 1
+        this.total = 0
+      }
       this.loading = true
       const params = {
         pageNo: this.pageNo,
@@ -87,12 +101,20 @@ export default {
       }
       getGalleryList(params).then((res) => {
         if (res && res.result === 'success') {
-          this.galleryItems = res.rows || []
+          const rows = res.rows || []
+          this.total = Number(res.total || 0)
+          this.galleryItems = this.pageNo === 1 ? rows : this.galleryItems.concat(rows)
         } else {
-          this.galleryItems = []
+          this.galleryItems = this.pageNo === 1 ? [] : this.galleryItems
+          this.total = this.pageNo === 1 ? 0 : this.total
         }
       }).catch(() => {
-        this.galleryItems = []
+        if (this.pageNo > 1) {
+          this.pageNo -= 1
+        } else {
+          this.galleryItems = []
+          this.total = 0
+        }
       }).finally(() => {
         this.loading = false
       })
