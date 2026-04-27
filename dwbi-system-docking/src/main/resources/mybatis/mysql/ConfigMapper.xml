@@ -4,14 +4,14 @@
 
     <!--    获取进程-->
     <select id="getProcessConfig" resultType="hashmap">
-        SELECT ID,task_code,task_name,task_desc,task_thread_type,task_start_params,task_start_postfix,task_thread_count,tesk_sort
+        SELECT id AS "ID",task_code,task_name,task_desc,task_thread_type,task_start_params,task_start_postfix,task_thread_count,tesk_sort
         FROM system_docking.api_task_ins
         WHERE is_enable='1'
     </select>
 
     <!--    根据进程ID获取进程的线程-->
     <select id="getProcessThreadConfig" resultType="hashmap">
-        SELECT ID,task_id,task_thread_desc,task_thread_cron,tesk_thread_sort
+        SELECT id AS "ID",task_id,task_thread_desc,task_thread_cron,tesk_thread_sort
         FROM system_docking.api_task_thread_ins
         WHERE task_id=#{processId} AND is_enable='1'
         ORDER BY tesk_thread_sort
@@ -19,7 +19,7 @@
 
     <!--    获取对接系统-->
     <select id="getSystemConfig" resultType="hashmap">
-        SELECT DISTINCT f.ID,f.system_code,f.system_name,f.system_desc
+        SELECT DISTINCT f.id AS "ID",f.system_code,f.system_name,f.system_desc
         FROM system_docking.api_task_ins a
         LEFT JOIN system_docking.api_task_thread_ins b on a.id=b.task_id and b.is_enable='1'
         LEFT JOIN system_docking.api_task_thread_index c on b.id=c.thread_id
@@ -34,28 +34,28 @@
 
     <!--            获取对接系统对应的平台-->
     <select id="getPlatformConfig" resultType="hashmap">
-        SELECT ID,system_id,platfrom_code,platfrom_name,platform_desc
+        SELECT id AS "ID",system_id,platfrom_code,platfrom_name,platform_desc
         FROM system_docking.api_interface_system_platform_info
         WHERE system_id=#{systemId} AND is_enable='1'
     </select>
 
     <!--    获取系统平台信息对应的指标-->
     <select id="getTargetConfig" resultType="hashmap">
-        SELECT ID,platform_id,index_code,index_name,index_desc
+        SELECT id AS "ID",platform_id,index_code,index_name,index_desc
         FROM system_docking.api_platform_index_info
         WHERE platform_id=#{platformId} AND is_enable='1'
     </select>
 
     <!--    获取系统平台对应的资源-->
     <select id="getResourcesConfig" resultType="hashmap">
-        SELECT ID,platform_id,resource_code,resource_mac,resource_desc
+        SELECT id AS "ID",platform_id,resource_code,resource_mac,resource_desc
         FROM system_docking.api_system_resource
         WHERE platform_id=#{platformId} AND is_enable='1'
     </select>
 
     <!--    获取系统平台资源对应的IP-->
     <select id="getResourcesIPConfig" resultType="hashmap">
-        SELECT ID,resource_id,ip_address
+        SELECT id AS "ID",resource_id,ip_address
         FROM system_docking.api_system_resource_ip
         WHERE resource_id=#{resourceId} AND is_enable='1'
     </select>
