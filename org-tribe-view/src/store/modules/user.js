@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { login, logout, phoneLogin } from "@/api/login"
+import { login, logout, phoneLogin, oauthCallback } from "@/api/login"
 import { ACCESS_TOKEN, USER_NAME,USER_INFO,USER_AUTH,SYS_BUTTON_AUTH } from "@/store/mutation-types"
 import { welcome } from "@/utils/util"
 import { queryPermissionsByUser } from '@/api/api'
@@ -37,6 +37,27 @@ const user = {
   },
 
   actions: {
+    // GK-Nexus OAuth2.0 login
+    OAuthLogin({ commit }, { code }) {
+      return new Promise((resolve, reject) => {
+        oauthCallback(code).then(response => {
+          if (response.success) {
+            const result = response.result
+            const userInfo = result.userInfo
+            Vue.ls.set(ACCESS_TOKEN, result.token, 7 * 24 * 60 * 60 * 1000)
+            Vue.ls.set(USER_NAME, userInfo.username, 7 * 24 * 60 * 60 * 1000)
+            Vue.ls.set(USER_INFO, userInfo, 7 * 24 * 60 * 60 * 1000)
+            commit('SET_TOKEN', result.token)
+            commit('SET_INFO', userInfo)
+            commit('SET_NAME', { username: userInfo.username, realname: userInfo.realname, welcome: welcome() })
+            commit('SET_AVATAR', userInfo.avatar)
+          }
+          resolve(response)
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
     // CAS验证登录
     ValidateLogin({ commit }, userInfo) {
       return new Promise((resolve, reject) => {

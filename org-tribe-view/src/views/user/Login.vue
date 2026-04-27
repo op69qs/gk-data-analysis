@@ -74,6 +74,14 @@
           :disabled="loginBtn">确定
         </a-button>
       </a-form-item>
+
+      <a-form-item style="margin-top:12px">
+        <a-button
+          size="large"
+          class="login-button"
+          @click.stop.prevent="handleNexusLogin">统一门户登录
+        </a-button>
+      </a-form-item>
     </a-form>
 
     <two-step-captcha
@@ -198,6 +206,14 @@
     methods: {
       ...mapActions(["Login", "Logout", "loginRun", "PhoneLogin"]),
       // handler
+      handleNexusLogin() {
+        const state = Math.random().toString(36).slice(2)
+        sessionStorage.setItem('oauth_state', state)
+        const nexusBffUrl = (window._CONFIG && window._CONFIG['nexusBffUrl']) || 'http://localhost:3000'
+        const clientId = (window._CONFIG && window._CONFIG['nexusClientId']) || 'gk-data-analysis'
+        const redirectUri = encodeURIComponent(window.location.origin + '/oauth/callback')
+        window.location.href = `${nexusBffUrl}/api/auth/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=profile%20permissions&state=${state}`
+      },
       handleUsernameOrEmail(rule, value, callback) {
         const regex = /^([a-zA-Z0-9_-])+@([a-zA-Z0-9_-])+((\.[a-zA-Z0-9_-]{2,3}){1,2})$/;
         if (regex.test(value)) {

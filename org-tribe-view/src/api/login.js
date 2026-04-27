@@ -28,6 +28,14 @@ export function phoneLogin(parameter) {
   })
 }
 
+export function oauthCallback(code) {
+  return axios({
+    url: '/sys/oauth/callback',
+    method: 'get',
+    params: { code }
+  })
+}
+
 export function getSmsCaptcha(parameter) {
   return axios({
     url: api.SendSms,

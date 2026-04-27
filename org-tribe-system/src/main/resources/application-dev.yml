@@ -149,6 +149,14 @@ jeecg :
 cas:
   prefixUrl: http://cas.example.org:8443/cas
 
+#GK-Nexus OAuth2.0
+gk-nexus:
+  oauth:
+    token-url: http://localhost:3000/api/auth/oauth/token
+    client-id: GK_DATA_ANALYSIS
+    client-secret: ${NEXUS_CLIENT_SECRET:tYJq0vwo4JhLTMvrv8s8LKV0IohhckB8}
+    redirect-uri: http://localhost:9090/oauth/callback
+
 #eureka配置信息
 eureka:
   instance:

@@ -1,7 +1,8 @@
 server:
-  port: 8081
-  tomcat:
-    max-swallow-size: -1
+  port: 9091
+  bes:
+    basedir: bes
+  store-lic-interval: 0
   servlet:
     context-path:
   compression:

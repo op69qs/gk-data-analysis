@@ -295,6 +295,12 @@ export const asyncRouterMap = [
  */
 export const constantRouterMap = [
   {
+    path: '/oauth/callback',
+    name: 'OAuthCallback',
+    hidden: true,
+    component: () => import(/* webpackChunkName: "user" */ '@/views/user/OAuthCallback')
+  },
+  {
     path: '/user',
     component: UserLayout,
     redirect: '/user/login',
