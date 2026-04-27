@@ -3,7 +3,28 @@
 <mapper namespace="org.fixedReport.dao.mapper.fixedReport.NewsFlashMapper">
     <!-- 获取所有报告列表  -->
     <select id="getReportAll" resultType="java.util.HashMap">
-        SELECT * FROM report.t_sys_report_guoku a
+        SELECT
+        a.REPORT_ID AS "REPORT_ID",
+        a.REPORT_TYPE_ID AS "REPORT_TYPE_ID",
+        a.REPORT_TYPE_DESC AS "REPORT_TYPE_DESC",
+        a.REPORT_NAME AS "REPORT_NAME",
+        a.ADD_USERID AS "ADD_USERID",
+        a.MODIFY_USERID AS "MODIFY_USERID",
+        a.DIM_VALUE AS "DIM_VALUE",
+        a.AMT_UNIT AS "AMT_UNIT",
+        a.AMT_UNIT_NAME AS "AMT_UNIT_NAME",
+        a.ACCOUNT_PERIOD AS "ACCOUNT_PERIOD",
+        a.DIM_DESC AS "DIM_DESC",
+        a.NOTES AS "NOTES",
+        a.NOTESNUM AS "NOTESNUM",
+        a.NOTESDESC AS "NOTESDESC",
+        a.ISNOTES AS "ISNOTES",
+        a.INDEX_DIM AS "INDEX_DIM",
+        a.HTML_REPORT AS "HTML_REPORT",
+        a.ADD_DATE AS "ADD_DATE",
+        a.MODIFY_DATE AS "MODIFY_DATE",
+        a.STATUS AS "STATUS"
+        FROM report.t_sys_report_guoku a
         where
         1=1
         <if test="params.REPORT_TYPE_ID!=null and params.REPORT_TYPE_ID!='' ">
@@ -912,26 +933,26 @@
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '2' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
         AND a.INDEX_DIM_CODE     <![CDATA[  <> ]]>    '500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/')   AS table431
-       , COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-        (SUM(a.INDEX_VALUE)-SUM(b.INDEX_VALUE))/SUM(b.INDEX_VALUE)*100
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a."101_TATE"*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS "101_TATE",
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a."101_RANK"))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS "101_RANK",
         FROM
         indicators_lib.lib_indicators_00001401 a
 		LEFT JOIN
 		indicators_lib.lib_indicators_00001401 B
 		ON a.DIMENSION_FLAG=b.DIMENSION_FLAG
-		AND a.PERIOD_FLAG=b.PERIOD_FLAG
-		AND a.INDEX_DIM_CODE=b.INDEX_DIM_CODE
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b."101_TATE"*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS "101_TATE_1",
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b."101_RANK"))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')      AS "101_RANK_1"
 		AND SUBSTRING(DATE_SUB(CONCAT(a.ACCOUNT_PERIOD,'-01'),INTERVAL 1 YEAR),1,7) = b.ACCOUNT_PERIOD
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '2' AND a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
         AND a.INDEX_DIM_CODE     <![CDATA[  <> ]]>    '500000')))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS table432
 		,COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-        SUM(a.INDEX_VALUE)
-        FROM
+          a."101_TATE",
+          a."101_RANK", ROW_NUMBER() OVER (ORDER BY a.ROWS_ID) AS ROWS_ID FROM (SELECT   DATA_DATE,
         indicators_lib.lib_indicators_00021901 a
         WHERE a.DIMENSION_FLAG = '2'
-        AND  a.PERIOD_FLAG = '2' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
-        AND a.INDEX_DIM_CODE     <![CDATA[  <> ]]>    '500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/')   AS table433
+          a."101_TATE",
+          a."101_RANK",a.PROJECT,a.ROWS_ID  FROM
 		, COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
         (SUM(a.INDEX_VALUE)-SUM(b.INDEX_VALUE))/SUM(b.INDEX_VALUE)*100
         FROM
@@ -942,12 +963,12 @@
 		AND a.PERIOD_FLAG=b.PERIOD_FLAG
 		AND a.INDEX_DIM_CODE=b.INDEX_DIM_CODE
 		AND SUBSTRING(DATE_SUB(CONCAT(a.ACCOUNT_PERIOD,'-01'),INTERVAL 1 YEAR),1,7) = b.ACCOUNT_PERIOD
-        WHERE a.DIMENSION_FLAG = '2'
-        AND  a.PERIOD_FLAG = '2' AND a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
+          a."101_TATE",
+          a."101_RANK", ROW_NUMBER() OVER (ORDER BY a.ROWS_ID) AS ROWS_ID FROM (SELECT   DATA_DATE,
         AND a.INDEX_DIM_CODE     <![CDATA[  <> ]]>    '500000')))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS table434
 		,COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF((((SELECT a.INDEX_VALUE FROM
-        indicators_lib.lib_indicators_000448 a
-        WHERE a.DIMENSION_FLAG = '2'
+          a."101_TATE",
+          a."101_RANK",a.PROJECT,a.ROWS_ID  FROM
         AND  a.PERIOD_FLAG = '2' AND a.ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
         AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS table441
 		,COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF((((SELECT a.INDEX_VALUE FROM
@@ -2284,55 +2305,61 @@ FROM
     </select>
 
     <select id="getTableParams3" resultType="map">
-         SELECT
-       CASE WHEN COALESCE(a.PROJECT,'') = '内蒙古'  THEN  COALESCE(a.PROJECT,'')
-        WHEN COALESCE(a.PROJECT,'') = '黑龙江'  THEN  COALESCE(a.PROJECT,'')
-        ELSE SUBSTR(COALESCE(a.PROJECT,''),1,2)  END  AS PROJECT,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS T010101_RATE,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS T010101_RANK,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS 101_TATE,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS 101_RANK,
-        CASE WHEN COALESCE(b.PROJECT,'') = '内蒙古'  THEN  COALESCE(b.PROJECT,'')
-           WHEN COALESCE(b.PROJECT,'') = '黑龙江'  THEN  COALESCE(b.PROJECT,'')
-        ELSE SUBSTR(COALESCE(b.PROJECT,''),1,2)  END    AS PROJECT_1,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')  AS T010101_RATE_1,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS T010101_RANK_1,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS 101_TATE_1,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')      AS 101_RANK_1
-        FROM
-        (
-        SELECT  DATA_DATE,a.PROJECT,
-        a.T010101_RATE,
-        a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK, ROW_NUMBER() OVER (ORDER BY a.ROWS_ID) AS ROWS_ID FROM (SELECT   DATA_DATE,
-        a.T010101_RATE,
-        a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK,a.PROJECT,a.ROWS_ID  FROM
-        edw.TRS_BUDGET_INCOME_COMPARE a
-        WHERE a.ROWS_ID  &lt;  34
-        AND a.DATA_DATE =REPLACE('${params.ACCOUNT_PERIOD}','-','')
-        ) a
-        ) a
-        LEFT JOIN
-        (
-        SELECT  DATA_DATE,a.PROJECT,
-        a.T010101_RATE,
-        a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK, ROW_NUMBER() OVER (ORDER BY a.ROWS_ID) AS ROWS_ID FROM (SELECT   DATA_DATE,
-        a.T010101_RATE,
-        a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK,a.PROJECT,a.ROWS_ID  FROM
-        edw.TRS_BUDGET_INCOME_COMPARE a
-        WHERE a.ROWS_ID &gt; 33
-        AND a.DATA_DATE =replace('${params.ACCOUNT_PERIOD}','-','')
-        ) a
+            SELECT
+         CASE WHEN COALESCE(left_rows.PROJECT,'') = '内蒙古'  THEN  COALESCE(left_rows.PROJECT,'')
+          WHEN COALESCE(left_rows.PROJECT,'') = '黑龙江'  THEN  COALESCE(left_rows.PROJECT,'')
+          ELSE SUBSTR(COALESCE(left_rows.PROJECT,''),1,2)  END  AS PROJECT,
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS T010101_RATE,
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS T010101_RANK,
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.COL_101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS "101_TATE",
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.COL_101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS "101_RANK",
+          CASE WHEN COALESCE(right_rows.PROJECT,'') = '内蒙古'  THEN  COALESCE(right_rows.PROJECT,'')
+              WHEN COALESCE(right_rows.PROJECT,'') = '黑龙江'  THEN  COALESCE(right_rows.PROJECT,'')
+          ELSE SUBSTR(COALESCE(right_rows.PROJECT,''),1,2)  END    AS PROJECT_1,
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')  AS T010101_RATE_1,
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS T010101_RANK_1,
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.COL_101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS "101_TATE_1",
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.COL_101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')      AS "101_RANK_1"
+          FROM
+          (
+          SELECT  DATA_DATE,project,
+          T010101_RATE,
+          T010101_RANK,
+          COL_101_TATE,
+          COL_101_RANK, ROW_NUMBER() OVER (ORDER BY ROWS_ID) AS ROWS_ID FROM (
+          SELECT   DATA_DATE,
+          src.T010101_RATE,
+          src.T010101_RANK,
+          src.c_101_tate AS COL_101_TATE,
+          src.c_101_rank AS COL_101_RANK,
+          src.PROJECT,
+          src.ROWS_ID  FROM
+          edw.TRS_BUDGET_INCOME_COMPARE src
+          WHERE src.ROWS_ID  &lt;  34
+          AND src.DATA_DATE =REPLACE('${params.ACCOUNT_PERIOD}','-','')
+          ) left_src
+          ) left_rows
+          LEFT JOIN
+          (
+          SELECT  DATA_DATE,project,
+          T010101_RATE,
+          T010101_RANK,
+          COL_101_TATE,
+          COL_101_RANK, ROW_NUMBER() OVER (ORDER BY ROWS_ID) AS ROWS_ID FROM (
+          SELECT   DATA_DATE,
+          src.T010101_RATE,
+          src.T010101_RANK,
+          src.c_101_tate AS COL_101_TATE,
+          src.c_101_rank AS COL_101_RANK,
+          src.PROJECT,
+          src.ROWS_ID  FROM
+          edw.TRS_BUDGET_INCOME_COMPARE src
+          WHERE src.ROWS_ID &gt; 33
+          AND src.DATA_DATE =replace('${params.ACCOUNT_PERIOD}','-','')
+          ) right_src
 
-        ) b
-        ON  a.rows_id =b.rows_id
+          ) right_rows
+          ON  left_rows.rows_id = right_rows.rows_id
 
     </select>
  <!-- 获取生成报告的文本及参数信息 -->

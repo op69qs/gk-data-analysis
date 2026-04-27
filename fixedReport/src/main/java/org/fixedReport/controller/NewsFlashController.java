@@ -203,6 +203,11 @@ public class NewsFlashController extends BaseController {
             List<Map<String, Object>> tableParamsList = newsFlashService.getTableParams(pd);
             List<Map<String, Object>> tableParamsList2 = newsFlashService.getTableParams2(pd);
             List<Map<String, Object>> tableParamsList3 = newsFlashService.getTableParams3(pd);
+            if (textList.isEmpty()) {
+                res.put("result", "fail");
+                res.put("rows", "当前账期缺少快报文字数据，无法生成上半部分文字内容");
+                return res;
+            }
             if(textList.size()>0){
                 rows.put("textList", textList.toString());
             }else {
@@ -265,6 +270,11 @@ public class NewsFlashController extends BaseController {
             if(allDataList.size()>0) {
                 if (!allDataList.get("textList").toString().isEmpty()) {
                     mapTextList = getStringToMap(allDataList.get("textList").toString().replace("[", "").replace("]", "").replace("{", "").replace("}", "").replace(" ", ""));
+                } else {
+                    List<Map<String, Object>> liveTextList = newsFlashService.getTextAndParams(pd);
+                    if (!liveTextList.isEmpty()) {
+                        mapTextList = liveTextList.get(0);
+                    }
                 }
                 JSONObject jsonObj = new JSONObject(mapTextList);
                 if (!allDataList.get("tableParams2").toString().isEmpty()) {

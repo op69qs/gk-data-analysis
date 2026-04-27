@@ -4,9 +4,9 @@
 
 
     <select id="getFileList" resultType="java.util.Map">
-        SELECT  DISTINCT '${params.tableName}' as downFileName   ,
-        b.PATH ,
-        COALESCE(c.ZLMC, regexp_replace(b.PATH, '^.*/', '')) AS FILE_NAME  ,'${params.S_INFO_ID}'  AS S_INFO_ID
+        SELECT  DISTINCT '${params.tableName}' as "downFileName"   ,
+        b.PATH AS "PATH" ,
+        COALESCE(c.ZLMC, regexp_replace(b.PATH, '^.*/', '')) AS "FILE_NAME"  ,'${params.S_INFO_ID}'  AS "S_INFO_ID"
         FROM
         ${params.table} a
         LEFT JOIN

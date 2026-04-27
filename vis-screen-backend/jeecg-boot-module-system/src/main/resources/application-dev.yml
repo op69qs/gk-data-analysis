@@ -139,7 +139,7 @@ spring:
   #redis 配置
   redis:
     database: ${SPRING_REDIS_DATABASE:0}
-    host: ${SPRING_REDIS_HOST:192.168.160.30}
+    host: ${SPRING_REDIS_HOST:127.0.0.1}
     lettuce:
       pool:
         max-active: 8   #最大连接数据库连接数,设 0 为没有限制

@@ -20,7 +20,7 @@ export function resolveVisMediaUrl(value) {
     return ''
   }
 
-  if (/^(data:|blob:|https?:)?\/\//i.test(rawValue)) {
+  if (/^(data:|blob:)/i.test(rawValue) || /^https?:\/\//i.test(rawValue) || /^\/\//.test(rawValue)) {
     return rawValue
   }
 

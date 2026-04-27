@@ -6,8 +6,12 @@
     <select id="getIndexParentInfo" resultType="java.util.HashMap">
         SELECT
             a.INDEX_ID AS id,
+            a.INDEX_ID AS value,
+            a.INDEX_ID AS key,
             a.INDEX_NAME AS text,
-            a.PARENT_ID AS pId
+            a.INDEX_NAME AS title,
+            a.INDEX_NAME AS label,
+            a.PARENT_ID AS "pId"
         FROM
             indicators_lib.lib_index_relation a
         WHERE
@@ -16,9 +20,9 @@
 
     <!--    根据指标查询指标的维度-->
     <select id="getIndexDimnsn" resultType="map">
-        SELECT COUNT(V.INDEX_DIMNSN) AS REPEAT_COUNT,V.INDEX_DIMNSN,
+        SELECT COUNT(V.INDEX_DIMNSN) AS "REPEAT_COUNT",V.INDEX_DIMNSN AS "INDEX_DIMNSN",
         CASE WHEN V.INDEX_DIMNSN=1 THEN '国库' WHEN V.INDEX_DIMNSN=2 THEN '地区'
-        ELSE '' END INDEX_DIMNSN_DSCR
+        ELSE '' END "INDEX_DIMNSN_DSCR"
         FROM(
         SELECT trim(v.INDEX_DIMNSN) AS INDEX_DIMNSN
         FROM indicators_lib.lib_index_relation a
@@ -34,16 +38,16 @@
         ) V
         GROUP BY INDEX_DIMNSN
         <if test='indexArray != null and indexArray.length > 1'>
-            HAVING REPEAT_COUNT > 1
+            HAVING COUNT(V.INDEX_DIMNSN) > 1
         </if>
     </select>
 
     <!--    根据指标查询指标的周期-->
     <select id="getIndexPeriod" resultType="map">
-        SELECT COUNT(V.INDEX_PERIOD) AS REPEAT_COUNT,V.INDEX_PERIOD,
+        SELECT COUNT(V.INDEX_PERIOD) AS "REPEAT_COUNT",V.INDEX_PERIOD AS "INDEX_PERIOD",
         CASE WHEN V.INDEX_PERIOD=1 THEN '日' WHEN V.INDEX_PERIOD=2 THEN '月'
         WHEN V.INDEX_PERIOD=3 THEN '季' WHEN V.INDEX_PERIOD=4 THEN '年'
-        ELSE '' END INDEX_PERIOD_DSCR
+        ELSE '' END "INDEX_PERIOD_DSCR"
         FROM(
         SELECT trim(v.INDEX_PERIOD) AS INDEX_PERIOD
         FROM indicators_lib.lib_index_relation a
@@ -59,7 +63,7 @@
         ) V
         GROUP BY INDEX_PERIOD
         <if test='indexArray != null and indexArray.length > 1'>
-            HAVING REPEAT_COUNT > 1
+            HAVING COUNT(V.INDEX_PERIOD) > 1
         </if>
     </select>
     <!--    公共指标对应数据表删除指标信息-->
@@ -76,31 +80,53 @@
 
     <!-- 指标管理获取指标信息 -->
     <select id="getIndexManageList" resultType="java.util.HashMap">
-        SELECT a.*,
-        a.INDEX_ID AS subject_id,
-        REPLACE(REPLACE(REPLACE(a.INDEX_DIMNSN,'1','国库'),'2','地区'),'3','核算主体') AS INDEX_DIMNSN_DSCR,
-        REPLACE(REPLACE(REPLACE(REPLACE(a.INDEX_PERIOD,'1','日指标'),'2','月指标'),'3','季指标'),'4','年指标') AS INDEX_PERIOD_DSCR,
+        SELECT
+        a.INDEX_ID AS "INDEX_ID",
+        a.PARENT_ID AS "PARENT_ID",
+        COALESCE(parent.INDEX_NAME, '') AS "PARENT_DSCR",
+        a.INDEX_NAME AS "INDEX_NAME",
+        a.INDEX_DESCR AS "INDEX_DESCR",
+        a.INDEX_DIMNSN AS "INDEX_DIMNSN",
+        a.INDEX_PERIOD AS "INDEX_PERIOD",
+        a.INDEX_CORRE_TABLE AS "INDEX_CORRE_TABLE",
+        a.INDEX_TYPE AS "INDEX_TYPE",
+        a.PERSONAL_FLAG AS "PERSONAL_FLAG",
+        a.RUN_BATCH_STATUS AS "RUN_BATCH_STATUS",
+        a.IDENTITY_PROPERTY AS "IDENTITY_PROPERTY",
+        a.INDEX_DETAILS AS "INDEX_DETAILS",
+        a.ADD_USERID AS "ADD_USERID",
+        a.ADD_DATE AS "ADD_DATE",
+        a.MODIFY_USERID AS "MODIFY_USERID",
+        a.MODIFY_DATE AS "MODIFY_DATE",
+        a.INDEX_STATUS AS "INDEX_STATUS",
+        a.IS_FINAL AS "IS_FINAL",
+        a.CATEGORY AS "CATEGORY",
+        a.INDEX_ID AS "subject_id",
+        REPLACE(REPLACE(REPLACE(a.INDEX_DIMNSN,'1','国库'),'2','地区'),'3','核算主体') AS "INDEX_DIMNSN_DSCR",
+        REPLACE(REPLACE(REPLACE(REPLACE(a.INDEX_PERIOD,'1','日指标'),'2','月指标'),'3','季指标'),'4','年指标') AS "INDEX_PERIOD_DSCR",
         CASE WHEN a.INDEX_TYPE ='0' THEN '数值'
         WHEN a.INDEX_TYPE ='1' THEN '比率'
-        END AS INDEX_TYPE_DSCR,
+        END AS "INDEX_TYPE_DSCR",
         CASE WHEN a.RUN_BATCH_STATUS ='0' THEN '未开始'
         WHEN a.RUN_BATCH_STATUS ='1' THEN '进行中'
         WHEN a.RUN_BATCH_STATUS ='2' THEN '已完成'
-        ELSE '' END AS RUN_BATCH_DSCR,
-        COALESCE(f.BUILD_TYPE,'') AS BUILD_TYPE,
-        COALESCE(f.ORIGINAL_DSCR,'') AS ORIGINAL_DSCR,
-        COALESCE(f.ORIGINAL_DSCR_ARRY,'') AS ORIGINAL_DSCR_ARRY,
-        COALESCE(f.INDEX_DSCR,'') AS INDEX_DSCR,
-        COALESCE(f.INDEX_DSCR_ARRY,'') AS INDEX_DSCR_ARRY,
+        ELSE '' END AS "RUN_BATCH_DSCR",
+        COALESCE(f.BUILD_TYPE,'') AS "BUILD_TYPE",
+        COALESCE(f.ORIGINAL_DSCR,'') AS "ORIGINAL_DSCR",
+        COALESCE(f.ORIGINAL_DSCR_ARRY,'') AS "ORIGINAL_DSCR_ARRY",
+        COALESCE(f.INDEX_DSCR,'') AS "INDEX_DSCR",
+        COALESCE(f.INDEX_DSCR_ARRY,'') AS "INDEX_DSCR_ARRY",
         f.EXE_DEL,
         f.EXE_INSERT,
-        COALESCE(f.EXE_SQL,'') AS EXE_SQL,
-        COALESCE(f.EXE_WHERE,'') AS EXE_WHERE,
-        COALESCE(f.HTML_STR,'') AS HTML_STR,
-        COALESCE(aap.app_result, '') AS app_result
+        COALESCE(f.EXE_SQL,'') AS "EXE_SQL",
+        COALESCE(f.EXE_WHERE,'') AS "EXE_WHERE",
+        COALESCE(f.HTML_STR,'') AS "HTML_STR",
+        COALESCE(aap.app_result, '') AS "app_result"
         FROM indicators_lib.lib_index_relation a
         LEFT JOIN indicators_lib.lib_index_formula f
         ON a.INDEX_ID=f.ID
+        LEFT JOIN indicators_lib.lib_index_relation parent
+        ON a.PARENT_ID = parent.INDEX_ID
         LEFT JOIN approval.appr_approval aap
         ON a.INDEX_ID = aap.subject_id
         WHERE a.INDEX_STATUS ='0' AND f.BUILD_TYPE IS NOT NULL
@@ -168,7 +194,7 @@
 
     <!-- 获取最大序列号 -->
     <select id="getMaxSeq" resultType="java.util.HashMap">
-        SELECT MAX(a.IDENTITY_PROPERTY) AS SEQ
+        SELECT MAX(a.IDENTITY_PROPERTY) AS "SEQ"
         FROM
             indicators_lib.lib_index_relation a
     </select>
@@ -176,7 +202,7 @@
     <!-- 获取指标信息 -->
     <select id="getIndexInfo" resultType="java.util.HashMap">
         SELECT
-        *
+        "INDEX_CORRE_TABLE"
         FROM
         indicators_lib.lib_index_relation a
         WHERE 1=1

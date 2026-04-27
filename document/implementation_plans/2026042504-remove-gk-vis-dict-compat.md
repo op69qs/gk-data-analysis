@@ -2,7 +2,7 @@
 
 ## 背景
 
-- `/vis/system/dict` 已经改为通过 GK 网关调用 `vis-screen-backend` 的 `/vis/api/sys/dict/visList` 与 `/vis/api/sys/dict/visExportXls`。
+- `/vis/system/dict` 已经改为通过 GK 网关调用 `vis-screen-backend` 的 `/vis/api/visDict/list` 与 `/vis/api/visDict/exportXls`。
 - `vis-screen-backend` 已承接 old vis 字典白名单、补种、恢复逻辑，并完成运行态验证。
 - `org-tribe-system` 中残留的 vis 字典兼容接口已经不再是正确边界，继续保留会让实现再次分叉。
 

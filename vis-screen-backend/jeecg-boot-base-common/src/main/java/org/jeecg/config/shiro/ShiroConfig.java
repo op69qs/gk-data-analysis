@@ -8,28 +8,25 @@ import org.apache.shiro.spring.LifecycleBeanPostProcessor;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
-import org.crazycake.shiro.IRedisManager;
-import org.crazycake.shiro.RedisCacheManager;
-import org.crazycake.shiro.RedisClusterManager;
-import org.crazycake.shiro.RedisManager;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.config.shiro.filters.JwtFilter;
+import org.jeecg.config.shiro.filters.LegacyPlatformBlockFilter;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.core.Ordered;
 import org.springframework.core.env.Environment;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.util.StringUtils;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.JedisCluster;
 
-import javax.annotation.Resource;
 import javax.servlet.Filter;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * @author: Scott
@@ -43,8 +40,6 @@ public class ShiroConfig {
 
     @Value("${jeecg.shiro.excludeUrls}")
     private String excludeUrls;
-    @Resource
-    LettuceConnectionFactory lettuceConnectionFactory;
     @Autowired
     private Environment env;
 
@@ -61,7 +56,7 @@ public class ShiroConfig {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
         shiroFilterFactoryBean.setSecurityManager(securityManager);
         // 拦截器
-        Map<String, String> filterChainDefinitionMap = new LinkedHashMap<String, String>();
+        Map<String, String> filterChainDefinitionMap = new LinkedHashMap<>();
         if(oConvertUtils.isNotEmpty(excludeUrls)){
             String[] permissionUrl = excludeUrls.split(",");
             for(String url : permissionUrl){
@@ -74,18 +69,19 @@ public class ShiroConfig {
         // 配置不会被拦截的链接 顺序判断
         filterChainDefinitionMap.put("/sys/randomImage/**", "anon"); //登录验证码接口排除
         filterChainDefinitionMap.put("/sys/checkCaptcha", "anon"); //登录验证码接口排除
-        filterChainDefinitionMap.put("/sys/login", "anon"); //登录接口排除
-        filterChainDefinitionMap.put("/sys/mLogin", "anon"); //登录接口排除
-        filterChainDefinitionMap.put("/sys/logout", "anon"); //登出接口排除
-        filterChainDefinitionMap.put("/thirdLogin/**", "anon"); //第三方登录
+        filterChainDefinitionMap.put("/sys/login", "anon");
+        filterChainDefinitionMap.put("/sys/mLogin", "anon");
+        filterChainDefinitionMap.put("/sys/logout", "anon");
+        filterChainDefinitionMap.put("/sys/phoneLogin", "anon");
+        filterChainDefinitionMap.put("/thirdLogin/**", "anon");
+        filterChainDefinitionMap.put("/sys/user/**", "anon");
+        filterChainDefinitionMap.put("/sys/role/**", "anon");
+        filterChainDefinitionMap.put("/sys/permission/**", "anon");
+        filterChainDefinitionMap.put("/sys/sysUserAgent/**", "anon");
+        filterChainDefinitionMap.put("/sys/sysDepartRole/**", "anon");
+        filterChainDefinitionMap.put("/sys/sysDepartPermission/**", "anon");
         filterChainDefinitionMap.put("/sys/getEncryptedString", "anon"); //获取加密串
         filterChainDefinitionMap.put("/sys/sms", "anon");//短信验证码
-        filterChainDefinitionMap.put("/sys/phoneLogin", "anon");//手机登录
-        filterChainDefinitionMap.put("/sys/user/checkOnlyUser", "anon");//校验用户是否存在
-        filterChainDefinitionMap.put("/sys/user/register", "anon");//用户注册
-        filterChainDefinitionMap.put("/sys/user/querySysUser", "anon");//根据手机号获取用户信息
-        filterChainDefinitionMap.put("/sys/user/phoneVerification", "anon");//用户忘记密码验证手机号
-        filterChainDefinitionMap.put("/sys/user/passwordChange", "anon");//用户更改密码
         filterChainDefinitionMap.put("/auth/2step-code", "anon");//登录验证码
         filterChainDefinitionMap.put("/sys/common/static/**", "anon");//图片预览 &下载文件不限制token
         //filterChainDefinitionMap.put("/sys/common/view/**", "anon");//图片预览不限制token
@@ -192,9 +188,10 @@ public class ShiroConfig {
         //插件商城排除
         filterChainDefinitionMap.put("/pluginMall/**","anon");
         // 添加自己的过滤器并且取名为jwt
-        Map<String, Filter> filterMap = new HashMap<String, Filter>(1);
+        Map<String, Filter> filterMap = new HashMap<>(1);
         //如果cloudServer为空 则说明是单体 需要加载跨域配置
         Object cloudServer = env.getProperty(CommonConstant.CLOUD_SERVER_KEY);
+        filterMap.put("legacyBlock", new LegacyPlatformBlockFilter());
         filterMap.put("jwt", new JwtFilter(cloudServer==null));
         shiroFilterFactoryBean.setFilters(filterMap);
         // <!-- 过滤链定义，从上向下顺序执行，一般将/**放在最为下边
@@ -205,6 +202,28 @@ public class ShiroConfig {
         shiroFilterFactoryBean.setLoginUrl("/sys/common/403");
         shiroFilterFactoryBean.setFilterChainDefinitionMap(filterChainDefinitionMap);
         return shiroFilterFactoryBean;
+    }
+
+    @Bean
+    public FilterRegistrationBean<LegacyPlatformBlockFilter> legacyPlatformBlockFilterRegistration() {
+        FilterRegistrationBean<LegacyPlatformBlockFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new LegacyPlatformBlockFilter());
+        registration.setName("legacyPlatformBlockServletFilter");
+        registration.setUrlPatterns(Arrays.asList(
+            "/sys/login",
+            "/sys/logout",
+            "/sys/mLogin",
+            "/sys/phoneLogin",
+            "/thirdLogin/*",
+            "/sys/user/*",
+            "/sys/role/*",
+            "/sys/permission/*",
+            "/sys/sysUserAgent/*",
+            "/sys/sysDepartRole/*",
+            "/sys/sysDepartPermission/*"
+        ));
+        registration.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return registration;
     }
 
     @Bean("securityManager")
@@ -222,8 +241,6 @@ public class ShiroConfig {
         defaultSessionStorageEvaluator.setSessionStorageEnabled(false);
         subjectDAO.setSessionStorageEvaluator(defaultSessionStorageEvaluator);
         securityManager.setSubjectDAO(subjectDAO);
-        //自定义缓存实现,使用redis
-        securityManager.setCacheManager(redisCacheManager());
         return securityManager;
     }
 
@@ -255,56 +272,6 @@ public class ShiroConfig {
         AuthorizationAttributeSourceAdvisor advisor = new AuthorizationAttributeSourceAdvisor();
         advisor.setSecurityManager(securityManager);
         return advisor;
-    }
-
-    /**
-     * cacheManager 缓存 redis实现
-     * 使用的是shiro-redis开源插件
-     *
-     * @return
-     */
-    public RedisCacheManager redisCacheManager() {
-        log.info("===============(1)创建缓存管理器RedisCacheManager");
-        RedisCacheManager redisCacheManager = new RedisCacheManager();
-        redisCacheManager.setRedisManager(redisManager());
-        //redis中针对不同用户缓存(此处的id需要对应user实体中的id字段,用于唯一标识)
-        redisCacheManager.setPrincipalIdFieldName("id");
-        //用户权限信息缓存时间
-        redisCacheManager.setExpire(200000);
-        return redisCacheManager;
-    }
-
-    /**
-     * 配置shiro redisManager
-     * 使用的是shiro-redis开源插件
-     *
-     * @return
-     */
-    @Bean
-    public IRedisManager redisManager() {
-        log.info("===============(2)创建RedisManager,连接Redis..");
-        IRedisManager manager;
-        String visRedisPassword = env.getProperty("VIS_SPRING_REDIS_PASSWORD");
-        // redis 单机支持，在集群为空，或者集群无机器时候使用 add by jzyadmin@163.com
-        if (lettuceConnectionFactory.getClusterConfiguration() == null || lettuceConnectionFactory.getClusterConfiguration().getClusterNodes().isEmpty()) {
-            RedisManager redisManager = new RedisManager();
-            redisManager.setHost(lettuceConnectionFactory.getHostName());
-            redisManager.setPort(lettuceConnectionFactory.getPort());
-            redisManager.setTimeout(0);
-            if (!StringUtils.isEmpty(visRedisPassword)) {
-                redisManager.setPassword(visRedisPassword);
-            }
-            manager = redisManager;
-        }else{
-            // redis 集群支持，优先使用集群配置	add by jzyadmin@163.com
-            RedisClusterManager redisManager = new RedisClusterManager();
-            Set<HostAndPort> portSet = new HashSet<>();
-            lettuceConnectionFactory.getClusterConfiguration().getClusterNodes().forEach(node -> portSet.add(new HostAndPort(node.getHost() , node.getPort())));
-            JedisCluster jedisCluster = new JedisCluster(portSet);
-            redisManager.setJedisCluster(jedisCluster);
-            manager = redisManager;
-        }
-        return manager;
     }
 
 }

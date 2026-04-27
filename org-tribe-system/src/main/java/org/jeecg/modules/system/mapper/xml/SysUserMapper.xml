@@ -47,29 +47,29 @@
 		b.guoku_dscr
 		FROM
 		dmcode.cm_guoku_dimnsn b
-		WHERE b.guoku_id = a.guoku_id) AS guokuDscr,
-		(SELECT string_agg(b.guoku_dscr, ',') FROM dmcode.cm_guoku_dimnsn b WHERE guoku_id IN (SELECT guoku_id FROM "jeecg-boot-os".t_sc_user_guoku_relation WHERE login_id = a.id)) AS viewableGuokuDscr,
+		WHERE b.guoku_id = a.guoku_id) AS "guokuDscr",
+		(SELECT string_agg(b.guoku_dscr, ',') FROM dmcode.cm_guoku_dimnsn b WHERE guoku_id IN (SELECT guoku_id FROM "jeecg-boot-os".t_sc_user_guoku_relation WHERE login_id = a.id)) AS "viewableGuokuDscr",
 		(SELECT string_agg(guoku_id::text, ',') FROM "jeecg-boot-os".t_sc_user_guoku_relation WHERE login_id = a.id) AS viewableguoku,
 		CASE
 		WHEN STATUS = '1'
 		THEN '正常'
 		ELSE '解冻'
 		END AS status_dictText,
-		STATUS,
+		STATUS AS "STATUS",
 		del_flag,
 		CASE
 		WHEN activiti_sync = '1'
 		THEN '1'
 		ELSE  '0'
-		END AS  activitiSync,
+		END AS  "activitiSync",
 		CASE
 		WHEN activiti_sync = '1'
 		THEN '同步'
 		ELSE '不同步'
 		END AS activiti_sync_dictText,
 		COALESCE(TO_CHAR(a.birthday, 'YYYY-MM-DD'), '') AS birthday,
-		string_agg(c.id::text, '，') AS roleId,
-		string_agg(c.role_name, '，') AS roleName
+		string_agg(c.id::text, '，') AS "roleId",
+		string_agg(c.role_name, '，') AS "roleName"
 		FROM "jeecg-boot-os".sys_user a
 		LEFT JOIN
 		"jeecg-boot-os".sys_user_role b

@@ -4,27 +4,27 @@
     <!-- 获取生成报告的报表参数信息 -->
     <select id="getTableParams" resultType="java.util.HashMap">
         SELECT AREA_DSCR,
-        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS INDEX_VALUE,
-        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_2/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS INDEX_VALUE_2,
-        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_3 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS INDEX_VALUE_3,
-        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_4/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'') AS INDEX_VALUE_4,
-        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_5 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'') AS INDEX_VALUE_5
+        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "INDEX_VALUE",
+        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_2/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "INDEX_VALUE_2",
+        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_3 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "INDEX_VALUE_3",
+        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_4/ ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'') AS "INDEX_VALUE_4",
+        COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((v.INDEX_VALUE_5 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'') AS "INDEX_VALUE_5"
         FROM (
         select
         AREA_DSCR,
-        SUM(c.INDEX_VALUE)   AS INDEX_VALUE,
-        SUM(c.INDEX_VALUE_2)  AS INDEX_VALUE_2,
-        SUM(c.INDEX_VALUE_3)    AS INDEX_VALUE_3,
-        SUM(c.INDEX_VALUE_4) AS INDEX_VALUE_4,
-        SUM(c.INDEX_VALUE_5)  AS INDEX_VALUE_5
+        SUM(c.INDEX_VALUE)   AS "INDEX_VALUE",
+        SUM(c.INDEX_VALUE_2)  AS "INDEX_VALUE_2",
+        SUM(c.INDEX_VALUE_3)    AS "INDEX_VALUE_3",
+        SUM(c.INDEX_VALUE_4) AS "INDEX_VALUE_4",
+        SUM(c.INDEX_VALUE_5)  AS "INDEX_VALUE_5"
         from (
         SELECT
         a.INDEX_DIM_CODE,
-        a.INDEX_VALUE AS INDEX_VALUE,
-        0 AS INDEX_VALUE_2,
-        0 AS INDEX_VALUE_3,
-        0 AS INDEX_VALUE_4,
-        0 AS INDEX_VALUE_5
+        a.INDEX_VALUE AS "INDEX_VALUE",
+        0 AS "INDEX_VALUE_2",
+        0 AS "INDEX_VALUE_3",
+        0 AS "INDEX_VALUE_4",
+        0 AS "INDEX_VALUE_5"
         FROM
         indicators_lib.lib_indicators_00017601 a
 
@@ -34,11 +34,11 @@
         union all
         SELECT
         a.INDEX_DIM_CODE,
-        0 AS INDEX_VALUE,
-        a.INDEX_VALUE  AS INDEX_VALUE_2,
-        0  AS INDEX_VALUE_3,
-        0 AS INDEX_VALUE_4,
-        0 AS INDEX_VALUE_5
+        0 AS "INDEX_VALUE",
+        a.INDEX_VALUE  AS "INDEX_VALUE_2",
+        0  AS "INDEX_VALUE_3",
+        0 AS "INDEX_VALUE_4",
+        0 AS "INDEX_VALUE_5"
         FROM
         indicators_lib.lib_indicators_00017604 a
 
@@ -50,11 +50,11 @@
         union all
         SELECT
         a.INDEX_DIM_CODE,
-        0 AS INDEX_VALUE,
-        0 AS INDEX_VALUE_2,
-        a.INDEX_VALUE AS INDEX_VALUE_3,
-        0 AS INDEX_VALUE_4,
-        0 AS INDEX_VALUE_5
+        0 AS "INDEX_VALUE",
+        0 AS "INDEX_VALUE_2",
+        a.INDEX_VALUE AS "INDEX_VALUE_3",
+        0 AS "INDEX_VALUE_4",
+        0 AS "INDEX_VALUE_5"
         FROM indicators_lib.lib_indicators_00017605 a
 
         WHERE a.DIMENSION_FLAG = '2'
@@ -64,11 +64,11 @@
         union all
         SELECT
         a.INDEX_DIM_CODE,
-        0 AS INDEX_VALUE,
-        0 AS INDEX_VALUE_2,
-        0  AS INDEX_VALUE_3,
-        a.INDEX_VALUE AS INDEX_VALUE_4,
-        0 AS INDEX_VALUE_5
+        0 AS "INDEX_VALUE",
+        0 AS "INDEX_VALUE_2",
+        0  AS "INDEX_VALUE_3",
+        a.INDEX_VALUE AS "INDEX_VALUE_4",
+        0 AS "INDEX_VALUE_5"
         FROM  indicators_lib.lib_indicators_00017602 a
 
 
@@ -78,11 +78,11 @@
         union all
         SELECT
         a.INDEX_DIM_CODE,
-        0  AS INDEX_VALUE,
-        0  AS INDEX_VALUE_2,
-        0 AS INDEX_VALUE_3,
-        0 AS INDEX_VALUE_4,
-        a.INDEX_VALUE AS INDEX_VALUE_5
+        0  AS "INDEX_VALUE",
+        0  AS "INDEX_VALUE_2",
+        0 AS "INDEX_VALUE_3",
+        0 AS "INDEX_VALUE_4",
+        a.INDEX_VALUE AS "INDEX_VALUE_5"
         FROM indicators_lib.lib_indicators_00017603 a
 
 
@@ -102,10 +102,10 @@
     <!-- 获取生成报告的报表参数信息 -->
     <select id="getTableParams2" resultType="java.util.HashMap">
            SELECT
-           COALESCE(SUBJECT_DSCR,'') as      SUBJECT_DSCR
-                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS INDEX_VALUE
-                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((VALUE_YEAR *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS VALUE_YEAR
-                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((AMOUNT_RATIO *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS AMOUNT_RATIO
+           COALESCE(SUBJECT_DSCR,'') AS "SUBJECT_DSCR"
+                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "INDEX_VALUE"
+                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((VALUE_YEAR *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "VALUE_YEAR"
+                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((AMOUNT_RATIO *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "AMOUNT_RATIO"
              FROM report.trs_income_payout_statistics a
             WHERE a.DIMENSION_FLAG = '2'
               AND a.PERIOD_FLAG = '2'
@@ -118,10 +118,10 @@
     <!-- 获取生成报告的报表参数信息 -->
     <select id="getTableParams3" resultType="java.util.HashMap">
            SELECT
-           COALESCE(SUBJECT_DSCR,'') as      SUBJECT_DSCR
-                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS INDEX_VALUE
-                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((VALUE_YEAR   *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS VALUE_YEAR
-                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((AMOUNT_RATIO *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS AMOUNT_RATIO
+           COALESCE(SUBJECT_DSCR,'') AS "SUBJECT_DSCR"
+                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((INDEX_VALUE/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "INDEX_VALUE"
+                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((VALUE_YEAR   *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "VALUE_YEAR"
+                ,COALESCE(CONCAT(replace(TO_CHAR(ROUND(CAST(NULLIF(((AMOUNT_RATIO *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'')  AS "AMOUNT_RATIO"
              FROM report.trs_income_payout_statistics a
             WHERE a.DIMENSION_FLAG = '2'
               AND a.PERIOD_FLAG = '2'
@@ -335,7 +335,7 @@
       CAST(SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4) AS NUMERIC) - 1,
 		  ',',
 		  SUBSTR('${params.ACCOUNT_PERIOD}', 1, 4)
-		) AS data_dateYear,
+		) AS "data_dateYear",
             CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'')  data_dateYear1,
           CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-3,'')  data_dateYear2,
             CONCAT(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-2,'')  data_dateYear3,
@@ -356,477 +356,477 @@
  <!-- 获取生成报告的文本及参数信息 -->
     <select id="getTextAndParams" resultType="java.util.HashMap">
 	    		SELECT
-        concat(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'')  AS YEAR,
+        concat(SUBSTR('${params.ACCOUNT_PERIOD}',1,4),'')  AS "YEAR",
         CASE WHEN SUBSTR('${params.ACCOUNT_PERIOD}',6,1)='0'
        THEN  concat(SUBSTR('${params.ACCOUNT_PERIOD}',7,1),'')
        ELSE  concat(SUBSTR('${params.ACCOUNT_PERIOD}',6,2),'')
-       END AS MONTH,
-        concat(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'') AS year_4,
-        concat(SUBSTR(LAST_DAY('${params.ACCOUNT_PERIOD}-01'),9,2),'') AS LAST_DAY ,
-       concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000001/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000001'
+       END AS "MONTH",
+        concat(CAST(SUBSTR('${params.ACCOUNT_PERIOD}',1,4) AS NUMERIC)-4,'') AS "year_4",
+        concat(SUBSTR(LAST_DAY('${params.ACCOUNT_PERIOD}-01'),9,2),'') AS "LAST_DAY" ,
+       concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000001/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000001"
                 ,CASE WHEN a.lib_000002  &gt;  0
          THEN  CONCAT('增长',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000002*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))
          ELSE  CONCAT('下降',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000002)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
-         END AS '000002',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000002*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') AS '000002_lib',
+         END AS "000002",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000002*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') AS "000002_lib",
         CASE WHEN a.lib_000003  &gt;  0
          THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000003*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
          ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000003*100)))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
-         END AS '000003',
-		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000003*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  as '000003_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000004*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS '000004'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000005/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS '000005'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000006*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS '000006'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000007*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS '000007'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000008/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000008'
+         END AS "000003",
+		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000003*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000003_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000004*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000004"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000005/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000005"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000006*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000006"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000007*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS "000007"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000008/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000008"
         ,CASE WHEN a.lib_000009  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000009*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000009)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000009',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000009*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000009_lib'
+         END AS "000009",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000009*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000009_lib"
          ,CASE WHEN a.lib_000010  &gt;  0
          THEN  CONCAT('提高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000010*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
          ELSE  CONCAT('回落',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000010*100)))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
-         END AS '000010',
-		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000010*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')  AS '000010_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000011*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000011'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000012/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000012'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000013*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000013'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000014*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000014'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000015 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000015'
+         END AS "000010",
+		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000010*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')  AS "000010_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000011*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000011"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000012/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000012"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000013*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000013"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000014*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000014"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000015 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000015"
         ,CASE WHEN a.lib_000016  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000016*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000016)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000016',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000016*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000016_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000017*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000017'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000018/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000018'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000019*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000019'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000020*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000020'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000021/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000021'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000022*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000022'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000023*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000023'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000024/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000024'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000025*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000025'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000026*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000026'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000027/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000027'
+         END AS "000016",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000016*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000016_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000017*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000017"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000018/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000018"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000019*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000019"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000020*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000020"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000021/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000021"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000022*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000022"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000023*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000023"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000024/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000024"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000025*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000025"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000026*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000026"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000027/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000027"
         ,CASE WHEN a.lib_000028  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000028*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000028)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000028',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000028*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000028_lib',
+         END AS "000028",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000028*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000028_lib",
         CASE WHEN a.lib_000029  &gt;  0
          THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000029*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
          ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000029*100)))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
-         END AS '000029',
-		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000029*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')   AS '000029_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000030*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000030'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000031/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000031'
+         END AS "000029",
+		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000029*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')   AS "000029_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000030*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000030"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000031/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000031"
         ,CASE WHEN a.lib_000032  &gt;  0
          THEN  CONCAT('高',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000032*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('低',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000032)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000032',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000032*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS '000032_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000033*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS '000033'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000034/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000034'
+         END AS "000032",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000032*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS "000032_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000033*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS "000033"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000034/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000034"
         ,CASE WHEN a.lib_000035  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000035*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000035)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000035',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000035*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000035_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000036*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000036'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000037/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000037'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000038*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000038'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000039*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000039'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000040/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000040'
+         END AS "000035",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000035*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000035_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000036*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000036"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000037/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000037"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000038*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000038"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000039*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000039"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000040/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000040"
         ,CASE WHEN a.lib_000041  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000041*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000041)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000041',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000041*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000041_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000042*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000042'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000043/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000043'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000044 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000044'
-          ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000045 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000045'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000046/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000046'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000047*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS '000047'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000048*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS '000048'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000049/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000049'
-	    ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000050*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS '000050'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000051*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS '000051'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000052/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000052'
+         END AS "000041",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000041*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000041_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000042*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000042"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000043/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000043"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000044 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000044"
+          ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000045 *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000045"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000046/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000046"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000047*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS "000047"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000048*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS "000048"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000049/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000049"
+	    ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000050*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS "000050"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000051*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS "000051"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000052/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000052"
         ,CASE WHEN a.lib_000053  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000053/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000053/${params.AMT_UNIT})))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000053',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000053/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000053_lib'
+         END AS "000053",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000053/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000053_lib"
         ,CASE WHEN a.lib_000054  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000054*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000054)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000054',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000054*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')    AS '000054_lib'
+         END AS "000054",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000054*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')    AS "000054_lib"
         ,CASE WHEN a.lib_000055  &gt;  0
          THEN  CONCAT('提高',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000055*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('回落',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000055*100)))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000055',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000055*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000055_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000056*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000056'
+         END AS "000055",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000055*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000055_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000056*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000056"
         ,CASE WHEN a.lib_000057  &gt;  0
          THEN  CONCAT('提高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000057*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
          ELSE  CONCAT('降低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000057*100)))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
-         END AS '000057',
-		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000057*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')  as  '000057_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000058/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000058'
+         END AS "000057",
+		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000057*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')  AS "000057_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000058/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000058"
         ,CASE WHEN a.lib_000059  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000059*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000059)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
-         END AS '000059',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000059*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000059_lib'
+         END AS "000059",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000059*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000059_lib"
         ,CASE WHEN a.lib_000060  &gt;  0
          THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000060*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
          ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000060*100)))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
-         END AS '000060',
-		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000060*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')   as '000060_lib'
-        ,CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000061*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')  as '000061'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000062/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000062'
+         END AS "000060",
+		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000060*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')   AS "000060_lib"
+        ,CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000061*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')  AS "000061"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000062/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000062"
         ,CASE WHEN a.lib_000063  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000063*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000063)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000063',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000063*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000063_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000064/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000064'
+         END AS "000063",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000063*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000063_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000064/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000064"
         ,CASE WHEN a.lib_000065  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000065*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000065)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
-         END AS '000065',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000065*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  as '000065_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000066/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000066'
+         END AS "000065",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000065*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000065_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000066/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000066"
         ,CASE WHEN a.lib_000067  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000067*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000067)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
-         END AS '000067',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000067*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000067_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000068*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS '000068'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000069/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000069'
+         END AS "000067",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000067*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000067_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000068*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS "000068"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000069/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000069"
         ,CASE WHEN a.lib_000070  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000070*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000070)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000070',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000070*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000070_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000071*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000071'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000072/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000072'
+         END AS "000070",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000070*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000070_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000071*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000071"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000072/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000072"
         ,CASE WHEN a.lib_000073  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000073*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000073)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000073',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000073*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000073_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000074*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000074'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000075/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000075'
+         END AS "000073",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000073*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000073_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000074*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000074"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000075/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000075"
         ,CASE WHEN a.lib_000076  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000076*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000076)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000076',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000076*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as  '000076_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000077*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000077'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000078/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000078'
+         END AS "000076",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000076*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000076_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000077*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000077"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000078/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000078"
         ,CASE WHEN a.lib_000079  &gt;  0
           THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000079*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000079)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
-         END AS '000079',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000079*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000079_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000080*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000080'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000081/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000081'
+         END AS "000079",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000079*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000079_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000080*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000080"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000081/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000081"
         ,CASE WHEN a.lib_000082  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000082*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000082)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000082',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000082*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000082_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000083*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')   AS '000083'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000084/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000084'
+         END AS "000082",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000082*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000082_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000083*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')   AS "000083"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000084/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000084"
         ,CASE WHEN a.lib_000085  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000085*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000085)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000085',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000085*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000085_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000086/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000086'
+         END AS "000085",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000085*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000085_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000086/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000086"
         ,CASE WHEN a.lib_000087  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000087*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000087)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000087',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000087*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000087_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000088*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000088'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000089/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000089'
+         END AS "000087",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000087*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000087_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000088*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000088"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000089/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000089"
         ,CASE WHEN a.lib_000090  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000090*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000090)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000090',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000090*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000090_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000091*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000091'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000092/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000092'
+         END AS "000090",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000090*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000090_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000091*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000091"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000092/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000092"
         ,CASE WHEN a.lib_000093  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000093*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000093)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000093',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000093*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000093_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000094/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000094'
+         END AS "000093",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000093*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000093_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000094/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000094"
         ,CASE WHEN a.lib_000095  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000095*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000095)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
-         END AS '000095',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000095*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000095_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000096/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS '000096'
+         END AS "000095",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000095*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000095_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000096/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS "000096"
         ,CASE WHEN a.lib_000097  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000097*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000097)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000097',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000097*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000097_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000098/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000098'
+         END AS "000097",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000097*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000097_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000098/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000098"
         ,CASE WHEN a.lib_000099  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000099*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000099)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000099',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000099*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as  '000099_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000100*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000100'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000101/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000101'
+         END AS "000099",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000099*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000099_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000100*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000100"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000101/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000101"
         ,CASE WHEN a.lib_000102  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000102*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000102)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000102',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000102*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000102_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000103*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000103'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000104/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000104'
+         END AS "000102",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000102*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000102_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000103*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000103"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000104/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000104"
         ,CASE WHEN a.lib_000105  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000105*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000105)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000105'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000106*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000106'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000107/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000107'
+         END AS "000105"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000106*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000106"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000107/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000107"
         ,CASE WHEN a.lib_000108  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000108*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000108)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
-         END AS '000108',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000108*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000108_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000109*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000109'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000110/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000110'
+         END AS "000108",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000108*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000108_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000109*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000109"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000110/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000110"
         ,CASE WHEN a.lib_000111  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000111*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000111)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000111',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000111*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as '000111_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000112*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000112'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000113/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000113'
+         END AS "000111",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000111*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000111_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000112*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000112"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000113/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000113"
         ,CASE WHEN a.lib_000114  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000114*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000114)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
-         END AS '000114',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000114*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  as '000114_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000115*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000115'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000116*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000116'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000117/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000117'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000119*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')   AS '000119'
+         END AS "000114",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000114*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS "000114_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000115*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000115"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000116*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000116"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000117/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000117"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000119*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')   AS "000119"
         ,CASE WHEN a.lib_000120  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000120*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000120)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000120',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000120*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as  '000120_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000121*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS '000121'
+         END AS "000120",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000120*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000120_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000121*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS "000121"
         ,CASE WHEN a.lib_000122  &gt;  0
          THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000122*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
          ELSE  CONCAT('低', CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000122*100)))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
-         END AS '000122',
-		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000122*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')   as '000122_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000123*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')   AS '000123'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000125/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000125'
+         END AS "000122",
+		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000122*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')   AS "000122_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000123*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')   AS "000123"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000125/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000125"
         ,CASE WHEN a.lib_000126  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000126*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000126)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
-         END AS '000126',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000126*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  as '000126_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000127*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS '000127'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000128/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000128'
+         END AS "000126",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000126*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000126_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000127*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS "000127"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000128/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000128"
         ,CASE WHEN a.lib_000129  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000129*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000129)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
-         END AS '000129',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000129*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  as '000129_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000130*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS '000130'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000131/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000131'
+         END AS "000129",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000129*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000129_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000130*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS "000130"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000131/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000131"
         ,CASE WHEN a.lib_000132  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000132*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000132)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
-         END AS '000132',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000132*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  as '000132_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000133/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000133'
+         END AS "000132",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000132*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000132_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000133/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000133"
         ,CASE WHEN a.lib_000134  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000134*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000134)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
-         END AS '000134',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000134*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  as '000134_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000135/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000135'
+         END AS "000134",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000134*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000134_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000135/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000135"
         ,CASE WHEN a.lib_000136  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000136*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000136)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ') )
-         END AS '000136',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000136*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  as '000136_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000137*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS '000137'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000138/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000138'
+         END AS "000136",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000136*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000136_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000137*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')   AS "000137"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000138/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000138"
         ,CASE WHEN a.lib_000139  &gt;  0
          THEN  CONCAT('增支',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000139/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
          ELSE  CONCAT('减支', concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000139/${params.AMT_UNIT})))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') )
-         END AS '000139',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000139/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000139_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000140*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS '000140'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000141*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS '000141'
+         END AS "000139",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000139/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000139_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000140*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000140"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000141*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' ')  AS "000141"
         ,CASE WHEN a.lib_000142  &gt;  0
          THEN  CONCAT('高',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000142*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
          ELSE  CONCAT('低', CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000142*100)))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),' ') )
-         END AS '000142',
-		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000142*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')   as  '000142_lib'
+         END AS "000142",
+		 CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000142*100))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|') ,' ')   AS "000142_lib"
 		 ,CASE WHEN a.lib_000143  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000143*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000143)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' '))
-         END AS '000143'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000141*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000141'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000145*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000145'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000146/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000146'
+         END AS "000143"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000141*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000141"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000145*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000145"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000146/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000146"
         ,CASE WHEN a.lib_000147  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000147*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000147)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' '))
-         END AS '000147',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000147*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  as '000147_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000148*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS '000148'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000149/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000149'
+         END AS "000147",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000147*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS "000147_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000148*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ')  AS "000148"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000149/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000149"
         ,CASE WHEN a.lib_000150  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000150*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000150)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' '))
-         END AS '000150',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000150*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  as  '000150_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000151*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000151'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000152/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000152'
+         END AS "000150",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000150*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000150_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000151*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000151"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000152/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000152"
         ,CASE WHEN a.lib_000153  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000153*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降', concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000153)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000153',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000153*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as  '000153_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000154/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000154'
+         END AS "000153",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000153*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000153_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000154/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000154"
         ,CASE WHEN a.lib_000155  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000155*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000155)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000155',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000155*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as  '000155_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000156*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000156'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000157/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000157'
+         END AS "000155",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000155*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000155_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000156*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000156"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000157/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000157"
         ,CASE WHEN a.lib_000158  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000158*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000158)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000158',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000158*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000158_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000159*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000159'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000160/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000160'
+         END AS "000158",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000158*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000158_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000159*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000159"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000160/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000160"
         ,CASE WHEN a.lib_000161  &gt;  0
         THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000161*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000161)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000161',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000161*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000161_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000162/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000162'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000163*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000163'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000164*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000164'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000165/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000165'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000166*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000166'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000167*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS '000167'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000168/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000168'
+         END AS "000161",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000161*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000161_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000162/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000162"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000163*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000163"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000164*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000164"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000165/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000165"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000166*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000166"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000167*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')  AS "000167"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000168/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000168"
         ,CASE WHEN a.lib_000169  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000169*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000169)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000169',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000169*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000169_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000170/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000170'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000171/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000171'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000172/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000172'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000173/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000173'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000174*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') AS '000174'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000175/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000175'
+         END AS "000169",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000169*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000169_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000170/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000170"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000171/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000171"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000172/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000172"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000173/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000173"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000174*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00') ,',','|'),' ') AS "000174"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000175/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000175"
         ,CASE WHEN a.lib_000176  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000176*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000176)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000176',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000176*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000176_lib'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000177/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000177'
+         END AS "000176",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000176*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000176_lib"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000177/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000177"
         ,CASE WHEN a.lib_000178  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000178*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000178)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000178',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000178*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000178_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000179*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000179'
-	    ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000180/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000180'
+         END AS "000178",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000178*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000178_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000179*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000179"
+	    ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000180/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000180"
         ,CASE WHEN a.lib_000181  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000181*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000181)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000181',
-		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000181*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') as '000181_lib'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000182*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000182'
-	    ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000183/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000183'
-	     ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000433/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000433'
+         END AS "000181",
+		 concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000181*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000181_lib"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000182*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000182"
+	    ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000183/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000183"
+	     ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000433/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000433"
 	    ,CASE WHEN a.lib_000434  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000434*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000434)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000434'
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000435/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000435'
-        , (SELECT count(a.INDEX_DIM_DESCR) AS INDEX_VALUE
+         END AS "000434"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000435/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS "000435"
+        , (SELECT count(a.INDEX_DIM_DESCR) AS "INDEX_VALUE"
 			 FROM  indicators_lib.lib_indicators_000436 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE <![CDATA[  <> ]]> '500000'
 		    AND ACCOUNT_PERIOD  ='${params.ACCOUNT_PERIOD}'
-		    and INDEX_VALUE &gt; 0) AS '000435_lib'
-        ,(SELECT count(a.INDEX_DIM_DESCR) AS INDEX_VALUE
+		    and INDEX_VALUE &gt; 0) AS "000435_lib"
+        ,(SELECT count(a.INDEX_DIM_DESCR) AS "INDEX_VALUE"
 			 FROM  indicators_lib.lib_indicators_000436 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND ACCOUNT_PERIOD  ='${params.ACCOUNT_PERIOD}'
-		    and INDEX_VALUE*100 &lt; -30) AS '435_lib_30'
+		    and INDEX_VALUE*100 &lt; -30) AS "435_lib_30"
         ,CASE WHEN a.lib_000436  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000436*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000436)*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000436'
-         ,(SELECT COALESCE(string_agg(REPLACE(concat(TO_CHAR(ROUND(CAST(NULLIF(((COALESCE(a.AMOUNT_RATIO,0) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),'%'),',','|'),'、'),'') AS INDEX_VALUE
+         END AS "000436"
+         ,(SELECT COALESCE(string_agg(REPLACE(concat(TO_CHAR(ROUND(CAST(NULLIF(((COALESCE(a.AMOUNT_RATIO,0) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),'%'),',','|'),'、'),'') AS "INDEX_VALUE"
        FROM  report.lib_indicators_000437 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
-		    AND ACCOUNT_PERIOD  ='${params.ACCOUNT_PERIOD}') AS '000437'
-        ,(SELECT COALESCE(string_agg(a.SUBJECT_DSCR,'|' ORDER BY a.SUBJECT_DSCR),'') AS INDEX_VALUE
+		    AND ACCOUNT_PERIOD  ='${params.ACCOUNT_PERIOD}') AS "000437"
+        ,(SELECT COALESCE(string_agg(a.SUBJECT_DSCR,'|' ORDER BY a.SUBJECT_DSCR),'') AS "INDEX_VALUE"
        FROM  report.lib_indicators_000437 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
-		    AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}') AS lib_000437_subject
-        , (SELECT COALESCE(string_agg(REPLACE(concat(TO_CHAR(ROUND(CAST(NULLIF(((COALESCE(a.AMOUNT_RATIO,0) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),'%'),',','|'),'、'),'') AS INDEX_VALUE
+		    AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}') AS "lib_000437_subject"
+        , (SELECT COALESCE(string_agg(REPLACE(concat(TO_CHAR(ROUND(CAST(NULLIF(((COALESCE(a.AMOUNT_RATIO,0) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),'%'),',','|'),'、'),'') AS "INDEX_VALUE"
        FROM  report.lib_indicators_000438 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
-		    AND ACCOUNT_PERIOD  ='${params.ACCOUNT_PERIOD}') AS '000438'
-        , (SELECT COALESCE(string_agg(a.SUBJECT_DSCR,'|' ORDER BY a.SUBJECT_DSCR),'') AS INDEX_VALUE
+		    AND ACCOUNT_PERIOD  ='${params.ACCOUNT_PERIOD}') AS "000438"
+        , (SELECT COALESCE(string_agg(a.SUBJECT_DSCR,'|' ORDER BY a.SUBJECT_DSCR),'') AS "INDEX_VALUE"
        FROM  report.lib_indicators_000438 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
-		    AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}') AS lib_000438_subject
-        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000189/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000394'
+		    AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}') AS "lib_000438_subject"
+        ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000189/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000394"
            ,CASE WHEN a.lib_000190  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000190 /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000190) /${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000395'
+         END AS "000395"
             ,CASE WHEN a.lib_000191  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000191 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000191)  * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000396'
-         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000439/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS '000439'
+         END AS "000396"
+         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000439/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ')   AS "000439"
         ,CASE WHEN a.lib_000440  &gt;  0
          THEN  CONCAT('增长',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000440 * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
          ELSE  CONCAT('下降',concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000440)  * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '))
-         END AS '000440'
+         END AS "000440"
 
         FROM report.report_text a
         WHERE    a.INDEX_DIM_CODE = '500000'
@@ -839,7 +839,7 @@
     <select id="getAreaParams" resultType="java.util.HashMap">
 		SELECT
 	  ( SELECT
-        COALESCE(string_agg(INDEX_DIM_DESCR,'、'),'') AS area_dscr
+        COALESCE(string_agg(INDEX_DIM_DESCR,'、'),'') AS "area_dscr"
 	    FROM
 	      (SELECT
 		*
@@ -850,7 +850,7 @@
 		AND c.INDEX_DIM_CODE <![CDATA[  <> ]]> '500000'
 		AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
 	      order by  c.INDEX_VALUE   desc
-	      LIMIT 3) v) AS area_1,
+	      LIMIT 3) v) AS "area_1",
 	  (SELECT
       COALESCE(string_agg(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((m.INDEX_VALUE / ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END )),'、'),'')
 	  FROM ( select  INDEX_VALUE from
@@ -860,7 +860,7 @@
 	    AND c.INDEX_DIM_CODE <![CDATA[  <> ]]> '500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
 	 order by  c.INDEX_VALUE DESC
-	  LIMIT 3)m )  AS value_1,
+	  LIMIT 3)m )  AS "value_1",
 	  (SELECT
       COALESCE(string_agg(c.SUBJECT_DSCR,'、' ORDER BY INDEX_VALUE DESC),'')
 	  FROM
@@ -869,7 +869,7 @@
 	    AND c.DIMENSION_FLAG = '2'
 	     AND c.INDEX_DIM_CODE = '500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-	    ) AS subject_1,
+	    ) AS "subject_1",
 	  (SELECT
         COALESCE(string_agg(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((m.INDEX_VALUE / ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END )),'、'),'')
 	  FROM ( select INDEX_VALUE from
@@ -879,7 +879,7 @@
 	     AND c.INDEX_DIM_CODE = '500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
 	      order by INDEX_VALUE desc
-	    )m) AS value_4,
+	    )m) AS "value_4",
 	  (SELECT
       COALESCE(string_agg(concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((c.AMOUNT_RATIO * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'%'),'、' ORDER BY INDEX_VALUE DESC),'')
 	  FROM
@@ -888,9 +888,9 @@
 	    AND c.DIMENSION_FLAG = '2'
 	     AND c.INDEX_DIM_CODE = '500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-	    ) AS ratio_1,
+	    ) AS "ratio_1",
 	  (SELECT
-         COALESCE(string_agg(INDEX_DIM_DESCR,'、'),'') AS area_dscr
+         COALESCE(string_agg(INDEX_DIM_DESCR,'、'),'') AS "area_dscr"
 	    FROM
 	      (SELECT
 		*
@@ -901,7 +901,7 @@
 		AND c.INDEX_DIM_CODE <![CDATA[  <> ]]> '500000'
 		AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
 	      order  BY c.INDEX_VALUE DESC
-	      LIMIT 3) d) AS stock_area_1,
+	      LIMIT 3) d) AS "stock_area_1",
 	  (SELECT
        COALESCE(string_agg(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((m.INDEX_VALUE / ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),(SELECT CASE WHEN '${params.AMT_UNIT}'='1' THEN '元' WHEN '${params.AMT_UNIT}'='10000' THEN '万元' ELSE '亿元' END )),'、'),'')
 	  FROM  (select INDEX_VALUE from
@@ -911,7 +911,7 @@
 	    AND c.INDEX_DIM_CODE <![CDATA[  <> ]]> '500000'
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
     ORDER BY c.INDEX_VALUE DESC
-	  LIMIT 3) m) AS value_7,
+	  LIMIT 3) m) AS "value_7",
 	  (SELECT
       COALESCE(area_dscr,'')
 	  FROM
@@ -930,7 +930,7 @@
         AND c.INDEX_DIM_CODE <![CDATA[  <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
         ORDER BY c.INDEX_VALUE
-        LIMIT 1) c) ) AS stock_area_min,
+        LIMIT 1) c) ) AS "stock_area_min",
 	  (SELECT
       replace(TO_CHAR(ROUND(CAST(NULLIF(((COALESCE(c.INDEX_VALUE,0) / ${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')
 	  FROM
@@ -941,7 +941,7 @@
 	    AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
 	    ORDER BY c.INDEX_VALUE
         LIMIT 1
-	    ) AS value_10
+	    ) AS "value_10"
     </select>
 
     <!-- 获取生成报告的文本及参数信息 -->
@@ -958,7 +958,7 @@
         AND c.DIMENSION_FLAG = '2'
         and INDEX_DIM_CODE <![CDATA[ <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        AND INDEX_VALUE <![CDATA[ > ]]> 0) a) AS num_1,
+        AND INDEX_VALUE <![CDATA[ > ]]> 0) a) AS "num_1",
         (SELECT
         COUNT(1)
         FROM
@@ -970,7 +970,7 @@
         AND c.DIMENSION_FLAG = '2'
         and INDEX_DIM_CODE <![CDATA[ <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        AND INDEX_VALUE <![CDATA[ < ]]> 0) a) AS num_2 ,
+        AND INDEX_VALUE <![CDATA[ < ]]> 0) a) AS "num_2" ,
         (SELECT
         COUNT(1)
         FROM
@@ -982,7 +982,7 @@
         AND c.DIMENSION_FLAG = '2'
         and INDEX_DIM_CODE <![CDATA[ <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        AND INDEX_VALUE * 100  <![CDATA[> ]]> 50) a) AS num_3,
+        AND INDEX_VALUE * 100  <![CDATA[> ]]> 50) a) AS "num_3",
         (SELECT
         COUNT(1)
         FROM
@@ -994,7 +994,7 @@
         AND c.DIMENSION_FLAG = '2'
         and INDEX_DIM_CODE <![CDATA[ <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        AND INDEX_VALUE * 100  <![CDATA[ < ]]> -10) a) AS num_4,
+        AND INDEX_VALUE * 100  <![CDATA[ < ]]> -10) a) AS "num_4",
         (SELECT
         COUNT(1)
         FROM
@@ -1006,7 +1006,7 @@
         AND c.DIMENSION_FLAG = '2'
         and INDEX_DIM_CODE <![CDATA[ <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        AND INDEX_VALUE <![CDATA[> ]]> 0) a) AS num_5,
+        AND INDEX_VALUE <![CDATA[> ]]> 0) a) AS "num_5",
         (SELECT
         COUNT(1)
         FROM
@@ -1018,7 +1018,7 @@
         AND c.DIMENSION_FLAG = '2'
         and INDEX_DIM_CODE <![CDATA[ <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        AND INDEX_VALUE <![CDATA[ < ]]> 0) a) AS num_6 ,
+        AND INDEX_VALUE <![CDATA[ < ]]> 0) a) AS "num_6" ,
         (SELECT
         COUNT(1)
         FROM
@@ -1030,7 +1030,7 @@
         AND c.DIMENSION_FLAG = '2'
         and INDEX_DIM_CODE <![CDATA[ <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        AND INDEX_VALUE * 100 <![CDATA[> ]]> 50) a) AS num_7,
+        AND INDEX_VALUE * 100 <![CDATA[> ]]> 50) a) AS "num_7",
         (SELECT
         COUNT(1)
         FROM
@@ -1042,13 +1042,24 @@
         AND c.DIMENSION_FLAG = '2'
         and INDEX_DIM_CODE <![CDATA[ <> ]]> '500000'
         AND c.ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        AND INDEX_VALUE * 100  <![CDATA[ < ]]> -10) a) AS num_8
+        AND INDEX_VALUE * 100  <![CDATA[ < ]]> -10) a) AS "num_8"
     </select>
 
     <!-- 获取生成报告的文本及参数信息 -->
     <select id="getMonthlyReport" resultType="java.util.Map">
         SELECT
-        *
+      c.REPORT_TYPE_ID AS "REPORT_TYPE_ID",
+      c.REPORT_ID AS "REPORT_ID",
+      c.AMT_UNIT AS "AMT_UNIT",
+      c.AMT_UNIT_NAME AS "AMT_UNIT_NAME",
+      c.ACCOUNT_PERIOD AS "ACCOUNT_PERIOD",
+      c.textList AS "textList",
+      c.tableParams AS "tableParams",
+      c.tableParams2 AS "tableParams2",
+      c.tableParams3 AS "tableParams3",
+      c.echartsData AS "echartsData",
+      c.areaAll AS "areaAll",
+      c.numAll AS "numAll"
         from report.t_month_report_fact c
         <where>
             c.REPORT_ID = '${params.REPORT_ID}'
@@ -1057,8 +1068,8 @@
     <!-- 获取生成报告的文本及参数信息 -->
     <select id="getAreaReport" resultType="java.util.Map">
         SELECT
-              a.area_no_id AS id,
-             a.area_dscr AS name,
+              a.area_no_id AS "id",
+             a.area_dscr AS "name",
              a.pid
 
             FROM
@@ -1106,20 +1117,20 @@
           SUBSTR(ACCOUNT_PERIOD,6,1) ='0'
           THEN   SUBSTR(ACCOUNT_PERIOD,7,1)
           ELSE   SUBSTR(ACCOUNT_PERIOD,6,2)
-          END AS MONTH,
+          END AS "MONTH",
           SUBSTR(ACCOUNT_PERIOD,1,4)  as YEAR,DIM_DESC,
-          echart1_1 as echart1_1,
-          echart1_2 as echart1_2,
-          echart1_3 as echart1_3,
-          echart2_1 as echart2_1,
-          echart2_2 as echart2_2,
-          echart2_3 as echart2_3,
-          echart3_1 as echart3_1,
-          echart3_2 as echart3_2,
-          echart3_3 as echart3_3,
-          echart4_1 as echart4_1,
-          echart4_2 as echart4_2,
-          echart4_3 as echart4_3
+          echart1_1 AS "echart1_1",
+          echart1_2 AS "echart1_2",
+          echart1_3 AS "echart1_3",
+          echart2_1 AS "echart2_1",
+          echart2_2 AS "echart2_2",
+          echart2_3 AS "echart2_3",
+          echart3_1 AS "echart3_1",
+          echart3_2 AS "echart3_2",
+          echart3_3 AS "echart3_3",
+          echart4_1 AS "echart4_1",
+          echart4_2 AS "echart4_2",
+          echart4_3 AS "echart4_3"
    FROM report.t_sys_report_guoku a where REPORT_ID='${params.REPORT_ID}'
     </select>
 </mapper>

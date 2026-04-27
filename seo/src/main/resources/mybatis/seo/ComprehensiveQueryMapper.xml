@@ -60,7 +60,7 @@
     </select>
 
     <select id="getColumn" resultType="java.util.Map">
-        SELECT CONCAT(TABLE_SIGN,'.',FIELD_SIGN,'▲',INPUT_TYPE)as FIELD_SIGN,FIELD_NAME,FIELD_SIGN as FIELD_EN , FOR_SKIP as FOR_SKIP FROM
+        SELECT CONCAT(TABLE_SIGN,'.',FIELD_SIGN,'▲',INPUT_TYPE)as "FIELD_SIGN",FIELD_NAME AS "FIELD_NAME",FIELD_SIGN as "FIELD_EN" , FOR_SKIP as "FOR_SKIP" FROM
         edw.fm_trs_guoku_base_table
         where 1=1
         <if test="params.TABLE_SIGN!=null and params.TABLE_SIGN != ''">
@@ -76,7 +76,7 @@
 
     <select id="getType" resultType="java.util.Map">
         SELECT
-        a.DBNAME,b.TYPE
+        a.DBNAME AS "DBNAME",b.TYPE AS "TYPE"
         FROM
         seo.seo_datasource_database a,
         seo.seo_datasource b

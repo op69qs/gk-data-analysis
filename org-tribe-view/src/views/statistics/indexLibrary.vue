@@ -20,7 +20,7 @@
                                          style="width:100%;">
                                 <a-select
                                         v-model="queryParam.dimensionFlag"
-                                        placeholder="请输入维度"
+                                        placeholder="请选择维度"
                                         @change="select"
 
                                 >
@@ -34,11 +34,11 @@
                             </a-form-item>
                         </a-col>
                         <a-col :md="24" :sm="24" style="margin:10px 0;">
-                            <a-form-item label="周    期" :labelCol="{span: 4}" :wrapperCol="{span: 18, offset:1}"
+                            <a-form-item label="账    期" :labelCol="{span: 4}" :wrapperCol="{span: 18, offset:1}"
                                          style="width:100%;">
                                 <a-select
                                         v-model="queryParam.periodFlag"
-                                        placeholder="请输入周期"
+                                        placeholder="请选择账期"
                                         @change="select1"
 
                                 >
@@ -53,23 +53,15 @@
                         </a-col>
                     </a-row>
                 </a-form>
-                <div class="model-title">公共指标
+                <div class="model-title">指标树
                     <span
                             style="float:right;margin-right:10px;color: #1890FF;font-weight:normal;cursor:pointer;"
                     ><a-icon type="reload" @click="reload" style="margin-right:15px;color: #868686;"/><span
-                            @click="downnew">指标导出</span></span>
+                            @click="downnew">指标树导出</span></span>
                 </div>
                 <a-row>
                     <a-col :md="24" :sm="24">
-                        <!-- <el-input
-              placeholder="请输入指标关键字查询"
-              v-model="queryParam.filterText"
-              icon="circle-close"
-              :on-icon-click="handleIconClick"
-              class="wd228"
-            ></el-input>
-            <a-button  @click="getDatas" style="margin-left:20px;border:1px solid rgba(24, 144, 255, 1);color:rgba(24, 144, 255, 1)">搜索</a-button> -->
-                        <a-input-search style="padding:4px 6px 4px 0;" placeholder="请输入指标关键字查询"
+                        <a-input-search style="padding:4px 6px 4px 0;" placeholder="请输入指标树节点关键字查询"
                                         v-model="queryParam.filterText" @change="getDatas"></a-input-search>
                     </a-col>
                 </a-row>
@@ -79,366 +71,13 @@
           v-loading="loading"
           :data="treeData"
           :props="defaultProps"
-          :show-checkbox="(queryParam.dimensionFlag===undefined||queryParam.periodFlag===undefined)?false:true"
-          default-expand-all
-          :check-strictly="true"
-          @check="handleCheck"
-          @node-click="handleNode"
-          ref="tree"
-          @node-contextmenu="rightClick"
+          :highlight-current="true"
+          :expand-on-click-node="false"
           node-key="id"
-          highlight-current
-        >
-          <span class="span-ellipsis" style="z-index:10;" slot-scope="{ node, data }">
-            <span v-on:mouseover="enter($event,node)" v-on:mouseleave="leave($event,node)">{{ node.label.split('▲')[0] }}</span>
-          </span>
-                    </el-tree>
-                    <div v-if="dragVisible" draggable="true" class="dragfile"
-                         style="width:100%;position:absolute;top:0px;cursor:move;"></div>
+          @node-click="handleNodeClick"
+          ref="tree"
+        ></el-tree>
                 </div>
-                <div id="perTreeMenu1" @click="getInfo" v-if="menuVisible1" class="tree_menu1" :style="{...rightMenu1}">
-                    <!-- <ul>
-              <li @click="getInfo"><i class="el-icon-tickets"></i> 详情</li>
-            </ul> -->
-                    {{INDEX_DESCR}}
-                    <a v-if="rest.INDEX_DETAILS" style="display:block;float:right;margin-top:20px"
-                       @click="getInfo">详情</a>
-                </div>
-                <div id="perTreeMenu" v-if="menuVisible" class="tree_menu" :style="{...rightMenu}">
-                    <ul>
-                        <li @click="getInfo"><i class="el-icon-tickets"></i> 详情</li>
-                    </ul>
-                </div>
-                <div class="model-title" style="margin-top:20px;">
-                    我的指标
-                    <span
-                            style="float:right;margin-right:10px;color: #1890FF;font-weight:normal;cursor:pointer;"
-
-                    ><a-icon type="reload" @click="reloads" style="margin-right:15px;color: #868686;"/><span
-                            @click="opennew">新增</span></span>
-                </div>
-                <a-row>
-                    <a-col :md="24" :sm="24">
-                        <!-- <el-input
-              placeholder="请输入指标关键字查询"
-              v-model="queryParam.filterTexts"
-              icon="circle-close"
-              :on-icon-click="handleIconClick"
-              class="wd228"
-            ></el-input>
-            <a-button  style="margin-left:20px;border:1px solid rgba(24, 144, 255, 1);color:rgba(24, 144, 255, 1);" @click="getDatas2">搜索</a-button> -->
-                        <a-input-search style="padding:4px 6px 4px 0;" placeholder="请输入指标关键字查询"
-                                        v-model="queryParam.filterTexts" @change="getDatas2"></a-input-search>
-                    </a-col>
-                </a-row>
-                <div style="position:relative;">
-                    <el-tree
-                            id="filter-tree1"
-                            :data="treeDatas"
-                            :props="defaultProps"
-                            v-loading="loading1"
-                            :show-checkbox="(queryParam.dimensionFlag===undefined||queryParam.periodFlag===undefined)?false:true"
-                            default-expand-all
-                            :check-strictly="true"
-                            @check="handleCheck1"
-                            @node-click="handleNode1"
-                            ref="tree1"
-                            node-key="id"
-                            highlight-current
-                    >
-          <span class="span-ellipsis" style="z-index:10;" slot-scope="{ node, data }">
-            <span v-on:mouseover="enter($event,node)" v-on:mouseleave="leave($event,node)">{{ node.label.split('▲')[0] }}</span>
-          </span>
-                    </el-tree>
-                    <div v-if="dragVisible1" draggable="true" class="dragfile1"
-                         style="width:100%;position:absolute;cursor:move;top:0px;"></div>
-                </div>
-            </div>
-            <div class="line" v-if="lineDisplay"
-                 style="float:left;height:615px;width:1px;background:rgb(204, 204, 204);"></div>
-            <div class="model-middle">
-                <!-- <button :disabled="disable" @click="moveRight"><icon-font type="icon-xiangzuo" style="font-size:28px;" /></button> -->
-                <!-- <a-button type="primary" icon="arrow-right" @click="moveicon-fontRight" :disabled="disable"></a-button> -->
-                <button @click="toggleAdvanced">
-                    <icon-font :type="this.advanced===false?'icon-xiangyoushuangjiantou':'icon-xiangzuoshuangjiantou'"
-                               style="font-size:18px;margin-right:5px;"/>
-                </button>
-            </div>
-            <div class="model-right" id="model-right">
-                <a-form :form="form1">
-                    <a-row style="margin-bottom:20px;">
-                        <a-col :md="10" :sm="10" v-if="showSearch">
-                            <a-form-item
-                                    label="账期"
-                                    :labelCol="{span: 2}"
-                                    :wrapperCol="{span: 19, offset: 1}"
-                                    v-if="check1"
-                                    :validate-status="validateStatus2||validateStatus6"
-
-                            >
-                                <span slot="help">{{ validateStatus2=='error'?'请选择账期':'&nbsp;&nbsp;' }}</span>
-                                <span style="color:red;" slot="help">{{ validateStatus6=='error'?'请重新选择':'&nbsp;&nbsp;' }}</span>
-                                <!-- <a-range-picker style="width: 100%" v-model="model.startDate" /> -->
-                                <a-date-picker style="width: 46%"
-                                               placeholder="请选择日期" v-model="model.startDate"/>
-                                ~
-                                <a-date-picker style="width: 46%"
-                                               placeholder="请选择日期" v-model="model.endDate"/>
-                            </a-form-item>
-                            <a-form-item
-                                    label="账期"
-                                    :labelCol="{span: 2}"
-                                    :wrapperCol="{span: 19, offset: 1}"
-                                    v-if="check2"
-                                    :validate-status="validateStatus2||validateStatus7"
-
-                            >
-                                <span slot="help">{{ validateStatus2=='error'?'请选择账期':'&nbsp;&nbsp;' }}</span>
-                                <span slot="help" style="color:red;">{{ validateStatus7=='error'?'请重新选择':'&nbsp;&nbsp;' }}</span>
-                                <a-month-picker
-                                        style="width: 46%"
-                                        placeholder="请选择月份"
-                                        v-model="model.startDate"
-                                />
-                                ~
-                                <a-month-picker
-                                        style="width: 46%"
-                                        placeholder="请选择月份"
-                                        v-model="model.endDate"
-                                />
-                            </a-form-item>
-                            <a-form-item
-                                    label="账期"
-                                    :labelCol="{span: 2}"
-                                    :wrapperCol="{span: 19, offset: 1}"
-                                    v-if="check3"
-                                    :validate-status="validateStatus2||validateStatus8"
-
-                            >
-                                <span slot="help">{{ validateStatus2=='error'?'请选择账期':'&nbsp;&nbsp;' }}</span>
-                                <span slot="help" style="color:red;">{{ validateStatus8=='error'?'请重新选择':'&nbsp;&nbsp;' }}</span>
-                                <!-- <a-select v-model="model.startDate" placeholder="请选择年份" style="width:46%;">
-                <a-icon slot="suffixIcon" type="calendar" />
-                <a-select-option
-                  :value="d.id"
-                  v-for="d in YEAR_OPTIONS"
-                  :key="d.id"
-                >{{d.label}}</a-select-option></a-select> -->
-                                <a-date-picker placeholder="请输入年度查询" mode="year" style="width: 46%"
-                                               @panelChange="e=>{model.startDate = e;yearOpen = false;}" format="YYYY"
-                                               v-model="model.startDate" :open="yearOpen"
-                                               @focus="yearOpen = true"></a-date-picker>
-                                ~
-                                <a-date-picker placeholder="请输入年度查询" mode="year" style="width: 46%"
-                                               @panelChange="e=>{model.endDate = e;yearOpen1 = false;}" format="YYYY"
-                                               v-model="model.endDate" :open="yearOpen1"
-                                               @focus="yearOpen1 = true"></a-date-picker>
-                                <!-- <a-select v-model="model.endDate" placeholder="请选择年份" style="width:46%;">
-                <a-icon slot="suffixIcon" type="calendar" />
-                <a-select-option
-                  :value="d.id"
-                  v-for="d in YEAR_OPTIONS"
-                  :key="d.id"
-                >{{d.label}}</a-select-option>
-              </a-select> -->
-                            </a-form-item>
-                            <a-form-item
-                                    label="账期"
-                                    :labelCol="{span: 2}"
-                                    :wrapperCol="{span: 19, offset: 1}"
-                                    v-if="check4"
-                                    :validate-status="validateStatus2||validateStatus9"
-
-                            >
-                                <span slot="help">{{ validateStatus2=='error'?'请选择账期':'&nbsp;&nbsp;' }}</span>
-                                <span slot="help" style="color:red;">{{ validateStatus9=='error'?'请重新选择':'&nbsp;&nbsp;' }}</span>
-                                <data-month
-                                        :choseQuarter="startquarter"
-                                        :choseQuarter1="endquarter"
-                                        @startquarter="startquarter1"
-                                        @endquarter="endquarter1"
-                                ></data-month>
-                            </a-form-item>
-                        </a-col>
-                        <a-col :md="10" :sm="10" v-if="showSearch">
-                            <a-form-item
-                                    label="国库"
-                                    :labelCol="{span: 2}"
-                                    :wrapperCol="{span: 19, offset:1}"
-                                    hasFeedback
-                                    :validate-status="validateStatus1"
-                                    v-if="status1"
-
-                            >
-                                <span slot="help">{{ validateStatus1=='error'?'请选择国库':'&nbsp;&nbsp;' }}</span>
-                                <a-tree-select
-                                        style="width:100%"
-                                        showSearch
-                                        multiple
-                                        :maxTagCount="1"
-                                        treeNodeFilterProp="label"
-                                        :dropdownStyle="{ maxHeight: '200px', overflow: 'auto' }"
-                                        :treeData="guokuData"
-                                        v-model="model.dimCode"
-                                        placeholder="请选择国库"
-                                ></a-tree-select>
-                            </a-form-item>
-                            <a-form-item
-                                    label="地区"
-                                    :labelCol="{span: 2}"
-                                    :wrapperCol="{span: 19, offset: 1}"
-                                    v-if="status2"
-                                    :validate-status="validateStatus1"
-
-                            >
-                                <span slot="help">{{ validateStatus1=='error'?'请选择地区':'&nbsp;&nbsp;' }}</span>
-                                <a-tree-select
-                                        style="width:100%"
-                                        multiple
-                                        :maxTagCount="1"
-                                        :dropdownStyle="{ maxHeight: '200px', overflow: 'auto' }"
-                                        :treeData="areaTreeData"
-                                        v-model="model.dimCode"
-                                        placeholder="请选择地区"
-                                ></a-tree-select>
-                            </a-form-item>
-                            <a-form-item
-                                    label="核算主体"
-                                    :labelCol="{span: 5}"
-                                    :wrapperCol="{span: 19, offset:1}"
-                                    hasFeedback
-                                    required
-                                    :validate-status="validateStatus1"
-                                    v-if="status3"
-                            >
-                                <span slot="help">{{ validateStatus1=='error'?'请选择核算主体':'&nbsp;&nbsp;' }}</span>
-                                <a-tree-select
-                                        style="width:100%"
-                                        showSearch
-                                        multiple
-                                        :maxTagCount="1"
-                                        treeNodeFilterProp="label"
-                                        :dropdownStyle="{ maxHeight: '200px', overflow: 'auto' }"
-                                        :treeData="hesuanData"
-                                        v-model="model.dimCode"
-                                        placeholder="请选择检查机构"
-                                ></a-tree-select>
-                            </a-form-item>
-                        </a-col>
-
-                        <a-col :md="4" :sm="4" v-if="showSearch">
-                            <a-form-item
-                                    label="单位"
-                                    :labelCol="{span: 7}"
-                                    :wrapperCol="{span: 15, offset:1}"
-                                    hasFeedback
-                                    :validate-status="validateStatus3"
-                            >
-                                <span slot="help">{{ validateStatus3=='error'?'请选择金额单位':'&nbsp;&nbsp;' }}</span>
-                                <a-select
-                                        v-model="price"
-                                        placeholder="请选择金额单位"
-                                        style="width:100%;"
-                                        @select="selectPrices"
-                                >
-                                    <a-select-option
-                                            :value="d.id"
-                                            v-for="d in PRICE_OPTIONS"
-                                            :key="d.id"
-                                    >{{d.label}}
-                                    </a-select-option>
-                                </a-select>
-                            </a-form-item>
-                        </a-col>
-
-                        <a-col :md="24" :sm="24" style="margin-top:12px;">
-                            <a-button type="primary" @click="getData">查询</a-button>
-                            <a-button type="primary" style="margin-left: 8px"
-                                      @click="model = {},startquarter = '',endquarter = '',validateStatus1 = '',validateStatus2 = '',validateStatus3 = '',obj33 = {},price='1',selectPrice='1', getData(1)">
-                                重置条件
-                            </a-button>
-                            <!-- <a-button type="primary" style="margin-left: 8px"   @click="saveplan">保存方案</a-button> -->
-                            <a-button
-                                    type="primary"
-                                    style="margin-left: 8px"
-                                    @click="clearAll"
-                            >清空
-                            </a-button>
-                            <img class="chart" @click="download" style="margin-left: 8px;width:32px;"
-                                 src="~@/assets/5.png" alt="下载" title="下载"/>
-                            <img class="chart" @click="showChart" style="margin-left: 8px;width:32px;"
-                                 src="~@/assets/z.png" alt="图表" title="图表"/>
-                            <img class="chart" @click="checkplan" style="margin-left: 8px;width:32px;"
-                                 src="~@/assets/3.png" alt="查看方案" title="查看方案"/>
-                            <img class="chart" @click="saveplan" style="margin-left: 8px;width:32px;"
-                                 src="~@/assets/6.png" alt="保存方案" title="保存方案"/>
-                            <img class="chart" @click="filter" style="margin-left: 8px;width:32px;"
-                                 src="~@/assets/s.png" alt="组合过滤" title="组合过滤"/>
-                            <img class="chart" @click="sort" style="margin-left: 8px;width:32px;" src="~@/assets/2.png"
-                                 alt="组合排序" title="组合排序"/>
-                            <!-- <icon-font
-              title="下载"
-              class="chart"
-                type="icon-xiazai1"
-                style="margin-left: 8px;font-size:28px;"
-
-                @click="download"
-              />
-              <icon-font title="图表" type="icon-tubiaozhuzhuangtu" class="chart" @click="showChart" ></icon-font>
-              <icon-font title="查看方案" class="chart" type="icon-wj-fa" style="margin-left: 8px;font-size:28px;" @click="checkplan" />
-              <icon-font title="保存方案" class="chart" type="icon-baocun" style="margin-left: 8px;font-size:28px;" @click="saveplan" />
-              <icon-font
-                title="组合过滤"
-                class="chart"
-                type="icon-guolv"
-                style="margin-left: 8px;font-size:28px;"
-
-                @click="filter"
-              />
-              <icon-font
-                title="组合排序"
-                class="chart"
-                type="icon-paixu2"
-                style="margin-left: 8px;font-size:28px;"
-
-                @click="sort"
-              /> -->
-                        </a-col>
-                    </a-row>
-                </a-form>
-                <v-table
-                        ref="vTable"
-                        :tableData="tableData"
-                        :loadings="spinning"
-                        :tableDatas="tableDatas"
-                        :obj="obj"
-                        :level="level"
-                        :price="price"
-                        :record="record"
-                        :dataSource2="dataSource2"
-                        :planStatus="planStatus"
-                        @del="del"
-                        @toLoad="toLoad"
-                        @shows="shows"
-                ></v-table>
-                <div class="page">
-                    <el-pagination
-                            @current-change="handleCurrentChange"
-                            :page-size="100"
-                            :current-page.sync="currentPage"
-                            layout="total, prev, pager, next, jumper"
-                            :total="total"
-                    ></el-pagination>
-                </div>
-                <div id="models">
-                    <a-modal
-                            title="查看方案"
-                            width="40%"
-                            :visible="visible4"
-                            @ok="handlecheckOk"
-                            @cancel="handlecheckCancel"
-                            :maskClosable="false"
-                    >
                         <a-row style="margin-bottom:20px;">
                             <a-col :md="24" :sm="24">
                                 指标名称：

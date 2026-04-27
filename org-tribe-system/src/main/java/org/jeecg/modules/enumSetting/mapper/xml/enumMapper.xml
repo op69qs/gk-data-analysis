@@ -1,19 +1,19 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.jeecg.modules.enumSetting.mapper.EnumMapper">
 
     <select id="getData" resultType="java.util.HashMap">
         SELECT
-        ILLUSTRATE
-        ,ENUM_TYPE_ID
-        ,ENUM_TYPE_DSCR
-        ,ENUM_ID
-        ,ENUM_DSCR
-        ,STATE,
+        ILLUSTRATE AS "ILLUSTRATE"
+        ,ENUM_TYPE_ID AS "ENUM_TYPE_ID"
+        ,ENUM_TYPE_DSCR AS "ENUM_TYPE_DSCR"
+        ,ENUM_ID AS "ENUM_ID"
+        ,ENUM_DSCR AS "ENUM_DSCR"
+        ,STATE AS "STATE",
         case when STATE='0'
         then '在用'
         else '停用'
-        end as STATE_DSCR
+        end as "STATE_DSCR"
         FROM enumset.cm_guoku_enumeration a
         where ENUM_TYPE_ID='${params.ENUM_TYPE_ID}'
 
@@ -161,7 +161,7 @@
     <select id="getThird" resultType="java.util.HashMap">
         SELECT DISTINCT
         c.ENUM_ID AS id,
-        c.ENUM_DSCR AS NAME,
+        c.ENUM_DSCR AS "NAME",
         c.ENUM_TYPE_ID AS pid
         FROM
         enumset.cm_guoku_enumeration c

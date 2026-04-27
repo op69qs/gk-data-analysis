@@ -60,6 +60,15 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/sys/common/pdf/**", "anon");//pdf预览
 		filterChainDefinitionMap.put("/generic/**", "anon");//pdf预览需要文件
 		filterChainDefinitionMap.put("/", "anon");
+		filterChainDefinitionMap.put("/gallery", "anon");
+		filterChainDefinitionMap.put("/indexLibrary", "anon");
+		filterChainDefinitionMap.put("/statistics/indexLibrary", "anon");
+		filterChainDefinitionMap.put("/statistics/schemeIndex", "anon");
+		filterChainDefinitionMap.put("/BigScreen", "anon");
+		filterChainDefinitionMap.put("/bigScreen/TemplateList", "anon");
+		filterChainDefinitionMap.put("/BigScreen/PageList", "anon");
+		filterChainDefinitionMap.put("/BigScreen/ExhibitionSchemeList", "anon");
+		filterChainDefinitionMap.put("/bigScreen/AddTemplate", "anon");
 		filterChainDefinitionMap.put("/BigScreenPreview", "anon");
 		filterChainDefinitionMap.put("/BigScreenPreview/**", "anon");
 		filterChainDefinitionMap.put("/vis", "anon");

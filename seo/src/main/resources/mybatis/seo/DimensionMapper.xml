@@ -57,7 +57,11 @@
     </select>
 
     <insert id="addMain">
-        INSERT INTO ods.seo_dimension_main
+           INSERT INTO ods.seo_dimension_main
+           (
+           id,
+           name
+           )
         VALUES
         (
         #{params.id},

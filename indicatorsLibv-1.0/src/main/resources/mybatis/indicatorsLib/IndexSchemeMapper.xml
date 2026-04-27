@@ -130,7 +130,16 @@
 
     <!--    查询已保存的指标方案-->
     <select id="selectSchemeTable" resultType="hashmap">
-        SELECT s.ID,s.SCHEME_DESCR,s.SCHEME_CONDITON,s.IS_PUBLIC_SCHEME,indicators_lib.f_get_IndexName(s.SCHEME_COLUMS) AS INDEX_NAME,
+        SELECT s.ID,s.SCHEME_DESCR,s.SCHEME_CONDITON,s.IS_PUBLIC_SCHEME,
+        (
+            SELECT string_agg(
+                CASE WHEN o.INDEX_TYPE = '0' THEN o.INDEX_NAME
+                ELSE CONCAT(o.INDEX_NAME,'(%)') END,
+                ','
+            )
+            FROM indicators_lib.lib_index_relation o
+            WHERE POSITION(CONCAT(',', o.INDEX_ID, ',') IN CONCAT(',', COALESCE(s.SCHEME_COLUMS, ''), ',')) > 0
+        ) AS INDEX_NAME,
         IS_PUSH
         <!--  公共指标方案,需要关联方案关系表主键 -->
         <if test='params.isPublicScheme == "0"'>
@@ -173,7 +182,16 @@
     <!--    查询指标公共方案列表-->
     <select id="selectPublicScheme" resultType="hashmap">
         SELECT s.ID,s.SCHEME_DESCR,s.SCHEME_CONDITON,
-            s.IS_PUBLIC_SCHEME,indicators_lib.f_get_IndexName(s.SCHEME_COLUMS) AS INDEX_NAME,
+            s.IS_PUBLIC_SCHEME,
+            (
+                SELECT string_agg(
+                    CASE WHEN o.INDEX_TYPE = '0' THEN o.INDEX_NAME
+                    ELSE CONCAT(o.INDEX_NAME,'(%)') END,
+                    ','
+                )
+                FROM indicators_lib.lib_index_relation o
+                WHERE POSITION(CONCAT(',', o.INDEX_ID, ',') IN CONCAT(',', COALESCE(s.SCHEME_COLUMS, ''), ',')) > 0
+            ) AS INDEX_NAME,
             CASE WHEN  (SELECT COUNT(1) FROM indicators_lib.lib_public_scheme p WHERE p.ADD_USERID = '${params.userId}' AND p.SCHEME_ID = s.ID) > 0 THEN
             '1' ELSE '0' END AS STATE
         FROM indicators_lib.lib_index_scheme s

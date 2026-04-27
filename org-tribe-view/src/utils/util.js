@@ -88,12 +88,53 @@ let indexRouter = [{
           redirect: '/dashboard/analysis',
           children: [
             ...generateChildRouters(data),
+            ...generateLegacyRedirectRouters(),
             ...generateStaticVisRouters()
           ]
         },{
           "path": "*", "redirect": "/404", "hidden": true
         }]
   return indexRouter;
+}
+
+function generateLegacyRedirectRouters() {
+  return [
+    {
+      path: '/gallery',
+      redirect: '/vis/gallery',
+      hidden: true
+    },
+    {
+      path: '/indexLibrary',
+      redirect: '/vis/index-library',
+      hidden: true
+    },
+    {
+      path: '/BigScreen',
+      redirect: '/vis/bigscreen',
+      hidden: true
+    },
+    {
+      path: '/bigScreen/TemplateList',
+      redirect: '/vis/bigscreen/templates',
+      hidden: true
+    },
+    {
+      path: '/BigScreen/PageList',
+      redirect: '/vis/bigscreen/pages',
+      hidden: true
+    },
+    {
+      path: '/BigScreen/ExhibitionSchemeList',
+      redirect: '/vis/bigscreen/schemes',
+      hidden: true
+    },
+    {
+      path: '/bigScreen/AddTemplate',
+      redirect: '/vis/bigscreen/pages/editor',
+      hidden: true
+    }
+  ]
 }
 
 function generateStaticVisRouters() {
@@ -135,9 +176,7 @@ function normalizeLegacyComponent(component) {
     'BigScreen/PageList': 'vis/PageList',
     'BigScreen/ExhibitionSchemeList': 'vis/SchemeList',
     'BigScreen/AddTemplate': 'vis/PageEditorEntry',
-    'target/targetScheme': 'vis/SchemeList',
-    'statistics/indexLibrary': 'vis/SchemeList',
-    'statistics/schemeIndex': 'vis/SchemeList'
+    'target/targetScheme': 'vis/SchemeList'
   }
   return componentMap[component] || component
 }
@@ -146,8 +185,6 @@ function normalizeLegacyPath(path) {
   const pathMap = {
     '/gallery': '/vis/gallery',
     '/indexLibrary': '/vis/index-library',
-    '/statistics/indexLibrary': '/vis/index-library',
-    '/statistics/schemeIndex': '/vis/index-library',
     '/vis/preview': '/BigScreenPreview',
     '/BigScreen': '/vis/bigscreen',
     '/bigScreen/TemplateList': '/vis/bigscreen/templates',

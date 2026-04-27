@@ -15,7 +15,7 @@
 
     <select id="getPage" resultType="java.util.HashMap">
         SELECT
-        a.T_SUBJECT_CODE_3,
+        a.T_SUBJECT_CODE_3 AS "T_SUBJECT_CODE_3",
         (
         SELECT
         enum_dscr
@@ -24,10 +24,10 @@
         WHERE
         enum_type_id = '32'
         AND enum_id = a.T_SUBJECT_TYPE
-        ) AS T_SUBJECT_TYPE,
-        a.STAT_CODE_4,
-        a.SUBJECT_CODE_4,
-        a.SUBJECT_DSCR_4,
+        ) AS "T_SUBJECT_TYPE",
+        a.STAT_CODE_4 AS "STAT_CODE_4",
+        a.SUBJECT_CODE_4 AS "SUBJECT_CODE_4",
+        a.SUBJECT_DSCR_4 AS "SUBJECT_DSCR_4",
         (
         SELECT
         enum_dscr
@@ -36,8 +36,8 @@
         WHERE
         enum_type_id = '33'
         AND enum_id = a.BUDGET_TYPE
-        ) AS BUDGET_TYPE,
-        a.S_BDGSBTVSION,
+        ) AS "BUDGET_TYPE",
+        a.S_BDGSBTVSION AS "S_BDGSBTVSION",
         (
         SELECT
         enum_dscr
@@ -46,9 +46,9 @@
         WHERE
         enum_type_id = '34'
         AND enum_id = a.FLITTING_FLAG
-        ) AS FLITTING_FLAG,
-        ADD_USER,
-        ADD_DATE
+        ) AS "FLITTING_FLAG",
+        ADD_USER AS "ADD_USER",
+        ADD_DATE AS "ADD_DATE"
         FROM
         ods.cm_guoku_subject_import a
         WHERE
@@ -96,7 +96,7 @@
 
     <select id="getAll" resultType="java.util.HashMap">
         SELECT
-        a.T_SUBJECT_CODE_3,
+        a.T_SUBJECT_CODE_3 AS "T_SUBJECT_CODE_3",
         (
         SELECT
         enum_dscr
@@ -105,10 +105,10 @@
         WHERE
         enum_type_id = '32'
         AND enum_id = a.T_SUBJECT_TYPE
-        ) AS T_SUBJECT_TYPE,
-        a.STAT_CODE_4,
-        a.SUBJECT_CODE_4,
-        a.SUBJECT_DSCR_4,
+        ) AS "T_SUBJECT_TYPE",
+        a.STAT_CODE_4 AS "STAT_CODE_4",
+        a.SUBJECT_CODE_4 AS "SUBJECT_CODE_4",
+        a.SUBJECT_DSCR_4 AS "SUBJECT_DSCR_4",
         (
         SELECT
         enum_dscr
@@ -117,8 +117,8 @@
         WHERE
         enum_type_id = '33'
         AND enum_id = a.BUDGET_TYPE
-        ) AS BUDGET_TYPE,
-        a.S_BDGSBTVSION,
+        ) AS "BUDGET_TYPE",
+        a.S_BDGSBTVSION AS "S_BDGSBTVSION",
         (
         SELECT
         enum_dscr
@@ -127,9 +127,9 @@
         WHERE
         enum_type_id = '34'
         AND enum_id = a.FLITTING_FLAG
-        ) AS FLITTING_FLAG,
-        ADD_USER,
-        ADD_DATE
+        ) AS "FLITTING_FLAG",
+        ADD_USER AS "ADD_USER",
+        ADD_DATE AS "ADD_DATE"
         FROM
         ods.cm_guoku_subject_import a
         WHERE
@@ -154,7 +154,7 @@
 
     <select id="getExport" resultMap="SubjectImport">
         SELECT
-        a.T_SUBJECT_CODE_3,
+        a.T_SUBJECT_CODE_3 AS "T_SUBJECT_CODE_3",
         (
         SELECT
         enum_dscr
@@ -163,10 +163,10 @@
         WHERE
         enum_type_id = '32'
         AND enum_id = a.T_SUBJECT_TYPE
-        ) AS T_SUBJECT_TYPE,
-        a.STAT_CODE_4,
-        a.SUBJECT_CODE_4,
-        a.SUBJECT_DSCR_4,
+        ) AS "T_SUBJECT_TYPE",
+        a.STAT_CODE_4 AS "STAT_CODE_4",
+        a.SUBJECT_CODE_4 AS "SUBJECT_CODE_4",
+        a.SUBJECT_DSCR_4 AS "SUBJECT_DSCR_4",
         (
         SELECT
         enum_dscr
@@ -175,8 +175,8 @@
         WHERE
         enum_type_id = '33'
         AND enum_id = a.BUDGET_TYPE
-        ) AS BUDGET_TYPE,
-        a.S_BDGSBTVSION,
+        ) AS "BUDGET_TYPE",
+        a.S_BDGSBTVSION AS "S_BDGSBTVSION",
         (
         SELECT
         enum_dscr
@@ -185,9 +185,9 @@
         WHERE
         enum_type_id = '34'
         AND enum_id = a.FLITTING_FLAG
-        ) AS FLITTING_FLAG,
-        ADD_USER,
-        ADD_DATE
+        ) AS "FLITTING_FLAG",
+        ADD_USER AS "ADD_USER",
+        ADD_DATE AS "ADD_DATE"
         FROM
         ods.cm_guoku_subject_import a
         WHERE

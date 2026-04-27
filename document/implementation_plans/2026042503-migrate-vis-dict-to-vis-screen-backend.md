@@ -13,7 +13,7 @@
 - 将旧 vis 字典白名单、展示顺序、缺失种子补齐逻辑下沉到 `vis-screen-backend`：
   - `VisLegacyDictScope`
   - `VisLegacyDictSeedSupport`
-- 前端 `DictList.vue` 仅在 `/vis/system/dict` 路由下切到 `/vis/api/sys/dict/visList` 与 `/vis/api/sys/dict/visExportXls`。
+- 前端 `DictList.vue` 仅在 `/vis/system/dict` 路由下切到 `/vis/api/visDict/list` 与 `/vis/api/visDict/exportXls`。
 
 ## 影响范围
 
@@ -22,7 +22,7 @@
 
 ## 验证目标
 
-- `/vis/system/dict` 请求应命中 `/vis/api/sys/dict/visList`。
+- `/vis/system/dict` 请求应命中 `/vis/api/visDict/list`。
 - 返回总数应恢复为 old vis 的 13 条。
 - 首页顺序应保持：
   - `menu_type`

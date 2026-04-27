@@ -11,7 +11,7 @@
         <a-col v-for="item in galleryItems" :key="item.id" :xl="8" :lg="12" :md="12" :sm="24">
           <a-card hoverable>
             <div class="vis-gallery-list__cover">
-              <img v-if="showImage(item)" :src="resolveMediaUrl(item.content)" :alt="item.title" />
+              <img v-if="showImage(item)" :src="getCoverSrc(item)" :alt="item.title" />
               <div v-else class="vis-gallery-list__html" v-html="item.content"></div>
             </div>
             <template slot="actions">
@@ -57,8 +57,23 @@ export default {
     resolveMediaUrl(value) {
       return resolveVisMediaUrl(value)
     },
+    isDataImage(value) {
+      return typeof value === 'string' && value.indexOf('data:image/') === 0
+    },
+    getCoverSrc(item) {
+      if (!item) {
+        return ''
+      }
+      if (this.isDataImage(item.content)) {
+        return item.content
+      }
+      return this.resolveMediaUrl(item.option || item.content)
+    },
     showImage(item) {
-      return item && (item.type === 'b' || item.type === 't')
+      if (!item) {
+        return false
+      }
+      return this.isDataImage(item.content) || Boolean(this.resolveMediaUrl(item.option)) || item.type === 'b' || item.type === 't'
     },
     handleBusinessChange(key) {
       this.activeBusinessId = key

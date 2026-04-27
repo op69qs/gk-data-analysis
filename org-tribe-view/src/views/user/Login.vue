@@ -314,13 +314,16 @@
           password:this.form.getFieldValue("password"),
           'X-Access-Token':JSON.parse(localStorage['pro__Access-Token']).value
         }
+        const domianRunURL = window._CONFIG && window._CONFIG['domianRunURL']
        /*  getAction(this.url_view,param).then(res=>{
             
           }) */
 
-        jsonp(window._CONFIG['domianRunURL']+'/login',param).then((res)=>{
-          console.log(res)
-        })
+        if (domianRunURL) {
+          jsonp(domianRunURL + '/login', param).then((res)=>{
+            console.log(res)
+          })
+        }
         this.$router.push({name: "dashboard"})
         this.$notification.success({
           message: '欢迎',

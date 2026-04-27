@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.seo.dao.mapper.DataAuxiliaryMapper">
 
@@ -59,11 +59,11 @@
     <select id="getDataTableComments" resultType="hashmap">
         <!--  数据库类型为Mysql，用Mysql数据库的查询方法 -->
         <if test="params.BASE_TYPE == 'Mysql'">
-            SELECT TABLE_NAME AS columnName,TABLE_COMMENT AS columnComment FROM information_schema.TABLES WHERE
+            SELECT TABLE_NAME AS "columnName",TABLE_COMMENT AS "columnComment" FROM information_schema.TABLES WHERE
             TABLE_SCHEMA = #{params.DATABASE} AND TABLE_NAME = #{params.TABLE_SIGN}
             UNION
             SELECT
-            COLUMN_NAME AS columnName,
+            COLUMN_NAME AS "columnName",
             CASE COLUMN_COMMENT
             WHEN NULL THEN
             COLUMN_NAME
@@ -71,53 +71,53 @@
             COLUMN_NAME
             ELSE
             COLUMN_COMMENT
-            END AS columnComment
+            END AS "columnComment"
             FROM
             information_schema.COLUMNS WHERE
             TABLE_SCHEMA = #{params.DATABASE} AND TABLE_NAME = #{params.TABLE_SIGN}
         </if>
         <!--  数据库类型为DB2，用DB2数据库的查询方法 -->
         <if test="params.BASE_TYPE == 'DB2'">
-            SELECT TABNAME AS columnName,REMARKS AS columnComment FROM SYSCAT.TABLES WHERE TABSCHEMA = #{params.DATABASE} AND TABNAME = #{params.TABLE_SIGN}
+            SELECT TABNAME AS "columnName",REMARKS AS "columnComment" FROM SYSCAT.TABLES WHERE TABSCHEMA = #{params.DATABASE} AND TABNAME = #{params.TABLE_SIGN}
             UNION
             SELECT
-            COLNAME AS columnName,
+            COLNAME AS "columnName",
             WHEN REMARKS IS NULL THEN
             COLNAME
             WHEN REMARKS = '' THEN
             COLNAME
             ELSE
             REMARKS
-            END AS columnComment
+            END AS "columnComment"
             FROM
             SYSCAT. COLUMNS WHERE TABSCHEMA = #{params.DATABASE} AND TABNAME = #{params.TABLE_SIGN}
         </if>
         <!--  数据库类型为Clickhouse，用Clickhouse数据库的查询方法 -->
         <if test="params.BASE_TYPE == 'Clickhouse'">
-            SELECT name AS columnName,'' AS columnComment FROM system.tables WHERE database = #{params.DATABASE} AND name = #{params.TABLE_SIGN}
+            SELECT name AS "columnName",'' AS "columnComment" FROM system.tables WHERE database = #{params.DATABASE} AND name = #{params.TABLE_SIGN}
             UNION ALL
             SELECT
-            name AS columnName,
+            name AS "columnName",
             CASE
             WHEN default_expression IS NULL THEN
             columnName
             WHEN default_expression = '' THEN
             columnName
             ELSE
-            default_expression end AS columnComment
+            default_expression end AS "columnComment"
             FROM
             system.columns WHERE database = #{params.DATABASE} AND table = #{params.TABLE_SIGN}
         </if>
                 <!--  数据库类型为Vastbase/PostgreSQL，用兼容PostgreSQL的查询方法 -->
                 <if test="params.BASE_TYPE == 'Vastbase' or params.BASE_TYPE == 'PostgreSQL'">
-                        SELECT c.relname AS columnName,COALESCE(obj_description(c.oid), c.relname) AS columnComment
+                        SELECT c.relname AS "columnName",COALESCE(obj_description(c.oid), c.relname) AS "columnComment"
                         FROM pg_class c
                         JOIN pg_namespace n ON n.oid = c.relnamespace
                         WHERE n.nspname = #{params.DATABASE}
                             AND c.relname = #{params.TABLE_SIGN}
                             AND c.relkind = 'r'
                         UNION ALL
-                        SELECT a.attname AS columnName,COALESCE(col_description(a.attrelid, a.attnum), a.attname) AS columnComment
+                        SELECT a.attname AS "columnName",COALESCE(col_description(a.attrelid, a.attnum), a.attname) AS "columnComment"
                         FROM pg_attribute a
                         JOIN pg_class c ON a.attrelid = c.oid
                         JOIN pg_namespace n ON c.relnamespace = n.oid
@@ -130,7 +130,7 @@
 
     <!--    根据数据源主键查询数据源的信息-->
     <select id="getDataSourceInfo" resultType="hashmap">
-            SELECT a.ID AS SOURE_ID,b.ID as DATABASE_ID,a.TYPE,b.DBNAME
+            SELECT a.ID AS "SOURE_ID",b.ID as "DATABASE_ID",a.TYPE,b.DBNAME
             FROM seo.seo_datasource a
             LEFT JOIN seo.seo_datasource_database b ON a.ID = b.SOURCE_ID AND b.ID = #{params.DATABASE_ID}
             WHERE a.ID = #{params.SOURCE_ID}

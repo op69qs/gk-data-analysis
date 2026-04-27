@@ -4,18 +4,18 @@
 
 
     <select id="getDataSourcePage" resultType="java.util.Map">
-        SELECT a.ID,
-        a.DATASOURCE_NAME,
-        a.TYPE,
-        a.IP,
-        a.PORT,
-        b.ID as DATABASE_ID,
-        b.DBNAME,
-        b.USERNAME,
-        b.PASSWORD,
-        b.STATE,
-        b.DRIVERCLASS_NAME,
-        b.DATASOURCE_URL
+        SELECT a.ID AS "ID",
+        a.DATASOURCE_NAME AS "DATASOURCE_NAME",
+        a.TYPE AS "TYPE",
+        a.IP AS "IP",
+        a.PORT AS "PORT",
+        b.ID as "DATABASE_ID",
+        b.DBNAME AS "DBNAME",
+        b.USERNAME AS "USERNAME",
+        b.PASSWORD AS "PASSWORD",
+        b.STATE AS "STATE",
+        b.DRIVERCLASS_NAME AS "DRIVERCLASS_NAME",
+        b.DATASOURCE_URL AS "DATASOURCE_URL"
         FROM
         seo.seo_datasource a LEFT JOIN  seo.seo_datasource_database b on a.ID = b.SOURCE_ID
         where 1=1
@@ -173,19 +173,19 @@
     </delete>
 
     <select id="getDataSource" resultType="java.util.Map">
-        SELECT a.ID,
-        a.DATASOURCE_NAME,
-        a.TYPE,
-        a.IP,
-        a.PORT,
-        b.ID as DATABASE_ID,
-        b.DBNAME,
-        b.USERNAME,
-        b.PASSWORD,
-        b.STATE,
-        b.DRIVERCLASS_NAME,
-        b.DATASOURCE_URL,
-        b.CREATE_TIME
+        SELECT a.ID AS "ID",
+        a.DATASOURCE_NAME AS "DATASOURCE_NAME",
+        a.TYPE AS "TYPE",
+        a.IP AS "IP",
+        a.PORT AS "PORT",
+        b.ID AS "DATABASE_ID",
+        b.DBNAME AS "DBNAME",
+        b.USERNAME AS "USERNAME",
+        b.PASSWORD AS "PASSWORD",
+        b.STATE AS "STATE",
+        b.DRIVERCLASS_NAME AS "DRIVERCLASS_NAME",
+        b.DATASOURCE_URL AS "DATASOURCE_URL",
+        b.CREATE_TIME AS "CREATE_TIME"
         FROM
         seo.seo_datasource a LEFT JOIN  seo.seo_datasource_database b on a.ID = b.SOURCE_ID
         where 1=1
@@ -247,7 +247,17 @@
     </select>
 
     <select id="getDataBase" resultType="java.util.Map">
-        SELECT * FROM
+            SELECT a.ID as "ID",
+            a.SOURCE_ID as "SOURCE_ID",
+            a.DBNAME as "DBNAME",
+            a.USERNAME as "USERNAME",
+            a.PASSWORD as "PASSWORD",
+            a.STATE as "STATE",
+            a.DRIVERCLASS_NAME as "DRIVERCLASS_NAME",
+            a.DATASOURCE_URL as "DATASOURCE_URL",
+            a.CREATE_TIME as "CREATE_TIME",
+            a.CREATE_USER as "CREATE_USER"
+            FROM
         seo.seo_datasource_database a
         where 1=1
         <if test="params.SOURCE_ID!=null and params.SOURCE_ID != ''">
