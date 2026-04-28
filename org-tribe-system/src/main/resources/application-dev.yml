@@ -156,6 +156,9 @@ gk-nexus:
     client-id: GK_DATA_ANALYSIS
     client-secret: ${NEXUS_CLIENT_SECRET:tYJq0vwo4JhLTMvrv8s8LKV0IohhckB8}
     redirect-uri: http://localhost:9090/oauth/callback
+  sync:
+    user-permissions-url: http://localhost:8080/system/api/sync/users/{userId}/permissions
+    sys-code: GK_DATA_ANALYSIS
 
 #eureka配置信息
 eureka:

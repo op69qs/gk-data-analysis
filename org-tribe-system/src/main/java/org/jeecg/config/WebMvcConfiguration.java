@@ -72,5 +72,6 @@ public class WebMvcConfiguration implements WebMvcConfigurer {
 		registry.addViewController("/BigScreenPreview/**").setViewName("forward:/index.html");
 		registry.addViewController("/vis").setViewName("forward:/index.html");
 		registry.addViewController("/vis/**").setViewName("forward:/index.html");
+		registry.addViewController("/oauth/callback").setViewName("forward:/index.html");
 	}
 }

@@ -14,6 +14,13 @@ const whiteList = ['/user/login', '/user/register', '/user/register-result', '/u
 router.beforeEach((to, from, next) => {
   NProgress.start() // start progress bar
 
+  // OAuth callback must bypass token-based permission bootstrap.
+  // Otherwise, an expired local token may trigger Logout before callback exchange runs.
+  if (to.path === '/oauth/callback') {
+    next()
+    return
+  }
+
   if (Vue.ls.get(ACCESS_TOKEN)) {
     /* has token */
     if (to.path === '/user/login') {

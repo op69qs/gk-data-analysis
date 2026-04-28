@@ -1,10 +1,13 @@
 package org.jeecg.modules.system.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.shiro.authz.annotation.RequiresRoles;
@@ -13,6 +16,7 @@ import org.jeecg.common.constant.CacheConstant;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.util.MD5Util;
+import org.jeecg.common.util.RedisUtil;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.system.entity.SysPermission;
 import org.jeecg.modules.system.entity.SysPermissionDataRule;
@@ -26,6 +30,12 @@ import org.jeecg.modules.system.util.PageData;
 import org.jeecg.modules.system.util.PermissionDataUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.fastjson.JSONArray;
@@ -48,6 +58,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/sys/permission")
 public class SysPermissionController extends BaseController{
 
+	private static final String NEXUS_PORTAL_USER_ID_PREFIX = "PREFIX_NEXUS_PORTAL_USER_ID_";
+	private static final String NEXUS_PORTAL_ACCESS_TOKEN_PREFIX = "PREFIX_NEXUS_PORTAL_ACCESS_TOKEN_";
+
 	@Autowired
 	private ISysPermissionService sysPermissionService;
 
@@ -56,6 +69,18 @@ public class SysPermissionController extends BaseController{
 
 	@Autowired
 	private ISysPermissionDataRuleService sysPermissionDataRuleService;
+
+	@Autowired
+	private RedisUtil redisUtil;
+
+	@Autowired
+	private RestTemplate restTemplate;
+
+	@Value("${gk-nexus.sync.user-permissions-url:http://localhost:3000/api/sync/users/{userId}/permissions}")
+	private String nexusUserPermissionsUrl;
+
+	@Value("${gk-nexus.sync.sys-code:GK_DATA_ANALYSIS}")
+	private String nexusSysCode;
 
 	/**
 	 * 加载数据节点
@@ -159,7 +184,17 @@ public class SysPermissionController extends BaseController{
 			}
 			log.info(" ------ 通过令牌获取用户拥有的访问菜单 ---- TOKEN ------ " + token);
 			String username = JwtUtil.getUsername(token);
-			List<SysPermission> metaList = sysPermissionService.queryByUser(username);
+			JSONObject portalPermissionData = fetchPortalPermissionData(token);
+			Set<String> portalPermissionCodes = extractPortalPermissionCodes(portalPermissionData);
+			List<SysPermission> metaList = buildPermissionListByPortalPermissions(portalPermissionData);
+			if (metaList.isEmpty()) {
+				metaList = buildPermissionListByPortalCodes(portalPermissionCodes);
+			}
+			long matchedMenuCount = metaList.stream()
+					.filter(p -> p.getMenuType() != null && (CommonConstant.MENU_TYPE_0.equals(p.getMenuType()) || CommonConstant.MENU_TYPE_1.equals(p.getMenuType())))
+					.count();
+			log.info("门户权限同步结果，username={}, portalCodeCount={}, localPermissionCount={}, matchedMenuCount={}", username,
+					portalPermissionCodes == null ? 0 : portalPermissionCodes.size(), metaList.size(), matchedMenuCount);
 			PermissionDataUtil.addIndexPage(metaList);
 			JSONObject json = new JSONObject();
 			JSONArray menujsonArray = new JSONArray();
@@ -184,6 +219,271 @@ public class SysPermissionController extends BaseController{
 			log.error(e.getMessage(), e);
 		}
 		return result;
+	}
+
+	private JSONObject fetchPortalPermissionData(String localJwtToken) {
+		String portalUserId = (String) redisUtil.get(NEXUS_PORTAL_USER_ID_PREFIX + localJwtToken);
+		String portalAccessToken = (String) redisUtil.get(NEXUS_PORTAL_ACCESS_TOKEN_PREFIX + localJwtToken);
+		if (oConvertUtils.isEmpty(portalUserId) || oConvertUtils.isEmpty(portalAccessToken)) {
+			return null;
+		}
+
+		long begin = System.currentTimeMillis();
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Authorization", "Bearer " + portalAccessToken);
+			HttpEntity<Void> requestEntity = new HttpEntity<Void>(headers);
+
+			Map<String, String> uriVars = new HashMap<String, String>();
+			uriVars.put("userId", portalUserId);
+			String requestUrl = nexusUserPermissionsUrl + "?sysCode=" + nexusSysCode;
+			log.info("开始拉取门户权限，portalUserId={}, sysCode={}, requestUrl={}", portalUserId, nexusSysCode, requestUrl);
+			ResponseEntity<JSONObject> response = restTemplate.exchange(requestUrl, HttpMethod.GET, requestEntity, JSONObject.class, uriVars);
+			log.info("门户权限拉取完成，status={}, costMs={}", response.getStatusCodeValue(), (System.currentTimeMillis() - begin));
+			JSONObject body = response.getBody();
+			if (body == null || !Boolean.TRUE.equals(body.getBoolean("success"))) {
+				return null;
+			}
+			return body.getJSONObject("data");
+		} catch (Exception e) {
+			log.warn("门户权限拉取失败，costMs={}, errorType={}, error={}", (System.currentTimeMillis() - begin), e.getClass().getSimpleName(), e.getMessage());
+			return null;
+		}
+	}
+
+	private Set<String> extractPortalPermissionCodes(JSONObject data) {
+		if (data == null) {
+			return Collections.emptySet();
+		}
+		JSONArray grantedCodes = data.getJSONArray("grantedLocalPermissionCodes");
+		if (grantedCodes == null || grantedCodes.isEmpty()) {
+			grantedCodes = data.getJSONArray("permissionCodes");
+		}
+		if (grantedCodes == null || grantedCodes.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		Set<String> codeSet = new HashSet<String>();
+		for (int i = 0; i < grantedCodes.size(); i++) {
+			String code = grantedCodes.getString(i);
+			if (oConvertUtils.isNotEmpty(code)) {
+				codeSet.add(code);
+			}
+		}
+		return codeSet;
+	}
+
+	private List<SysPermission> buildPermissionListByPortalPermissions(JSONObject data) {
+		if (data == null) {
+			return new ArrayList<SysPermission>();
+		}
+		JSONArray permissions = data.getJSONArray("permissions");
+		if (permissions == null || permissions.isEmpty()) {
+			return new ArrayList<SysPermission>();
+		}
+
+		Map<String, String> portalIdToCode = new HashMap<String, String>();
+		for (int i = 0; i < permissions.size(); i++) {
+			JSONObject item = permissions.getJSONObject(i);
+			if (item == null) {
+				continue;
+			}
+			String localCode = firstNonEmpty(item.getString("localPermissionCode"), item.getString("code"), item.getString("id"));
+			if (oConvertUtils.isEmpty(localCode)) {
+				continue;
+			}
+			String portalId = item.getString("id");
+			if (oConvertUtils.isNotEmpty(portalId)) {
+				portalIdToCode.put(portalId, localCode);
+			}
+		}
+
+		List<SysPermission> list = new ArrayList<SysPermission>();
+		Set<String> parentIds = new HashSet<String>();
+		for (int i = 0; i < permissions.size(); i++) {
+			JSONObject item = permissions.getJSONObject(i);
+			if (item == null) {
+				continue;
+			}
+
+			String localCode = firstNonEmpty(item.getString("localPermissionCode"), item.getString("code"), item.getString("id"));
+			if (oConvertUtils.isEmpty(localCode)) {
+				continue;
+			}
+
+			String parentCode = item.getString("localParentPermissionCode");
+			if (oConvertUtils.isEmpty(parentCode)) {
+				String portalParentId = item.getString("parentId");
+				if (oConvertUtils.isNotEmpty(portalParentId) && !"0".equals(portalParentId)) {
+					parentCode = portalIdToCode.get(portalParentId);
+				}
+			}
+
+			SysPermission permission = new SysPermission();
+			permission.setId(localCode);
+			permission.setParentId(parentCode);
+			permission.setName(item.getString("name"));
+			permission.setPerms(localCode);
+			permission.setPermsType("1");
+			permission.setIcon(item.getString("icon"));
+			permission.setComponent(item.getString("component"));
+			permission.setComponentName(item.getString("key"));
+			permission.setUrl(item.getString("path"));
+			permission.setSortNo(item.getInteger("sort"));
+			permission.setMenuType(convertPortalType(item.getString("type")));
+			permission.setRoute(!CommonConstant.MENU_TYPE_2.equals(permission.getMenuType()));
+			permission.setKeepAlive(false);
+			permission.setRuleFlag(0);
+			permission.setDelFlag(CommonConstant.DEL_FLAG_0);
+			permission.setStatus(Boolean.TRUE.equals(item.getBoolean("enabled")) ? CommonConstant.STATUS_1 : "0");
+			permission.setAlwaysShow(false);
+			permission.setHidden(Boolean.TRUE.equals(item.getBoolean("hideInMenu")));
+
+			if (oConvertUtils.isNotEmpty(parentCode)) {
+				parentIds.add(parentCode);
+			}
+			list.add(permission);
+		}
+
+		for (SysPermission permission : list) {
+			permission.setLeaf(!parentIds.contains(permission.getId()));
+		}
+		return list;
+	}
+
+	private Integer convertPortalType(String portalType) {
+		if ("BUTTON".equalsIgnoreCase(portalType)) {
+			return CommonConstant.MENU_TYPE_2;
+		}
+		if ("DIRECTORY".equalsIgnoreCase(portalType)) {
+			return CommonConstant.MENU_TYPE_0;
+		}
+		return CommonConstant.MENU_TYPE_1;
+	}
+
+	private String firstNonEmpty(String... values) {
+		if (values == null || values.length == 0) {
+			return null;
+		}
+		for (String value : values) {
+			if (oConvertUtils.isNotEmpty(value)) {
+				return value;
+			}
+		}
+		return null;
+	}
+
+	private List<SysPermission> buildPermissionListByPortalCodes(Set<String> portalCodes) {
+		if (portalCodes == null || portalCodes.isEmpty()) {
+			log.warn("门户权限码为空，返回空权限集合（不回退本地权限）");
+			return new ArrayList<SysPermission>();
+		}
+
+		Set<String> normalizedPortalCodes = new HashSet<String>();
+		for (String portalCode : portalCodes) {
+			if (oConvertUtils.isEmpty(portalCode)) {
+				continue;
+			}
+			String normalized = normalizePortalCode(portalCode);
+			if (oConvertUtils.isNotEmpty(normalized)) {
+				normalizedPortalCodes.add(normalized);
+			}
+		}
+		if (normalizedPortalCodes.isEmpty()) {
+			log.warn("门户权限码归一化后为空，返回空权限集合（不回退本地权限）");
+			return new ArrayList<SysPermission>();
+		}
+
+		LambdaQueryWrapper<SysPermission> query = new LambdaQueryWrapper<SysPermission>();
+		query.eq(SysPermission::getDelFlag, CommonConstant.DEL_FLAG_0);
+		query.eq(SysPermission::getStatus, CommonConstant.STATUS_1);
+		query.orderByAsc(SysPermission::getSortNo);
+		List<SysPermission> allPermissions = sysPermissionService.list(query);
+
+		Map<String, SysPermission> idMap = new HashMap<String, SysPermission>();
+		Set<String> selectedIds = new HashSet<String>();
+		for (SysPermission permission : allPermissions) {
+			idMap.put(permission.getId(), permission);
+			if (permissionMatchesPortalCodes(permission, normalizedPortalCodes)) {
+				selectedIds.add(permission.getId());
+			}
+		}
+
+		if (selectedIds.isEmpty()) {
+			List<String> samplePortalCodes = normalizedPortalCodes.stream().limit(20).collect(Collectors.toList());
+			log.warn("门户权限码未匹配到本地权限定义，portalCodeSample={}", samplePortalCodes);
+		}
+
+		Set<String> ancestorIds = new HashSet<String>();
+		for (String selectedId : selectedIds) {
+			String currentId = selectedId;
+			while (oConvertUtils.isNotEmpty(currentId)) {
+				SysPermission current = idMap.get(currentId);
+				if (current == null) {
+					break;
+				}
+				ancestorIds.add(current.getId());
+				currentId = current.getParentId();
+			}
+		}
+
+		List<SysPermission> result = new ArrayList<SysPermission>();
+		for (SysPermission permission : allPermissions) {
+			if (ancestorIds.contains(permission.getId())) {
+				result.add(permission);
+			}
+		}
+
+		long menuCount = result.stream()
+				.filter(p -> p.getMenuType() != null && (CommonConstant.MENU_TYPE_0.equals(p.getMenuType()) || CommonConstant.MENU_TYPE_1.equals(p.getMenuType())))
+				.count();
+		if (menuCount == 0L) {
+			List<String> samplePortalCodes = normalizedPortalCodes.stream().limit(20).collect(Collectors.toList());
+			log.warn("门户权限映射后无可见菜单，portalCodeSample={}, matchedPermissionIds={}", samplePortalCodes, selectedIds.stream().limit(20).collect(Collectors.toList()));
+		}
+		return result;
+	}
+
+	private boolean permissionMatchesPortalCodes(SysPermission permission, Set<String> normalizedPortalCodes) {
+		if (permission == null || normalizedPortalCodes == null || normalizedPortalCodes.isEmpty()) {
+			return false;
+		}
+
+		Set<String> candidates = new HashSet<String>();
+		if (oConvertUtils.isNotEmpty(permission.getId())) {
+			candidates.add(permission.getId());
+		}
+		if (oConvertUtils.isNotEmpty(permission.getPerms())) {
+			candidates.add(permission.getPerms());
+		}
+		if (oConvertUtils.isNotEmpty(permission.getUrl())) {
+			candidates.add(permission.getUrl());
+		}
+		if (oConvertUtils.isNotEmpty(permission.getComponentName())) {
+			candidates.add(permission.getComponentName());
+		}
+
+		for (String candidate : candidates) {
+			String normalizedCandidate = normalizePortalCode(candidate);
+			if (oConvertUtils.isNotEmpty(normalizedCandidate) && normalizedPortalCodes.contains(normalizedCandidate)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private String normalizePortalCode(String code) {
+		if (oConvertUtils.isEmpty(code)) {
+			return null;
+		}
+		String normalized = code.trim();
+		while (normalized.startsWith("/")) {
+			normalized = normalized.substring(1);
+		}
+		while (normalized.endsWith("/")) {
+			normalized = normalized.substring(0, normalized.length() - 1);
+		}
+		return normalized;
 	}
 
 	/**
