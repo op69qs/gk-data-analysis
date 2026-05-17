@@ -22,10 +22,10 @@ import java.net.UnknownHostException;
 @EnableZuulProxy
 @EnableEurekaClient
 @EnableTransactionManagement
-public class ComprehensiveQuery {
+public class SEOComprehensiveQuery {
 
     public static void main(String[] args) throws UnknownHostException {
-        SpringApplication.run(ComprehensiveQuery.class, args);
+        SpringApplication.run(SEOComprehensiveQuery.class, args);
         //System.setProperty("spring.devtools.restart.enabled", "true");
 
         /*ConfigurableApplicationContext application = SpringApplication.run(JeecgApplication.class, args);

@@ -13,8 +13,8 @@ $Modules = @(
     @{ Name = 'fixedReport'; JarPattern = 'fixedReport-*.jar'; MainClass = 'org.fixedReport.FixedReportApplication'; LaunchMode = 'classpath' },
     @{ Name = 'indicatorsLibv-1.0'; JarPattern = 'indicatorsLib-*.jar'; MainClass = 'org.indicatorsLib.IndicatorsLibApplication'; LaunchMode = 'classpath' },
     @{ Name = 'org-tribe-system'; JarPattern = 'org-tribe-system-*.jar'; MainClass = 'org.jeecg.JeecgApplication'; LaunchMode = 'classpath' },
-    @{ Name = 'seo'; JarPattern = 'seo-*.jar'; MainClass = 'org.seo.ComprehensiveQuery'; LaunchMode = 'classpath' },
-    @{ Name = 'vis-screen'; JarPattern = 'vis-screen-*.jar'; MainClass = 'org.jeecg.JeecgSystemApplication'; LaunchMode = 'fatjar' }
+    @{ Name = 'seo'; JarPattern = 'seo-*.jar'; MainClass = 'org.seo.SEOComprehensiveQuery'; LaunchMode = 'classpath' },
+    @{ Name = 'vis-screen'; JarPattern = 'vis-screen-*.jar'; MainClass = 'org.jeecg.VISSystemApplication'; LaunchMode = 'fatjar' }
 )
 
 function Resolve-Jar {

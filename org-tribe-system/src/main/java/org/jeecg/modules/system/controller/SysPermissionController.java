@@ -184,17 +184,27 @@ public class SysPermissionController extends BaseController{
 			}
 			log.info(" ------ 通过令牌获取用户拥有的访问菜单 ---- TOKEN ------ " + token);
 			String username = JwtUtil.getUsername(token);
-			JSONObject portalPermissionData = fetchPortalPermissionData(token);
-			Set<String> portalPermissionCodes = extractPortalPermissionCodes(portalPermissionData);
-			List<SysPermission> metaList = buildPermissionListByPortalPermissions(portalPermissionData);
-			if (metaList.isEmpty()) {
-				metaList = buildPermissionListByPortalCodes(portalPermissionCodes);
+			boolean portalContext = hasPortalPermissionContext(token);
+			List<SysPermission> metaList;
+			if (portalContext) {
+				JSONObject portalPermissionData = fetchPortalPermissionData(token);
+				Set<String> portalPermissionCodes = extractPortalPermissionCodes(portalPermissionData);
+				metaList = buildPermissionListByPortalPermissions(portalPermissionData);
+				if (metaList.isEmpty()) {
+					metaList = buildPermissionListByPortalCodes(portalPermissionCodes);
+				}
+				long matchedMenuCount = metaList.stream()
+						.filter(p -> p.getMenuType() != null && (CommonConstant.MENU_TYPE_0.equals(p.getMenuType()) || CommonConstant.MENU_TYPE_1.equals(p.getMenuType())))
+						.count();
+				log.info("门户权限同步结果，username={}, portalCodeCount={}, localPermissionCount={}, matchedMenuCount={}", username,
+						portalPermissionCodes == null ? 0 : portalPermissionCodes.size(), metaList.size(), matchedMenuCount);
+			} else {
+				metaList = loadLocalPermissionList(username);
+				long localMenuCount = metaList.stream()
+						.filter(p -> p.getMenuType() != null && (CommonConstant.MENU_TYPE_0.equals(p.getMenuType()) || CommonConstant.MENU_TYPE_1.equals(p.getMenuType())))
+						.count();
+				log.info("本地登录权限结果，username={}, localPermissionCount={}, localMenuCount={}", username, metaList.size(), localMenuCount);
 			}
-			long matchedMenuCount = metaList.stream()
-					.filter(p -> p.getMenuType() != null && (CommonConstant.MENU_TYPE_0.equals(p.getMenuType()) || CommonConstant.MENU_TYPE_1.equals(p.getMenuType())))
-					.count();
-			log.info("门户权限同步结果，username={}, portalCodeCount={}, localPermissionCount={}, matchedMenuCount={}", username,
-					portalPermissionCodes == null ? 0 : portalPermissionCodes.size(), metaList.size(), matchedMenuCount);
 			PermissionDataUtil.addIndexPage(metaList);
 			JSONObject json = new JSONObject();
 			JSONArray menujsonArray = new JSONArray();
@@ -219,6 +229,12 @@ public class SysPermissionController extends BaseController{
 			log.error(e.getMessage(), e);
 		}
 		return result;
+	}
+
+	private boolean hasPortalPermissionContext(String localJwtToken) {
+		String portalUserId = (String) redisUtil.get(NEXUS_PORTAL_USER_ID_PREFIX + localJwtToken);
+		String portalAccessToken = (String) redisUtil.get(NEXUS_PORTAL_ACCESS_TOKEN_PREFIX + localJwtToken);
+		return oConvertUtils.isNotEmpty(portalUserId) && oConvertUtils.isNotEmpty(portalAccessToken);
 	}
 
 	private JSONObject fetchPortalPermissionData(String localJwtToken) {
@@ -442,6 +458,13 @@ public class SysPermissionController extends BaseController{
 			log.warn("门户权限映射后无可见菜单，portalCodeSample={}, matchedPermissionIds={}", samplePortalCodes, selectedIds.stream().limit(20).collect(Collectors.toList()));
 		}
 		return result;
+	}
+
+	private List<SysPermission> loadLocalPermissionList(String username) {
+		if (oConvertUtils.isEmpty(username)) {
+			return new ArrayList<SysPermission>();
+		}
+		return sysPermissionService.queryByUser(username);
 	}
 
 	private boolean permissionMatchesPortalCodes(SysPermission permission, Set<String> normalizedPortalCodes) {

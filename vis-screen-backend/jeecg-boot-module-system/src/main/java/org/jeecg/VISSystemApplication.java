@@ -14,17 +14,17 @@ import java.net.UnknownHostException;
 
 @Slf4j
 @SpringBootApplication
-public class JeecgSystemApplication extends SpringBootServletInitializer {
+public class VISSystemApplication extends SpringBootServletInitializer {
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(JeecgSystemApplication.class);
+        return application.sources(VISSystemApplication.class);
     }
 
     public static void main(String[] args) throws UnknownHostException {
         //System.setProperty("spring.devtools.restart.enabled", "true");
 
-        ConfigurableApplicationContext application = SpringApplication.run(JeecgSystemApplication.class, args);
+        ConfigurableApplicationContext application = SpringApplication.run(VISSystemApplication.class, args);
         Environment env = application.getEnvironment();
         String ip = InetAddress.getLocalHost().getHostAddress();
         String port = env.getProperty("server.port");

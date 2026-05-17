@@ -34,9 +34,29 @@ mvn spring-boot:run
 
 - 运行环境以 Java 8 为准。
 - 当前可在仓库根目录执行聚合构建；若只验证单模块问题，仍优先进入模块目录执行 Maven 命令。
+- 根工程已区分“开发快路径”和“交付全量路径”：
+  - 默认构建会跳过前端构建与 `deploy-package` 装配。
+  - `-Pfull-package` 才会开启前端构建和 `deploy-package-assembly` 装配。
 - `org-tribe-system` 现已直接继承仓库根父工程，不再依赖本地桥接父模块解析。
+- `org-tribe-system` 的前端 `npm install` / `npm run build` 不再绑定默认 `compile/package`；只有开启 `full-package` 后才会执行。
 - 多个模块的打包方式会把依赖复制到 `target/lib`，并把 `yml/properties` 复制到 `target` 根目录；排查“本地能跑、打包后不能跑”时先检查这个约定。
 - 可以使用 admin Ysyyrps4 账号测试
+
+推荐命令：
+
+```powershell
+# 开发阶段：只编译后端，不触发前端安装
+cd org-tribe-system
+mvn -DskipTests compile
+
+# 开发阶段：后端快速打包
+cd org-tribe-system
+mvn -DskipTests package
+
+# 交付阶段：前端 + 后端 + deploy-package 全量构建
+cd <repo-root>
+mvn -Pfull-package -DskipTests package
+```
 
 ### 前端模块
 
