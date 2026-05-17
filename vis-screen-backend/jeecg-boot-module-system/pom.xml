@@ -65,7 +65,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>org.jeecg.JeecgSystemApplication</mainClass>
+					<mainClass>org.jeecg.VISSystemApplication</mainClass>
 				</configuration>
 				<executions>
 					<execution>
@@ -84,7 +84,7 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 							<!--此处为应用入口类全路径-->
-							<mainClass>org.jeecg.JeecgSystemApplication</mainClass>
+							<mainClass>org.jeecg.VISSystemApplication</mainClass>
 						</manifest>
 						<manifestEntries>
 							<!--配置文件目录-->

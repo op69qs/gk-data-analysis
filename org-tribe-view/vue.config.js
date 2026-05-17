@@ -23,9 +23,25 @@ module.exports = {
   },
   */
   configureWebpack: config => {
-    //生产环境取消 console.log
+    // 生产环境取消 console.log
     if (process.env.NODE_ENV === 'production') {
-      config.optimization.minimizer[0].options.terserOptions.compress.drop_console = true
+      if (config.optimization && config.optimization.minimizer) {
+        // 寻找内置的 TerserPlugin
+        const terserPlugin = config.optimization.minimizer.find(
+            p => p.constructor.name === 'TerserPlugin'
+        );
+
+        if (terserPlugin && terserPlugin.options && terserPlugin.options.terserOptions) {
+          terserPlugin.options.terserOptions.compress = terserPlugin.options.terserOptions.compress || {};
+          terserPlugin.options.terserOptions.compress.drop_console = true;
+        } else {
+          // 如果上面找不到（部分现代脚手架结构不同），尝试直接操作
+          // 或者是使用可选链 (Optional Chaining) 防止崩溃
+          if (config.optimization.minimizer[0]?.options?.terserOptions?.compress) {
+            config.optimization.minimizer[0].options.terserOptions.compress.drop_console = true;
+          }
+        }
+      }
     }
   },
   chainWebpack: config => {

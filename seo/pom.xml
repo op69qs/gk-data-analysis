@@ -242,7 +242,7 @@
 							<addClasspath>true</addClasspath>
 							<classpathPrefix>lib/</classpathPrefix>
 							<!--此处为应用入口类全路径-->
-							<mainClass>org.seo.ComprehensiveQuery</mainClass>
+							<mainClass>org.seo.SEOComprehensiveQuery</mainClass>
 						</manifest>
 						<manifestEntries>
 							<!--配置文件目录-->

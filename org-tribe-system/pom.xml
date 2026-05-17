@@ -239,80 +239,6 @@
 		</resources>
 		<plugins>
 			<plugin>
-				<groupId>com.github.eirslett</groupId>
-				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.15.0</version>
-				<configuration>
-					<workingDirectory>${frontend.working.directory}</workingDirectory>
-					<installDirectory>${project.build.directory}/frontend</installDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>install-node-and-npm</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>install-node-and-npm</goal>
-						</goals>
-						<configuration>
-							<nodeVersion>${frontend.node.version}</nodeVersion>
-							<npmVersion>${frontend.npm.version}</npmVersion>
-						</configuration>
-					</execution>
-					<execution>
-						<id>npm-install</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>npm</goal>
-						</goals>
-						<configuration>
-							<arguments>install --legacy-peer-deps --prefer-offline</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>npm-build</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>npm</goal>
-						</goals>
-						<configuration>
-							<arguments>run build</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<id>clean-frontend-workdir</id>
-						<phase>initialize</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target>
-								<delete dir="${frontend.dist.directory}" quiet="true"/>
-							</target>
-						</configuration>
-					</execution>
-					<execution>
-						<id>prepare-frontend-static-dir</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target>
-								<delete dir="${project.build.outputDirectory}/static"/>
-								<mkdir dir="${project.build.outputDirectory}/static"/>
-							</target>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
@@ -370,21 +296,6 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>copy-frontend-static</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<resources>
-								<resource>
-									<directory>${frontend.dist.directory}</directory>
-								</resource>
-							</resources>
-							<outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
-						</configuration>
-					</execution>
-					<execution>
 						<id>copy-resources</id>
 						<phase>package</phase>
 						<goals>
@@ -407,5 +318,115 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>with-frontend-build</id>
+			<activation>
+				<property>
+					<name>skip.frontend.build</name>
+					<value>false</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.15.0</version>
+						<configuration>
+							<workingDirectory>${frontend.working.directory}</workingDirectory>
+							<installDirectory>${project.build.directory}/frontend</installDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install-node-and-npm</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>install-node-and-npm</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>${frontend.node.version}</nodeVersion>
+									<npmVersion>${frontend.npm.version}</npmVersion>
+								</configuration>
+							</execution>
+							<execution>
+								<id>npm-install</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<configuration>
+									<arguments>install --legacy-peer-deps --prefer-offline</arguments>
+								</configuration>
+							</execution>
+							<execution>
+								<id>npm-build</id>
+								<phase>generate-resources</phase>
+								<goals>
+									<goal>npm</goal>
+								</goals>
+								<configuration>
+									<arguments>run build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>3.1.0</version>
+						<executions>
+							<execution>
+								<id>clean-frontend-workdir</id>
+								<phase>initialize</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<delete dir="${frontend.dist.directory}" quiet="true"/>
+									</target>
+								</configuration>
+							</execution>
+							<execution>
+								<id>prepare-frontend-static-dir</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<delete dir="${project.build.outputDirectory}/static"/>
+										<mkdir dir="${project.build.outputDirectory}/static"/>
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<artifactId>maven-resources-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>copy-frontend-static</id>
+								<phase>process-resources</phase>
+								<goals>
+									<goal>copy-resources</goal>
+								</goals>
+								<configuration>
+									<resources>
+										<resource>
+											<directory>${frontend.dist.directory}</directory>
+										</resource>
+									</resources>
+									<outputDirectory>${project.build.outputDirectory}/static</outputDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

@@ -20,6 +20,8 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <skip.frontend.build>true</skip.frontend.build>
+        <skip.deploy.assembly>true</skip.deploy.assembly>
         <lombok.version>1.18.32</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -217,6 +219,16 @@
         <module>vis-screen-backend</module>
         <module>deploy-package-assembly</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>full-package</id>
+            <properties>
+                <skip.frontend.build>false</skip.frontend.build>
+                <skip.deploy.assembly>false</skip.deploy.assembly>
+            </properties>
+        </profile>
+    </profiles>
 
     <repositories>
         <repository>
