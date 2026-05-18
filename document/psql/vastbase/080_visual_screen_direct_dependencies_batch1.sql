@@ -1,0 +1,3174 @@
+-- Visual screen direct dependency source-port bundle (batch 1)
+-- Extracted from source_routines.sql
+-- Includes direct callees used by visual_screen.P_task_vscreen*
+
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_AMOUNT_RANKING_BY_REGION`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_AMOUNT_RANKING_BY_REGION.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_amount_ranking_by_region WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_amount_ranking_by_region
+SELECT
+distinct
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  CASE WHEN a.TRECODE = '3501000000' THEN '0600000000'
+       WHEN a.TRECODE = '3302000000' THEN '1500000000' 
+       WHEN a.TRECODE = '3801000000' THEN '1900000000'
+       WHEN a.TRECODE = '3600000000' THEN '1100000000'
+       WHEN a.TRECODE = '4000000000' THEN '1300000000'
+			 WHEN a.TRECODE = '3100000000' THEN '3000000000'
+       ELSE a.TRECODE END AS TRECODE,
+  CASE WHEN a.TRECODE = '3501000000' THEN '0600000000'
+       WHEN a.TRECODE = '3302000000' THEN '1500000000' 
+       WHEN a.TRECODE = '3801000000' THEN '1900000000'
+       WHEN a.TRECODE = '3600000000' THEN '1100000000'
+       WHEN a.TRECODE = '4000000000' THEN '1300000000'
+			 WHEN a.TRECODE = '3100000000' THEN '3000000000'
+       ELSE a.TRECODE END AS TRECODE,
+  CASE WHEN a.TREDSCR = '大连市' THEN '辽宁'
+     WHEN a.TREDSCR = '青岛市' THEN '山东省' 
+     WHEN a.TREDSCR = '深圳市' THEN '广东省'
+     WHEN a.TREDSCR = '宁波市' THEN '浙江省'
+     WHEN a.TREDSCR = '厦门市' THEN '福建省'
+     WHEN a.TREDSCR = '新疆区' THEN '新疆'
+		 WHEN a.TREDSCR = '新疆兵团' THEN '新疆'
+     WHEN a.TREDSCR = '西藏自治区' THEN '西藏'
+     WHEN a.TREDSCR = '广西壮族自治区' THEN '广西'
+     WHEN a.TREDSCR = '宁夏回族自治区' THEN '宁夏'
+     ELSE a.TREDSCR
+     END  AS TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(sum(a1.THIS_AMT)*100000000,4) as  INDEX_VALUE1
+FROM
+  stg.trs_tmis_budget_income_provinces a
+LEFT JOIN stg.trs_tmis_budget_income_provinces a1
+ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+AND a.TRECODE = a1.TRECODE
+and a.SUBJECT_CODE = a1.SUBJECT_CODE
+WHERE a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND a.SUBJECT_CODE = 'T010101'
+  GROUP BY 
+  a.DATA_DATE,
+    CASE WHEN a.TRECODE = '3501000000' THEN '0600000000'
+       WHEN a.TRECODE = '3302000000' THEN '1500000000' 
+       WHEN a.TRECODE = '3801000000' THEN '1900000000'
+       WHEN a.TRECODE = '3600000000' THEN '1100000000'
+       WHEN a.TRECODE = '4000000000' THEN '1300000000'
+			 WHEN a.TRECODE = '3100000000' THEN '3000000000'
+       ELSE a.TRECODE
+       END
+;
+SET V_STEP_ID=4;
+ UPDATE visual_screen.vs_amount_ranking_by_region SET AREA_DSCR =REPLACE(AREA_DSCR, '市','');
+ UPDATE visual_screen.vs_amount_ranking_by_region SET AREA_DSCR =REPLACE(AREA_DSCR, '省','');
+ SET V_STEP_ID=5;
+ CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`p_vs_area_income`
+DROP PROCEDURE IF EXISTS `visual_screen`.`p_vs_area_income`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `p_vs_area_income`(in V_DATA_DATE varchar(10))
+BEGIN
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_vs_area_income.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_area_income WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_area_income
+     SELECT 
+    lib.DACCT,
+    '500000' AS area_no_id,
+     a.type_id,
+    a.type_dscr,
+    '2', 
+    '收入',
+   SUM( lib.INDEX_VALUE) AS   INDEX_VALUE
+FROM visual_screen.vs_three_budget_revenue lib
+ LEFT JOIN dmcode.cm_guoku_area_code a
+ ON lib.AREA_CODE = a.area_no_id
+ WHERE lib.DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND lib.PERIOD_FLAG='2'
+  AND lib.INDEX_NAME in ('一般公共预算收入','国有资本经营预算收入','基金预算收入')
+  AND a.type_id IS NOT NULL
+ GROUP BY 
+ a.type_id,
+a.type_dscr
+UNION ALL 
+       SELECT 
+    lib.DACCT,
+    '500000' AS area_no_id,
+     a.type_id,
+     a.type_dscr,
+    '2', 
+    '收入同比增速',
+   (SUM( lib.INDEX_VALUE) - SUM(lib1.INDEX_VALUE))/SUM(lib1.INDEX_VALUE) AS   INDEX_VALUE
+FROM visual_screen.vs_three_budget_revenue lib
+LEFT JOIN visual_screen.vs_three_budget_revenue lib1
+ON lib1.DACCT = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+AND lib.AREA_CODE = lib1.AREA_CODE
+AND lib.INDEX_NAME = lib1.INDEX_NAME
+AND lib.PERIOD_FLAG =lib1.PERIOD_FLAG
+ LEFT JOIN dmcode.cm_guoku_area_code a
+ ON lib.AREA_CODE = a.area_no_id
+ WHERE lib.DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND lib.PERIOD_FLAG='2'
+  AND lib.INDEX_NAME IN ('一般公共预算收入','国有资本经营预算收入','基金预算收入')
+  AND a.type_id IS NOT NULL
+ GROUP BY 
+ a.type_id,
+a.type_dscr;
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`p_vs_area_pay`
+DROP PROCEDURE IF EXISTS `visual_screen`.`p_vs_area_pay`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `p_vs_area_pay`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.p_vs_area_pay.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_area_pay WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_area_pay
+SELECT 
+  DACCT,
+  area_no_id,
+  type_id,
+  type_dscr,
+  PERIOD_FLAG,
+  INDEX_NAME,
+  SUM(INDEX_VALUE),
+  SUM(GROWTH_INDEX_VALUE)
+FROM
+(
+SELECT 
+    lib.DACCT,
+    '500000' 			AS area_no_id,
+    a.type_id,
+    a.type_dscr,
+    '2'				AS PERIOD_FLAG, 
+    '支出合计金额'		AS INDEX_NAME,
+   SUM( lib.INDEX_VALUE)  	AS INDEX_VALUE,
+   0 			 	AS GROWTH_INDEX_VALUE
+FROM visual_screen.vs_economic_pay lib
+ LEFT JOIN dmcode.cm_guoku_area_code a
+ ON lib.AREA_CODE = a.area_no_id
+ WHERE lib.DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND lib.PERIOD_FLAG='2'
+  AND lib.INDEX_NAME='支出合计金额'
+  AND a.type_id IS NOT NULL
+ GROUP BY 
+ a.type_id,
+a.type_dscr
+UNION ALL 
+SELECT 
+    DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+    '500000' AS area_no_id,
+    a.type_id,
+    a.type_dscr,
+    '2', 
+    '支出合计金额',
+    0	 				AS   INDEX_VALUE,
+    SUM( lib.INDEX_VALUE)		AS GROWTH_INDEX_VALUE
+FROM visual_screen.vs_economic_pay lib
+ LEFT JOIN dmcode.cm_guoku_area_code a
+ ON lib.AREA_CODE = a.area_no_id
+ WHERE lib.DACCT = DATE_FORMAT(DATE_SUB(V_DATA_DATE,INTERVAL 1 YEAR),'%Y-%m')
+  AND lib.PERIOD_FLAG='2'
+  AND lib.INDEX_NAME='支出合计金额'
+  AND a.type_id IS NOT NULL
+ GROUP BY 
+ a.type_id,
+ a.type_dscr
+ ) A
+ GROUP BY 
+    A.area_no_id,
+    A.type_id;
+ 
+    END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_BUDGET_REVENUE`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_BUDGET_REVENUE`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_BUDGET_REVENUE`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_BUDGET_REVENUE.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_budget_revenue WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_budget_revenue
+SELECT
+	DATE_FORMAT(a.D_ACCT,'%Y-%m'),
+	b.PID,
+	b.area_no_id,
+	b.area_dscr,
+	'2',
+	'一般公共预算收入金额',	
+	SUM(a.THIS_AMT)
+ FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+    (SELECT DISTINCT 
+      p.GUOKU_ID AS PID,
+      p.LEVEL,
+      p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+      c.GUOKU_ID AS CID 
+    FROM
+      edw.cm_guoku_dimnsn p
+      JOIN edw.cm_guoku_dimnsn c
+        ON p.GUOKU_LVL_ID_2 = c.GUOKU_LVL_ID_1 
+        OR p.GUOKU_LVL_ID_3 = c.GUOKU_LVL_ID_2 
+        OR p.GUOKU_ID = c.GUOKU_LVL_ID_3) b
+    ON a.TRECODE = b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T010101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+  AND b.AREA_NO_ID <> '500000'
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.area_no_id
+  
+union all
+SELECT
+	DATE_FORMAT(a.D_ACCT,'%Y-%m'),
+	b.PID,
+	b.area_no_id,
+	b.area_dscr,
+	'2',
+	'一般公共预算收入金额',	
+	SUM(a.THIS_AMT)
+ FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+    (SELECT DISTINCT 
+      p.GUOKU_ID AS PID,
+      p.LEVEL,
+      p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+      c.GUOKU_ID AS CID 
+    FROM
+      edw.cm_guoku_dimnsn p
+      JOIN edw.cm_guoku_dimnsn c
+        ON p.GUOKU_LVL_ID_2 = c.GUOKU_LVL_ID_1 
+        OR p.GUOKU_LVL_ID_3 = c.GUOKU_LVL_ID_2 
+        OR p.GUOKU_ID = c.GUOKU_LVL_ID_3) b
+    ON a.TRECODE = b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T010101'
+  AND a.`LEVEL` = '2'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+  AND b.AREA_NO_ID = '500000'
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.area_no_id
+  
+	UNION ALL 
+		
+SELECT
+	DATE_FORMAT(a.D_ACCT,'%Y-%m'),
+	a.`TRECODE`,
+	b.area_no_id,
+	b.area_dscr,
+	'2',
+	'税收收入金额',	
+	SUM(a.THIS_AMT)
+ FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+    (SELECT DISTINCT 
+      p.GUOKU_ID AS PID,
+      p.LEVEL,
+      p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+      c.GUOKU_ID AS CID 
+    FROM
+      edw.cm_guoku_dimnsn p
+      JOIN edw.cm_guoku_dimnsn c
+        ON p.GUOKU_LVL_ID_2 = c.GUOKU_LVL_ID_1 
+        OR p.GUOKU_LVL_ID_3 = c.GUOKU_LVL_ID_2 
+        OR p.GUOKU_ID = c.GUOKU_LVL_ID_3) b
+    ON a.TRECODE = b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+  and b.area_no_id <> '500000'
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.area_no_id
+  
+  union all
+  SELECT
+	DATE_FORMAT(a.D_ACCT,'%Y-%m'),
+	a.`TRECODE`,
+	b.area_no_id,
+	b.area_dscr,
+	'2',
+	'税收收入金额',	
+	SUM(a.THIS_AMT)
+ FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+    (SELECT DISTINCT 
+      p.GUOKU_ID AS PID,
+      p.LEVEL,
+      p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+      c.GUOKU_ID AS CID 
+    FROM
+      edw.cm_guoku_dimnsn p
+      JOIN edw.cm_guoku_dimnsn c
+        ON p.GUOKU_LVL_ID_2 = c.GUOKU_LVL_ID_1 
+        OR p.GUOKU_LVL_ID_3 = c.GUOKU_LVL_ID_2 
+        OR p.GUOKU_ID = c.GUOKU_LVL_ID_3) b
+    ON a.TRECODE = b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101'
+  AND a.`LEVEL`='2'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+  AND b.area_no_id = '500000'
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.area_no_id;
+  
+	
+INSERT INTO visual_screen.vs_budget_revenue
+SELECT
+	DATE_FORMAT(a.DACCT,'%Y-%m'),
+	a.GUOKU_ID,
+	b.AREA_CODE,
+	b.AREA_DSCR,
+	'2',
+	'一般公共预算收入同比',	
+	(a.INDEX_VALUE-b.INDEX_VALUE)/b.INDEX_VALUE 
+ FROM
+  visual_screen.vs_budget_revenue a
+ LEFT JOIN visual_screen.vs_budget_revenue b
+        ON b.DACCT = DATE_FORMAT(DATE_SUB(V_DATA_DATE,INTERVAL 1 YEAR),'%Y-%m')
+        AND a.AREA_CODE = b.AREA_CODE
+        AND a.GUOKU_ID  = b.GUOKU_ID
+        AND a.INDEX_NAME = b.INDEX_NAME
+        AND a.PERIOD_FLAG = b.PERIOD_FLAG
+  WHERE a.DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+        AND a.INDEX_NAME = '一般公共预算收入同比'
+        AND a.PERIOD_FLAG = '2'
+        
+       UNION ALL
+       
+SELECT
+	DATE_FORMAT(a.DACCT,'%Y-%m'),
+	a.GUOKU_ID,
+	b.AREA_CODE,
+	b.AREA_DSCR,
+	'2',
+	'税收收入同比',	
+	(a.INDEX_VALUE-b.INDEX_VALUE)/b.INDEX_VALUE 
+ FROM
+  visual_screen.vs_budget_revenue a
+ LEFT JOIN visual_screen.vs_budget_revenue b
+        ON b.DACCT = DATE_FORMAT(DATE_SUB(V_DATA_DATE,INTERVAL 1 YEAR),'%Y-%m')
+        AND a.AREA_CODE = b.AREA_CODE
+        AND a.GUOKU_ID  = b.GUOKU_ID
+        AND a.INDEX_NAME = b.INDEX_NAME
+        AND a.PERIOD_FLAG = b.PERIOD_FLAG
+  WHERE a.DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+        AND a.INDEX_NAME = '税收收入同比'
+        AND a.PERIOD_FLAG = '2';
+	
+set V_STEP_ID=4;
+SET V_STEP_ID=5;
+UPDATE visual_screen.vs_budget_revenue SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_budget_revenue SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_budget_revenue SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_budget_revenue SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_budget_revenue SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_budget_revenue SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=6;
+CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_CHONGQING_ECONOMIC_ZONE`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_CHONGQING_ECONOMIC_ZONE`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_CHONGQING_ECONOMIC_ZONE`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_CHONGQING_ECONOMIC_ZONE.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_chongqing_economic_zone WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_chongqing_economic_zone
+     SELECT 
+    lib.DACCT,
+    '500000' AS area_no_id,
+     a.type_id,
+    a.type_dscr,
+    '2', 
+    '一般公共预算收入',
+   SUM( lib.INDEX_VALUE) AS   INDEX_VALUE
+FROM visual_screen.vs_three_budget_revenue lib
+ LEFT JOIN dmcode.cm_guoku_area_code a
+ ON lib.AREA_CODE = a.area_no_id
+ WHERE lib.DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND lib.PERIOD_FLAG='2'
+  and lib.INDEX_NAME = '一般公共预算收入'
+  AND a.type_id IS NOT NULL
+ GROUP BY 
+ a.type_id,
+a.type_dscr
+UNION ALL 
+       SELECT 
+    lib.DACCT,
+    '500000' AS area_no_id,
+     a.type_id,
+     a.type_dscr,
+    '2', 
+    '一般公共预算收入同比增速',
+   (SUM( lib.INDEX_VALUE) - SUM(lib1.INDEX_VALUE))/SUM(lib1.INDEX_VALUE) AS   INDEX_VALUE
+FROM visual_screen.vs_three_budget_revenue lib
+LEFT JOIN visual_screen.vs_three_budget_revenue lib1
+ON lib1.DACCT = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+AND lib.AREA_CODE = lib1.AREA_CODE
+and lib.INDEX_NAME = lib1.INDEX_NAME
+and lib.PERIOD_FLAG =lib1.PERIOD_FLAG
+ LEFT JOIN dmcode.cm_guoku_area_code a
+ ON lib.AREA_CODE = a.area_no_id
+ WHERE lib.DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND lib.PERIOD_FLAG='2'
+  AND lib.INDEX_NAME = '一般公共预算收入'
+  AND a.type_id IS NOT NULL
+ GROUP BY 
+ a.type_id,
+a.type_dscr
+	;
+	
+SET V_STEP_ID=4;
+CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_CUSTOMS_IMPORT_DUTIES`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_CUSTOMS_IMPORT_DUTIES`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_CUSTOMS_IMPORT_DUTIES`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_CUSTOMS_IMPORT_DUTIES.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_customs_import_duties WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_customs_import_duties
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '2',
+  '进口关税',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101170101'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID
+    UNION ALL 
+ 
+ 
+ 
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '2',
+  '进口关税增速',
+    ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y-%m') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101170101'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID;
+  
+SET V_STEP_ID = 3;     
+DELETE FROM visual_screen.vs_customs_import_duties WHERE DACCT = LEFT(V_DATA_DATE,4);
+SET V_STEP_ID = 4; 
+INSERT INTO visual_screen.vs_customs_import_duties
+  
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '4',
+  '进口关税',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '101170101'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+ 
+  
+  UNION ALL
+  
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '4',
+  '进口关税增速',
+  ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+    LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '101170101'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+	;
+SET V_STEP_ID=5;
+UPDATE visual_screen.vs_customs_import_duties SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+SET V_STEP_ID=6;
+UPDATE visual_screen.vs_customs_import_duties SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+SET V_STEP_ID=7;
+UPDATE visual_screen.vs_customs_import_duties SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+SET V_STEP_ID=8;
+UPDATE visual_screen.vs_customs_import_duties SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+SET V_STEP_ID=9;
+UPDATE visual_screen.vs_customs_import_duties SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+SET V_STEP_ID=10;
+UPDATE visual_screen.vs_customs_import_duties SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+ SET V_STEP_ID=11;
+ CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_CUSTOMS_IMPORT_VAT`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_CUSTOMS_IMPORT_VAT`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_CUSTOMS_IMPORT_VAT`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_CUSTOMS_IMPORT_VAT.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_customs_import_vat WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_customs_import_vat
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+   b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '2',
+  '进口增值税',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101010201'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID
+  
+    
+  UNION ALL 
+ 
+ 
+ 
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+   b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '2',
+  '进口增值税增速',
+    ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y-%m') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101010201'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID
+  ;
+  
+SET V_STEP_ID = 3;     
+DELETE FROM visual_screen.vs_customs_import_vat WHERE DACCT = LEFT(V_DATA_DATE,4);
+SET V_STEP_ID = 4; 
+INSERT INTO visual_screen.vs_customs_import_vat
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+   b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '4',
+  '进口增值税',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '101010201'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+  UNION ALL
+  
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+   b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '4',
+  '进口增值税增速',
+  ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+    LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '101010201'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+	;
+SET V_STEP_ID=4;
+UPDATE visual_screen.vs_customs_import_vat SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_customs_import_vat SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_customs_import_vat SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_customs_import_vat SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_customs_import_vat SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_customs_import_vat SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=5;
+ CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`p_vs_customs_income_situation`
+DROP PROCEDURE IF EXISTS `visual_screen`.`p_vs_customs_income_situation`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `p_vs_customs_income_situation`(IN v_data_date VARCHAR(10))
+BEGIN
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.p_vs_customs_income_situation.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+SET V_STEP_ID = '1';
+delete from visual_screen.vs_customs_income_situation where DACCT = date_format(v_data_date,'%Y-%m');
+SET V_STEP_ID = '2';
+insert into visual_screen.vs_customs_income_situation
+SELECT 
+  DATE_FORMAT(v_data_date,'%Y-%m')   AS d_acct,
+  a1.PID,
+  a1.GUOKU_DSCR,
+  a1.AREA_NO_ID,
+  a1.AREA_DSCR,
+  '2',
+  '海关收入',
+  SUM(income.THIS_AMT)
+FROM stg.trs_tmis_budget_income  income
+LEFT JOIN 
+    (SELECT DISTINCT 
+      p.GUOKU_ID AS PID,
+      p.GUOKU_DSCR,
+      p.AREA_NO_ID,
+      p.AREA_DSCR,
+      c.GUOKU_ID AS CID 
+    FROM
+      edw.cm_guoku_dimnsn p
+      JOIN edw.cm_guoku_dimnsn c
+        ON p.GUOKU_LVL_ID_2 = c.GUOKU_LVL_ID_1 
+        OR p.GUOKU_LVL_ID_3 = c.GUOKU_LVL_ID_2 
+        OR p.GUOKU_ID = c.GUOKU_LVL_ID_3) a1 
+    ON income.TRECODE = a1.CID
+ WHERE income.D_ACCT LIKE CONCAT(DATE_FORMAT(v_data_date,'%Y-%m'),'%')
+   AND income.TAX_ORG_CODE = '3333333333'
+   AND income.SUBJECT_CODE = 'T01'
+   AND income.TRECODE NOT IN ('2231000000','2232000000','2233000000','2230000000')
+ GROUP BY 
+   a1.PID;
+SET V_STEP_ID = '3';
+   INSERT INTO visual_screen.vs_customs_income_situation
+   SELECT 
+     cur.DACCT,
+     cur.GUOKU_ID,
+     cur.GUOKU_DSCR,
+     cur.AREA_CODE,
+     cur.AREA_DSCR,
+     cur.PERIOD_FLAG,
+     '海关收入同比增速'   as INDEX_NAME,
+     (cur.INDEX_VALUE - lastr.INDEX_VALUE)/lastr.INDEX_VALUE  AS INDEX_VALUE
+   FROM visual_screen.vs_customs_income_situation  cur
+   LEFT JOIN visual_screen.vs_customs_income_situation lastr
+     ON lastr.DACCT =  DATE_FORMAT(DATE_SUB(v_data_date,INTERVAL 1 YEAR),'%Y-%m')
+     AND cur.GUOKU_ID = lastr.GUOKU_ID
+     and cur.AREA_CODE = lastr.AREA_CODE
+     AND cur.PERIOD_FLAG = lastr.PERIOD_FLAG
+     AND cur.INDEX_NAME = lastr.INDEX_NAME
+   WHERE cur.DACCT = DATE_FORMAT(v_data_date,'%Y-%m')
+     and cur.INDEX_NAME = '海关收入';
+   SET V_STEP_ID=4;
+   
+   
+UPDATE visual_screen.vs_customs_income_situation SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_customs_income_situation SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_customs_income_situation SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_customs_income_situation SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_customs_income_situation SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_customs_income_situation SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=5;
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_CUSTOMS_NON_TAX`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_CUSTOMS_NON_TAX`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_CUSTOMS_NON_TAX`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_CUSTOMS_NON_TAX.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_customs_non_tax WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_customs_non_tax
+   
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '2',
+  '非税收收入',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '103'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID
+  
+  UNION ALL 
+ 
+ 
+ 
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '2',
+  '非税收收入增速',
+    ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y-%m') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '103'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID;
+  
+SET V_STEP_ID = 3;     
+DELETE FROM visual_screen.vs_customs_non_tax WHERE DACCT = LEFT(V_DATA_DATE,4);
+SET V_STEP_ID = 4; 
+INSERT INTO visual_screen.vs_customs_non_tax
+  
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '4',
+  '非税收收入',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '103'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+  
+  UNION ALL
+  
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '4',
+  '非税收收入增速',
+  ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+    LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '103'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+	;
+ SET V_STEP_ID=4;
+UPDATE visual_screen.vs_customs_non_tax SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_customs_non_tax SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_customs_non_tax SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_customs_non_tax SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_customs_non_tax SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_customs_non_tax SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=5;
+ CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_CUSTOMS_REVENUE`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_CUSTOMS_REVENUE`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_CUSTOMS_REVENUE`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_CUSTOMS_REVENUE.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_customs_revenue WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_customs_revenue
+      
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+  '2',
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '税收收入',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID
+   UNION ALL 
+ 
+ 
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+  '2',
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '税收收入增速',
+    ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y-%m') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID;
+  
+  
+SET V_STEP_ID = 3;     
+DELETE FROM visual_screen.vs_customs_revenue WHERE DACCT = LEFT(V_DATA_DATE,4);
+SET V_STEP_ID = 4; 
+INSERT INTO visual_screen.vs_customs_revenue
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+  '4',
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '税收收入',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '101'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+  
+  UNION ALL
+  
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+  '4',
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '税收收入增速',
+  ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+    LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+      c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '101'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+	;
+ SET V_STEP_ID=4;
+UPDATE visual_screen.vs_customs_revenue SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_customs_revenue SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_customs_revenue SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_customs_revenue SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_customs_revenue SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_customs_revenue SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=5;
+ CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`p_vs_economic_pay`
+DROP PROCEDURE IF EXISTS `visual_screen`.`p_vs_economic_pay`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `p_vs_economic_pay`(in v_data_date varchar(10))
+BEGIN
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.p_vs_economic_pay.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+
+set V_STEP_ID = 1;
+delete from visual_screen.vs_economic_pay where DACCT = date_format(v_data_date,'%Y-%m');
+SET V_STEP_ID = 2;
+insert into visual_screen.vs_economic_pay
+SELECT 
+  DATE_FORMAT(v_data_date,'%Y-%m'),
+  a0.TRECODE,
+  a1.AREA_NO_ID,
+  a1.AREA_DSCR,
+  '2',
+  '支出合计金额',
+  ROUND(SUM(a0.THIS_AMT), 4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_payout a0 
+  LEFT JOIN edw.cm_guoku_dimnsn a1 
+    ON a0.TRECODE = a1.guoku_id
+WHERE A0.D_ACCT LIKE CONCAT(DATE_FORMAT(v_data_date,'%Y-%m'),'%')
+AND a0.SUBJECT_CODE IN ('T020101','T020201','T020601')
+AND A0.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY a1.AREA_NO_ID;
+INSERT INTO visual_screen.vs_economic_pay
+SELECT 
+  a.DACCT,
+  a.GUOKU_ID,
+  a.AREA_CODE,
+  a.AREA_DSCR,
+  a.PERIOD_FLAG,
+  '支出合计金额同比',
+  (a.INDEX_VALUE - b.INDEX_VALUE)/b.INDEX_VALUE
+FROM visual_screen.vs_economic_pay a
+LEFT JOIN visual_screen.vs_economic_pay b
+       ON b.DACCT = DATE_FORMAT(DATE_SUB(v_data_date,INTERVAL 1 YEAR),'%Y-%m')
+      AND a.AREA_CODE = b.AREA_CODE
+      AND a.PERIOD_FLAG = b.PERIOD_FLAG
+      and a.INDEX_NAME = b.INDEX_NAME
+WHERE a.DACCT = DATE_FORMAT(v_data_date,'%Y-%m')
+  AND a.INDEX_NAME = '支出合计金额';
+  
+  
+  
+ SET V_STEP_ID=3;
+UPDATE visual_screen.vs_economic_pay SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_economic_pay SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_economic_pay SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_economic_pay SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_economic_pay SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_economic_pay SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+COMMIT;
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_ECONOMIC_TAXATION`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_ECONOMIC_TAXATION`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_ECONOMIC_TAXATION`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_ECONOMIC_TAXATION.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_economic_taxation WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_economic_taxation
+    SELECT 
+    a.DACCT,
+    '500000' AS area_no_id,
+    b.type_id,
+    b.type_dscr,
+    '2', 
+    '税收收入',
+   SUM(a.INDEX_VALUE) AS   INDEX_VALUE
+FROM visual_screen.vs_budget_revenue a
+ LEFT JOIN dmcode.cm_guoku_area_code b
+ ON a.AREA_CODE = b.area_no_id
+ WHERE a.DACCT = DATE_FORMAT(v_data_date,'%Y-%m')
+  AND a.PERIOD_FLAG ='2'
+  AND a.INDEX_NAME = '税收收入金额'
+  AND b.type_id IS NOT NULL
+ GROUP BY 
+ b.type_id,
+ b.type_dscr
+UNION ALL
+SELECT 
+    a.DACCT,
+    '500000' AS area_no_id,
+    b.type_id,
+    b.type_dscr,
+    '2', 
+    '税收收入同比增速',
+   (SUM(a.INDEX_VALUE)-SUM(c.INDEX_VALUE))/SUM(c.INDEX_VALUE) AS   INDEX_VALUE
+FROM visual_screen.vs_budget_revenue a
+LEFT JOIN visual_screen.vs_budget_revenue c
+        ON c.DACCT = DATE_FORMAT(DATE_SUB(v_data_date,INTERVAL 1 YEAR),'%Y-%m')
+        AND a.AREA_CODE = c.AREA_CODE
+        AND a.INDEX_NAME = c.INDEX_NAME
+        AND a.PERIOD_FLAG = c.PERIOD_FLAG
+ LEFT JOIN dmcode.cm_guoku_area_code b
+ ON a.AREA_CODE = b.area_no_id
+ WHERE a.DACCT = DATE_FORMAT(v_data_date,'%Y-%m')
+  AND a.PERIOD_FLAG ='2'
+  AND a.INDEX_NAME = '税收收入金额'
+  AND b.type_id IS NOT NULL
+ GROUP BY 
+ b.type_id,
+ b.type_dscr;
+ 
+SET V_STEP_ID=4;
+CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_FIVE_PROVINCES_IN_SOUTHWEST_CHINA`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_FIVE_PROVINCES_IN_SOUTHWEST_CHINA`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_FIVE_PROVINCES_IN_SOUTHWEST_CHINA`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_FIVE_PROVINCES_IN_SOUTHWEST_CHINA.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_five_provinces_in_southwest_china WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_five_provinces_in_southwest_china
+            
+     SELECT 
+      DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  a.INDEX_VALUE,
+  a.INDEX_VALUE1,
+  b.SUBJECT_DSCR,
+  b.INDEX_VALUE,
+  b.INDEX_VALUE1   
+    FROM ( 
+      SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+ ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2100000000'
+  AND a.SUBJECT_CODE = '101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) a 
+  LEFT JOIN( 
+        SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2100000000'
+  AND a.SUBJECT_CODE = 'T010101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) b 
+  ON a.TRECODE = b.TRECODE
+  
+  UNION ALL 
+       
+     SELECT 
+      DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  a.INDEX_VALUE,
+  a.INDEX_VALUE1,
+  b.SUBJECT_DSCR,
+  b.INDEX_VALUE,
+  b.INDEX_VALUE1   
+    FROM ( 
+      SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2200000000'
+  AND a.SUBJECT_CODE = '101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) a 
+  LEFT JOIN( 
+        SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2200000000'
+  AND a.SUBJECT_CODE = 'T010101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) b 
+  ON a.TRECODE = b.TRECODE
+  
+  UNION ALL
+  
+       
+     SELECT 
+      DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  a.INDEX_VALUE,
+  a.INDEX_VALUE1,
+  b.SUBJECT_DSCR,
+  b.INDEX_VALUE,
+  b.INDEX_VALUE1   
+    FROM ( 
+      SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2400000000'
+  AND a.SUBJECT_CODE = '101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) a 
+  LEFT JOIN( 
+        SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2400000000'
+  AND a.SUBJECT_CODE = 'T010101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) b 
+  ON a.TRECODE = b.TRECODE
+  
+  UNION ALL 
+  
+       
+     SELECT 
+      DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  a.INDEX_VALUE,
+  a.INDEX_VALUE1,
+  b.SUBJECT_DSCR,
+  b.INDEX_VALUE,
+  b.INDEX_VALUE1   
+    FROM ( 
+      SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2300000000'
+  AND a.SUBJECT_CODE = '101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) a 
+  LEFT JOIN( 
+        SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2300000000'
+  AND a.SUBJECT_CODE = 'T010101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) b 
+  ON a.TRECODE = b.TRECODE
+  UNION ALL 
+  
+  
+     SELECT 
+      DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  a.INDEX_VALUE,
+  a.INDEX_VALUE1,
+  b.SUBJECT_DSCR,
+  b.INDEX_VALUE,
+  b.INDEX_VALUE1   
+    FROM ( 
+      SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '1700000000'
+  AND a.SUBJECT_CODE = '101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) a 
+  LEFT JOIN( 
+        SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '1700000000'
+  AND a.SUBJECT_CODE = 'T010101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) b 
+  ON a.TRECODE = b.TRECODE
+  
+  UNION ALL 
+    
+     SELECT 
+      DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  a.INDEX_VALUE,
+  a.INDEX_VALUE1,
+  b.SUBJECT_DSCR,
+  b.INDEX_VALUE,
+  b.INDEX_VALUE1   
+    FROM ( 
+      SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '1800000000'
+  AND a.SUBJECT_CODE = '101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) a 
+  LEFT JOIN( 
+        SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '1800000000'
+  AND a.SUBJECT_CODE = 'T010101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) b 
+  ON a.TRECODE = b.TRECODE
+  
+  UNION ALL
+  
+     
+     SELECT 
+      DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  '广西'  AS TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  a.INDEX_VALUE,
+  a.INDEX_VALUE1,
+  b.SUBJECT_DSCR,
+  b.INDEX_VALUE,
+  b.INDEX_VALUE1   
+    FROM ( 
+      SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2000000000'
+  AND a.SUBJECT_CODE = '101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) a 
+  LEFT JOIN( 
+        SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2000000000'
+  AND a.SUBJECT_CODE = 'T010101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) b 
+  ON a.TRECODE = b.TRECODE
+  
+  UNION ALL
+  
+     
+     SELECT 
+      DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  a.INDEX_VALUE,
+  a.INDEX_VALUE1,
+  b.SUBJECT_DSCR,
+  b.INDEX_VALUE,
+  b.INDEX_VALUE1   
+    FROM ( 
+      SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2600000000'
+  AND a.SUBJECT_CODE = '101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) a 
+  LEFT JOIN( 
+        SELECT
+       DISTINCT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  a.AREA_NO,
+  a.TRECODE,
+  a.TREDSCR,
+  '2',
+  a.SUBJECT_DSCR,
+  ROUND(SUM(a.THIS_AMT)*100000000,4) AS INDEX_VALUE,
+  ROUND(SUM(a1.THIS_AMT)*100000000,4) AS INDEX_VALUE1
+  FROM stg.trs_tmis_budget_income_provinces a 
+  LEFT JOIN stg.trs_tmis_budget_income_provinces a1 
+  ON a1.DATA_DATE = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y%m')
+   AND a.TRECODE = a1.TRECODE
+   AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+  WHERE  a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
+  AND  a.TRECODE = '2600000000'
+  AND a.SUBJECT_CODE = 'T010101'
+    GROUP BY
+  a.AREA_NO,
+  a.TRECODE
+  ) b 
+  ON a.TRECODE = b.TRECODE
+	;
+	
+	
+SET V_STEP_ID=4;
+ UPDATE visual_screen.vs_five_provinces_in_southwest_china SET AREA_DSCR =REPLACE(AREA_DSCR, '市','');
+set V_STEP_ID=5;
+ UPDATE visual_screen.vs_five_provinces_in_southwest_china SET AREA_DSCR =REPLACE(AREA_DSCR, '省','');
+ SET V_STEP_ID=6;
+ CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_GEMINI_STRUCTURE`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_GEMINI_STRUCTURE`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_GEMINI_STRUCTURE`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_GEMINI_STRUCTURE.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_gemini_structure WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_gemini_structure
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m') AS ACCOUNT_PERIOD,
+  b.PID AS  pid,
+  b.AREA_NO_ID AS AREA_NO_ID,
+  b.AREA_DSCR AS AREA_DSCR,
+  '2' AS PERIOD_FLAG,
+  '一般公共预算' , 
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID ,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T010101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.AREA_NO_ID	 
+    UNION ALL   
+  
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m') AS ACCOUNT_PERIOD,
+  b.PID AS  pid,
+  b.AREA_NO_ID AS AREA_NO_ID,
+  b.AREA_DSCR AS AREA_DSCR,
+  '2' AS PERIOD_FLAG,
+  '基金' , 
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID ,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+   ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T010201'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.AREA_NO_ID	 
+	UNION ALL
+   
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m') AS ACCOUNT_PERIOD,
+  b.PID AS  pid,
+  b.AREA_NO_ID AS AREA_NO_ID,
+  b.AREA_DSCR AS AREA_DSCR,
+  '2' AS PERIOD_FLAG,
+  '国资' , 
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID ,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+        ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T010601'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.AREA_NO_ID	 
+	UNION ALL
+	
+      
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m') AS ACCOUNT_PERIOD,
+  b.PID AS  pid,
+  b.AREA_NO_ID AS AREA_NO_ID,
+  b.AREA_DSCR AS AREA_DSCR,
+  '2' AS PERIOD_FLAG,
+  '地方债' , 
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID ,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+   ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE IN ('T0103','T0105')
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(a.D_ACCT,'%Y-%m'),
+  b.AREA_NO_ID	 
+	UNION ALL
+	
+	
+ 
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m') AS ACCOUNT_PERIOD,
+  b.PID AS  pid,
+  b.AREA_NO_ID AS AREA_NO_ID,
+  b.AREA_DSCR AS AREA_DSCR,
+  '2' AS PERIOD_FLAG,
+  '转移性' , 
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID ,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE IN ('11001','11002','11003')
+  AND a.`LEVEL`=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(a.D_ACCT,'%Y-%m'),
+  b.AREA_NO_ID;
+  
+  
+SET V_STEP_ID = 3;     
+DELETE FROM visual_screen.vs_gemini_structure WHERE DACCT = LEFT(V_DATA_DATE,4) ;
+SET V_STEP_ID = 4; 
+INSERT INTO visual_screen.vs_gemini_structure
+SELECT
+DISTINCT
+	LEFT(lib.DACCT,4), 
+	lib.GUOKU_ID, 
+	lib.AREA_CODE, 
+	lib.AREA_DSCR ,   
+	'4' AS PERIOD_FLAG,  
+	'一般公共预算'AS  INDEX_NAME         ,  
+	SUM(lib.INDEX_VALUE) 
+    FROM visual_screen.vs_gemini_structure lib
+	WHERE  LEFT(lib.DACCT,4)= LEFT(V_DATA_DATE,4)
+	AND  lib.PERIOD_FLAG='2'
+	AND lib.INDEX_NAME= '一般公共预算'
+	GROUP BY 
+	lib.AREA_CODE  
+	  UNION ALL 
+     
+   SELECT
+DISTINCT
+	LEFT(lib.DACCT,4), 
+	lib.GUOKU_ID, 
+	lib.AREA_CODE, 
+	lib.AREA_DSCR ,   
+	'4' AS PERIOD_FLAG,  
+	'基金'AS  INDEX_NAME         ,  
+	SUM(lib.INDEX_VALUE) 
+    FROM visual_screen.vs_gemini_structure lib
+	WHERE  LEFT(lib.DACCT,4)= LEFT(V_DATA_DATE,4)
+	AND  lib.PERIOD_FLAG='2'
+	AND lib.INDEX_NAME= '基金'
+	GROUP BY 
+	lib.AREA_CODE
+	UNION ALL
+   SELECT
+DISTINCT
+	LEFT(lib.DACCT,4), 
+	lib.GUOKU_ID, 
+	lib.AREA_CODE, 
+	lib.AREA_DSCR ,   
+	'4' AS PERIOD_FLAG,  
+	'国资'AS  INDEX_NAME         ,  
+	SUM(lib.INDEX_VALUE) 
+    FROM visual_screen.vs_gemini_structure lib
+	WHERE  LEFT(lib.DACCT,4)= LEFT(V_DATA_DATE,4)
+	AND  lib.PERIOD_FLAG='2'
+	AND lib.INDEX_NAME= '国资'
+	GROUP BY 
+	lib.AREA_CODE
+	UNION ALL
+	
+    SELECT
+DISTINCT
+	LEFT(lib.DACCT,4), 
+	lib.GUOKU_ID, 
+	lib.AREA_CODE, 
+	lib.AREA_DSCR ,   
+	'4' AS PERIOD_FLAG,  
+	'地方债'AS  INDEX_NAME         ,  
+	SUM(lib.INDEX_VALUE) 
+    FROM visual_screen.vs_gemini_structure lib
+	WHERE  LEFT(lib.DACCT,4)= LEFT(V_DATA_DATE,4)
+	AND  lib.PERIOD_FLAG='2'
+	AND lib.INDEX_NAME= '地方债'
+	GROUP BY 
+	lib.AREA_CODE
+	UNION ALL
+	
+    SELECT
+DISTINCT
+	LEFT(lib.DACCT,4), 
+	lib.GUOKU_ID, 
+	lib.AREA_CODE, 
+	lib.AREA_DSCR ,   
+	'4' AS PERIOD_FLAG,  
+	'转移性'AS  INDEX_NAME         ,  
+	SUM(lib.INDEX_VALUE) 
+    FROM visual_screen.vs_gemini_structure lib
+	WHERE  LEFT(lib.DACCT,4)= LEFT(V_DATA_DATE,4)
+	AND  lib.PERIOD_FLAG='2'
+	AND lib.INDEX_NAME= '转移性'
+	GROUP BY 
+	lib.AREA_CODE;
+	
+	
+	
+SET V_STEP_ID=5;
+UPDATE visual_screen.vs_gemini_structure SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_gemini_structure SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_gemini_structure SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_gemini_structure SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_gemini_structure SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_gemini_structure SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=6;
+CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_GROWTH_OF_TAX_REVENUE`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_GROWTH_OF_TAX_REVENUE`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_GROWTH_OF_TAX_REVENUE`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_GROWTH_OF_TAX_REVENUE.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_growth_of_tax_revenue WHERE DACCT = V_DATA_DATE;
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_growth_of_tax_revenue
+   SELECT 
+DISTINCT
+lib.ACCOUNT_PERIOD, 
+	d.guoku_id,
+	d.area_no_id,
+	d.area_dscr,
+lib.PERIOD_FLAG, 
+lib.INDEX_VALUE, 
+(lib.INDEX_VALUE - lib1.INDEX_VALUE) / lib1.INDEX_VALUE AS GROWTH_INDEX_VALUE
+FROM indicators_lib.lib_indicators_000052 lib
+LEFT JOIN indicators_lib.lib_indicators_000052 lib1
+ON lib1.ACCOUNT_PERIOD = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+AND lib.INDEX_DIM_CODE = lib1.INDEX_DIM_CODE
+AND lib.INDEX_DIM_DESCR = lib1.INDEX_DIM_DESCR
+ LEFT JOIN  dmcode.cm_guoku_dimnsn d
+	ON lib.INDEX_DIM_CODE = d.area_no_id	
+WHERE lib.ACCOUNT_PERIOD = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+    AND  lib.DIMENSION_FLAG='2'
+    AND  lib.PERIOD_FLAG='2' 
+	 
+	 ;
+SET V_STEP_ID=4;
+CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`p_vs_growth_public_budget`
+DROP PROCEDURE IF EXISTS `visual_screen`.`p_vs_growth_public_budget`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `p_vs_growth_public_budget`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_GROWTH_PUBLIC_BUDGET.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_growth_public_budget WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_growth_public_budget
+SELECT 
+DATE_FORMAT(v_data_date,'%Y-%m'), 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'2',
+'一般公共预算收入' AS INDEX_NAME        ,  
+SUM(a.THIS_AMT) 
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T010101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+  and b.AREA_NO_ID <> '500000'
+GROUP BY 
+  DATE_FORMAT(v_data_date,'%Y-%m'),
+  b.AREA_NO_ID;	 
+  
+  
+SET V_STEP_ID = 4; 
+INSERT INTO visual_screen.vs_growth_public_budget
+SELECT 
+DISTINCT
+lib.DACCT, 
+lib.GUOKU_ID, 
+lib.AREA_CODE, 
+lib.AREA_DSCR ,   
+lib.PERIOD_FLAG, 
+'一般公共预算收入同比' AS INDEX_NAME        ,  
+lib.INDEX_VALUE - V. INDEX_VALUE
+FROM visual_screen.vs_growth_public_budget lib 
+LEFT JOIN visual_screen.vs_growth_public_budget V 
+ON V.DACCT =DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+AND lib.AREA_CODE = V.AREA_CODE
+AND lib.GUOKU_ID =V.GUOKU_ID
+AND lib.INDEX_NAME = V.INDEX_NAME
+WHERE lib.DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+    AND  lib.PERIOD_FLAG='2'
+    AND  LIB.INDEX_NAME = '一般公共预算收入';
+    
+    
+ SET V_STEP_ID=5;
+UPDATE visual_screen.vs_growth_public_budget SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_growth_public_budget SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_growth_public_budget SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_growth_public_budget SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_growth_public_budget SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_growth_public_budget SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=6;
+CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_IMPORT_DUTY_ON_IMPORTED_ARTICLES`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_IMPORT_DUTY_ON_IMPORTED_ARTICLES`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_IMPORT_DUTY_ON_IMPORTED_ARTICLES`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_IMPORT_DUTY_ON_IMPORTED_ARTICLES.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_import_duty_on_imported_articles WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_import_duty_on_imported_articles
+ 
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '2',
+  '进境物品进口税',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101170103'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID
+  
+    UNION ALL 
+ 
+ 
+ 
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '2',
+  '进境物品进口税增速',
+    ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y-%m') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y-%m')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(V_DATA_DATE,'%Y-%m')
+  AND a.SUBJECT_CODE = '101170103'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y-%m'),
+  b.PID;
+  
+SET V_STEP_ID = 3;     
+DELETE FROM visual_screen.vs_import_duty_on_imported_articles WHERE DACCT = LEFT(V_DATA_DATE,4);
+SET V_STEP_ID = 4; 
+INSERT INTO visual_screen.vs_import_duty_on_imported_articles
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '4',
+  '进境物品进口税',
+  ROUND(SUM(a.THIS_AMT),4) AS INDEX_VALUE
+FROM
+  stg.trs_tmis_budget_income a
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '101170103'
+  AND TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+  
+  
+  UNION ALL
+  
+  
+SELECT
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID,
+  b.GUOKU_DSCR,
+  b.AREA_NO_ID,
+  b.AREA_DSCR,
+  '4',
+  '进境物品进口税增速',
+  ROUND((SUM(a.THIS_AMT)-SUM(a1.THIS_AMT))/SUM(a1.THIS_AMT),4)
+FROM
+  stg.trs_tmis_budget_income a
+    LEFT JOIN stg.trs_tmis_budget_income a1
+  ON DATE_FORMAT(a1.D_ACCT,'%Y') = DATE_FORMAT(DATE_SUB(V_DATA_DATE, INTERVAL 1 YEAR),'%Y')
+  AND  a.TRECODE = a1.TRECODE
+  AND a.SUBJECT_CODE = a1.SUBJECT_CODE
+ LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+     p.AREA_NO_ID,
+      p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      ))b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y')=DATE_FORMAT(V_DATA_DATE,'%Y')
+  AND a.SUBJECT_CODE = '101170103'
+  AND a.TAX_ORG_CODE = '3333333333'
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(V_DATA_DATE,'%Y'),
+  b.PID
+	;
+ SET V_STEP_ID=4;
+UPDATE visual_screen.vs_import_duty_on_imported_articles SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_import_duty_on_imported_articles SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_import_duty_on_imported_articles SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_import_duty_on_imported_articles SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_import_duty_on_imported_articles SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_import_duty_on_imported_articles SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=5;
+ CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_INCOME_EXPENDITURE`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_INCOME_EXPENDITURE`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_INCOME_EXPENDITURE`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.P_VS_INCOME_EXPENDITURE.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_income_expenditure WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_income_expenditure
+SELECT 
+DATE_FORMAT(v_data_date,'%Y-%m'), 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'2',
+'公共预算收入' AS INDEX_NAME        ,  
+SUM(a.THIS_AMT) 
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T010101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(v_data_date,'%Y-%m'),
+  b.AREA_NO_ID 
+    UNION ALL   
+  
+SELECT 
+DATE_FORMAT(v_data_date,'%Y-%m'), 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'2',
+'公共预算支出' AS INDEX_NAME        ,  
+SUM(a.THIS_AMT) 
+FROM
+  stg.trs_tmis_budget_payout a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T020101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(v_data_date,'%Y-%m'),
+  b.AREA_NO_ID
+	
+	UNION ALL 
+	
+SELECT 
+ A.DACCT,
+ A.PID,
+ A.AREA_NO_ID,
+ A.AREA_DSCR,
+ '2',
+ '支出缺口' ,
+ SUM(A.THIS_AMT)
+FROM
+(
+SELECT 
+DATE_FORMAT(v_data_date,'%Y-%m') AS DACCT, 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'公共预算收入' AS INDEX_NAME        ,  
+SUM(a.THIS_AMT)  AS THIS_AMT
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T010101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(v_data_date,'%Y-%m'),
+  b.AREA_NO_ID
+  
+  UNION ALL
+  
+  SELECT 
+DATE_FORMAT(v_data_date,'%Y-%m'), 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'公共预算支出' AS INDEX_NAME        ,  
+-SUM(a.THIS_AMT) 
+FROM
+  stg.trs_tmis_budget_payout a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+  AND a.SUBJECT_CODE = 'T020101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  DATE_FORMAT(v_data_date,'%Y-%m'),
+  b.AREA_NO_ID
+  ) A
+  GROUP BY
+ A.PID,
+ A.AREA_NO_ID;
+	 
+	 
+SET V_STEP_ID = 3;     
+DELETE FROM visual_screen.vs_income_expenditure WHERE DACCT = left(V_DATA_DATE,4);
+SET V_STEP_ID = 4; 
+INSERT INTO visual_screen.vs_income_expenditure
+SELECT 
+DATE_FORMAT(v_data_date,'%Y'), 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'4',
+'公共预算收入' AS INDEX_NAME        ,  
+SUM(a.THIS_AMT) 
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE a.D_ACCT LIKE CONCAT(DATE_FORMAT(v_data_date,'%Y'),'%')
+  AND a.SUBJECT_CODE = 'T010101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  b.AREA_NO_ID 
+    UNION ALL   
+  
+SELECT 
+DATE_FORMAT(v_data_date,'%Y'), 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'4',
+'公共预算支出' AS INDEX_NAME        ,  
+SUM(a.THIS_AMT) 
+FROM
+  stg.trs_tmis_budget_payout a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE a.D_ACCT LIKE CONCAT(DATE_FORMAT(v_data_date,'%Y'),'%')
+  AND a.SUBJECT_CODE = 'T020101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  b.AREA_NO_ID
+	
+	UNION ALL 
+	
+SELECT 
+ A.DACCT,
+ A.PID,
+ A.AREA_NO_ID,
+ A.AREA_DSCR,
+ '4',
+ '支出缺口' ,
+ SUM(A.THIS_AMT)
+FROM
+(
+SELECT 
+DATE_FORMAT(v_data_date,'%Y') AS DACCT, 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'公共预算收入' AS INDEX_NAME        ,  
+SUM(a.THIS_AMT)  AS THIS_AMT
+FROM
+  stg.trs_tmis_budget_income a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE a.D_ACCT LIKE CONCAT(DATE_FORMAT(v_data_date,'%Y'),'%')
+  AND a.SUBJECT_CODE = 'T010101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  b.AREA_NO_ID
+  
+  UNION ALL
+  
+  SELECT 
+DATE_FORMAT(v_data_date,'%Y'), 
+b.PID,
+b.AREA_NO_ID, 
+b.AREA_DSCR,
+'公共预算支出' AS INDEX_NAME        ,  
+-SUM(a.THIS_AMT) 
+FROM
+  stg.trs_tmis_budget_payout a
+  LEFT JOIN 
+  (SELECT
+    DISTINCT p.`GUOKU_ID` AS PID,
+	p.LEVEL,
+    p.GUOKU_DSCR,
+    p.AREA_NO_ID,
+    p.AREA_DSCR,
+    c.`GUOKU_ID` AS CID
+    FROM
+     edw.`cm_guoku_dimnsn` p
+    JOIN
+     edw.`cm_guoku_dimnsn` c
+    ON(
+        p.`GUOKU_LVL_ID_2` = c.`GUOKU_LVL_ID_1`
+    OR  p.`GUOKU_LVL_ID_3` = c.`GUOKU_LVL_ID_2`
+    OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
+      )) b
+  ON a.`TRECODE`=b.CID
+WHERE a.D_ACCT LIKE CONCAT(DATE_FORMAT(v_data_date,'%Y'),'%')
+  AND a.SUBJECT_CODE = 'T020101'
+  AND a.`LEVEL`>=b.LEVEL
+  AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
+GROUP BY 
+  b.AREA_NO_ID
+  ) A
+  GROUP BY
+ A.PID,
+ A.AREA_NO_ID;
+ SET V_STEP_ID=4;
+UPDATE visual_screen.vs_income_expenditure SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_income_expenditure SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_income_expenditure SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_income_expenditure SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_income_expenditure SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_income_expenditure SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=5;
+CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`P_VS_INDUSTRY_TAX`
+DROP PROCEDURE IF EXISTS `visual_screen`.`P_VS_INDUSTRY_TAX`;
+DELIMITER $$
+CREATE DEFINER=`root`@`%` PROCEDURE `P_VS_INDUSTRY_TAX`(IN V_DATA_DATE VARCHAR(10))
+BEGIN
+DECLARE V_STEP_ID       INT           DEFAULT 0; 
+DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'visual_screen.p_vs_industry_tax.PRC';
+DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
+    
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @V_RETURN_CODE = RETURNED_SQLSTATE ,@V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,@V_RETURN_CODE,@V_ERROR_MSG);
+        CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y-%m'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    END;
+	 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+ 
+SET V_STEP_ID = 1;     
+DELETE FROM visual_screen.vs_industry_tax WHERE DACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+SET V_STEP_ID = 2; 
+INSERT INTO visual_screen.vs_industry_tax
+SELECT  
+	DATE_FORMAT(DET.S_INTREDATE,'%Y-%m'),
+	B.PID,
+	b.AREA_NO_ID,
+	b.AREA_DSCR,
+	'2',
+	INDUS.lev_1_id, 
+	INDUS.lev_1_dscr,
+	SUM(F_AMT)	
+FROM ODS.TV_FIN_INCOME_DETAIL DET     
+LEFT JOIN ODS.TRS_ENTERPRISE_INFOR INFO
+       ON DET.TAXPAYCODE = INFO.UNISCID
+LEFT JOIN EDW.CM_CLR_INDUSTRY_INFO INDUS
+       ON INFO.INDUSTRYCO = INDUS.LEV_1_ID
+        LEFT JOIN 
+	(
+	SELECT 
+		DISTINCT 
+		p.GUOKU_ID AS PID,
+		p.AREA_NO_ID,
+		p.AREA_DSCR,
+		p.LEVEL,
+		p.GUOKU_DSCR,
+		c.GUOKU_ID AS CID
+	FROM edw.cm_guoku_dimnsn p
+	LEFT JOIN edw.cm_guoku_dimnsn c
+	ON p.GUOKU_LVL_ID_2 = c.GUOKU_LVL_ID_1 
+	OR  p.GUOKU_LVL_ID_3 = c.GUOKU_LVL_ID_2 
+	OR  p.GUOKU_ID = c.GUOKU_LVL_ID_3
+	) B 
+     ON DET.S_TRECODE = B.CID
+WHERE DATE_FORMAT(DET.S_INTREDATE,'%Y%m') = DATE_FORMAT(v_data_date,'%Y%m')
+  AND DET.C_BDGLEVEL >= B.LEVEL
+GROUP BY
+    DATE_FORMAT(DET.S_INTREDATE,'%Y%m'),
+    B.PID,
+    INDUS.LEV_1_ID;
+	
+	
+ SET V_STEP_ID=4;
+UPDATE visual_screen.vs_industry_tax SET AREA_DSCR = '李渡新区' WHERE AREA_CODE= '500997';
+UPDATE visual_screen.vs_industry_tax SET AREA_DSCR = '彭水县' WHERE AREA_CODE= '500243';
+UPDATE visual_screen.vs_industry_tax SET AREA_DSCR = '酉阳县' WHERE AREA_CODE= '500242';
+UPDATE visual_screen.vs_industry_tax SET AREA_DSCR = '秀山县' WHERE AREA_CODE= '500241';
+UPDATE visual_screen.vs_industry_tax SET AREA_DSCR = '石柱县' WHERE AREA_CODE= '500240';
+UPDATE visual_screen.vs_industry_tax SET AREA_DSCR = '万盛区' WHERE AREA_CODE= '500131';
+SET V_STEP_ID=5;
+CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+	END
+$$
+
+-- PROCEDURE `visual_screen`.`p_vs_inventory_analyze`
+DROP PROCEDURE IF EXISTS `visual_screen`.`p_vs_inventory_analyze`;
+DELIMITER $$

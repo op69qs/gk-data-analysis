@@ -15,7 +15,14 @@
 
     <select id="getPage" resultType="java.util.HashMap">
         SELECT
-        a.*, CASE a.STATE
+        a.tax_org_id AS "TAX_ORG_ID",
+        a.tax_org_dscr AS "TAX_ORG_DSCR",
+        '' AS "TYPE_ID",
+        '' AS "TYPE_DSCR",
+        a.area_no_id AS "BOOK_ORG_CODE",
+        a.guoku_id AS "TRECODE",
+        a.state AS "STATE",
+        CASE a.state
         WHEN '0' THEN
         '启用'
         WHEN '1' THEN
@@ -28,27 +35,21 @@
         WHERE
         1 = 1
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
-            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
-        </if>
-        <if test=" params.TYPE_ID != null and params.TYPE_ID != ''">
-            and a.TYPE_ID = #{params.TYPE_ID}
-        </if>
-        <if test=" params.TYPE_DSCR != null and params.TYPE_DSCR != ''">
-            and a.TYPE_DSCR = #{params.TYPE_DSCR}
+            and a.tax_org_id = #{params.TAX_ORG_ID}
         </if>
         <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
-            and a.TAX_ORG_DSCR like '%${params.TAX_ORG_DSCR}%'
+            and a.tax_org_dscr like '%${params.TAX_ORG_DSCR}%'
         </if>
         <if test=" params.TRECODE != null and params.TRECODE != ''">
-            and a.TRECODE = #{params.TRECODE}
+            and a.guoku_id = #{params.TRECODE}
         </if>
         <if test=" params.STATE != null and params.STATE != ''">
-            and a.STATE = #{params.STATE}
+            and a.state = #{params.STATE}
         </if>
         <if test=" params.BOOK_ORG_CODE != null and params.BOOK_ORG_CODE != ''">
-            and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
+            and a.area_no_id = #{params.BOOK_ORG_CODE}
         </if>
-        ORDER BY a.TAX_ORG_ID asc
+        ORDER BY a.tax_org_id asc
         LIMIT ${params.rows} OFFSET ${params.page}
     </select>
 
@@ -60,31 +61,32 @@
         WHERE
         1 = 1
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
-            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
-        </if>
-        <if test=" params.TYPE_ID != null and params.TYPE_ID != ''">
-            and a.TYPE_ID = #{params.TYPE_ID}
-        </if>
-        <if test=" params.TYPE_DSCR != null and params.TYPE_DSCR != ''">
-            and a.TYPE_DSCR = #{params.TYPE_DSCR}
+            and a.tax_org_id = #{params.TAX_ORG_ID}
         </if>
         <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
-            and a.TAX_ORG_DSCR like '%${params.TAX_ORG_DSCR}%'
+            and a.tax_org_dscr like '%${params.TAX_ORG_DSCR}%'
         </if>
         <if test=" params.TRECODE != null and params.TRECODE != ''">
-            and a.TRECODE = #{params.TRECODE}
+            and a.guoku_id = #{params.TRECODE}
         </if>
         <if test=" params.STATE != null and params.STATE != ''">
-            and a.STATE = #{params.STATE}
+            and a.state = #{params.STATE}
         </if>
         <if test=" params.BOOK_ORG_CODE != null and params.BOOK_ORG_CODE != ''">
-            and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
+            and a.area_no_id = #{params.BOOK_ORG_CODE}
         </if>
     </select>
 
     <select id="getAll" resultType="java.util.HashMap">
         SELECT
-        a.*, CASE a.STATE
+        a.tax_org_id AS "TAX_ORG_ID",
+        a.tax_org_dscr AS "TAX_ORG_DSCR",
+        '' AS "TYPE_ID",
+        '' AS "TYPE_DSCR",
+        a.area_no_id AS "BOOK_ORG_CODE",
+        a.guoku_id AS "TRECODE",
+        a.state AS "STATE",
+        CASE a.state
         WHEN '0' THEN
         '启用'
         WHEN '1' THEN
@@ -97,32 +99,33 @@
         WHERE
         1 = 1
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
-            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
-        </if>
-        <if test=" params.TYPE_ID != null and params.TYPE_ID != ''">
-            and a.TYPE_ID = #{params.TYPE_ID}
-        </if>
-        <if test=" params.TYPE_DSCR != null and params.TYPE_DSCR != ''">
-            and a.TYPE_DSCR = #{params.TYPE_DSCR}
+            and a.tax_org_id = #{params.TAX_ORG_ID}
         </if>
         <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
-            and a.TAX_ORG_DSCR like '%${params.TAX_ORG_DSCR}%'
+            and a.tax_org_dscr like '%${params.TAX_ORG_DSCR}%'
         </if>
         <if test=" params.TRECODE != null and params.TRECODE != ''">
-            and a.TRECODE = #{params.TRECODE}
+            and a.guoku_id = #{params.TRECODE}
         </if>
         <if test=" params.STATE != null and params.STATE != ''">
-            and a.STATE = #{params.STATE}
+            and a.state = #{params.STATE}
         </if>
         <if test=" params.BOOK_ORG_CODE != null and params.BOOK_ORG_CODE != ''">
-            and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
+            and a.area_no_id = #{params.BOOK_ORG_CODE}
         </if>
-        ORDER BY a.TAX_ORG_ID asc
+        ORDER BY a.tax_org_id asc
     </select>
 
     <select id="getExport" resultMap="LevyingBodies">
         SELECT
-        a.*, CASE a.STATE
+        a.tax_org_id AS "TAX_ORG_ID",
+        a.tax_org_dscr AS "TAX_ORG_DSCR",
+        '' AS "TYPE_ID",
+        '' AS "TYPE_DSCR",
+        a.area_no_id AS "BOOK_ORG_CODE",
+        a.guoku_id AS "TRECODE",
+        a.state AS "STATE",
+        CASE a.state
         WHEN '0' THEN
         '启用'
         WHEN '1' THEN
@@ -135,27 +138,21 @@
         WHERE
         1 = 1
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
-            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
-        </if>
-        <if test=" params.TYPE_ID != null and params.TYPE_ID != ''">
-            and a.TYPE_ID = #{params.TYPE_ID}
-        </if>
-        <if test=" params.TYPE_DSCR != null and params.TYPE_DSCR != ''">
-            and a.TYPE_DSCR = #{params.TYPE_DSCR}
+            and a.tax_org_id = #{params.TAX_ORG_ID}
         </if>
         <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
-            and a.TAX_ORG_DSCR like '%${params.TAX_ORG_DSCR}%'
+            and a.tax_org_dscr like '%${params.TAX_ORG_DSCR}%'
         </if>
         <if test=" params.TRECODE != null and params.TRECODE != ''">
-            and a.TRECODE = #{params.TRECODE}
+            and a.guoku_id = #{params.TRECODE}
         </if>
         <if test=" params.STATE != null and params.STATE != ''">
-            and a.STATE = #{params.STATE}
+            and a.state = #{params.STATE}
         </if>
         <if test=" params.BOOK_ORG_CODE != null and params.BOOK_ORG_CODE != ''">
-            and a.BOOK_ORG_CODE = #{params.BOOK_ORG_CODE}
+            and a.area_no_id = #{params.BOOK_ORG_CODE}
         </if>
-        ORDER BY a.TAX_ORG_ID asc
+        ORDER BY a.tax_org_id asc
     </select>
 
     <select id="checkRepeat" resultType="java.util.HashMap">
@@ -163,12 +160,12 @@
         *
         FROM  dmcode.cm_guoku_taxorg  a
         where 1=1
-        and STATE = '0'
+        and state = '0'
         <if test=" params.TAX_ORG_ID != null and params.TAX_ORG_ID != ''">
-            and a.TAX_ORG_ID = #{params.TAX_ORG_ID}
+            and a.tax_org_id = #{params.TAX_ORG_ID}
         </if>
         <if test=" params.TAX_ORG_DSCR != null and params.TAX_ORG_DSCR != ''">
-            and a.TAX_ORG_DSCR = #{params.TAX_ORG_DSCR}
+            and a.tax_org_dscr = #{params.TAX_ORG_DSCR}
         </if>
     </select>
 

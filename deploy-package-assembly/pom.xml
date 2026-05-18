@@ -18,42 +18,91 @@
     <properties>
         <reactor.root.dir>${project.basedir}/..</reactor.root.dir>
         <deploy.package.dir>${reactor.root.dir}/deploy-package</deploy.package.dir>
+        <deploy.archive.dir>${reactor.root.dir}</deploy.archive.dir>
         <build.template.dir>${reactor.root.dir}/build</build.template.dir>
         <vis.module.dir>${reactor.root.dir}/vis-screen-backend/jeecg-boot-module-system</vis.module.dir>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>with-deploy-assembly</id>
-            <activation>
-                <property>
-                    <name>skip.deploy.assembly</name>
-                    <value>false</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-antrun-plugin</artifactId>
-                        <version>3.1.0</version>
-                        <executions>
-                            <execution>
-                                <id>assemble-deploy-package</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>run</goal>
-                                </goals>
-                                <configuration>
-                                    <target>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>1.13.1</version>
+                <executions>
+                    <execution>
+                        <id>compute-deploy-archive-name</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <scripts>
+                                <script><![CDATA[
+                                    def archiveDate = new Date().format('yyyyMMdd')
+                                    def projectName = new File(project.properties['reactor.root.dir']).canonicalFile.name
+                                    def quotedProjectName = java.util.regex.Pattern.quote(projectName)
+                                    def pattern = ~/^${archiveDate}(\d{2})-${quotedProjectName}\.zip$/
+                                    def maxSequence = 0
+
+                                    new File(project.properties['deploy.archive.dir']).listFiles()?.findAll { it.isFile() }?.each { file ->
+                                        def matcher = (file.name =~ pattern)
+                                        if (matcher.matches()) {
+                                            def sequence = matcher[0][1] as int
+                                            if (sequence > maxSequence) {
+                                                maxSequence = sequence
+                                            }
+                                        }
+                                    }
+
+                                    def nextSequence = maxSequence + 1
+                                    if (nextSequence > 99) {
+                                        throw new IllegalStateException("Archive sequence exceeded 99 for ${archiveDate}-${projectName}")
+                                    }
+
+                                    project.properties.setProperty(
+                                        'deploy.archive.name',
+                                        String.format('%s%02d-%s.zip', archiveDate, nextSequence, projectName)
+                                    )
+                                ]]></script>
+                            </scripts>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-all</artifactId>
+                        <version>2.4.21</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>assemble-deploy-package</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
                                 <delete dir="${deploy.package.dir}/app" quiet="true"/>
                                 <delete dir="${deploy.package.dir}/bin" quiet="true"/>
                                 <delete dir="${deploy.package.dir}/config" quiet="true"/>
                                 <delete dir="${deploy.package.dir}/lib" quiet="true"/>
                                 <delete dir="${deploy.package.dir}/bes" quiet="true"/>
+                                <delete dir="${deploy.package.dir}/runtime" quiet="true"/>
+                                <delete file="${deploy.package.dir}/service.sh" quiet="true"/>
+                                <delete file="${deploy.package.dir}/run-with-jdk.sh" quiet="true"/>
 
                                 <mkdir dir="${deploy.package.dir}/app"/>
                                 <mkdir dir="${deploy.package.dir}/bin"/>
+                                <mkdir dir="${deploy.package.dir}/runtime/logs"/>
+                                <mkdir dir="${deploy.package.dir}/runtime/pids"/>
                                 <mkdir dir="${deploy.package.dir}/config/dwbi-statistical-analysis"/>
                                 <mkdir dir="${deploy.package.dir}/config/dwbi-system-docking"/>
                                 <mkdir dir="${deploy.package.dir}/config/fixedReport"/>
@@ -67,6 +116,7 @@
                                 <mkdir dir="${deploy.package.dir}/lib/indicatorsLibv-1.0"/>
                                 <mkdir dir="${deploy.package.dir}/lib/org-tribe-system"/>
                                 <mkdir dir="${deploy.package.dir}/lib/seo"/>
+                                <mkdir dir="${deploy.package.dir}/lib/vis-screen"/>
                                 <mkdir dir="${deploy.package.dir}/bes/vis-screen"/>
 
                                 <copy file="${build.template.dir}/start-all.sh"
@@ -74,6 +124,18 @@
                                       overwrite="true"/>
                                 <copy file="${build.template.dir}/start-all.ps1"
                                       tofile="${deploy.package.dir}/bin/start-all.ps1"
+                                      overwrite="true"/>
+                                <copy file="${build.template.dir}/service.sh"
+                                      tofile="${deploy.package.dir}/service.sh"
+                                      overwrite="true"/>
+                                <copy file="${build.template.dir}/service.sh"
+                                      tofile="${deploy.package.dir}/bin/service.sh"
+                                      overwrite="true"/>
+                                <copy file="${build.template.dir}/run-with-jdk.sh"
+                                      tofile="${deploy.package.dir}/run-with-jdk.sh"
+                                      overwrite="true"/>
+                                <copy file="${build.template.dir}/run-with-jdk.sh"
+                                      tofile="${deploy.package.dir}/bin/run-with-jdk.sh"
                                       overwrite="true"/>
 
                                 <copy todir="${deploy.package.dir}/app" flatten="true" overwrite="true">
@@ -201,13 +263,27 @@
                                         <include name="**/*"/>
                                     </fileset>
                                 </copy>
-                                    </target>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>archive-deploy-package</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="Creating deploy archive ${deploy.archive.name}..."/>
+                                <delete file="${deploy.archive.dir}/${deploy.archive.name}" failonerror="false"/>
+                                <zip destfile="${deploy.archive.dir}/${deploy.archive.name}" encoding="UTF-8">
+                                    <zipfileset dir="${deploy.archive.dir}" includes="deploy-package/**"/>
+                                </zip>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

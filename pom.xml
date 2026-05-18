@@ -21,7 +21,7 @@
     <properties>
         <java.version>1.8</java.version>
         <skip.frontend.build>true</skip.frontend.build>
-        <skip.deploy.assembly>true</skip.deploy.assembly>
+        <skip.deploy.assembly>false</skip.deploy.assembly>
         <lombok.version>1.18.32</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
