@@ -20,6 +20,7 @@ BES_DIR="${APP_HOME}/bes"
 REQUIRED_JAVA_MAJOR="${REQUIRED_JAVA_MAJOR:-8}"
 SPRING_PROFILE="${SPRING_PROFILES_ACTIVE:-dev}"
 JAVA_BIN="${JAVA_HOME:+${JAVA_HOME}/bin/}java"
+DEFAULT_SERVICE_XMX="${SERVICE_XMX_DEFAULT:-}"
 
 SERVICES=$(cat <<'EOF'
 dwbi-statistical-analysis|dwbi-statisticalAnalysis-*.jar|org.triber.analysis.StatisticalAnalysisApplication|classpath
@@ -35,9 +36,9 @@ EOF
 usage() {
   cat <<'EOF'
 Usage:
-  ./service.sh start [all|module...]
+  ./service.sh start [all|module...] [xmx=256m]
   ./service.sh stop [all|module...]
-  ./service.sh restart [all|module...]
+  ./service.sh restart [all|module...] [xmx=256m]
   ./service.sh status [all|module...]
 EOF
 }
@@ -134,6 +135,34 @@ resolve_jar() {
   printf '%s\n' "$match"
 }
 
+module_env_suffix() {
+  printf '%s\n' "$1" | tr '[:lower:]-.' '[:upper:]__'
+}
+
+configured_xmx() {
+  local module="$1"
+  local xmx_override="${2:-}"
+  local env_name="SERVICE_XMX_$(module_env_suffix "$module")"
+  local module_xmx="${!env_name:-}"
+
+  if [[ -n "$xmx_override" ]]; then
+    printf '%s|%s\n' "$xmx_override" "cli"
+    return 0
+  fi
+
+  if [[ -n "$module_xmx" ]]; then
+    printf '%s|%s\n' "$module_xmx" "$env_name"
+    return 0
+  fi
+
+  if [[ -n "$DEFAULT_SERVICE_XMX" ]]; then
+    printf '%s|%s\n' "$DEFAULT_SERVICE_XMX" "SERVICE_XMX_DEFAULT"
+    return 0
+  fi
+
+  printf '%s|%s\n' "" "jvm-default"
+}
+
 pid_file() {
   printf '%s\n' "${PID_DIR}/$1.pid"
 }
@@ -170,7 +199,8 @@ start_module() {
   local main_class="$3"
   local launch_mode="$4"
   local extra_mode="${5:-}"
-  local jar_path log_dir stdout_log stderr_log pid config_dir classpath
+  local xmx_override="${6:-}"
+  local jar_path log_dir stdout_log stderr_log pid config_dir classpath xmx_info configured_heap xmx_source
 
   if pid=$(get_pid "$module"); then
     echo "[SKIP] ${module} already running, pid=${pid}"
@@ -195,16 +225,24 @@ start_module() {
 
   echo "[START] ${module}"
   classpath="${jar_path}"
-  if [[ -d "${LIB_DIR}/common" ]]; then
-    classpath="${classpath}:${LIB_DIR}/common/*"
-  fi
   if [[ -d "${LIB_DIR}/${module}" ]]; then
     classpath="${classpath}:${LIB_DIR}/${module}/*"
   fi
+  if [[ -d "${LIB_DIR}/common" ]]; then
+    classpath="${classpath}:${LIB_DIR}/common/*"
+  fi
+  xmx_info=$(configured_xmx "$module" "$xmx_override")
+  configured_heap="${xmx_info%%|*}"
+  xmx_source="${xmx_info#*|}"
 
   if [[ "$launch_mode" == "fatjar" ]]; then
+    local java_args=()
+    if [[ -n "$configured_heap" ]]; then
+      java_args+=("-Xmx${configured_heap}")
+    fi
+    java_args+=("-Dserver.bes.basedir=${BES_DIR}/${module}")
     nohup "$JAVA_BIN" \
-      -Dserver.bes.basedir="${BES_DIR}/${module}" \
+      "${java_args[@]}" \
       -jar "$jar_path" \
       --spring.profiles.active="${SPRING_PROFILE}" \
       --spring.config.additional-location="file:${config_dir}/" \
@@ -213,6 +251,9 @@ start_module() {
     local java_args=()
     if [[ "$extra_mode" == "bes" ]]; then
       java_args+=("-Dserver.bes.basedir=${BES_DIR}/${module}")
+    fi
+    if [[ -n "$configured_heap" ]]; then
+      java_args+=("-Xmx${configured_heap}")
     fi
     nohup "$JAVA_BIN" \
       "${java_args[@]}" \
@@ -225,7 +266,11 @@ start_module() {
 
   pid=$!
   printf '%s\n' "$pid" > "$(pid_file "$module")"
-  echo "[OK] ${module} started, pid=${pid}"
+  if [[ -n "$configured_heap" ]]; then
+    echo "[OK] ${module} started, pid=${pid}, Xmx=${configured_heap} (${xmx_source})"
+  else
+    echo "[OK] ${module} started, pid=${pid}, Xmx=jvm-default"
+  fi
 }
 
 stop_module() {
@@ -263,10 +308,23 @@ main() {
 
   local action="$1"
   shift || true
+  local xmx_override=""
   local targets=()
-  while IFS= read -r line; do
-    [[ -n "$line" ]] && targets+=("$line")
-  done < <(resolve_modules "$@")
+  local arg
+  for arg in "$@"; do
+    if [[ "$arg" == xmx=* ]]; then
+      xmx_override="${arg#xmx=}"
+      if [[ -z "$xmx_override" ]]; then
+        echo "[ERROR] Empty xmx value" >&2
+        exit 1
+      fi
+      continue
+    fi
+    targets+=("$arg")
+  done
+  if [[ ${#targets[@]} -eq 0 ]]; then
+    targets=(all)
+  fi
 
   local module pattern main_class launch_mode extra_mode
   while IFS='|' read -r module pattern main_class launch_mode extra_mode; do
@@ -278,7 +336,7 @@ main() {
     case "$action" in
       start)
         require_java_version
-        start_module "$module" "$pattern" "$main_class" "$launch_mode" "$extra_mode"
+        start_module "$module" "$pattern" "$main_class" "$launch_mode" "$extra_mode" "$xmx_override"
         ;;
       stop)
         stop_module "$module"
@@ -286,7 +344,7 @@ main() {
       restart)
         require_java_version
         stop_module "$module"
-        start_module "$module" "$pattern" "$main_class" "$launch_mode" "$extra_mode"
+        start_module "$module" "$pattern" "$main_class" "$launch_mode" "$extra_mode" "$xmx_override"
         ;;
       status)
         status_module "$module"

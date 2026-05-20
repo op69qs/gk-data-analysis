@@ -30,6 +30,11 @@ spring:
   ## quartz定时任务,采用数据库方式
   quartz:
     job-store-type: jdbc
+    properties:
+      org:
+        quartz:
+          jobStore:
+            tablePrefix: '"jeecg-boot-os".qrtz_'
   #json 时间戳统一转换
   jackson:
     date-format:   yyyy-MM-dd HH:mm:ss

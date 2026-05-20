@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <configuration scan="true" scanPeriod="60 seconds">
+    <property name="appName" value="dwbi-statistical-analysis" />
+    <property name="LOG_HOME" value="logs" />
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>%d{yyyy-M-d HH:mm:ss} %t %p %m%n</pattern>
@@ -7,7 +9,7 @@
     </appender>
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <FileNamePattern>logs/logback/statisticalAnalysis_%d{yyyy-M-d}.log
+            <FileNamePattern>${LOG_HOME}/${appName}.%d{yyyy-MM-dd}.log
             </FileNamePattern>
             <MaxHistory>10</MaxHistory>
         </rollingPolicy>

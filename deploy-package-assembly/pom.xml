@@ -100,6 +100,13 @@
                                         'seo',
                                         'vis-screen'
                                     ]
+                                    def moduleScopedJarPrefixes = [
+                                        'dwbi-common-',
+                                        'org-tribe-common-'
+                                    ]
+                                    def containerProvidedJarPrefixes = [
+                                        'javax.servlet-api-'
+                                    ]
 
                                     def sha1 = { File file ->
                                         def digest = MessageDigest.getInstance('SHA-1')
@@ -122,17 +129,31 @@
                                             def moduleDir = new File(deployLibDir, moduleName)
                                             moduleDir.mkdirs()
                                             moduleDir.listFiles()?.findAll { it.isFile() && it.name.endsWith('.jar') }?.each { file ->
+                                                if (containerProvidedJarPrefixes.any { file.name.startsWith(it) }) {
+                                                    Files.deleteIfExists(file.toPath())
+                                                    return
+                                                }
                                                 grouped[file.name] << file
+                                            }
+                                        }
+
+                                        commonDir.listFiles()?.findAll { it.isFile() && it.name.endsWith('.jar') }?.each { file ->
+                                            if (containerProvidedJarPrefixes.any { file.name.startsWith(it) }) {
+                                                Files.deleteIfExists(file.toPath())
                                             }
                                         }
 
                                         long duplicateBytes = 0L
                                         int sharedJarCount = 0
                                         grouped.each { jarName, files ->
-                                            if (files.size() >= 2) {
-                                                def digests = files.collect { sha1(it) }.toSet()
-                                                if (digests.size() > 1) {
-                                                    throw new IllegalStateException("Shared library name collision with different contents: ${jarName}")
+                                        if (files.size() >= 2) {
+                                            if (moduleScopedJarPrefixes.any { jarName.startsWith(it) }) {
+                                                return
+                                            }
+
+                                            def digests = files.collect { sha1(it) }.toSet()
+                                            if (digests.size() > 1) {
+                                                throw new IllegalStateException("Shared library name collision with different contents: ${jarName}")
                                                 }
 
                                                 sharedJarCount++
@@ -179,15 +200,9 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                <delete dir="${deploy.package.dir}/app" quiet="true"/>
-                                <delete dir="${deploy.package.dir}/bin" quiet="true"/>
-                                <delete dir="${deploy.package.dir}/config" quiet="true"/>
-                                <delete dir="${deploy.package.dir}/lib" quiet="true"/>
-                                <delete dir="${deploy.package.dir}/bes" quiet="true"/>
-                                <delete dir="${deploy.package.dir}/runtime" quiet="true"/>
-                                <delete file="${deploy.package.dir}/service.sh" quiet="true"/>
-                                <delete file="${deploy.package.dir}/run-with-jdk.sh" quiet="true"/>
+                                <delete dir="${deploy.package.dir}" quiet="true"/>
 
+                                <mkdir dir="${deploy.package.dir}"/>
                                 <mkdir dir="${deploy.package.dir}/app"/>
                                 <mkdir dir="${deploy.package.dir}/bin"/>
                                 <mkdir dir="${deploy.package.dir}/runtime/logs"/>
@@ -227,6 +242,11 @@
                                 <copy file="${build.template.dir}/run-with-jdk.sh"
                                       tofile="${deploy.package.dir}/bin/run-with-jdk.sh"
                                       overwrite="true"/>
+                                <chmod file="${deploy.package.dir}/service.sh" perm="755"/>
+                                <chmod file="${deploy.package.dir}/run-with-jdk.sh" perm="755"/>
+                                <chmod file="${deploy.package.dir}/bin/start-all.sh" perm="755"/>
+                                <chmod file="${deploy.package.dir}/bin/service.sh" perm="755"/>
+                                <chmod file="${deploy.package.dir}/bin/run-with-jdk.sh" perm="755"/>
 
                                 <copy todir="${deploy.package.dir}/app" flatten="true" overwrite="true">
                                     <fileset dir="${reactor.root.dir}/dwbi-statistical-analysis/target">
@@ -281,36 +301,42 @@
                                     <fileset dir="${reactor.root.dir}/dwbi-statistical-analysis/target">
                                         <include name="*.yml"/>
                                         <include name="*.properties"/>
+                                        <include name="logback-spring.xml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${deploy.package.dir}/config/dwbi-system-docking" flatten="true" overwrite="true">
                                     <fileset dir="${reactor.root.dir}/dwbi-system-docking/target">
                                         <include name="*.yml"/>
                                         <include name="*.properties"/>
+                                        <include name="logback-spring.xml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${deploy.package.dir}/config/fixedReport" flatten="true" overwrite="true">
                                     <fileset dir="${reactor.root.dir}/fixedReport/target">
                                         <include name="*.yml"/>
                                         <include name="*.properties"/>
+                                        <include name="logback-spring.xml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${deploy.package.dir}/config/indicatorsLibv-1.0" flatten="true" overwrite="true">
                                     <fileset dir="${reactor.root.dir}/indicatorsLibv-1.0/target">
                                         <include name="*.yml"/>
                                         <include name="*.properties"/>
+                                        <include name="logback-spring.xml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${deploy.package.dir}/config/org-tribe-system" flatten="true" overwrite="true">
                                     <fileset dir="${reactor.root.dir}/org-tribe-system/target">
                                         <include name="*.yml"/>
                                         <include name="*.properties"/>
+                                        <include name="logback-spring.xml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${deploy.package.dir}/config/seo" flatten="true" overwrite="true">
                                     <fileset dir="${reactor.root.dir}/seo/target">
                                         <include name="*.yml"/>
                                         <include name="*.properties"/>
+                                        <include name="logback-spring.xml"/>
                                     </fileset>
                                 </copy>
                                 <copy todir="${deploy.package.dir}/config/vis-screen" flatten="true" overwrite="true">
