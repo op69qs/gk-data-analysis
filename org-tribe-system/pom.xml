@@ -164,6 +164,10 @@
 			<artifactId>hutool-all</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.apache.rocketmq</groupId>
+			<artifactId>rocketmq-client</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
@@ -324,8 +328,7 @@
 			<id>with-frontend-build</id>
 			<activation>
 				<property>
-					<name>skip.frontend.build</name>
-					<value>false</value>
+					<name>!skip.frontend.build</name>
 				</property>
 			</activation>
 			<build>

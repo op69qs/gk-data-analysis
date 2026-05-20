@@ -228,7 +228,9 @@ function  generateChildRouters (data) {
         icon: item.meta.icon,
         url:item.meta.url ,
         permissionList:item.meta.permissionList,
-        keepAlive:item.meta.keepAlive
+        keepAlive:item.meta.keepAlive,
+        menuId: item.meta.menuId || item.id,
+        menuPath: item.meta.menuPath || normalizedPath
       }
     }
     if(item.alwaysShow){

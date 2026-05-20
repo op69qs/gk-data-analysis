@@ -157,9 +157,14 @@ export default {
 /* update_begin author:scott date:20190220 for: 缩小首页布局顶部的高度*/
 
 $height: 59px;
+$portalBlueStart: #1d95f4;
+$portalBlueEnd: #1d6cf4;
+$portalTitleFont: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
 
 .layout {
   .top-nav-header-index {
+    background: linear-gradient(90deg, $portalBlueStart 0%, $portalBlueEnd 100%);
+
     .header-index-wide {
       margin-left: 10px;
 
@@ -167,11 +172,26 @@ $height: 59px;
         height: $height;
         line-height: $height;
       }
+
+      .header-index-left {
+        .logo.top-nav-header {
+          h1 {
+            color: #ffffff;
+            font-family: $portalTitleFont;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-shadow: 0 1px 8px rgba(10, 53, 122, 0.2);
+          }
+        }
+      }
     }
+
     .trigger {
       line-height: 64px;
+      color: rgba(255, 255, 255, 0.92);
       &:hover {
-        background: rgba(0, 0, 0, 0.05);
+        background: rgba(255, 255, 255, 0.16);
       }
     }
   }
@@ -194,7 +214,7 @@ $height: 59px;
   .header,
   .top-nav-header-index {
     &.dark .trigger:hover {
-      background: rgba(0, 0, 0, 0.05);
+      background: rgba(255, 255, 255, 0.16);
     }
   }
 }

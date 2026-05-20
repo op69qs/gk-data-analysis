@@ -29,6 +29,8 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+import org.jeecg.modules.audit.service.IDataAnalysisBizAuditService;
 
 /**
  * GK-Nexus OAuth2.0 authorization code callback handler.
@@ -54,6 +56,9 @@ public class NexusOAuthController {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private IDataAnalysisBizAuditService bizAuditService;
+
     @Value("${gk-nexus.oauth.token-url}")
     private String tokenUrl;
 
@@ -74,17 +79,21 @@ public class NexusOAuthController {
     @GetMapping("/callback")
     public Object callback(
             @RequestParam(name = "code") String code,
-            @RequestParam(name = "state", required = false) String state) {
+            @RequestParam(name = "state", required = false) String state,
+            HttpServletRequest request) {
         Result<JSONObject> result = new Result<>();
         log.info("Nexus OAuth callback, code={}", code);
+        String accessToken = null;
+        String username = null;
+        String portalUserId = null;
         try {
             // 1. Exchange authorization code for access_token
-            String accessToken = exchangeCodeForToken(code);
+            accessToken = exchangeCodeForToken(code);
 
             // 2. Decode JWT to extract username claim (no sig verification needed:
             //    token comes directly from a trusted server-to-server call over HTTPS)
             DecodedJWT decoded = JWT.decode(accessToken);
-            String username = decoded.getClaim("username").asString();
+            username = decoded.getClaim("username").asString();
             if (StringUtils.isEmpty(username)) {
                 // fallback: sub claim
                 username = decoded.getSubject();
@@ -98,6 +107,9 @@ public class NexusOAuthController {
             SysUser sysUser = sysUserService.getUserByName(username);
             result = sysUserService.checkUserIsEffective(sysUser);
             if (!result.isSuccess()) {
+                portalUserId = decoded.getSubject();
+                bizAuditService.recordOAuthLoginFailure(username, portalUserId, result.getMessage(),
+                    request, accessToken);
                 return result;
             }
 
@@ -107,7 +119,7 @@ public class NexusOAuthController {
             redisUtil.expire(CommonConstant.PREFIX_USER_TOKEN + token, JwtUtil.EXPIRE_TIME / 1000);
 
             // Cache portal identity context for permission sync in /sys/permission/getUserPermissionByToken
-            String portalUserId = decoded.getSubject();
+            portalUserId = decoded.getSubject();
             if (StringUtils.isNotEmpty(portalUserId)) {
                 redisUtil.set(NEXUS_PORTAL_USER_ID_PREFIX + token, portalUserId);
                 redisUtil.expire(NEXUS_PORTAL_USER_ID_PREFIX + token, JwtUtil.EXPIRE_TIME / 1000);
@@ -131,10 +143,12 @@ public class NexusOAuthController {
             obj.put("userInfo", sysUser);
             result.setResult(obj);
             result.success("登录成功");
+            bizAuditService.recordOAuthLoginSuccess(username, portalUserId, sysUser, request, accessToken);
 
         } catch (Exception e) {
             log.error("Nexus OAuth callback error: {}", e.getMessage(), e);
             result.error500("OAuth登录失败: " + e.getMessage());
+            bizAuditService.recordOAuthLoginFailure(username, portalUserId, e.getMessage(), request, accessToken);
         }
         return new HttpEntity<>(result);
     }

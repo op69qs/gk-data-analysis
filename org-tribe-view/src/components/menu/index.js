@@ -5,6 +5,14 @@ const { Item, SubMenu } = Menu
 
 export default {
   name: 'SMenu',
+  data () {
+    return {
+      openKeys: [],
+      selectedKeys: [],
+      cachedOpenKeys: [],
+      showVisBadge: false
+    }
+  },
   props: {
     menu: {
       type: Array,
@@ -26,13 +34,6 @@ export default {
       default: false
     }
   },
-  data () {
-    return {
-      openKeys: [],
-      selectedKeys: [],
-      cachedOpenKeys: []
-    }
-  },
   computed: {
     rootSubmenuKeys: vm => {
       const keys = []
@@ -41,6 +42,7 @@ export default {
     }
   },
   mounted () {
+    this.initVisBadge()
     this.updateMenu()
   },
   watch: {
@@ -57,6 +59,73 @@ export default {
     }
   },
   methods: {
+    initVisBadge () {
+      if (typeof window === 'undefined' || !window.localStorage) {
+        return
+      }
+      const storageKey = 'gk-data-analysis-vis-menu-first-seen-at'
+      const now = Date.now()
+      const monthMs = 30 * 24 * 60 * 60 * 1000
+      const storedValue = window.localStorage.getItem(storageKey)
+      const firstSeenAt = storedValue ? Number(storedValue) : now
+
+      if (!storedValue || Number.isNaN(firstSeenAt)) {
+        window.localStorage.setItem(storageKey, String(now))
+        this.showVisBadge = true
+        return
+      }
+
+      this.showVisBadge = now - firstSeenAt < monthMs
+    },
+    getMenuClassNames (menu) {
+      const classNames = ['s-menu__item']
+      if (menu && this.isVisMenu(menu)) {
+        classNames.push('s-menu__item--vis')
+      }
+      return classNames.join(' ')
+    },
+    getSubMenuPopupClassName (menu) {
+      const classNames = []
+      if (this.mode === 'horizontal') {
+        classNames.push('portal-topmenu-submenu-popup')
+      }
+      if (this.isVisRootMenu(menu)) {
+        classNames.push('portal-vis-submenu-popup')
+      }
+      return classNames.join(' ')
+    },
+    getSubMenuPopupOffset (menu) {
+      if (this.mode !== 'horizontal') {
+        return undefined
+      }
+      
+      return [-10, 10]
+    },
+    shouldShowVisBadge (menu) {
+      return this.showVisBadge && this.isVisRootMenu(menu)
+    },
+    renderMenuLabel (menu) {
+      return (
+        <span class="s-menu__label">
+          <span>{menu.meta.title}</span>
+          {this.shouldShowVisBadge(menu) ? <span class="s-menu__badge">NEW</span> : null}
+        </span>
+      )
+    },
+    isVisMenu (menu) {
+      if (!menu) {
+        return false
+      }
+      const title = menu.meta && menu.meta.title ? String(menu.meta.title) : ''
+      return String(menu.path || '').startsWith('/vis') || title.indexOf('可视化大屏') >= 0
+    },
+    isVisRootMenu (menu) {
+      if (!menu) {
+        return false
+      }
+      const title = menu.meta && menu.meta.title ? String(menu.meta.title) : ''
+      return String(menu.path || '') === '/vis' || title.indexOf('可视化大屏') >= 0
+    },
     // select menu item
     onOpenChange (openKeys) {
 
@@ -122,10 +191,10 @@ export default {
       }
 
       return (
-        <Item {...{ key: menu.path }}>
+        <Item class={this.getMenuClassNames(menu)} {...{ key: menu.path }}>
           <tag {...{ props, attrs }}>
             {this.renderIcon(menu.meta.icon)}
-            <span>{menu.meta.title}</span>
+            {this.renderMenuLabel(menu)}
           </tag>
         </Item>
       )
@@ -136,10 +205,15 @@ export default {
         menu.children.forEach(item => itemArr.push(this.renderItem(item)))
       }
       return (
-        <SubMenu {...{ key: menu.path }}>
+        <SubMenu
+          class={this.getMenuClassNames(menu)}
+          popupClassName={this.getSubMenuPopupClassName(menu)}
+          popupOffset={this.getSubMenuPopupOffset(menu)}
+          {...{ key: menu.path }}
+        >
           <span slot="title">
             {this.renderIcon(menu.meta.icon)}
-            <span>{menu.meta.title}</span>
+            {this.renderMenuLabel(menu)}
           </span>
           {itemArr}
         </SubMenu>

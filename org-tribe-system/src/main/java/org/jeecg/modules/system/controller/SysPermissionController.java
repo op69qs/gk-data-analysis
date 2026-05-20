@@ -867,6 +867,8 @@ public class SysPermissionController extends BaseController{
 				meta.put("keepAlive", false);
 			}
 
+			meta.put("menuId", permission.getId());
+			meta.put("menuPath", permission.getUrl());
 			meta.put("title", permission.getName());
 			if (oConvertUtils.isEmpty(permission.getParentId())) {
 				// 一级菜单跳转地址

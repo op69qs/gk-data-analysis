@@ -147,7 +147,7 @@ mvn -pl deploy-package-assembly -DskipTests package
 vis 启动方式为：
 
 - jar pattern: `vis-screen-*.jar`
-- main class: `org.jeecg.JeecgSystemApplication`
+- main class: `org.jeecg.VISSystemApplication`
 - launch mode: `fatjar`
 
 fat jar 分支会额外带上：

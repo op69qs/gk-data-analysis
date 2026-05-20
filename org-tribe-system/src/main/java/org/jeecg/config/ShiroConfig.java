@@ -64,6 +64,11 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/sys/common/pdf/**", "anon");//pdf预览
 		filterChainDefinitionMap.put("/generic/**", "anon");//pdf预览需要文件
 		filterChainDefinitionMap.put("/", "anon");
+		filterChainDefinitionMap.put("/dashboard", "anon");
+		filterChainDefinitionMap.put("/dashboard/**", "anon");
+		filterChainDefinitionMap.put("/user", "anon");
+		filterChainDefinitionMap.put("/user/**", "anon");
+		filterChainDefinitionMap.put("/404", "anon");
 		filterChainDefinitionMap.put("/gallery", "anon");
 		filterChainDefinitionMap.put("/indexLibrary", "anon");
 		filterChainDefinitionMap.put("/statistics/indexLibrary", "anon");

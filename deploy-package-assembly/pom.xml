@@ -23,22 +23,30 @@
         <vis.module.dir>${reactor.root.dir}/vis-screen-backend/jeecg-boot-module-system</vis.module.dir>
     </properties>
 
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.gmavenplus</groupId>
-                <artifactId>gmavenplus-plugin</artifactId>
-                <version>1.13.1</version>
-                <executions>
-                    <execution>
-                        <id>compute-deploy-archive-name</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>execute</goal>
-                        </goals>
-                        <configuration>
-                            <scripts>
-                                <script><![CDATA[
+    <profiles>
+        <profile>
+            <id>with-deploy-assembly</id>
+            <activation>
+                <property>
+                    <name>!skip.deploy.assembly</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.gmavenplus</groupId>
+                        <artifactId>gmavenplus-plugin</artifactId>
+                        <version>1.13.1</version>
+                        <executions>
+                            <execution>
+                                <id>compute-deploy-archive-name</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <configuration>
+                                    <scripts>
+                                        <script><![CDATA[
                                     def archiveDate = new Date().format('yyyyMMdd')
                                     def projectName = new File(project.properties['reactor.root.dir']).canonicalFile.name
                                     def quotedProjectName = java.util.regex.Pattern.quote(projectName)
@@ -64,32 +72,113 @@
                                         'deploy.archive.name',
                                         String.format('%s%02d-%s.zip', archiveDate, nextSequence, projectName)
                                     )
-                                ]]></script>
-                            </scripts>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.codehaus.groovy</groupId>
-                        <artifactId>groovy-all</artifactId>
-                        <version>2.4.21</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>assemble-deploy-package</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
+                                        ]]></script>
+                                    </scripts>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>dedupe-shared-module-libs</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>execute</goal>
+                                </goals>
+                                <configuration>
+                                    <scripts>
+                                        <script><![CDATA[
+                                    import java.nio.file.Files
+                                    import java.nio.file.StandardCopyOption
+                                    import java.security.MessageDigest
+
+                                    def deployLibDir = new File(project.properties['deploy.package.dir'], 'lib')
+                                    def commonDir = new File(deployLibDir, 'common')
+                                    def moduleNames = [
+                                        'dwbi-statistical-analysis',
+                                        'dwbi-system-docking',
+                                        'fixedReport',
+                                        'indicatorsLibv-1.0',
+                                        'org-tribe-system',
+                                        'seo',
+                                        'vis-screen'
+                                    ]
+
+                                    def sha1 = { File file ->
+                                        def digest = MessageDigest.getInstance('SHA-1')
+                                        file.withInputStream { stream ->
+                                            byte[] buffer = new byte[8192]
+                                            int read
+                                            while ((read = stream.read(buffer)) != -1) {
+                                                digest.update(buffer, 0, read)
+                                            }
+                                        }
+                                        digest.digest().encodeHex().toString()
+                                    }
+
+                                    if (!deployLibDir.exists()) {
+                                        println 'No deploy-package/lib directory found, skipping shared lib dedupe.'
+                                    } else {
+                                        commonDir.mkdirs()
+                                        def grouped = [:].withDefault { [] }
+                                        moduleNames.each { moduleName ->
+                                            def moduleDir = new File(deployLibDir, moduleName)
+                                            moduleDir.mkdirs()
+                                            moduleDir.listFiles()?.findAll { it.isFile() && it.name.endsWith('.jar') }?.each { file ->
+                                                grouped[file.name] << file
+                                            }
+                                        }
+
+                                        long duplicateBytes = 0L
+                                        int sharedJarCount = 0
+                                        grouped.each { jarName, files ->
+                                            if (files.size() >= 2) {
+                                                def digests = files.collect { sha1(it) }.toSet()
+                                                if (digests.size() > 1) {
+                                                    throw new IllegalStateException("Shared library name collision with different contents: ${jarName}")
+                                                }
+
+                                                sharedJarCount++
+                                                duplicateBytes += files.tail().sum { it.length() } as long
+
+                                                def commonFile = new File(commonDir, jarName)
+                                                Files.move(
+                                                    files.first().toPath(),
+                                                    commonFile.toPath(),
+                                                    StandardCopyOption.REPLACE_EXISTING
+                                                )
+
+                                                files.tail().each { duplicate ->
+                                                    Files.deleteIfExists(duplicate.toPath())
+                                                }
+                                            }
+                                        }
+
+                                        println "Shared module libs: ${sharedJarCount}, duplicate bytes removed: ${duplicateBytes}"
+                                    }
+                                        ]]></script>
+                                    </scripts>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.codehaus.groovy</groupId>
+                                <artifactId>groovy-all</artifactId>
+                                <version>2.4.21</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>assemble-deploy-package</id>
+                                <phase>prepare-package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
                                 <delete dir="${deploy.package.dir}/app" quiet="true"/>
                                 <delete dir="${deploy.package.dir}/bin" quiet="true"/>
                                 <delete dir="${deploy.package.dir}/config" quiet="true"/>
@@ -117,6 +206,7 @@
                                 <mkdir dir="${deploy.package.dir}/lib/org-tribe-system"/>
                                 <mkdir dir="${deploy.package.dir}/lib/seo"/>
                                 <mkdir dir="${deploy.package.dir}/lib/vis-screen"/>
+                                <mkdir dir="${deploy.package.dir}/lib/common"/>
                                 <mkdir dir="${deploy.package.dir}/bes/vis-screen"/>
 
                                 <copy file="${build.template.dir}/start-all.sh"
@@ -263,27 +353,34 @@
                                         <include name="**/*"/>
                                     </fileset>
                                 </copy>
-                            </target>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>archive-deploy-package</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
+                                <copy todir="${deploy.package.dir}/lib/vis-screen" flatten="false" overwrite="true">
+                                    <fileset dir="${vis.module.dir}/target/lib" erroronmissingdir="false">
+                                        <include name="**/*"/>
+                                    </fileset>
+                                </copy>
+                                    </target>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>archive-deploy-package</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
                                 <echo message="Creating deploy archive ${deploy.archive.name}..."/>
                                 <delete file="${deploy.archive.dir}/${deploy.archive.name}" failonerror="false"/>
                                 <zip destfile="${deploy.archive.dir}/${deploy.archive.name}" encoding="UTF-8">
                                     <zipfileset dir="${deploy.archive.dir}" includes="deploy-package/**"/>
                                 </zip>
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

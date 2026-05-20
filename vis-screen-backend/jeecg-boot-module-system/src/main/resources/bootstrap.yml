@@ -15,7 +15,7 @@ spring:
         - vEthernet.*
 vis:
   eureka:
-    ip: ${VIS_EUREKA_IP:192.168.160.161}
+    ip: ${VIS_EUREKA_IP:192.168.160.246}
     host: ${VIS_EUREKA_HOST:${vis.eureka.ip}}
 eureka:
   instance:

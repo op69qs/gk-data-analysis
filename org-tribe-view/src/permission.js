@@ -6,6 +6,7 @@ import 'nprogress/nprogress.css' // progress bar style
 import notification from 'ant-design-vue/es/notification'
 import { ACCESS_TOKEN } from '@/store/mutation-types'
 import { generateIndexRouter } from "@/utils/util"
+import { recordMenuEntry } from '@/api/audit'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
@@ -75,6 +76,18 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-router.afterEach(() => {
+router.afterEach((to) => {
+  const token = Vue.ls.get(ACCESS_TOKEN)
+  const menuId = to && to.meta ? to.meta.menuId : null
+  if (token && menuId) {
+    recordMenuEntry({
+      menuId,
+      menuTitle: to.meta.title,
+      menuPath: to.meta.menuPath || to.path,
+      routePath: to.path,
+      fullPath: to.fullPath,
+      routeName: to.name
+    }).catch(() => {})
+  }
   NProgress.done() // finish progress bar
 })

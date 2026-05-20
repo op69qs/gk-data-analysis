@@ -12,7 +12,7 @@
 
 - 独立预览路由 `/BigScreenPreview` 已恢复，不再被前端交互默认导向页面级 `/vis/preview/fullscreen`。
 - 当前仓库里的 `gk-data-analysis/document/bes` 目录只有 `bes.lic.txt` 与 `.installtime`，不足以让 BES 通过 license 校验；本地启动 `org-tribe-system` 需要临时复用 `vis_screen/bes` 下的有效 license 目录。
-- `vis-screen-backend/jeecg-boot-module-system/target/jeecg-boot-module-system-2.3.0.jar` 不是可执行 fat jar，manifest 无 `Main-Class`，本地应改用 `java -cp target/classes;target/lib/* org.jeecg.JeecgSystemApplication` 方式启动。
+- `vis-screen-backend/jeecg-boot-module-system/target/jeecg-boot-module-system-2.3.0.jar` 不是可执行 fat jar，manifest 无 `Main-Class`，本地应改用 `java -cp target/classes;target/lib/* org.jeecg.VISSystemApplication` 方式启动。
 
 ## 验证
 

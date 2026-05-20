@@ -28,7 +28,7 @@ fixedReport|fixedReport-*.jar|org.fixedReport.FixedReportApplication|classpath
 indicatorsLibv-1.0|indicatorsLib-*.jar|org.indicatorsLib.IndicatorsLibApplication|classpath
 org-tribe-system|org-tribe-system-*.jar|org.jeecg.JeecgApplication|classpath
 seo|seo-*.jar|org.seo.SEOComprehensiveQuery|classpath
-vis-screen|vis-screen-*.jar|org.jeecg.JeecgSystemApplication|fatjar
+vis-screen|vis-screen-*.jar|org.jeecg.VISSystemApplication|classpath|bes
 EOF
 )
 
@@ -169,7 +169,8 @@ start_module() {
   local pattern="$2"
   local main_class="$3"
   local launch_mode="$4"
-  local jar_path log_dir stdout_log stderr_log pid config_dir
+  local extra_mode="${5:-}"
+  local jar_path log_dir stdout_log stderr_log pid config_dir classpath
 
   if pid=$(get_pid "$module"); then
     echo "[SKIP] ${module} already running, pid=${pid}"
@@ -193,6 +194,14 @@ start_module() {
   mkdir -p "$PID_DIR" "$log_dir"
 
   echo "[START] ${module}"
+  classpath="${jar_path}"
+  if [[ -d "${LIB_DIR}/common" ]]; then
+    classpath="${classpath}:${LIB_DIR}/common/*"
+  fi
+  if [[ -d "${LIB_DIR}/${module}" ]]; then
+    classpath="${classpath}:${LIB_DIR}/${module}/*"
+  fi
+
   if [[ "$launch_mode" == "fatjar" ]]; then
     nohup "$JAVA_BIN" \
       -Dserver.bes.basedir="${BES_DIR}/${module}" \
@@ -201,8 +210,13 @@ start_module() {
       --spring.config.additional-location="file:${config_dir}/" \
       >"$stdout_log" 2>"$stderr_log" &
   else
+    local java_args=()
+    if [[ "$extra_mode" == "bes" ]]; then
+      java_args+=("-Dserver.bes.basedir=${BES_DIR}/${module}")
+    fi
     nohup "$JAVA_BIN" \
-      -cp "${jar_path}:${LIB_DIR}/${module}/*" \
+      "${java_args[@]}" \
+      -cp "$classpath" \
       "$main_class" \
       --spring.profiles.active="${SPRING_PROFILE}" \
       --spring.config.additional-location="file:${config_dir}/" \
@@ -254,8 +268,8 @@ main() {
     [[ -n "$line" ]] && targets+=("$line")
   done < <(resolve_modules "$@")
 
-  local module pattern main_class launch_mode
-  while IFS='|' read -r module pattern main_class launch_mode; do
+  local module pattern main_class launch_mode extra_mode
+  while IFS='|' read -r module pattern main_class launch_mode extra_mode; do
     [[ -z "$module" ]] && continue
     if ! is_selected "$module" "${targets[@]}"; then
       continue
@@ -264,7 +278,7 @@ main() {
     case "$action" in
       start)
         require_java_version
-        start_module "$module" "$pattern" "$main_class" "$launch_mode"
+        start_module "$module" "$pattern" "$main_class" "$launch_mode" "$extra_mode"
         ;;
       stop)
         stop_module "$module"
@@ -272,7 +286,7 @@ main() {
       restart)
         require_java_version
         stop_module "$module"
-        start_module "$module" "$pattern" "$main_class" "$launch_mode"
+        start_module "$module" "$pattern" "$main_class" "$launch_mode" "$extra_mode"
         ;;
       status)
         status_module "$module"

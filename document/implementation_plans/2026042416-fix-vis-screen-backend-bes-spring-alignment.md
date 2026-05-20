@@ -2,7 +2,7 @@
 
 ## 原始异常
 
-启动 `org.jeecg.JeecgSystemApplication` 时出现：
+启动 `org.jeecg.VISSystemApplication` 时出现：
 
 ```text
 Exception in thread "main" java.lang.IllegalArgumentException: Cannot instantiate interface org.springframework.context.ApplicationContextInitializer : com.bes.enterprise.springboot.autoconfigure.BesMvcConfigContextInitializer
@@ -62,7 +62,7 @@ Caused by: java.lang.NoSuchMethodError: org.springframework.core.KotlinDetector.
 重新执行：
 
 ```powershell
-mvn --% -f vis-screen-backend/jeecg-boot-module-system/pom.xml spring-boot:run -DskipTests -Dspring-boot.run.mainClass=org.jeecg.JeecgSystemApplication
+mvn --% -f vis-screen-backend/jeecg-boot-module-system/pom.xml spring-boot:run -DskipTests -Dspring-boot.run.mainClass=org.jeecg.VISSystemApplication
 ```
 
 应用已经能够输出：

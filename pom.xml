@@ -20,8 +20,6 @@
 
     <properties>
         <java.version>1.8</java.version>
-        <skip.frontend.build>true</skip.frontend.build>
-        <skip.deploy.assembly>false</skip.deploy.assembly>
         <lombok.version>1.18.32</lombok.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -47,6 +45,7 @@
         <spring-cloud.netflix.version>2.0.1.RELEASE</spring-cloud.netflix.version>
         <spring-cloud.legacy.version>1.2.5.RELEASE</spring-cloud.legacy.version>
         <bes.version>9.5.5.025</bes.version>
+        <rocketmq.version>4.9.8</rocketmq.version>
     </properties>
 
     <dependencyManagement>
@@ -206,6 +205,11 @@
                 <artifactId>bes-jasper</artifactId>
                 <version>${bes.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-client</artifactId>
+                <version>${rocketmq.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -223,10 +227,6 @@
     <profiles>
         <profile>
             <id>full-package</id>
-            <properties>
-                <skip.frontend.build>false</skip.frontend.build>
-                <skip.deploy.assembly>false</skip.deploy.assembly>
-            </properties>
         </profile>
     </profiles>
 

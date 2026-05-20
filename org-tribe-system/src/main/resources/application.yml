@@ -7,3 +7,21 @@ swagger:
     enable: false
     username: jeecg
     password: jeecg1314
+
+gk-data-analysis:
+  biz-audit:
+    enabled: true
+    retry-enabled: true
+    retry-delay-ms: 300000
+    max-retry-attempts: 5
+    retry-batch-size: 100
+    system-code: GK_DATA_ANALYSIS
+    system-name: 数据分析平台
+
+gk-nexus:
+  oauth:
+    audit-rocketmq-enabled: ${NEXUS_AUDIT_MQ_ENABLED:true}
+    audit-rocketmq-namesrv-addr: ${NEXUS_AUDIT_MQ_NAMESRV_ADDR:}
+    audit-rocketmq-producer-group: ${NEXUS_AUDIT_MQ_PRODUCER_GROUP:gk-data-analysis-audit-producer}
+    audit-rocketmq-topic: ${NEXUS_AUDIT_MQ_TOPIC:audit-log-topic}
+    audit-rocketmq-tag: ${NEXUS_AUDIT_MQ_TAG:audit-log}

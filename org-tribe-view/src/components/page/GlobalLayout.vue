@@ -184,6 +184,24 @@
   }
 
   .layout {
+    .topmenu,
+    .top-nav-header-index {
+      --portal-blue-start: #1d95f4;
+      --portal-blue-end: #1d6cf4;
+      --portal-ink: #071c33;
+      --portal-ink-strong: #04162a;
+      --portal-overlay-border: rgba(142, 197, 255, 0.18);
+      --portal-overlay-shadow: 0 18px 36px rgba(4, 24, 48, 0.28);
+      --portal-overlay-hover: linear-gradient(135deg, rgba(59, 166, 255, 0.2) 0%, rgba(44, 210, 255, 0.14) 100%);
+      --portal-overlay-active: linear-gradient(135deg, rgba(83, 182, 255, 0.28) 0%, rgba(33, 118, 255, 0.22) 100%);
+      --portal-menu-font: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+      --portal-menu-text: rgba(255, 255, 255, 0.92);
+      --portal-menu-hover: rgba(255, 255, 255, 0.12);
+      --portal-menu-active: rgba(255, 255, 255, 0.2);
+      --portal-vis-start: #2fd6ff;
+      --portal-vis-end: #1677ff;
+    }
+
     min-height: 100vh !important;
     overflow-x: hidden;
 
@@ -385,6 +403,20 @@
           margin: 20px 0;
         }
 
+        &.dark {
+          .ant-menu-horizontal > .s-menu__item--vis {
+            > a,
+            > .ant-menu-submenu-title {
+              padding-inline: 14px;
+            }
+
+            > a::after,
+            > .ant-menu-submenu-title::after {
+              display: none;
+            }
+          }
+        }
+
         &.light {
 
           .header-index-wide {
@@ -420,7 +452,7 @@
     }
 
     .top-nav-header-index {
-      box-shadow: 0 1px 4px rgba(0, 21, 41, .08);
+      box-shadow: 0 10px 28px rgba(16, 68, 140, 0.18);
       position: relative;
       transition: background .3s, width .2s;
 
@@ -435,6 +467,7 @@
           border: none;
           height: 64px;
           line-height: 64px;
+          background: transparent;
         }
 
         .header-index-left {
@@ -472,7 +505,7 @@
           overflow: hidden;
 
           .action:hover {
-            background-color: rgba(0, 0, 0, 0.05);
+            background-color: rgba(255, 255, 255, 0.12);
           }
         }
       }
@@ -492,6 +525,7 @@
       }
 
       &.dark {
+        background: linear-gradient(90deg, var(--portal-blue-start) 0%, var(--portal-blue-end) 100%);
 
         .user-wrapper {
 
@@ -511,6 +545,96 @@
 
     }
 
+    .top-nav-header-index.dark {
+      .header-index-wide {
+        .header-index-left {
+          .logo.top-nav-header > a {
+            color: #ffffff;
+          }
+        }
+      }
+
+      .user-wrapper {
+        .action {
+          color: #ffffff;
+          font-family: var(--portal-menu-font);
+          font-weight: 600;
+        }
+
+        .action .avatar {
+          color: var(--portal-blue-end);
+          background: rgba(255, 255, 255, 0.92);
+        }
+      }
+
+      .ant-menu-horizontal {
+        background: transparent;
+        border-bottom: none;
+
+        > .ant-menu-item,
+        > .ant-menu-submenu {
+          top: 0;
+          margin-top: 0;
+          border-bottom: none;
+          padding: 0 16px;
+          margin-inline: 4px;
+          font-family: var(--portal-menu-font);
+          font-size: 15px;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          color: var(--portal-menu-text);
+          transition: all .25s ease;
+
+          > a,
+          > .ant-menu-submenu-title {
+            color: inherit;
+          }
+
+          .anticon {
+            margin-right: 8px;
+            font-size: 15px;
+          }
+
+          &:hover {
+            color: #ffffff;
+            background: var(--portal-menu-hover);
+          }
+        }
+
+        > .ant-menu-item-selected,
+        > .ant-menu-submenu-selected,
+        > .ant-menu-submenu-active,
+        > .ant-menu-submenu-open {
+          color: #ffffff;
+          background: var(--portal-menu-active);
+          box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.75);
+        }
+
+        .s-menu__label {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .s-menu__badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 34px;
+          height: 20px;
+          padding: 0 8px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.18);
+          color: #eff8ff;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          line-height: 20px;
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+        }
+      }
+    }
+
     // 内容区
     .layout-content {
       margin: 24px 24px 0px;
@@ -525,6 +649,104 @@
       margin: 0 auto;
       width: 100%;
     }
+  }
+
+  .portal-topmenu-submenu-popup.ant-menu-submenu-popup,
+  .portal-topmenu-submenu-popup.ant-menu-submenu-popup.ant-menu-dark,
+  .portal-topmenu-submenu-popup .ant-menu,
+  .portal-topmenu-submenu-popup .ant-menu.ant-menu-dark,
+  .portal-topmenu-submenu-popup .ant-menu-dark,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-sub {
+    background: transparent !important;
+  }
+
+  .portal-topmenu-submenu-popup.ant-menu-submenu-popup {
+    margin-top: 10px;
+    padding: 0;
+    border: none !important;
+    border-radius: 0;
+    box-shadow: none !important;
+    backdrop-filter: none;
+    min-width: auto;
+  }
+
+  .portal-topmenu-submenu-popup .ant-menu,
+  .portal-topmenu-submenu-popup .ant-menu.ant-menu-dark,
+  .portal-topmenu-submenu-popup .ant-menu-dark,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-sub {
+    min-width: 224px;
+    padding: 10px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(240, 246, 255, 0.99) 100%) !important;
+    border: 1px solid rgba(105, 156, 219, 0.18) !important;
+    box-shadow: 0 18px 38px rgba(15, 55, 104, 0.18) !important;
+    backdrop-filter: blur(16px);
+  }
+
+  .portal-topmenu-submenu-popup .ant-menu-item,
+  .portal-topmenu-submenu-popup .ant-menu-submenu-title,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-item,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-submenu-title,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-sub .ant-menu-item,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-sub .ant-menu-submenu-title {
+    height: 44px;
+    line-height: 44px;
+    margin: 4px 0;
+    border-radius: 12px;
+    color: #16324f !important;
+    font-family: var(--portal-menu-font);
+    font-size: 15px;
+    font-weight: 600;
+    transition: all .2s ease;
+    background: transparent !important;
+
+    a {
+      color: inherit !important;
+    }
+
+    .anticon {
+      color: #4d8fd3 !important;
+    }
+  }
+
+  .portal-topmenu-submenu-popup .ant-menu-item:hover,
+  .portal-topmenu-submenu-popup .ant-menu-submenu-title:hover,
+  .portal-topmenu-submenu-popup .ant-menu-submenu-active > .ant-menu-submenu-title,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-item:hover,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-submenu-title:hover,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-submenu-active > .ant-menu-submenu-title {
+    color: #0f2d4b !important;
+    background: linear-gradient(135deg, rgba(76, 157, 255, 0.16) 0%, rgba(93, 200, 255, 0.12) 100%) !important;
+  }
+
+  .portal-topmenu-submenu-popup .ant-menu-item-selected,
+  .portal-topmenu-submenu-popup .ant-menu-submenu-selected > .ant-menu-submenu-title,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-item-selected,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #2890f0 0%, #3a9dff 100%) !important;
+    box-shadow: 0 10px 22px rgba(40, 124, 212, 0.24);
+  }
+
+  .portal-topmenu-submenu-popup .ant-menu-item-selected a,
+  .portal-topmenu-submenu-popup .ant-menu-submenu-selected > .ant-menu-submenu-title,
+  .portal-topmenu-submenu-popup .ant-menu-item-selected .anticon,
+  .portal-topmenu-submenu-popup .ant-menu-submenu-selected > .ant-menu-submenu-title .anticon,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-item-selected a,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-item-selected .anticon,
+  .portal-topmenu-submenu-popup .ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title .anticon {
+    color: #ffffff !important;
+  }
+
+  .portal-topmenu-submenu-popup .ant-menu-item-selected::after,
+  .portal-topmenu-submenu-popup .ant-menu-item-active::after {
+    display: none;
+  }
+
+  .portal-topmenu-submenu-popup .ant-menu-submenu-arrow::before,
+  .portal-topmenu-submenu-popup .ant-menu-submenu-arrow::after {
+    background: rgba(83, 122, 163, 0.72) !important;
   }
 
   // drawer-sider 自定义

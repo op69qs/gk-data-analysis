@@ -47,7 +47,7 @@ eureka:
 由于本机 `9082` 已被其他 Java 进程占用，本次使用临时端口验证：
 
 ```powershell
-mvn --% -f vis-screen-backend/jeecg-boot-module-system/pom.xml spring-boot:run -DskipTests -Dspring-boot.run.mainClass=org.jeecg.JeecgSystemApplication -Dspring-boot.run.arguments=--server.port=19082
+mvn --% -f vis-screen-backend/jeecg-boot-module-system/pom.xml spring-boot:run -DskipTests -Dspring-boot.run.mainClass=org.jeecg.VISSystemApplication -Dspring-boot.run.arguments=--server.port=19082
 ```
 
 启动日志已出现：
