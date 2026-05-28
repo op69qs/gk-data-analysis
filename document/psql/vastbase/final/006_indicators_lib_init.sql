@@ -700,6 +700,7 @@ WHERE a.ACCOUNT_PERIOD=CONCAT(YEAR(v_data_date),'Q',QUARTER(v_data_date));
 
 
 END;
+/
 SET search_path TO indicators_lib, public;
 
 DROP PROCEDURE IF EXISTS indicators_lib.P_TRS_BUDGET_INCOME_COMPARE_XIN;
@@ -914,6 +915,7 @@ BEGIN
     GROUP BY data_date, project;
 END
 ;
+/
 SET search_path TO indicators_lib, public;
 
 DROP PROCEDURE IF EXISTS indicators_lib.p_exe_formula_hand;
@@ -980,6 +982,7 @@ BEGIN
     CALL ETL.EDW_PROC_TRACE_LOG(p_data_date, v_start_time, NOW(), v_proc_name, v_step_id, ROW_COUNT());
 END
 ;
+/
 
 DROP PROCEDURE IF EXISTS indicators_lib.p_exe_formula;
 CREATE PROCEDURE indicators_lib.p_exe_formula(IN V_DATA_DATE VARCHAR(20))
@@ -1004,6 +1007,7 @@ BEGIN
     EXECUTE IMMEDIATE v_sql;
 END
 ;
+/
 
 DROP PROCEDURE IF EXISTS indicators_lib.init_report01;
 CREATE PROCEDURE indicators_lib.init_report01(IN v_data_date VARCHAR(10))
@@ -1011,6 +1015,7 @@ BEGIN
     CALL indicators_lib.p_exe_formula(DATE_FORMAT(v_data_date, '%Y%m%d'));
 END
 ;
+/
 
 DROP PROCEDURE IF EXISTS indicators_lib.init_report03;
 CREATE PROCEDURE indicators_lib.init_report03(IN v_data_date VARCHAR(10))
@@ -1026,6 +1031,7 @@ BEGIN
     CALL indicators_lib.P_TRS_BUDGET_INCOME_COMPARE_XIN(DATE_FORMAT(v_data_date, '%Y%m'));
 END
 ;
+/
 
 DROP PROCEDURE IF EXISTS indicators_lib.p_xunhuan_formula;
 CREATE PROCEDURE indicators_lib.p_xunhuan_formula(IN v_batch_date VARCHAR(10))
@@ -1156,3 +1162,4 @@ BEGIN
     EXECUTE IMMEDIATE v_month_sql;
 END
 ;
+/

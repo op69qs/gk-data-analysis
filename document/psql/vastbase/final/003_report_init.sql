@@ -1172,6 +1172,7 @@ BEGIN
   
 END
 ;
+/
 
 
 -- PROCEDURE report.P_NEWS_FLASH_MONTH_REPORT_TEXT
@@ -1568,6 +1569,7 @@ INSERT INTO   report.NEWS_FLASH_MONTH_TEXT
   
 END
 ;
+/
 
 
 -- PROCEDURE report.P_NEWS_FLASH_MONTH_TEXT_NUMBER
@@ -2006,6 +2008,7 @@ BEGIN
     VALUES (CONCAT(YEAR(v_data_date), 'Q', QUARTER(v_data_date)), 'lib_000178', qlib178);
 END
 ;
+/
 
 CREATE PROCEDURE report.P_NEWS_FLASH_QUARTER_REPORT_TEXT(IN v_data_date VARCHAR(20))
 BEGIN
@@ -3226,6 +3229,7 @@ INSERT INTO   report.NEWS_FLASH_QUARTER_REPORT_TEXT
 	    ;
 END
 ;
+/
 
 
 -- PROCEDURE report.P_QUARTER_REPORT_TEXT
@@ -4808,6 +4812,7 @@ INSERT INTO report.quarter_report_text
 	;
 END
 ;
+/
 
 
 -- PROCEDURE report.p_trs_income_payout_statistics

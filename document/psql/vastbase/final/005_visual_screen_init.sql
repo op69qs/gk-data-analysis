@@ -78,6 +78,7 @@ WHERE a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
        ELSE a.TRECODE
        END
 ;
+/
 SET V_STEP_ID=4;
  UPDATE visual_screen.vs_amount_ranking_by_region SET AREA_DSCR =REPLACE(AREA_DSCR, '市','');
  UPDATE visual_screen.vs_amount_ranking_by_region SET AREA_DSCR =REPLACE(AREA_DSCR, '省','');
@@ -152,6 +153,7 @@ AND lib.PERIOD_FLAG =lib1.PERIOD_FLAG
 a.type_dscr;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_area_pay
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_area_pay;
@@ -232,6 +234,7 @@ FROM visual_screen.vs_economic_pay lib
  
     END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_BUDGET_REVENUE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_BUDGET_REVENUE;
@@ -452,6 +455,7 @@ SET V_STEP_ID=6;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_CHONGQING_ECONOMIC_ZONE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_CHONGQING_ECONOMIC_ZONE;
@@ -523,6 +527,7 @@ SET V_STEP_ID=4;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_CUSTOMS_IMPORT_DUTIES
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_CUSTOMS_IMPORT_DUTIES;
@@ -733,6 +738,7 @@ UPDATE visual_screen.vs_customs_import_duties SET AREA_DSCR = '万盛区' WHERE 
  CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_CUSTOMS_IMPORT_VAT
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_CUSTOMS_IMPORT_VAT;
@@ -938,6 +944,7 @@ SET V_STEP_ID=5;
  CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_customs_income_situation
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_customs_income_situation;
@@ -1021,6 +1028,7 @@ UPDATE visual_screen.vs_customs_income_situation SET AREA_DSCR = '万盛区' WHE
 SET V_STEP_ID=5;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_CUSTOMS_NON_TAX
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_CUSTOMS_NON_TAX;
@@ -1226,6 +1234,7 @@ SET V_STEP_ID=5;
  CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_CUSTOMS_REVENUE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_CUSTOMS_REVENUE;
@@ -1429,6 +1438,7 @@ SET V_STEP_ID=5;
  CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_economic_pay
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_economic_pay;
@@ -1497,6 +1507,7 @@ UPDATE visual_screen.vs_economic_pay SET AREA_DSCR = '万盛区' WHERE AREA_CODE
 COMMIT;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_ECONOMIC_TAXATION
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_ECONOMIC_TAXATION;
@@ -1568,6 +1579,7 @@ SET V_STEP_ID=4;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_FIVE_PROVINCES_IN_SOUTHWEST_CHINA
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_FIVE_PROVINCES_IN_SOUTHWEST_CHINA;
@@ -2100,6 +2112,7 @@ set V_STEP_ID=5;
  CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_GEMINI_STRUCTURE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_GEMINI_STRUCTURE;
@@ -2413,6 +2426,7 @@ SET V_STEP_ID=6;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_GROWTH_OF_TAX_REVENUE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_GROWTH_OF_TAX_REVENUE;
@@ -2462,6 +2476,7 @@ SET V_STEP_ID=4;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_growth_public_budget
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_growth_public_budget;
@@ -2557,6 +2572,7 @@ SET V_STEP_ID=6;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_IMPORT_DUTY_ON_IMPORTED_ARTICLES
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_IMPORT_DUTY_ON_IMPORTED_ARTICLES;
@@ -2762,6 +2778,7 @@ SET V_STEP_ID=5;
  CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_INCOME_EXPENDITURE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_INCOME_EXPENDITURE;
@@ -3119,6 +3136,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_INDUSTRY_TAX
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_INDUSTRY_TAX;
@@ -3192,6 +3210,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_inventory_analyze
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_inventory_analyze;
@@ -3314,6 +3333,7 @@ UPDATE visual_screen.vs_inventory_analyze SET AREA_DSCR = '万盛区' WHERE AREA
 SET V_STEP_ID=5;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_inventory_area
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_inventory_area;
@@ -3363,6 +3383,7 @@ UPDATE visual_screen.vs_inventory_area SET AREA_DSCR = '万盛区' WHERE AREA_CO
 SET V_STEP_ID=5;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_inventory_balance
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_inventory_balance;
@@ -3454,6 +3475,7 @@ UPDATE visual_screen.vs_inventory_balance SET AREA_DSCR = '万盛区' WHERE AREA
 SET V_STEP_ID=5;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_vs_inventory_form
 DROP PROCEDURE IF EXISTS visual_screen.P_vs_inventory_form;
@@ -3624,6 +3646,7 @@ SET V_STEP_ID=5;
  
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_LAND_TRANSFER
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_LAND_TRANSFER;
@@ -3810,6 +3833,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_LOCAL_FINANCIAL_RESOURCES
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_LOCAL_FINANCIAL_RESOURCES;
@@ -3944,6 +3968,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_MUNICIPALITIES_DIRECTLY
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_MUNICIPALITIES_DIRECTLY;
@@ -4202,6 +4227,7 @@ set V_STEP_ID=5;
  CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_PILLAR_INDUSTRIES
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_PILLAR_INDUSTRIES;
@@ -4272,6 +4298,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_PUBLIC_BUDGET
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_PUBLIC_BUDGET;
@@ -4419,6 +4446,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_purpose_pay
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_purpose_pay;
@@ -4790,6 +4818,7 @@ GROUP BY
   
     END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_REGIONAL_TAXATION
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_REGIONAL_TAXATION;
@@ -4864,6 +4893,7 @@ WHERE a.DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m')
        ELSE a.TRECODE
        END
 ;
+/
   
 SET V_STEP_ID=4;
  UPDATE visual_screen.vs_regional_taxation SET AREA_DSCR =REPLACE(AREA_DSCR, '市','');
@@ -4946,6 +4976,7 @@ UPDATE visual_screen.vs_region_pay SET AREA_DSCR = '万盛区' WHERE AREA_CODE= 
 SET V_STEP_ID=5;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_region_pay_20241014
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_region_pay_20241014;
@@ -5011,6 +5042,7 @@ UPDATE visual_screen.vs_region_pay SET AREA_DSCR = '万盛区' WHERE AREA_CODE= 
 SET V_STEP_ID=5;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_REVENUE_EXPENDITURE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_REVENUE_EXPENDITURE;
@@ -5095,6 +5127,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_REVENU_DISPLAY
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_REVENU_DISPLAY;
@@ -5314,6 +5347,7 @@ SET V_STEP_ID=5;
  CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_subject_pay
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_subject_pay;
@@ -5511,6 +5545,7 @@ UPDATE visual_screen.vs_subject_pay SET AREA_DSCR = '万盛区' WHERE AREA_CODE=
 SET V_STEP_ID=5;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.p_vs_subject_pay_sub
 DROP PROCEDURE IF EXISTS visual_screen.p_vs_subject_pay_sub;
@@ -5580,6 +5615,7 @@ UPDATE visual_screen.vs_subject_pay_sub SET AREA_DSCR = '万盛区' WHERE AREA_C
 SET V_STEP_ID=5;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_TAX_REVENUE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_TAX_REVENUE;
@@ -5857,6 +5893,7 @@ SET V_STEP_ID=9;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_TAX_SUBJECT
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_TAX_SUBJECT;
@@ -5927,6 +5964,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_THREE_BUDGET_REVENUE
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_THREE_BUDGET_REVENUE;
@@ -6144,6 +6182,7 @@ SET V_STEP_ID=5;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.P_VS_TRANSFER_INCOME
 DROP PROCEDURE IF EXISTS visual_screen.P_VS_TRANSFER_INCOME;
@@ -6287,6 +6326,7 @@ SET V_STEP_ID=6;
 CALL ETL.EDW_PROC_TRACE_LOG(DATE_FORMAT(V_START_TIME,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.trs_kyd_enterprise
 DROP PROCEDURE IF EXISTS visual_screen.trs_kyd_enterprise;
@@ -6327,6 +6367,7 @@ group by
 COMMIT;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.trs_kyd_enterprise_rank
 DROP PROCEDURE IF EXISTS visual_screen.trs_kyd_enterprise_rank;
@@ -6361,6 +6402,7 @@ group by
 COMMIT;
 	END
 ;
+/
 
 -- PROCEDURE visual_screen.trs_kyd_industry
 DROP PROCEDURE IF EXISTS visual_screen.trs_kyd_industry;
@@ -6404,6 +6446,7 @@ group by
 COMMIT;
 	END
 ;
+/
 SET search_path TO visual_screen, public;
 
 DROP PROCEDURE IF EXISTS visual_screen.P_task_vscreen_daily;
@@ -6420,6 +6463,7 @@ BEGIN
     CALL visual_screen.p_vs_five_provinces_in_southwest_china(V_DATA_DATE);
 END
 ;
+/
 
 DROP PROCEDURE IF EXISTS visual_screen.P_task_vscreen_month_end;
 CREATE PROCEDURE visual_screen.P_task_vscreen_month_end(IN V_DATA_DATE VARCHAR(10))
@@ -6454,6 +6498,7 @@ BEGIN
     CALL visual_screen.P_vs_area_income(V_DATA_DATE);
 END
 ;
+/
 
 DROP PROCEDURE IF EXISTS visual_screen.P_task_vscreen;
 CREATE PROCEDURE visual_screen.P_task_vscreen(IN V_BATCH_DATE VARCHAR(10))
@@ -6510,6 +6555,7 @@ BEGIN
     EXECUTE IMMEDIATE V_SQL;
 END
 ;
+/
 
 DROP PROCEDURE IF EXISTS visual_screen.P_task_vscreen1;
 CREATE PROCEDURE visual_screen.P_task_vscreen1(IN V_BATCH_DATE VARCHAR(10))
@@ -6561,6 +6607,7 @@ BEGIN
     EXECUTE IMMEDIATE V_SQL;
 END
 ;
+/
 
 DROP PROCEDURE IF EXISTS visual_screen.P_task_vscreen_new;
 CREATE PROCEDURE visual_screen.P_task_vscreen_new(IN V_BATCH_DATE VARCHAR(10))
@@ -6606,3 +6653,4 @@ BEGIN
     EXECUTE IMMEDIATE V_SQL;
 END
 ;
+/

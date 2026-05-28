@@ -253,3 +253,4 @@ BEGIN
     GROUP BY data_date, project;
 END
 ;
+/

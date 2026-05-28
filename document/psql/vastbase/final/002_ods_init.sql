@@ -51,6 +51,7 @@ BEGIN
         a.lrrq
     FROM ods.pt_gy_files_temp a;
 END;
+/
 
 DROP PROCEDURE IF EXISTS ods.p_trs_info_enterprises_temporary;
 CREATE PROCEDURE ods.p_trs_info_enterprises_temporary()
@@ -62,6 +63,7 @@ BEGIN
     FROM ods.trs_info_enterprises_temporary
     ORDER BY entname, uniscid, datauptime DESC;
 END;
+/
 
 DROP PROCEDURE IF EXISTS ods.p_trs_info_nonbusiness_temporary;
 CREATE PROCEDURE ods.p_trs_info_nonbusiness_temporary()
@@ -107,6 +109,7 @@ BEGIN
         link_phone
     FROM ods.trs_info_nonbusiness_temporary;
 END;
+/
 
 DROP PROCEDURE IF EXISTS ods.p_trs_info_practice_cancel_temporary;
 CREATE PROCEDURE ods.p_trs_info_practice_cancel_temporary()
@@ -178,3 +181,4 @@ BEGIN
         isuniscid
     FROM ods.trs_info_practice_cancel_temporary;
 END;
+/

@@ -45,6 +45,7 @@ BEGIN
         CAST(p_row_count AS TEXT)
     );
 END;
+/
 
 DROP PROCEDURE IF EXISTS etl.edw_proc_error_log;
 CREATE PROCEDURE etl.edw_proc_error_log(
@@ -77,3 +78,4 @@ BEGIN
         p_error_msg
     );
 END;
+/
