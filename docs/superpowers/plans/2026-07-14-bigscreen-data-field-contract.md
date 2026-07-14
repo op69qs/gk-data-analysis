@@ -30,7 +30,7 @@
 - Consumes: MyBatis `<select id="...">` definitions in `QueryDataMapper.xml`.
 - Produces: a JUnit contract gate that requires the exact SQL result-key casing and annual-ordering expressions used by the source controller.
 
-- [ ] **Step 1: Write the failing Mapper contract test**
+- [x] **Step 1: Write the failing Mapper contract test**
 
 Create a JUnit 4 test that loads the Mapper XML as a classpath resource, extracts a `<select>` body by ID, and checks these concrete contracts:
 
@@ -145,7 +145,7 @@ public class QueryDataMapperContractTest {
 }
 ```
 
-- [ ] **Step 2: Run the focused test and verify RED**
+- [x] **Step 2: Run the focused test and verify RED**
 
 Run:
 
@@ -155,7 +155,7 @@ mvn -pl jeecg-boot-module-system -am -DskipTests=false -Dtest=QueryDataMapperCon
 
 from `vis-screen-backend`. Expected: FAIL on the first currently unquoted `DACCT`/`INDEX_VALUE` query or missing annual `LEFT(a.DACCT, 4)` ordering.
 
-- [ ] **Step 3: Commit only the failing test**
+- [x] **Step 3: Commit only the failing test**
 
 ```bash
 git add vis-screen-backend/jeecg-boot-module-system/src/test/java/org/jeecg/modules/visualScreen/mapper/QueryDataMapperContractTest.java
@@ -172,7 +172,7 @@ git commit -m "test: define bigscreen query field contracts"
 - Consumes: source controller keys `DACCT`, `INDEX_NAME`, `INDEX_VALUE`, `GROWTH_INDEX_VALUE`, plus lowercase `name` and `value`.
 - Produces: Vastbase result Maps with exactly those keys.
 
-- [ ] **Step 1: Add explicit aliases for uppercase controller keys**
+- [x] **Step 1: Add explicit aliases for uppercase controller keys**
 
 For every query listed by `controllerUppercaseKeysHaveQuotedAliases`, use this shape:
 
@@ -203,7 +203,7 @@ ROUND(...) AS "INDEX_VALUE_NOT_COMPLETE"
 ROUND(...) AS "RATE"
 ```
 
-- [ ] **Step 2: Preserve explicit lowercase aliases where the source reads lowercase keys**
+- [x] **Step 2: Preserve explicit lowercase aliases where the source reads lowercase keys**
 
 Use quoted lowercase aliases so Vastbase cannot change the contract:
 
@@ -214,7 +214,7 @@ a.AREA_DSCR AS "name",
 
 Apply the same `AS "name"` / `AS "value"` shape to the industry, subject-pay, purpose-pay, and account/treasury relationship queries listed by `sourceLowercaseKeysRemainLowercase`.
 
-- [ ] **Step 3: Fix annual DISTINCT ordering**
+- [x] **Step 3: Fix annual DISTINCT ordering**
 
 Replace unconditional `ORDER BY a.DACCT` in the five annual-capable rate queries with matching conditional expressions:
 
@@ -227,11 +227,11 @@ The annual `SELECT`, `GROUP BY`, and `ORDER BY` expressions must all be `LEFT(a.
 
 Also change `getIndustryName` to `ORDER BY a.industrial_name`, matching its selected and grouped field; ordering by `a.industrial_type` is not valid Vastbase grouped-query SQL.
 
-- [ ] **Step 4: Run the focused contract test and verify GREEN**
+- [x] **Step 4: Run the focused contract test and verify GREEN**
 
 Run the Task 1 Maven command again. Expected: `QueryDataMapperContractTest` passes with zero failures.
 
-- [ ] **Step 5: Commit the Mapper contract fix**
+- [x] **Step 5: Commit the Mapper contract fix**
 
 ```bash
 git add vis-screen-backend/jeecg-boot-module-system/src/main/java/org/jeecg/modules/visualScreen/mapper/xml/QueryDataMapper.xml
@@ -248,7 +248,7 @@ git commit -m "fix: preserve bigscreen query field casing"
 - Consumes: exact Mapper keys established by Task 2.
 - Produces: the original source REST response contract without a hidden casing fallback.
 
-- [ ] **Step 1: Restore direct Map reads from `dwbi_vis_screen`**
+- [x] **Step 1: Restore direct Map reads from `dwbi_vis_screen`**
 
 Remove the `MapKeyUtil` import and replace all temporary reads with the original source forms:
 
@@ -260,7 +260,7 @@ y2.add(Double.parseDouble(a.get("GROWTH_INDEX_VALUE") + ""));
 
 For two- and three-series helpers, use the same direct `INDEX_VALUE` reads for every series. For `getAmountAndRate`, keep response keys `x`, `amount`, and `rate` unchanged.
 
-- [ ] **Step 2: Delete the now-unused compatibility utility**
+- [x] **Step 2: Delete the now-unused compatibility utility**
 
 Delete `MapKeyUtil.java` after confirming no remaining references with:
 
@@ -270,7 +270,7 @@ rg -n "MapKeyUtil" vis-screen-backend/jeecg-boot-module-system/src
 
 Expected: no matches.
 
-- [ ] **Step 3: Run the Mapper test and compile the backend module**
+- [x] **Step 3: Run the Mapper test and compile the backend module**
 
 Run:
 
@@ -281,7 +281,7 @@ mvn -pl jeecg-boot-module-system -am -DskipTests package
 
 Expected: test and package both exit 0.
 
-- [ ] **Step 4: Commit the controller cleanup**
+- [x] **Step 4: Commit the controller cleanup** *(no controller diff remained after restoring source reads)*
 
 ```bash
 git add vis-screen-backend/jeecg-boot-module-system/src/main/java/org/jeecg/modules/visualScreen/controller/QueryDataController.java
@@ -300,7 +300,7 @@ git commit -m "refactor: enforce exact bigscreen query keys"
 - Consumes: scheme ID `2fcab29baf8c47cfa2150a515de41651` and its five `queryData/*` requests.
 - Produces: two visible pages with populated charts and no query failures.
 
-- [ ] **Step 1: Run existing frontend regression test**
+- [x] **Step 1: Run existing frontend regression test**
 
 Run from `org-tribe-view` with project Node 14:
 
@@ -310,7 +310,7 @@ PATH=/root/.local/share/fnm/node-versions/v14.21.3/installation/bin:$PATH node t
 
 Expected: `visCarousel interval tests passed`.
 
-- [ ] **Step 2: Build the frontend production bundle**
+- [x] **Step 2: Build the frontend production bundle**
 
 Run:
 
