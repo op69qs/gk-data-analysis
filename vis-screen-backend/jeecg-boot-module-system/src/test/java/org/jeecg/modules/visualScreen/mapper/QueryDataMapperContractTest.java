@@ -5,9 +5,14 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.xml.sax.InputSource;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -41,6 +46,14 @@ public class QueryDataMapperContractTest {
         String sql = select(id);
         assertTrue(id + " must expose DACCT", sql.contains("AS \"DACCT\""));
         assertTrue(id + " must expose INDEX_VALUE", sql.contains("AS \"INDEX_VALUE\""));
+    }
+
+    @Test
+    public void mapperXmlIsWellFormed() throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        factory.setFeature("http://xml.org/sax/features/validation", false);
+        factory.newDocumentBuilder().parse(new InputSource(new StringReader(mapperXml)));
     }
 
     @Test
