@@ -37,8 +37,8 @@
 
     <select id="getGrowthBudget" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumIndexExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_growth_public_budget a
         WHERE
@@ -58,8 +58,8 @@
 
     <select id="getGrowthBudgetRate" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumRateExpr"/> AS GROWTH_INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumRateExpr"/> AS "GROWTH_INDEX_VALUE"
         FROM
         visual_screen.vs_growth_public_budget a
         left join visual_screen.vs_growth_public_budget a1
@@ -84,8 +84,8 @@
 
     <select id="getGrowthTax" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumIndexExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_budget_revenue a
         WHERE
@@ -105,8 +105,8 @@
 
     <select id="getGrowthTaxRate" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumRateExpr"/> as GROWTH_INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumRateExpr"/> AS "GROWTH_INDEX_VALUE"
         FROM
         visual_screen.vs_budget_revenue a
         LEFT JOIN  visual_screen.vs_budget_revenue a1
@@ -131,8 +131,8 @@
 
     <select id="getAmountRegion" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumIndexExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_amount_ranking_by_region a
         WHERE
@@ -148,7 +148,7 @@
         limit 10
     </select>
     <select id="getAmountRegionCQ" resultType="java.util.Map">
-        SELECT rownum
+        SELECT rownum AS "rownum"
         FROM (
             SELECT ROW_NUMBER() OVER (ORDER BY SUM(COALESCE(a.INDEX_VALUE, 0))) AS rownum, a.area_dscr
             FROM visual_screen.vs_amount_ranking_by_region a
@@ -166,8 +166,8 @@
 
     <select id="getRankingGrowth" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumGrowthRateExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumGrowthRateExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_amount_ranking_by_region a
         WHERE
@@ -185,8 +185,8 @@
 
     <select id="getTaxRegional" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumIndexExpr"/> AS "INDEX_VALUE"
 
         FROM
         visual_screen.vs_regional_taxation a
@@ -205,8 +205,8 @@
 
     <select id="getTaxRegion" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumGrowthRateExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumGrowthRateExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_regional_taxation a
         WHERE
@@ -224,11 +224,11 @@
 
     <select id="getFiveProvinces" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE_1, 0)) / ${params.unit}, 0), 2) as INDEX_VALUE,
-        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE_1, 0)) - SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0))) / NULLIF(SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0)), 0)) * 100, 2), 0) as GROWTH_INDEX_VALUE,
-        <include refid="sumIndexExpr"/> as INDEX_VALUE1,
-        <include refid="sumGrowthRateExpr"/> as GROWTH_INDEX_VALUE1
+        a.AREA_DSCR AS "AREA_DSCR",
+        ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE_1, 0)) / ${params.unit}, 0), 2) AS "INDEX_VALUE",
+        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE_1, 0)) - SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0))) / NULLIF(SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0)), 0)) * 100, 2), 0) AS "GROWTH_INDEX_VALUE",
+        <include refid="sumIndexExpr"/> AS "INDEX_VALUE1",
+        <include refid="sumGrowthRateExpr"/> AS "GROWTH_INDEX_VALUE1"
         FROM
         visual_screen.vs_five_provinces_in_southwest_china a
         WHERE
@@ -245,11 +245,11 @@
 
     <select id="getMunicipalities" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE_1, 0)) / ${params.unit}, 0), 2) as INDEX_VALUE,
-        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE_1, 0)) - SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0))) / NULLIF(SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0)), 0)) * 100, 2), 0) as GROWTH_INDEX_VALUE,
-        <include refid="sumIndexExpr"/> as INDEX_VALUE1,
-        <include refid="sumGrowthRateExpr"/> as GROWTH_INDEX_VALUE1
+        a.AREA_DSCR AS "AREA_DSCR",
+        ROUND(COALESCE(SUM(COALESCE(a.INDEX_VALUE_1, 0)) / ${params.unit}, 0), 2) AS "INDEX_VALUE",
+        COALESCE(ROUND(((SUM(COALESCE(a.INDEX_VALUE_1, 0)) - SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0))) / NULLIF(SUM(COALESCE(a.GROWTH_INDEX_VALUE_1, 0)), 0)) * 100, 2), 0) AS "GROWTH_INDEX_VALUE",
+        <include refid="sumIndexExpr"/> AS "INDEX_VALUE1",
+        <include refid="sumGrowthRateExpr"/> AS "GROWTH_INDEX_VALUE1"
         FROM
         visual_screen.vs_municipalities_directly a
         WHERE
@@ -266,8 +266,8 @@
 
     <select id="getRegionPay" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumIndexExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumIndexExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_region_pay a
         WHERE
@@ -278,7 +278,10 @@
             ${params.whereInfo}
         </if>
         <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
-            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+            and a.PERIOD_FLAG IN (
+                #{params.PERIOD_FLAG},
+                CONCAT('b''', #{params.PERIOD_FLAG}, '''')
+            )
         </if>
         group by a.area_dscr
         order by <include refid="sumIndexExpr"/> desc
@@ -287,8 +290,8 @@
 
     <select id="getRegionPayRate" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="sumGrowthRateExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="sumGrowthRateExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_region_pay a
         WHERE
@@ -299,7 +302,10 @@
             ${params.whereInfo}
         </if>
         <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
-            and PERIOD_FLAG = #{params.PERIOD_FLAG}
+            and a.PERIOD_FLAG IN (
+                #{params.PERIOD_FLAG},
+                CONCAT('b''', #{params.PERIOD_FLAG}, '''')
+            )
         </if>
         group by a.area_dscr
         order by <include refid="sumGrowthRateExpr"/> desc
@@ -308,8 +314,8 @@
 
     <select id="getInventoryBalance" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="singleIndexExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="singleIndexExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_inventory_area a
         WHERE
@@ -327,8 +333,8 @@
 
     <select id="getInventoryBalanceRate" resultType="java.util.Map">
         SELECT
-        a.AREA_DSCR,
-        <include refid="singleRateExpr"/> as INDEX_VALUE
+        a.AREA_DSCR AS "AREA_DSCR",
+        <include refid="singleRateExpr"/> AS "INDEX_VALUE"
         FROM
         visual_screen.vs_inventory_area a
         LEFT JOIN  visual_screen.vs_inventory_area a1
