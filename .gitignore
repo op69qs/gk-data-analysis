@@ -65,3 +65,6 @@ __MACOSX
 
 # 部署包目录
 deploy_package
+
+# Local isolated agent worktrees
+.worktrees/
