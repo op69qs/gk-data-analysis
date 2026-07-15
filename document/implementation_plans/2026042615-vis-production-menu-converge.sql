@@ -132,9 +132,9 @@ INSERT INTO sys_permission (
   update_by, update_time, del_flag, rule_flag, status
 )
 SELECT
-  md5('sys_permission:/vis/index-library:vis-root'), COALESCE((SELECT id FROM sys_permission WHERE url = '/vis' AND component_name = 'VisRoot' LIMIT 1), md5('sys_permission:/vis')), '指标库方案', '/vis/index-library', 'vis/SchemeList', 'VisIndexLibrary', NULL,
+  md5('sys_permission:/vis/index-library:vis-root'), COALESCE((SELECT id FROM sys_permission WHERE url = '/vis' AND component_name = 'VisRoot' LIMIT 1), md5('sys_permission:/vis')), '指标库方案', '/vis/index-library', 'vis/IndexLibraryList', 'VisIndexLibrary', NULL,
   1, NULL, '1', 4.00, 0, NULL, 1,
-  1, 0, 0, 'vis_screen 原指标库方案入口，映射到 vis 展示方案管理页', 'admin', CURRENT_TIMESTAMP,
+  1, 0, 0, 'vis_screen 原指标库方案入口，指标方案', 'admin', CURRENT_TIMESTAMP,
   'admin', CURRENT_TIMESTAMP, 0, 0, '1'
 WHERE NOT EXISTS (
   SELECT 1 FROM sys_permission WHERE url = '/vis/index-library' AND component_name = 'VisIndexLibrary'
@@ -144,7 +144,7 @@ UPDATE sys_permission
 SET parent_id = (SELECT id FROM sys_permission WHERE url = '/vis' AND component_name = 'VisRoot' LIMIT 1),
     name = '指标库方案',
     url = '/vis/index-library',
-    component = 'vis/SchemeList',
+    component = 'vis/IndexLibraryList',
     component_name = 'VisIndexLibrary',
     redirect = NULL,
     menu_type = 1,
@@ -155,7 +155,7 @@ SET parent_id = (SELECT id FROM sys_permission WHERE url = '/vis' AND component_
     is_leaf = 1,
     keep_alive = 0,
     hidden = 0,
-    description = 'vis_screen 原指标库方案入口，映射到 vis 展示方案管理页',
+    description = 'vis_screen 指标库方案',
     update_by = 'admin',
     update_time = CURRENT_TIMESTAMP,
     del_flag = 0,

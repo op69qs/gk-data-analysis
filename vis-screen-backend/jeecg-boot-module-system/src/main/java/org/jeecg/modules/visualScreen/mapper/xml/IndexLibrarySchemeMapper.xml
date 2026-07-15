@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.visualScreen.mapper.IndexLibrarySchemeMapper">
+
+    <select id="getPage" resultType="java.util.HashMap">
+        SELECT
+            a.id,
+            a.scheme_descr AS name,
+            a.add_date AS create_time,
+            COALESCE(NULLIF(b.realname, ''), b.username, a.add_userid) AS username,
+            a.scheme_colums,
+            a.scheme_conditon,
+            a.add_userid
+        FROM visual_screen.vs_lib_index_scheme a
+        LEFT JOIN visual_screen.sys_user b ON a.add_userid = b.id
+        WHERE 1 = 1
+        <if test="params.name != null and params.name != ''">
+            AND a.scheme_descr LIKE concat(concat('%', #{params.name}), '%')
+        </if>
+        <if test="params.startDate != null and params.startDate != ''">
+            AND a.add_date &gt;= #{params.startDate}
+        </if>
+        <if test="params.endDate != null and params.endDate != ''">
+            AND a.add_date &lt;= concat(#{params.endDate}, ' 23:59:59')
+        </if>
+        ORDER BY a.add_date DESC NULLS LAST
+        LIMIT #{params.rows,jdbcType=INTEGER} OFFSET #{params.page,jdbcType=INTEGER}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM visual_screen.vs_lib_index_scheme a
+        WHERE 1 = 1
+        <if test="params.name != null and params.name != ''">
+            AND a.scheme_descr LIKE concat(concat('%', #{params.name}), '%')
+        </if>
+        <if test="params.startDate != null and params.startDate != ''">
+            AND a.add_date &gt;= #{params.startDate}
+        </if>
+        <if test="params.endDate != null and params.endDate != ''">
+            AND a.add_date &lt;= concat(#{params.endDate}, ' 23:59:59')
+        </if>
+    </select>
+
+    <select id="getById" resultType="java.util.HashMap">
+        SELECT
+            a.id,
+            a.scheme_descr,
+            a.scheme_sql,
+            a.scheme_colums,
+            a.scheme_conditon,
+            a.add_userid,
+            a.add_date
+        FROM visual_screen.vs_lib_index_scheme a
+        WHERE a.id = #{params.id}
+    </select>
+
+    <delete id="del">
+        DELETE FROM visual_screen.vs_lib_index_scheme
+        WHERE id = #{params.id}
+    </delete>
+
+    <select id="getGalleryMaxSort" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(sort), 0) FROM visual_screen.vs_gallery_info
+    </select>
+
+    <insert id="insertGallery">
+        INSERT INTO visual_screen.vs_gallery_info (
+            id,
+            option,
+            query_path,
+            content,
+            type,
+            title,
+            sort,
+            state,
+            business_id,
+            time_type,
+            dimension_type,
+            index_scheme_id,
+            index_scheme_name,
+            condition,
+            add_time,
+            add_user
+        ) VALUES (
+            #{params.id},
+            #{params.option},
+            #{params.query_path},
+            #{params.content},
+            #{params.type},
+            #{params.title},
+            #{params.sort},
+            #{params.state},
+            #{params.business_id},
+            #{params.time_type},
+            #{params.dimension_type},
+            #{params.index_scheme_id},
+            #{params.index_scheme_name},
+            #{params.condition},
+            #{params.add_time},
+            #{params.add_user}
+        )
+    </insert>
+</mapper>

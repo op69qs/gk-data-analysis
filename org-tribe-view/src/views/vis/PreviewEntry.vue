@@ -106,6 +106,7 @@
 <script>
 import { Empty } from 'ant-design-vue'
 import { getSchemeAllPage } from '@/api/visScreen'
+import { resolveVisCarouselInterval } from '@/utils/visCarousel'
 
 export default {
   name: 'VisPreviewEntry',
@@ -124,8 +125,7 @@ export default {
       return this.$route.query.schemeId || this.$route.query.info || ''
     },
     intervalDisplay() {
-      const rawValue = parseInt(this.$route.query.interval, 10)
-      return Number.isFinite(rawValue) && rawValue > 0 ? rawValue : 3000
+      return resolveVisCarouselInterval(this.$route.query.interval)
     },
     autoSetting() {
       return String(this.$route.query.autoSetting || '0') === '1'

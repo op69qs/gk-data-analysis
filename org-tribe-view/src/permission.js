@@ -10,7 +10,7 @@ import { recordMenuEntry } from '@/api/audit'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/user/login', '/user/register', '/user/register-result', '/user/alteration', '/vis/preview', '/BigScreenPreview', '/oauth/callback'] // no redirect whitelist
+const whiteList = ['/user/login', '/user/register', '/user/register-result', '/user/alteration', '/vis/preview', '/oauth/callback'] // no redirect whitelist
 
 router.beforeEach((to, from, next) => {
   NProgress.start() // start progress bar

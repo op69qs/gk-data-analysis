@@ -1,183 +1,186 @@
 <template>
-  <a-card :bordered="false" class="vis-gallery-list">
-    <a-page-header title="图库" sub-title="已恢复到 GK 主前端的 vis 图库列表" />
-    <a-tabs :active-key="activeBusinessId" @change="handleBusinessChange">
-      <a-tab-pane key="" tab="全部" />
-      <a-tab-pane v-for="item in businessTypes" :key="String(item.business_id)" :tab="item.business_name" />
-    </a-tabs>
-
-    <a-spin :spinning="loading">
-      <a-row v-if="galleryItems.length" :gutter="[24, 24]">
-        <a-col v-for="item in galleryItems" :key="item.id" :xl="8" :lg="12" :md="12" :sm="24">
-          <a-card hoverable>
-            <div class="vis-gallery-list__cover">
-              <img v-if="showImage(item)" :src="getCoverSrc(item)" :alt="item.title" />
-              <div v-else class="vis-gallery-list__html" v-html="item.content"></div>
-            </div>
-            <template slot="actions">
-              <div class="vis-gallery-list__action-row">
-                <span class="vis-gallery-list__title">{{ item.title }}</span>
-                <span class="vis-gallery-list__edit">编辑</span>
-              </div>
-            </template>
-          </a-card>
-        </a-col>
-      </a-row>
-      <a-empty v-else description="暂无图库数据" />
-    </a-spin>
-  </a-card>
+    <a-card :bordered="false">
+        <a-tabs default-active-key="" @change="callback" >
+            <a-tab-pane key="" tab="全部">
+                <a-row :gutter="[48,48]">
+                    <a-col :span="8" v-for="item in dataSource" :key="item.id">
+                        <a-card hoverable>
+                            <img
+                                    v-if="item.type === 'b' || item.type === 't'"
+                                    slot="cover"
+                                    alt="example"
+                                    :src="getCoverSrc(item)"
+                                    class="i_h"
+                            />
+                            <div v-if="item.type==='h'" slot="cover" v-html="item.content" class="d_m_20"></div>
+                            <template slot="actions" :slot-scope="{item}">
+                                <div class="editTitle">
+                                    <span>{{item.title}}</span>
+                                    <!-- <span @click="editClick(item)">编辑</span> -->
+                                    <span @click="handleEdit(item)">编辑</span>
+                                </div>
+                            </template>
+                            <!-- <a-card-meta :title="item.title">
+                                <a-icon key="edit" type="edit" />
+                            </a-card-meta> -->
+                        </a-card>
+                    </a-col>
+                </a-row>
+            </a-tab-pane>
+            <a-tab-pane :key="item.business_id" :tab="item.business_name" v-for="item in dataSource1">
+                <a-row :gutter="[48,48]">
+                    <a-col :span="8" v-for="item in dataSource" :key="item.id">
+                        <a-card hoverable>
+                            <img
+                                    v-if="item.type === 'b' || item.type === 't'"
+                                    slot="cover"
+                                    alt="example"
+                                    :src="getCoverSrc(item)"
+                                    class="i_h"
+                            />
+                            <div v-if="item.type==='h'" slot="cover" v-html="item.content" class="d_m_20"></div>
+                            <!-- <a-card-meta :title="item.title">
+                            </a-card-meta> -->
+                            <template slot="actions" :slot-scope="{item}">
+                                <div class="editTitle">
+                                    <span>{{item.title}}</span>
+                                    <span @click="handleEdit(item)">编辑</span>
+                                </div>
+                            </template>
+                        </a-card>
+                    </a-col>
+                </a-row>
+            </a-tab-pane>
+        </a-tabs>
+        <GalleryListModal ref="modalForm" @ok="modalListOk"></GalleryListModal>
+    </a-card>
 </template>
 
 <script>
-import { getBusinessTypeList, getGalleryList } from '@/api/visScreen'
-import { resolveVisMediaUrl } from '@/utils/visMedia'
-
-export default {
-  name: 'VisGalleryList',
-  data() {
-    return {
-      activeBusinessId: '',
-      businessTypes: [],
-      galleryItems: [],
-      loading: false,
-      pageNo: 1,
-      pageSize: 10,
-      total: 0
+    import { getBusinessTypeList, getGalleryList } from '@/api/visScreen'
+    import {ListMixin} from '@/mixins/ListMixin'
+    import GalleryListModal from './modules/GalleryListModal'
+    import { resolveVisMediaUrl } from '@/utils/visMedia'
+    export default {
+        name: "GalleryList",
+        mixins: [ListMixin],
+        components:{ GalleryListModal },
+        data() {
+            return {
+                datacc: [],
+                dataSource1: [],
+                loading: false,
+                url: {
+                    list: '/vis/api/gallery/getPage'
+                },
+                queryParams: {}
+            }
+        },
+        created() {
+            getBusinessTypeList().then(res => {
+                if (res.result === 'success') {
+                    this.dataSource1 = res.rows;
+                }
+            });
+            
+            window.onscroll = () => {
+                this.datacc = this.dataSource;
+                //变量scrollTop是滚动条滚动时，距离顶部的距离
+                let scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                //变量windowHeight是可视区的高度
+                let windowHeight = document.documentElement.clientHeight || document.body.clientHeight;
+                //变量scrollHeight是滚动条的总高度
+                let scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+                //滚动条到底部的条件(距底部20px时触发加载)
+                if (scrollTop + windowHeight >= scrollHeight - 20 && this.dataSource.length !== this.ipagination.total) {
+                    // 延时触发数据加载
+                    setTimeout(() => {
+                        this.ipagination.current++;
+                        this.loadData();
+                    }, 500);
+                }
+            };
+        },
+        methods: {
+            getCoverSrc(item) {
+                if (!item) {
+                    return ''
+                }
+                if (typeof item.content === 'string' && item.content.indexOf('data:image/') === 0) {
+                    return item.content
+                }
+                return resolveVisMediaUrl(item.content)
+            },
+            loadData(arg) {
+                //加载数据 若传入参数1则加载第一页的内容
+                if (arg === 1) {
+                    this.ipagination.current = 1;
+                }
+                let params = this.getQueryParams();//查询条件
+                this.loading = true;
+                params.state=0; // 可用图库
+                getGalleryList(params).then((res) => {
+                    if (res.result === 'success') {
+                        if(this.ipagination.current==1)this.dataSource = []
+                        this.dataSource.push(...res.rows);
+                        this.ipagination.total = res.total;
+                    }
+                    if (res.code === 510) {
+                        this.$message.warning(res.msg)
+                    }
+                    this.loading = false;
+                }).catch(err => {
+                    this.loading = false;
+                })
+            },
+            callback(key) {
+                this.dataSource = [];
+                this.queryParam.business_id = key;
+                this.loadData(1);
+            },
+            modalListOk(){
+                
+                this.loadData(1)
+            }
+        },
     }
-  },
-  created() {
-    this.loadBusinessTypes()
-    this.loadGalleryItems(true)
-    window.addEventListener('scroll', this.handleWindowScroll, { passive: true })
-  },
-  beforeDestroy() {
-    window.removeEventListener('scroll', this.handleWindowScroll)
-  },
-  methods: {
-    resolveMediaUrl(value) {
-      return resolveVisMediaUrl(value)
-    },
-    isDataImage(value) {
-      return typeof value === 'string' && value.indexOf('data:image/') === 0
-    },
-    getCoverSrc(item) {
-      if (!item) {
-        return ''
-      }
-      if (this.isDataImage(item.content)) {
-        return item.content
-      }
-      return this.resolveMediaUrl(item.option || item.content)
-    },
-    showImage(item) {
-      if (!item) {
-        return false
-      }
-      return this.isDataImage(item.content) || Boolean(this.resolveMediaUrl(item.option)) || item.type === 'b' || item.type === 't'
-    },
-    handleBusinessChange(key) {
-      this.activeBusinessId = key
-      this.loadGalleryItems(true)
-    },
-    handleWindowScroll() {
-      if (this.loading || this.galleryItems.length >= this.total) {
-        return
-      }
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
-      const windowHeight = document.documentElement.clientHeight || window.innerHeight || 0
-      const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight || 0
-      if (scrollTop + windowHeight >= scrollHeight - 20) {
-        this.pageNo += 1
-        this.loadGalleryItems()
-      }
-    },
-    loadBusinessTypes() {
-      getBusinessTypeList().then((res) => {
-        if (res && res.result === 'success') {
-          this.businessTypes = res.rows || []
-        }
-      }).catch(() => {
-        this.businessTypes = []
-      })
-    },
-    loadGalleryItems(reset) {
-      if (reset) {
-        this.pageNo = 1
-        this.total = 0
-      }
-      this.loading = true
-      const params = {
-        pageNo: this.pageNo,
-        pageSize: this.pageSize,
-        state: 0
-      }
-      if (this.activeBusinessId) {
-        params.business_id = this.activeBusinessId
-      }
-      getGalleryList(params).then((res) => {
-        if (res && res.result === 'success') {
-          const rows = res.rows || []
-          this.total = Number(res.total || 0)
-          this.galleryItems = this.pageNo === 1 ? rows : this.galleryItems.concat(rows)
-        } else {
-          this.galleryItems = this.pageNo === 1 ? [] : this.galleryItems
-          this.total = this.pageNo === 1 ? 0 : this.total
-        }
-      }).catch(() => {
-        if (this.pageNo > 1) {
-          this.pageNo -= 1
-        } else {
-          this.galleryItems = []
-          this.total = 0
-        }
-      }).finally(() => {
-        this.loading = false
-      })
-    }
-  }
-}
 </script>
 
-<style lang="less" scoped>
-.vis-gallery-list__cover {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 260px;
-  overflow: hidden;
-  background: linear-gradient(180deg, #f6f9fc 0%, #edf3f8 100%);
-}
+<style scoped>
+    .ant-card >>> .ant-card-body {
+        border-top: 1px solid #e8e8e8;
 
-.vis-gallery-list__cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+    }
 
-.vis-gallery-list__html {
-  width: 100%;
-  height: 100%;
-  padding: 20px;
-  overflow: hidden;
-}
+    .i_h {
+        width:100%;
+        height: 21vw;
+    }
 
-.vis-gallery-list__action-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 12px;
-}
-
-.vis-gallery-list__title {
-  flex: 1;
-  text-align: left;
-  white-space: normal;
-  word-break: break-word;
-}
-
-.vis-gallery-list__edit {
-  margin-left: 16px;
-  color: #1890ff;
-}
+    .d_m_20 {
+        height: 21vw;
+        padding: 20px 20px 0 20px;
+        /* margin-bottom: 20px; */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        display: -moz-box;
+        display: box;
+        -webkit-line-clamp: 14;
+        -moz-line-clamp: 14;
+        line-clamp: 14;
+        /* ! autoprefixer: off */
+        -webkit-box-orient: vertical;
+        -moz-box-orient: vertical;
+        box-orient: vertical;
+        /* autoprefixer: on */
+    }
+    .editTitle{
+        display: flex;
+        color: #000;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 1rem;
+    }
 </style>

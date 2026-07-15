@@ -587,7 +587,7 @@ const submitScheme = params => postAction('/indicatorsLib/indexSchemeController/
 //指标推送
 const insertPublicScheme = params => postAction('/indicatorsLib/indexSchemeController/insertPublicScheme', params)
 //指标方案推送
-const pushIndexToVS = params => postAction('/indicatorsLib//indexSchemeController/pushIndexToVS', params)
+const pushIndexToVS = params => postAction('/indicatorsLib/indexSchemeController/pushIndexToVS', params)
 //指标方案公共菜单
 const selectPublicScheme = params => postAction('/indicatorsLib/indexSchemeController/selectPublicScheme', params)
 //删除个人常用公共方案

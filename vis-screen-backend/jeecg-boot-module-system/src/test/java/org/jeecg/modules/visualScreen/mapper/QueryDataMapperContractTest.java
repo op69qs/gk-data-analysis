@@ -118,4 +118,15 @@ public class QueryDataMapperContractTest {
         assertTrue(sql.contains("ORDER BY a.industrial_name"));
         assertFalse(sql.contains("ORDER BY a.industrial_type"));
     }
+
+    @Test
+    public void inventoryQueriesAcceptMigratedBitLiteralPeriodFlags() {
+        for (String query : new String[]{"getInventoryBalance", "getInventoryForm"}) {
+            String sql = select(query);
+            assertTrue(query + " must accept the normal period flag",
+                    sql.contains("#{params.PERIOD_FLAG}"));
+            assertTrue(query + " must accept Vastbase migrated bit literals",
+                    sql.contains("CONCAT('b''', #{params.PERIOD_FLAG}, '''')"));
+        }
+    }
 }

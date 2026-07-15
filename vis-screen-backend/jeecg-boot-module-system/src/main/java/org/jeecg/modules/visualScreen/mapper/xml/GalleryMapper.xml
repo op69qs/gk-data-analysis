@@ -4,7 +4,8 @@
 
     <select id="getPage" resultType="java.util.HashMap">
         SELECT
-        a.*
+        a.*,
+        a.query_path
         FROM visual_screen.vs_gallery_info a
         where 1=1
         <if test=" params.id != null and params.id != ''">
@@ -50,7 +51,8 @@
 
     <select id="getAll" resultType="java.util.HashMap">
         SELECT
-        *
+        a.*,
+        a.query_path
         FROM visual_screen.vs_gallery_info a
         where 1=1
         <if test=" params.id != null and params.id != ''">
@@ -77,7 +79,7 @@
         (
         #{params.id},
         #{params.option},
-        #{params.interface},
+        #{params.query_path,jdbcType=VARCHAR},
         #{params.content},
         #{params.type},
         #{params.title},
@@ -94,8 +96,11 @@
         <if test=" params.option != null">
             option = #{params.option},
         </if>
-        <if test=" params.interface != null">
-            interface = #{params.interface},
+        <if test=" params.query_path != null">
+            query_path = #{params.query_path},
+        </if>
+        <if test=" params.interface != null and params.query_path == null">
+            query_path = #{params.interface},
         </if>
         <if test=" params.content != null">
             content = #{params.content},

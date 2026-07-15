@@ -1203,6 +1203,10 @@ public class QueryDataController extends BaseController {
     }
 
     private String getUnit(PageSub pageSub, PageData pd) {
+        if (pageSub == null || !isValidUnit(pageSub.getUnit())) {
+            pd.put("unit", "100000000");
+            return "亿元";
+        }
         if (null != pageSub.getUnit()) {
             pd.put("unit", pageSub.getUnit());
             if (pageSub.getUnit().equals("1")) {
@@ -1216,10 +1220,22 @@ public class QueryDataController extends BaseController {
         return "";
     }
 
+    private boolean isValidUnit(String unit) {
+        return "1".equals(unit) || "10000".equals(unit) || "100000000".equals(unit);
+    }
+
+    private void ensureUnit(PageData pd) {
+        String unit = pd.getString("unit");
+        if (!isValidUnit(unit)) {
+            pd.put("unit", "100000000");
+        }
+    }
+
     private void createWhere(PageSub pageSub, PageData pd) {
         PageData queryPd = new PageData();
         queryPd.put("sub_id", pd.get("id"));
         List<PageWhere> pws = queryDataService.getPageWhere(queryPd);
+        ensureUnit(pd);
         if (pageSub != null) {
 //            pd.put("whereInfo", WhereUtil.greateWhere(pageSub, pws));
             Map<String, Object> greateWhereMap = WhereUtil.greateWhere(pageSub, pws);

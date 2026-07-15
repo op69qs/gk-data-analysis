@@ -35,6 +35,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ShiroRealm extends AuthorizingRealm {
 
+	private static final String NEXUS_PORTAL_LOGIN_USER_PREFIX = "PREFIX_NEXUS_PORTAL_LOGIN_USER_";
+
 	@Autowired
 	@Lazy
 	private ISysUserService sysUserService;
@@ -101,6 +103,13 @@ public class ShiroRealm extends AuthorizingRealm {
 	 * @param token
 	 */
 	public LoginUser checkUserTokenIsEffect(String token) throws AuthenticationException {
+		SysUser portalUser = getPortalLoginUser(token);
+		if (portalUser != null) {
+			LoginUser loginUser = new LoginUser();
+			BeanUtils.copyProperties(portalUser, loginUser);
+			return loginUser;
+		}
+
 		// 解密获得username，用于和数据库进行对比
 		String username = JwtUtil.getUsername(token);
 		if (username == null) {
@@ -125,6 +134,11 @@ public class ShiroRealm extends AuthorizingRealm {
 		}
 		BeanUtils.copyProperties(sysUser, loginUser);
 		return loginUser;
+	}
+
+	private SysUser getPortalLoginUser(String token) {
+		Object cachedUser = redisUtil.get(NEXUS_PORTAL_LOGIN_USER_PREFIX + token);
+		return cachedUser instanceof SysUser ? (SysUser) cachedUser : null;
 	}
 
 	/**

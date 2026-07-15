@@ -6,6 +6,7 @@ import store from './store/'
 
 import {VueAxios} from '@/utils/request'
 import scroller from '@/utils/table-scroller'
+import scroll from 'vue-seamless-scroll'
 
 import moment from 'moment'
 import VueJsonp from 'vue-jsonp'
@@ -28,7 +29,9 @@ import {
   Select,
   Option,
   Card,
-  Transfer
+  Transfer,
+  Carousel,
+  CarouselItem
 } from 'element-ui'
 import 'element-ui/lib/theme-chalk/index.css'
 import Viser from 'viser-vue'
@@ -75,6 +78,7 @@ import vueBus from '@/utils/vueBus'
 import JeecgComponents from '@/components/jeecg/index'
 
 Vue.config.productionTip = false
+Vue.prototype.$echarts = echarts
 Vue.use(Storage, config.storageOptions)
 Vue.use(Antd)
 //Vue.use(VueJsonp)
@@ -94,6 +98,8 @@ Vue.use(Transfer)
 Vue.use(Scrollbar)
 Vue.use(Button)
 Vue.use(Pagination)
+Vue.use(Carousel)
+Vue.use(CarouselItem)
 Vue.use(echarts)
 Vue.use(draggable)
 Vue.use(VueAxios, router)
@@ -108,6 +114,7 @@ Vue.use(vueBus)
 Vue.use(JeecgComponents)
 Vue.use(VueQuillEditor)
 Vue.use(scroller)
+Vue.use(scroll)
 import {downFilePost} from '@/api/manage'
 import {Icon} from 'ant-design-vue'
 

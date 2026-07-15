@@ -2,6 +2,7 @@ package org.jeecg.config.shiro;
 
 import cn.hutool.crypto.SecureUtil;
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.authc.AuthenticationException;
@@ -24,7 +25,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -69,15 +75,28 @@ public class ShiroRealm extends AuthorizingRealm {
         }
         SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
 
+        String token = getRequestToken();
+        if (oConvertUtils.isNotEmpty(token) && applyAuthorizationFromToken(info, token)) {
+            log.info("===============Shiro权限认证成功==============(token-claims)");
+            return info;
+        }
+
+        if (oConvertUtils.isEmpty(username)) {
+            log.warn("Shiro权限认证回退本地用户失败：username为空");
+            return info;
+        }
+
         // 设置用户拥有的角色集合，比如“admin,test”
         Set<String> roleSet = commonAPI.queryUserRoles(username);
-        System.out.println(roleSet.toString());
-        info.setRoles(roleSet);
+        if (roleSet != null) {
+            info.setRoles(roleSet);
+        }
 
         // 设置用户拥有的权限集合，比如“sys:role:add,sys:user:add”
         Set<String> permissionSet = commonAPI.queryUserAuths(username);
-        info.addStringPermissions(permissionSet);
-        System.out.println(permissionSet);
+        if (permissionSet != null) {
+            info.addStringPermissions(permissionSet);
+        }
         log.info("===============Shiro权限认证成功==============");
         return info;
     }
@@ -115,19 +134,31 @@ public class ShiroRealm extends AuthorizingRealm {
             throw new AuthenticationException("token非法无效!");
         }
 
+        if (!jwtTokenRefresh(token, username, null)) {
+            throw new AuthenticationException("Token失效，请重新登录!");
+        }
+
+        LoginUser loginUser = buildLoginUserFromToken(token, username);
+        if (loginUser == null) {
+            throw new AuthenticationException("Token失效，请重新登录!");
+        }
+
         // 查询用户信息
         log.debug("———校验token是否有效————checkUserTokenIsEffect——————— "+ token);
-        LoginUser loginUser = commonAPI.getUserByName(username);
-        if (loginUser == null) {
-            throw new AuthenticationException("用户不存在!");
-        }
-        // 判断用户状态
-        if (loginUser.getStatus() != 1) {
-            throw new AuthenticationException("账号已被锁定,请联系管理员!");
-        }
-        // 校验token是否超时失效 & 或者账号密码是否错误
-        if (!jwtTokenRefresh(token, username, loginUser.getPassword())) {
-            throw new AuthenticationException("Token失效，请重新登录!");
+        LoginUser localUser = commonAPI.getUserByName(username);
+        if (localUser != null) {
+            if (localUser.getStatus() != 1) {
+                throw new AuthenticationException("账号已被锁定,请联系管理员!");
+            }
+            if (oConvertUtils.isNotEmpty(localUser.getId())) {
+                loginUser.setId(localUser.getId());
+            }
+            if (oConvertUtils.isNotEmpty(localUser.getRealname())) {
+                loginUser.setRealname(localUser.getRealname());
+            }
+            loginUser.setStatus(localUser.getStatus());
+        } else {
+            log.info("本地用户不存在，使用OAuth token声明完成鉴权, username={}", username);
         }
 
         return loginUser;
@@ -147,30 +178,110 @@ public class ShiroRealm extends AuthorizingRealm {
      * @return
      */
     public boolean jwtTokenRefresh(String token, String userName, String passWord) {
-        try {
-            String cacheToken = String.valueOf(redisUtil.get(CommonConstant.PREFIX_USER_TOKEN + token));
-            if (oConvertUtils.isNotEmpty(cacheToken)) {
-                // 校验token有效性
-                if (!JwtUtil.verify(cacheToken, userName, passWord)) {
-                    String newAuthorization = JwtUtil.sign(userName, passWord);
-                    // 设置超时时间
-                    redisUtil.set(CommonConstant.PREFIX_USER_TOKEN + token, newAuthorization);
-                    redisUtil.expire(CommonConstant.PREFIX_USER_TOKEN + token, JwtUtil.EXPIRE_TIME *2 / 1000);
-                    log.info("——————————用户在线操作，更新token保证不掉线—————————jwtTokenRefresh——————— "+ token);
-                }
-                //update-begin--Author:scott  Date:20191005  for：解决每次请求，都重写redis中 token缓存问题
-//				else {
-//					// 设置超时时间
-//					redisUtil.set(CommonConstant.PREFIX_USER_TOKEN + token, cacheToken);
-//					redisUtil.expire(CommonConstant.PREFIX_USER_TOKEN + token, JwtUtil.EXPIRE_TIME / 1000);
-//				}
-                //update-end--Author:scott  Date:20191005   for：解决每次请求，都重写redis中 token缓存问题
-                return true;
-            }
-        } catch (Exception e) {
-            log.warn("Redis token校验失败，回退为JWT验签: {}", e.getMessage());
+        if (!isTokenNotExpired(token)) {
+            return false;
         }
-        return isTokenNotExpired(token);
+        try {
+            Object cacheToken = redisUtil.get(CommonConstant.PREFIX_USER_TOKEN + token);
+            return cacheToken != null;
+        } catch (Exception e) {
+            // Keep service available even when Redis is transiently unavailable.
+            log.warn("Redis token校验失败，回退为JWT过期时间校验: {}", e.getMessage());
+            return true;
+        }
+    }
+
+    private String getRequestToken() {
+        try {
+            HttpServletRequest request = SpringContextUtils.getHttpServletRequest();
+            if (request == null) {
+                return null;
+            }
+            return request.getHeader(CommonConstant.X_ACCESS_TOKEN);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private boolean applyAuthorizationFromToken(SimpleAuthorizationInfo info, String token) {
+        try {
+            DecodedJWT decodedJWT = JWT.decode(token);
+            Set<String> roles = new LinkedHashSet<>();
+            roles.addAll(readClaimAsSet(decodedJWT, "roles"));
+            roles.addAll(readClaimAsSet(decodedJWT, "role"));
+
+            Set<String> permissions = new LinkedHashSet<>();
+            permissions.addAll(readClaimAsSet(decodedJWT, "permissions"));
+            permissions.addAll(readClaimAsSet(decodedJWT, "perms"));
+            permissions.addAll(readClaimAsSet(decodedJWT, "authorities"));
+            permissions.addAll(readClaimAsSet(decodedJWT, "scope"));
+
+            if (!roles.isEmpty()) {
+                info.setRoles(roles);
+            }
+            if (!permissions.isEmpty()) {
+                info.addStringPermissions(permissions);
+            }
+            return !roles.isEmpty() || !permissions.isEmpty();
+        } catch (Exception e) {
+            log.warn("从OAuth token解析权限信息失败: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private Set<String> readClaimAsSet(DecodedJWT decodedJWT, String claimName) {
+        Claim claim = decodedJWT.getClaim(claimName);
+        if (claim == null || claim.isNull()) {
+            return Collections.emptySet();
+        }
+
+        LinkedHashSet<String> values = new LinkedHashSet<>();
+        List<String> listValues = claim.asList(String.class);
+        if (listValues != null) {
+            for (String value : listValues) {
+                if (oConvertUtils.isNotEmpty(value)) {
+                    values.add(value.trim());
+                }
+            }
+        }
+
+        String textValue = claim.asString();
+        if (oConvertUtils.isNotEmpty(textValue)) {
+            values.addAll(splitClaimValues(textValue));
+        }
+        return values;
+    }
+
+    private Set<String> splitClaimValues(String value) {
+        LinkedHashSet<String> values = new LinkedHashSet<>();
+        for (String item : Arrays.asList(value.split("[,\\s]+"))) {
+            if (oConvertUtils.isNotEmpty(item)) {
+                values.add(item.trim());
+            }
+        }
+        return values;
+    }
+
+    private LoginUser buildLoginUserFromToken(String token, String username) {
+        try {
+            if (!isTokenNotExpired(token)) {
+                return null;
+            }
+            DecodedJWT decodedJWT = JWT.decode(token);
+            LoginUser loginUser = new LoginUser();
+            loginUser.setUsername(username);
+            loginUser.setStatus(1);
+            loginUser.setId(decodedJWT.getSubject());
+            String realname = decodedJWT.getClaim("name").asString();
+            if (oConvertUtils.isEmpty(realname)) {
+                realname = username;
+            }
+            loginUser.setRealname(realname);
+            return loginUser;
+        } catch (Exception e) {
+            log.warn("基于token声明构造登录态失败: {}", e.getMessage());
+            return null;
+        }
     }
 
     private boolean isTokenNotExpired(String token) {

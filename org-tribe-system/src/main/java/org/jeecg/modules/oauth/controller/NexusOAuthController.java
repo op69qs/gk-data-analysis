@@ -43,6 +43,7 @@ public class NexusOAuthController {
 
     private static final String NEXUS_PORTAL_USER_ID_PREFIX = "PREFIX_NEXUS_PORTAL_USER_ID_";
     private static final String NEXUS_PORTAL_ACCESS_TOKEN_PREFIX = "PREFIX_NEXUS_PORTAL_ACCESS_TOKEN_";
+    private static final String NEXUS_PORTAL_LOGIN_USER_PREFIX = "PREFIX_NEXUS_PORTAL_LOGIN_USER_";
 
     @Autowired
     private ISysUserService sysUserService;
@@ -82,13 +83,18 @@ public class NexusOAuthController {
             @RequestParam(name = "state", required = false) String state,
             HttpServletRequest request) {
         Result<JSONObject> result = new Result<>();
-        log.info("Nexus OAuth callback, code={}", code);
+        String normalizedCode = StringUtils.trim(code);
+        log.info("Nexus OAuth callback, codeLength={}, state={}",
+                normalizedCode == null ? 0 : normalizedCode.length(), state);
         String accessToken = null;
         String username = null;
         String portalUserId = null;
         try {
+            if (StringUtils.isEmpty(normalizedCode)) {
+                throw new Exception("授权码不能为空，请重新发起单点登录");
+            }
             // 1. Exchange authorization code for access_token
-            accessToken = exchangeCodeForToken(code);
+            accessToken = exchangeCodeForToken(normalizedCode);
 
             // 2. Decode JWT to extract username claim (no sig verification needed:
             //    token comes directly from a trusted server-to-server call over HTTPS)
@@ -103,33 +109,41 @@ public class NexusOAuthController {
             }
             log.info("Nexus OAuth login, username={}", username);
 
-            // 3. Validate user exists and is active in local DB
+            // 3. Prefer a local user when it exists; otherwise keep the portal identity in Redis only.
             SysUser sysUser = sysUserService.getUserByName(username);
-            result = sysUserService.checkUserIsEffective(sysUser);
-            if (!result.isSuccess()) {
-                portalUserId = decoded.getSubject();
-                bizAuditService.recordOAuthLoginFailure(username, portalUserId, result.getMessage(),
-                    request, accessToken);
-                return result;
+            portalUserId = decoded.getSubject();
+            boolean portalOnlyUser = sysUser == null;
+            if (!portalOnlyUser) {
+                result = sysUserService.checkUserIsEffective(sysUser);
+                if (!result.isSuccess()) {
+                    bizAuditService.recordOAuthLoginFailure(username, portalUserId, result.getMessage(),
+                        request, accessToken);
+                    return result;
+                }
+            } else {
+                sysUser = buildPortalUser(decoded, username);
             }
 
-            // 4. Generate JEECG JWT token and cache in Redis (same as CasClientController)
-            String token = JwtUtil.sign(sysUser.getUsername(), sysUser.getPassword());
+            // 4. Generate a local session token. Portal-only users are authenticated by the Redis session context.
+            String token = JwtUtil.sign(sysUser.getUsername(), portalOnlyUser ? portalUserId : sysUser.getPassword());
             redisUtil.set(CommonConstant.PREFIX_USER_TOKEN + token, token);
             redisUtil.expire(CommonConstant.PREFIX_USER_TOKEN + token, JwtUtil.EXPIRE_TIME / 1000);
 
             // Cache portal identity context for permission sync in /sys/permission/getUserPermissionByToken
-            portalUserId = decoded.getSubject();
             if (StringUtils.isNotEmpty(portalUserId)) {
                 redisUtil.set(NEXUS_PORTAL_USER_ID_PREFIX + token, portalUserId);
                 redisUtil.expire(NEXUS_PORTAL_USER_ID_PREFIX + token, JwtUtil.EXPIRE_TIME / 1000);
             }
             redisUtil.set(NEXUS_PORTAL_ACCESS_TOKEN_PREFIX + token, accessToken);
             redisUtil.expire(NEXUS_PORTAL_ACCESS_TOKEN_PREFIX + token, JwtUtil.EXPIRE_TIME / 1000);
+            if (portalOnlyUser) {
+                redisUtil.set(NEXUS_PORTAL_LOGIN_USER_PREFIX + token, sysUser);
+                redisUtil.expire(NEXUS_PORTAL_LOGIN_USER_PREFIX + token, JwtUtil.EXPIRE_TIME / 1000);
+            }
 
             // 5. Build response identical to CasClientController
             JSONObject obj = new JSONObject();
-            List<SysDepart> departs = sysDepartService.queryUserDeparts(sysUser.getId());
+            List<SysDepart> departs = portalOnlyUser ? null : sysDepartService.queryUserDeparts(sysUser.getId());
             obj.put("departs", departs);
             if (departs == null || departs.size() == 0) {
                 obj.put("multi_depart", 0);
@@ -151,6 +165,19 @@ public class NexusOAuthController {
             bizAuditService.recordOAuthLoginFailure(username, portalUserId, e.getMessage(), request, accessToken);
         }
         return new HttpEntity<>(result);
+    }
+
+    private SysUser buildPortalUser(DecodedJWT decoded, String username) {
+        SysUser portalUser = new SysUser();
+        portalUser.setId(decoded.getSubject());
+        portalUser.setUsername(username);
+        portalUser.setRealname(firstNonEmpty(decoded.getClaim("name").asString(), username));
+        portalUser.setStatus(1);
+        return portalUser;
+    }
+
+    private String firstNonEmpty(String primary, String fallback) {
+        return StringUtils.isNotEmpty(primary) ? primary : fallback;
     }
 
     /**
@@ -176,8 +203,9 @@ public class NexusOAuthController {
             if (responseBody != null && responseBody.length() > 500) {
                 responseBody = responseBody.substring(0, 500);
             }
-            log.error("Nexus token exchange failed, status={}, responseBody={}", e.getStatusCode(), responseBody);
-            throw e;
+                log.error("Nexus token exchange failed, status={}, clientId={}, redirectUri={}, responseBody={}",
+                    e.getStatusCode(), clientId, redirectUri, responseBody);
+                throw new Exception("授权码换取令牌失败: " + responseBody, e);
         }
 
         JSONObject body = response.getBody();

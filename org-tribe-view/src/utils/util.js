@@ -88,53 +88,14 @@ let indexRouter = [{
           redirect: '/dashboard/analysis',
           children: [
             ...generateChildRouters(data),
-            ...generateLegacyRedirectRouters(),
             ...generateStaticVisRouters()
           ]
-        },{
+        },
+        ...generateFullScreenVisRouters(),
+        {
           "path": "*", "redirect": "/404", "hidden": true
         }]
   return indexRouter;
-}
-
-function generateLegacyRedirectRouters() {
-  return [
-    {
-      path: '/gallery',
-      redirect: '/vis/gallery',
-      hidden: true
-    },
-    {
-      path: '/indexLibrary',
-      redirect: '/vis/index-library',
-      hidden: true
-    },
-    {
-      path: '/BigScreen',
-      redirect: '/vis/bigscreen',
-      hidden: true
-    },
-    {
-      path: '/bigScreen/TemplateList',
-      redirect: '/vis/bigscreen/templates',
-      hidden: true
-    },
-    {
-      path: '/BigScreen/PageList',
-      redirect: '/vis/bigscreen/pages',
-      hidden: true
-    },
-    {
-      path: '/BigScreen/ExhibitionSchemeList',
-      redirect: '/vis/bigscreen/schemes',
-      hidden: true
-    },
-    {
-      path: '/bigScreen/AddTemplate',
-      redirect: '/vis/bigscreen/pages/editor',
-      hidden: true
-    }
-  ]
 }
 
 function generateStaticVisRouters() {
@@ -147,20 +108,6 @@ function generateStaticVisRouters() {
       meta: { title: '可视化大屏', keepAlive: false }
     },
     {
-      path: '/vis/preview',
-      name: 'VisPreviewPage',
-      component: resolve => require(['@/views/vis/PreviewEntry.vue'], resolve),
-      hidden: true,
-      meta: { title: '可视化预览', keepAlive: false }
-    },
-    {
-      path: '/BigScreenPreview',
-      name: 'VisLegacyPreviewPage',
-      component: resolve => require(['@/views/vis/PreviewEntry.vue'], resolve),
-      hidden: true,
-      meta: { title: '可视化预览', keepAlive: false }
-    },
-    {
       path: '/vis/bigscreen/pages/editor',
       name: 'VisPageEditorEntry',
       component: resolve => require(['@/views/vis/PageEditorEntry.vue'], resolve),
@@ -170,27 +117,40 @@ function generateStaticVisRouters() {
   ]
 }
 
+function generateFullScreenVisRouters() {
+  return [
+    {
+      path: '/vis/preview',
+      name: 'VisPreviewPage',
+      component: resolve => require(['@/views/vis/bigscreen/BigScreenPreview.vue'], resolve),
+      hidden: true,
+      meta: { title: '可视化预览', keepAlive: false }
+    }
+  ]
+}
+
 function normalizeLegacyComponent(component) {
   const componentMap = {
+    'target/targetScheme': 'vis/IndexLibraryList',
     'BigScreen/TemplateList': 'vis/TemplateList',
+    'bigScreen/TemplateList': 'vis/TemplateList',
     'BigScreen/PageList': 'vis/PageList',
+    'bigScreen/PageList': 'vis/PageList',
     'BigScreen/ExhibitionSchemeList': 'vis/SchemeList',
-    'BigScreen/AddTemplate': 'vis/PageEditorEntry',
-    'target/targetScheme': 'vis/SchemeList'
+    'bigScreen/ExhibitionSchemeList': 'vis/SchemeList'
   }
   return componentMap[component] || component
 }
 
 function normalizeLegacyPath(path) {
   const pathMap = {
-    '/gallery': '/vis/gallery',
     '/indexLibrary': '/vis/index-library',
-    '/vis/preview': '/BigScreenPreview',
-    '/BigScreen': '/vis/bigscreen',
     '/bigScreen/TemplateList': '/vis/bigscreen/templates',
+    '/BigScreen/TemplateList': '/vis/bigscreen/templates',
     '/BigScreen/PageList': '/vis/bigscreen/pages',
+    '/bigScreen/PageList': '/vis/bigscreen/pages',
     '/BigScreen/ExhibitionSchemeList': '/vis/bigscreen/schemes',
-    '/bigScreen/AddTemplate': '/vis/bigscreen/pages/editor'
+    '/bigScreen/ExhibitionSchemeList': '/vis/bigscreen/schemes'
   }
   return pathMap[path] || path
 }
@@ -200,7 +160,7 @@ function normalizeLegacyPath(path) {
 function  generateChildRouters (data) {
   const routers = [];
   for (var item of data) {
-    const normalizedComponent = normalizeLegacyComponent(item.component)
+    const normalizedComponent = normalizeLegacyComponent(item.component || 'layouts/RouteView')
     const normalizedPath = normalizeLegacyPath(item.path)
     const normalizedRedirect = normalizeLegacyPath(item.redirect)
     let component = "";

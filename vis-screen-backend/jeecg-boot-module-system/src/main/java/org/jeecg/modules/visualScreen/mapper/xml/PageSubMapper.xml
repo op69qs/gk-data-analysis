@@ -23,13 +23,28 @@
 
     <select id="getPageSub" resultMap="PageSub">
         SELECT
-        *
-        FROM
-        visual_screen.vs_page_info_sub a
+        a.id,
+        a.gallery_id,
+        a.page_id,
+        a.time_type,
+        a.time_interval,
+        a.content,
+        a.x,
+        a.y,
+        a.w,
+        a.h,
+        a.i,
+        a.title,
+        a.type,
+        a.option,
+        COALESCE(NULLIF(a.query_path, ''), NULLIF(a.query_path, 'null'), g.query_path) AS query_path,
+        a.unit
+        FROM visual_screen.vs_page_info_sub a
+        LEFT JOIN visual_screen.vs_gallery_info g ON a.gallery_id = g.id
         WHERE
         1 = 1
         and a.page_id = #{params.page_id}
-        ORDER by sort
+        ORDER BY a.sort
     </select>
 
     <select id="getPage" resultType="java.util.HashMap">
@@ -145,10 +160,10 @@
         <if test=" params.option != null">
             option = #{params.option},
         </if>
-        <if test=" query_path != null">
+        <if test=" params.query_path != null">
             query_path = #{params.query_path},
         </if>
-        <if test=" unit != null">
+        <if test=" params.unit != null">
             unit = #{params.unit},
         </if>
         id = #{params.id}

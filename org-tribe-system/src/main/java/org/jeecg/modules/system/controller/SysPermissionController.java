@@ -364,7 +364,71 @@ public class SysPermissionController extends BaseController{
 		for (SysPermission permission : list) {
 			permission.setLeaf(!parentIds.contains(permission.getId()));
 		}
+		enrichPortalRouteComponents(list);
 		return list;
+	}
+
+	private void enrichPortalRouteComponents(List<SysPermission> portalPermissions) {
+		if (portalPermissions.isEmpty()) {
+			return;
+		}
+
+		Set<String> permissionIds = portalPermissions.stream()
+				.map(SysPermission::getId)
+				.filter(oConvertUtils::isNotEmpty)
+				.collect(Collectors.toSet());
+		Set<String> permissionUrls = portalPermissions.stream()
+				.map(SysPermission::getUrl)
+				.filter(oConvertUtils::isNotEmpty)
+				.collect(Collectors.toSet());
+		Set<String> registrationUrls = new HashSet<String>(permissionUrls);
+		for (String permissionUrl : permissionUrls) {
+			registrationUrls.add(normalizePortalRoutePath(permissionUrl));
+		}
+		QueryWrapper<SysPermission> query = new QueryWrapper<SysPermission>();
+		query.eq("del_flag", CommonConstant.DEL_FLAG_0);
+		query.and(wrapper -> wrapper.in("id", permissionIds).or().in("url", registrationUrls));
+		List<SysPermission> routeDefinitions = sysPermissionService.list(query);
+		Map<String, SysPermission> definitionById = routeDefinitions.stream()
+				.collect(Collectors.toMap(SysPermission::getId, permission -> permission, (first, second) -> first));
+		Map<String, SysPermission> definitionByUrl = routeDefinitions.stream()
+				.filter(permission -> oConvertUtils.isNotEmpty(permission.getUrl()))
+				.collect(Collectors.toMap(SysPermission::getUrl, permission -> permission, (first, second) -> first));
+
+		for (SysPermission permission : portalPermissions) {
+			SysPermission routeDefinition = definitionById.get(permission.getId());
+			if (routeDefinition == null) {
+				routeDefinition = definitionByUrl.get(normalizePortalRoutePath(permission.getUrl()));
+			}
+			if (routeDefinition != null) {
+				if (oConvertUtils.isEmpty(permission.getComponent())) {
+					permission.setComponent(routeDefinition.getComponent());
+				}
+				if (oConvertUtils.isEmpty(permission.getRedirect())) {
+					permission.setRedirect(routeDefinition.getRedirect());
+				}
+			}
+			if (CommonConstant.MENU_TYPE_0.equals(permission.getMenuType()) && oConvertUtils.isEmpty(permission.getComponent())) {
+				permission.setComponent("layouts/RouteView");
+			}
+		}
+	}
+
+	private String normalizePortalRoutePath(String path) {
+		if (oConvertUtils.isEmpty(path)) {
+			return path;
+		}
+		Map<String, String> pathMap = new HashMap<String, String>();
+		pathMap.put("/gallery", "/vis/gallery");
+		pathMap.put("/indexLibrary", "/vis/index-library");
+		pathMap.put("/BigScreen", "/vis/bigscreen");
+		pathMap.put("/bigScreen/TemplateList", "/vis/bigscreen/templates");
+		pathMap.put("/BigScreen/PageList", "/vis/bigscreen/pages");
+		pathMap.put("/BigScreen/ExhibitionSchemeList", "/vis/bigscreen/schemes");
+		pathMap.put("/bigScreen/AddTemplate", "/vis/bigscreen/pages/editor");
+		pathMap.put("/isystem/BusinessTypeList", "/vis/system/business-type");
+		pathMap.put("/isystem/TreasuryList", "/vis/system/treasury");
+		return pathMap.getOrDefault(path, path);
 	}
 
 	private Integer convertPortalType(String portalType) {

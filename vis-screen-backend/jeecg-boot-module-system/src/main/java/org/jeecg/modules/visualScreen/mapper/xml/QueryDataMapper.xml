@@ -523,7 +523,12 @@
         FROM visual_screen.vs_inventory_analyze a
         WHERE 1 = 1
         <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
-        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG IN (
+                #{params.PERIOD_FLAG},
+                CONCAT('b''', #{params.PERIOD_FLAG}, '''')
+            )
+        </if>
         group by a.DACCT
         ORDER BY a.DACCT
     </select>
@@ -533,7 +538,12 @@
         FROM visual_screen.vs_inventory_form a
         WHERE 1 = 1 and INDEX_NAME = '${params.INDEX_NAME}'
         <if test="params.whereInfo !=null and params.whereInfo != ''">${params.whereInfo}</if>
-        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">and PERIOD_FLAG = #{params.PERIOD_FLAG}</if>
+        <if test="params.PERIOD_FLAG !=null and params.PERIOD_FLAG != ''">
+            and a.PERIOD_FLAG IN (
+                #{params.PERIOD_FLAG},
+                CONCAT('b''', #{params.PERIOD_FLAG}, '''')
+            )
+        </if>
         group by a.DACCT
         ORDER BY a.DACCT
     </select>
