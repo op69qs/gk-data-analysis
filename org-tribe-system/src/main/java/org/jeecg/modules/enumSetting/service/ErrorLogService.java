@@ -12,4 +12,10 @@ public interface ErrorLogService {
     void callProc(PageData pd);
 
     Integer getCount(PageData pd);
+
+    void add(PageData pd);
+
+    void edit(PageData pd);
+
+    void del(PageData pd);
 }
