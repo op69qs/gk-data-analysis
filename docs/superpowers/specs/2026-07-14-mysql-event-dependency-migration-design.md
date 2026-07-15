@@ -44,20 +44,37 @@ business schemas:
    function calls do not use the `CALL` keyword.
 6. Stop when a routine has no further routine or business-function dependency.
 
-The current static analysis identifies 58 routines in this closure. The
-existing `document/psql/vastbase/final/` scripts contain 54 of them.
+The current static analysis identifies 58 `CALL` targets. One target,
+`edw.P_TRS_BUDGET_INCOME_COMPARE_XIN`, does not exist in the live MySQL
+`information_schema.ROUTINES` catalog. The source-defined closure therefore
+contains 57 routines. The existing `document/psql/vastbase/final/` scripts
+contain 54 of them.
 
-The four missing routines are:
+The three missing source-defined routines are:
 
 | Routine | Current source or candidate | Required action |
 | --- | --- | --- |
 | `dmcode.p_drop_temp_tables` | Retrieved live with `SHOW CREATE PROCEDURE` | Convert and add to the final bundle |
 | `edw.p_trs_budget_new` | Converted candidate in `170_edw_core_executable.sql` | Validate and promote into the final bundle |
-| `edw.p_trs_budget_income_compare_xin` | Rewrite candidate in `171_edw_p_trs_budget_income_compare_rewrite.sql` | Validate and promote into the final bundle |
 | `edw.proc_trs_guoku_cp` | Source definition in `source_routines_edw_etl.sql` | Convert, validate, and add to the final bundle |
 
 The closure count is an assertion to be regenerated during implementation,
 not a reason to ignore newly discovered dynamic or function dependencies.
+
+### Dangling MySQL call
+
+The live MySQL catalog contains `edw.P_TRS_BUDGET_INCOME_COMPARE` but does not
+contain `edw.P_TRS_BUDGET_INCOME_COMPARE_XIN`. The exported
+`indicators_lib.p_xunhuan_formula` nevertheless calls both names. This is a
+source-side dangling call that remained hidden while the MySQL Event Scheduler
+was globally off.
+
+The existing Vastbase `final/006_indicators_lib_init.sql` already replaces the
+dangling second call with
+`indicators_lib.P_TRS_BUDGET_INCOME_COMPARE_XIN`, a real migrated procedure
+that performs the `_XIN` processing. The implementation preserves this
+documented correction and does not invent an `edw` wrapper for a procedure
+that does not exist in the source catalog.
 
 ## Source Drift Check
 
@@ -66,7 +83,7 @@ The original routine and Event migration commit was created on
 seven `trs-test` procedures changed after that timestamp. None belongs to the
 Event dependency closure.
 
-For each of the four missing routines and all ten Events, implementation still
+For each of the three missing routines and all ten Events, implementation still
 captures a fresh `SHOW CREATE` definition before conversion. This ensures the
 final scripts are based on the live definition rather than only on repository
 history.
@@ -78,7 +95,7 @@ style and are placed before Event creation in the final execution order.
 
 The preferred packaging is:
 
-- Add a focused final routine script for the four missing dependency routines.
+- Add a focused final routine script for the three missing dependency routines.
 - Keep the existing `001` through `006` scripts unchanged unless validation
   proves an existing dependency definition is wrong.
 - Load the focused routine script immediately before `007_events_init.sql`.
@@ -179,7 +196,7 @@ The migration is complete when:
 - all ten live MySQL Events have source snapshots and Vastbase definitions;
 - all routines and business functions in their recursive dependency closure
   resolve to final Vastbase definitions;
-- the four currently missing routines compile in the target compatibility mode;
+- the three currently missing routines compile in the target compatibility mode;
 - the final bundle passes transactional compile validation;
 - `SHOW EVENTS` lists ten enabled Events with matching schedules and calls;
 - test and production parameter instructions clearly preserve the intended
