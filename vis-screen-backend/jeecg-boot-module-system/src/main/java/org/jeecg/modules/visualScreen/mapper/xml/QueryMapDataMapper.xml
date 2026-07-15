@@ -32,7 +32,7 @@
     </sql>
 
     <select id="getBudgetRevenue" resultType="java.util.Map">
-        SELECT DISTINCT a.AREA_DSCR as name, <include refid="sumIndexExpr"/> as value
+        SELECT DISTINCT a.AREA_DSCR AS "name", <include refid="sumIndexExpr"/> AS "value"
         FROM visual_screen.vs_budget_revenue a
         WHERE 1 = 1
         and INDEX_NAME = #{params.INDEX_NAME}
@@ -48,7 +48,7 @@
     </select>
 
     <select id="getBudgetRevenueRate" resultType="java.util.Map">
-        SELECT DISTINCT a.AREA_DSCR as name, <include refid="sumRateExpr"/> as value
+        SELECT DISTINCT a.AREA_DSCR AS "name", <include refid="sumRateExpr"/> AS "value"
         FROM visual_screen.vs_budget_revenue a
         left join visual_screen.vs_budget_revenue a1
         ON a1.DACCT = <include refid="previousPeriodExpr"/>
@@ -69,8 +69,8 @@
     </select>
 
     <select id="getBudgetRevenueMax" resultType="java.util.Map">
-        SELECT COALESCE(ROUND(MAX(a.INDEX_VALUE), 2), 0) as max_value,
-               COALESCE(ROUND(MIN(a.INDEX_VALUE), 2), 0) as min_value
+        SELECT COALESCE(ROUND(MAX(a.INDEX_VALUE), 2), 0) AS "max_value",
+               COALESCE(ROUND(MIN(a.INDEX_VALUE), 2), 0) AS "min_value"
         FROM (
             SELECT DISTINCT <include refid="sumIndexExpr"/> as INDEX_VALUE
             FROM visual_screen.vs_budget_revenue a
@@ -88,7 +88,7 @@
     </select>
 
     <select id="getBudgetRevenueTitle" resultType="java.util.Map">
-        SELECT DISTINCT a.AREA_DSCR as AREA_DSCR, <include refid="sumIndexExpr"/> as INDEX_VALUE
+        SELECT a.AREA_DSCR AS "AREA_DSCR", <include refid="sumIndexExpr"/> AS "INDEX_VALUE"
         FROM visual_screen.vs_budget_revenue a
         WHERE 1 = 1
         and INDEX_NAME = #{params.INDEX_NAME}
@@ -104,7 +104,7 @@
     </select>
 
     <select id="getBudgetRevenueRateTitle" resultType="java.util.Map">
-        SELECT DISTINCT a.AREA_DSCR as AREA_DSCR, <include refid="sumRateExpr"/> as INDEX_VALUE
+        SELECT a.AREA_DSCR AS "AREA_DSCR", <include refid="sumRateExpr"/> AS "INDEX_VALUE"
         FROM visual_screen.vs_budget_revenue a
         left join visual_screen.vs_budget_revenue a1
         ON a1.DACCT = <include refid="previousPeriodExpr"/>
