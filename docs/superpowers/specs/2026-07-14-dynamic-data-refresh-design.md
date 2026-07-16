@@ -24,7 +24,7 @@
 
 生产 JAR 和截图确认了以下行为：
 
-- 页面组件路径为 `system/manualCallReportList`，源码组件名为 `manualCallReportList`。
+- 页面组件路径为 `manualCallReport/manualCallReportList`，源码组件名为 `manualCallReportList`。
 - 列表字段为任务名称、类型、执行状态、脚本路径、脚本名称、参数和操作。
 - 查询条件为任务名称和执行状态。
 - 操作为修改、启动、删除，并具有启动和删除确认提示。
@@ -52,9 +52,6 @@
 ### 列表页面
 
 恢复 `src/views/manualCallReport/manualCallReportList.vue`：
-
-- 保留 `src/views/system/manualCallReportList.vue` 作为现有菜单组件值
-  `system/manualCallReportList` 的兼容入口，菜单和门户权限属性无需变更。
 
 - 查询区包含任务名称、执行状态、查询、新增和重置。
 - 状态下拉包含未执行 `0`、执行成功 `200`、执行失败 `500`；正在执行状态仍可在列表中显示，但不作为生产截图中的筛选项新增。

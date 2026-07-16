@@ -351,7 +351,7 @@ git commit -m "feat: execute dynamic refresh tasks asynchronously"
 
 **Interfaces:**
 - Consumes: five POST endpoints from Tasks 2 and 3.
-- Produces: backend-menu-loadable component `system/manualCallReportList`.
+- Produces: backend-menu-loadable component `manualCallReport/manualCallReportList`.
 
 - [ ] **Step 1: Add focused API wrappers**
 
