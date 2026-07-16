@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.jeecg.modules.enumSetting.BaseController;
 import org.jeecg.modules.enumSetting.service.ErrorLogService;
 import org.jeecg.modules.util.PageData;
@@ -56,28 +55,24 @@ public class ErrorLogController extends BaseController {
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ApiOperation("新增动态刷数任务")
-    @RequiresRoles("admin")
     public Map<String, Object> add(@RequestBody JSONObject param) {
         return execute("新增成功", () -> errorLogService.add(this.getPageData(param)));
     }
 
     @RequestMapping(value = "/edit", method = RequestMethod.POST)
     @ApiOperation("修改动态刷数任务")
-    @RequiresRoles("admin")
     public Map<String, Object> edit(@RequestBody JSONObject param) {
         return execute("修改成功", () -> errorLogService.edit(this.getPageData(param)));
     }
 
     @RequestMapping(value = "/del", method = RequestMethod.POST)
     @ApiOperation("删除动态刷数任务")
-    @RequiresRoles("admin")
     public Map<String, Object> del(@RequestBody JSONObject param) {
         return execute("删除成功", () -> errorLogService.del(this.getPageData(param)));
     }
 
     @RequestMapping(value = "/callProc", method = RequestMethod.POST)
     @ApiOperation("调用存储过程")
-    @RequiresRoles("admin")
     public Map<String, Object> callProc(@RequestBody JSONObject param) {
         Map<String, Object> result = new HashMap<>();
         PageData pd = this.getPageData(param);

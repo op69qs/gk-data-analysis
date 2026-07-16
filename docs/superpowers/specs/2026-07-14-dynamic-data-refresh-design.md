@@ -53,6 +53,9 @@
 
 恢复 `src/views/manualCallReport/manualCallReportList.vue`：
 
+- 保留 `src/views/system/manualCallReportList.vue` 作为现有菜单组件值
+  `system/manualCallReportList` 的兼容入口，菜单和门户权限属性无需变更。
+
 - 查询区包含任务名称、执行状态、查询、新增和重置。
 - 状态下拉包含未执行 `0`、执行成功 `200`、执行失败 `500`；正在执行状态仍可在列表中显示，但不作为生产截图中的筛选项新增。
 - 表格按生产截图显示七个业务列和操作列。
