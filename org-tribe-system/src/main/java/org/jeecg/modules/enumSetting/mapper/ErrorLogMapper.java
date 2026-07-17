@@ -12,7 +12,17 @@ public interface ErrorLogMapper {
 
     List<Map<String, Object>> getData(@Param("params") PageData pd);
 
-    void callProc(@Param("params") PageData pd);
-
     Integer getCount(@Param("params") PageData pd);
+
+    int add(@Param("params") PageData pd);
+
+    int edit(@Param("params") PageData pd);
+
+    int del(@Param("id") String id);
+
+    Map<String, Object> getTaskById(@Param("id") String id);
+
+    int updateTaskStatus(@Param("id") String id, @Param("status") String status);
+
+    int markTaskRunning(@Param("id") String id);
 }

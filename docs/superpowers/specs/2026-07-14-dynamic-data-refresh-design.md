@@ -24,7 +24,7 @@
 
 生产 JAR 和截图确认了以下行为：
 
-- 页面组件路径为 `system/manualCallReportList`，源码组件名为 `manualCallReportList`。
+- 页面组件路径为 `manualCallReport/manualCallReportList`，源码组件名为 `manualCallReportList`。
 - 列表字段为任务名称、类型、执行状态、脚本路径、脚本名称、参数和操作。
 - 查询条件为任务名称和执行状态。
 - 操作为修改、启动、删除，并具有启动和删除确认提示。

@@ -33,9 +33,10 @@ public class ErrorLogController extends BaseController {
         Map<String, Object> result = new HashMap<>();
         try {
             PageData pd = this.getPageData(param);
-            Integer pageNo = (Integer.parseInt(pd.getString("pageNo")) - 1) * Integer.parseInt(pd.getString("pageSize"));
-            pd.put("page", pageNo);
-            pd.put("rows", Integer.parseInt(pd.getString("pageSize")));
+            int pageNo = parsePositive(pd.getString("pageNo"), 1);
+            int pageSize = parsePositive(pd.getString("pageSize"), 10);
+            pd.put("page", (pageNo - 1) * pageSize);
+            pd.put("rows", pageSize);
             List<Map<String, Object>> data = errorLogService.getData(pd);
             Integer count = errorLogService.getCount(pd);
             result.put("msg", "查询成功");
@@ -43,10 +44,31 @@ public class ErrorLogController extends BaseController {
             result.put("rows", data);//rows键 存放每页记录 list
             result.put("result", "success");
         } catch (Exception e) {
+            log.error("查询动态刷数任务失败", e);
             result.put("msg", e.getMessage());
+            result.put("total", 0);
+            result.put("rows", java.util.Collections.emptyList());
             result.put("result", "failed");
         }
         return result;
+    }
+
+    @RequestMapping(value = "/add", method = RequestMethod.POST)
+    @ApiOperation("新增动态刷数任务")
+    public Map<String, Object> add(@RequestBody JSONObject param) {
+        return execute("新增成功", () -> errorLogService.add(this.getPageData(param)));
+    }
+
+    @RequestMapping(value = "/edit", method = RequestMethod.POST)
+    @ApiOperation("修改动态刷数任务")
+    public Map<String, Object> edit(@RequestBody JSONObject param) {
+        return execute("修改成功", () -> errorLogService.edit(this.getPageData(param)));
+    }
+
+    @RequestMapping(value = "/del", method = RequestMethod.POST)
+    @ApiOperation("删除动态刷数任务")
+    public Map<String, Object> del(@RequestBody JSONObject param) {
+        return execute("删除成功", () -> errorLogService.del(this.getPageData(param)));
     }
 
     @RequestMapping(value = "/callProc", method = RequestMethod.POST)
@@ -56,12 +78,35 @@ public class ErrorLogController extends BaseController {
         PageData pd = this.getPageData(param);
         try {
             errorLogService.callProc(pd);
-            result.put("msg", "调用完成");
+            result.put("msg", "启动成功");
             result.put("result", "success");
         } catch (Exception e) {
-            result.put("msg", "添加失败");
+            result.put("msg", e.getMessage());
             result.put("result", "failed");
         }
         return result;
+    }
+
+    private Map<String, Object> execute(String successMessage, Runnable action) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            action.run();
+            result.put("msg", successMessage);
+            result.put("result", "success");
+        } catch (Exception exception) {
+            log.error(successMessage + "失败", exception);
+            result.put("msg", exception.getMessage());
+            result.put("result", "failed");
+        }
+        return result;
+    }
+
+    private int parsePositive(String value, int defaultValue) {
+        try {
+            int parsed = Integer.parseInt(value);
+            return parsed > 0 ? parsed : defaultValue;
+        } catch (Exception ignored) {
+            return defaultValue;
+        }
     }
 }
