@@ -292,6 +292,16 @@ git commit -m "feat(vis): restore production index scheme endpoints"
 
 ### Task 3: 恢复四类图表预览和保存
 
+> **生产契约校正（2026-07-17）：** 生产 JAR 的两个控制器直接依赖
+> `IndexSchemeService`、`IndexRelationService`、`GalleryService` 和
+> `PageWhereService`，并通过现有 `IndexChartsHelper.createIndexUnionSQL` /
+> `createIndexPieSQL` 生成查询；JAR 中不存在 `IndexChartService` 或
+> `IndexChartDataAssembler`。因此本任务以下“共享服务/简化组装器”设计不执行，
+> 实现必须按 JAR 字节码恢复两个控制器的公开方法、参数处理、SQL 生成、响应结构
+> 和保存字段。参考分支中新增 `SourceService` 的实现不属于生产边界；可参考同一
+> 文件内保留的旧版控制器代码，但最终以 `javap -c -p` 核对。测试必须证明
+> Bar/Line/BarLine/Pie 四类现场流程，且不得新增 Map/Strip/BigNumber 入口。
+
 **Files:**
 - Create: `vis-screen-backend/jeecg-boot-module-system/src/main/java/org/jeecg/modules/indexlib/controller/IndexBarLineController.java`
 - Create: `vis-screen-backend/jeecg-boot-module-system/src/main/java/org/jeecg/modules/indexlib/controller/IndexPieController.java`
