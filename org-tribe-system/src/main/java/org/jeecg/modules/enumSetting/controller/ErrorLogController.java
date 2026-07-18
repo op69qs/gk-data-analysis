@@ -77,11 +77,37 @@ public class ErrorLogController extends BaseController {
         Map<String, Object> result = new HashMap<>();
         PageData pd = this.getPageData(param);
         try {
-            errorLogService.callProc(pd);
-            result.put("msg", "启动成功");
+            String runId = errorLogService.callProc(pd);
+            result.put("msg", "任务已提交，请在运行记录中查看执行结果");
+            result.put("runId", runId);
             result.put("result", "success");
         } catch (Exception e) {
+            log.error("提交动态刷数任务失败", e);
             result.put("msg", e.getMessage());
+            result.put("result", "failed");
+        }
+        return result;
+    }
+
+    @RequestMapping(value = "/getRunRecords", method = RequestMethod.POST)
+    @ApiOperation("动态刷数运行记录")
+    public Map<String, Object> getRunRecords(@RequestBody JSONObject param) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            PageData pd = this.getPageData(param);
+            int pageNo = parsePositive(pd.getString("pageNo"), 1);
+            int pageSize = parsePositive(pd.getString("pageSize"), 10);
+            pd.put("page", (pageNo - 1) * pageSize);
+            pd.put("rows", pageSize);
+            result.put("msg", "查询成功");
+            result.put("total", errorLogService.getRunRecordCount(pd));
+            result.put("rows", errorLogService.getRunRecords(pd));
+            result.put("result", "success");
+        } catch (Exception exception) {
+            log.error("查询动态刷数运行记录失败", exception);
+            result.put("msg", exception.getMessage());
+            result.put("total", 0);
+            result.put("rows", java.util.Collections.emptyList());
             result.put("result", "failed");
         }
         return result;

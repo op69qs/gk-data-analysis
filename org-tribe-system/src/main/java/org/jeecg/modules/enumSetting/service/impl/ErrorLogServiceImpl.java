@@ -1,5 +1,6 @@
 package org.jeecg.modules.enumSetting.service.impl;
 
+import org.jeecg.modules.enumSetting.mapper.DynamicRefreshRunLogMapper;
 import org.jeecg.modules.enumSetting.mapper.ErrorLogMapper;
 import org.jeecg.modules.enumSetting.service.ErrorLogService;
 import org.jeecg.modules.util.PageData;
@@ -8,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -18,16 +21,22 @@ import java.util.Date;
 public class ErrorLogServiceImpl implements ErrorLogService {
 
     private final ErrorLogMapper errorLogMapper;
+    private final DynamicRefreshRunLogMapper runLogMapper;
     private final TaskExecutor taskExecutor;
     private final DynamicRefreshTaskRunner taskRunner;
+    private final TransactionTemplate transactionTemplate;
 
     @Autowired
     public ErrorLogServiceImpl(ErrorLogMapper errorLogMapper,
+                               DynamicRefreshRunLogMapper runLogMapper,
                                @Qualifier("dynamicRefreshExecutor") TaskExecutor taskExecutor,
-                               DynamicRefreshTaskRunner taskRunner) {
+                               DynamicRefreshTaskRunner taskRunner,
+                               PlatformTransactionManager transactionManager) {
         this.errorLogMapper = errorLogMapper;
+        this.runLogMapper = runLogMapper;
         this.taskExecutor = taskExecutor;
         this.taskRunner = taskRunner;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     @Override
@@ -36,26 +45,52 @@ public class ErrorLogServiceImpl implements ErrorLogService {
     }
 
     @Override
-    public void callProc(PageData pd) {
+    public String callProc(PageData pd) {
         Object rawId = pd.get("id");
         String taskId = rawId == null ? "" : rawId.toString().trim();
         if (taskId.isEmpty()) {
             throw new IllegalArgumentException("任务编号不能为空");
         }
-        if (errorLogMapper.markTaskRunning(taskId) != 1) {
-            throw new IllegalStateException("任务正在执行或已被删除");
-        }
+        String runId = UuidUtil.get32UUID();
+        transactionTemplate.execute(status -> {
+            if (errorLogMapper.markTaskRunning(taskId) != 1) {
+                throw new IllegalStateException("任务正在执行或已被删除");
+            }
+            Map<String, Object> task = errorLogMapper.getTaskById(taskId);
+            if (task == null) {
+                throw new IllegalArgumentException("动态刷数任务不存在");
+            }
+            if (runLogMapper.add(runLog(runId, task, pd)) != 1) {
+                throw new IllegalStateException("创建运行记录失败");
+            }
+            return null;
+        });
         try {
-            taskExecutor.execute(() -> taskRunner.run(taskId));
+            taskExecutor.execute(() -> taskRunner.run(taskId, runId));
         } catch (RuntimeException exception) {
+            String message = exceptionMessage(exception);
             errorLogMapper.updateTaskStatus(taskId, "500");
+            runLogMapper.complete(runId, "500", message);
             throw exception;
         }
+        return runId;
     }
 
     @Override
     public Integer getCount(PageData pd) {
         return errorLogMapper.getCount(pd);
+    }
+
+    @Override
+    public List<Map<String, Object>> getRunRecords(PageData pd) {
+        required(pd, "task_id", "任务编号不能为空");
+        return runLogMapper.getData(pd);
+    }
+
+    @Override
+    public Integer getRunRecordCount(PageData pd) {
+        required(pd, "task_id", "任务编号不能为空");
+        return runLogMapper.getCount(pd);
     }
 
     @Override
@@ -112,5 +147,44 @@ public class ErrorLogServiceImpl implements ErrorLogService {
 
     private String now() {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+    }
+
+    private PageData runLog(String runId, Map<String, Object> task, PageData request) {
+        PageData runLog = new PageData();
+        runLog.put("id", runId);
+        runLog.put("task_id", task.get("id"));
+        runLog.put("task_name", task.get("task_name"));
+        runLog.put("task_type", task.get("task_type"));
+        runLog.put("shell_path", task.get("shell_path"));
+        runLog.put("shell_name", task.get("shell_name"));
+        runLog.put("shell_param", task.get("shell_param"));
+        runLog.put("status", "1");
+        runLog.put("start_time", now());
+        runLog.put("result_message", "任务执行中");
+        runLog.put("create_user", request.get("create_user"));
+        return runLog;
+    }
+
+    private String exceptionMessage(Throwable exception) {
+        Throwable root = exception;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        String message = exception.getClass().getName() + ": " + safeMessage(exception);
+        if (root != exception) {
+            message += "; root cause: " + root.getClass().getName() + ": " + safeMessage(root);
+        }
+        return truncate(message);
+    }
+
+    private String safeMessage(Throwable exception) {
+        return exception.getMessage() == null ? "无错误信息" : exception.getMessage();
+    }
+
+    private String truncate(String value) {
+        int maxLength = 65536;
+        return value.length() <= maxLength
+                ? value
+                : value.substring(0, maxLength) + "\n[错误信息已截断]";
     }
 }

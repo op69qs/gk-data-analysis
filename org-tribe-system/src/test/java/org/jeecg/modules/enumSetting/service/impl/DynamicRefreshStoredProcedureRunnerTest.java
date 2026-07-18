@@ -15,13 +15,14 @@ public class DynamicRefreshStoredProcedureRunnerTest {
     @Test
     public void buildsBoundCallForProductionStyleRoutineName() {
         Map<String, Object> task = new HashMap<>();
+        task.put("id", "task-123");
         task.put("shell_name", "adm.P_ALL_CONTROL");
         task.put("shell_param", "202510@CQ");
 
         DynamicRefreshStoredProcedureRunner.ProcedureCall call = runner.buildCall(task);
 
         assertEquals("{call adm.P_ALL_CONTROL(?,?)}", call.getSql());
-        assertEquals(Arrays.asList("202510", "CQ"), call.getArguments());
+        assertEquals(Arrays.asList("202510@CQ", "task-123"), call.getArguments());
     }
 
     @Test(expected = IllegalArgumentException.class)

@@ -4,10 +4,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class DynamicRefreshProcessRunner {
+
+    private static final int MAX_OUTPUT_BYTES = 65536;
 
     private final Path allowedRoot;
     private final long timeoutSeconds;
@@ -66,7 +71,7 @@ public class DynamicRefreshProcessRunner {
         return command;
     }
 
-    public int run(Map<String, Object> task) throws IOException, InterruptedException {
+    public ProcessResult run(Map<String, Object> task) throws IOException, InterruptedException {
         List<String> command = buildCommand(task);
         Path realRoot = allowedRoot.toRealPath();
         Path executable = Paths.get(command.get(0)).toRealPath();
@@ -74,18 +79,42 @@ public class DynamicRefreshProcessRunner {
             throw new IllegalArgumentException("脚本不存在、不可执行或超出允许目录");
         }
         command.set(0, executable.toString());
-        Process process = new ProcessBuilder(command)
-                .redirectErrorStream(true)
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                .start();
-        if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-            process.destroy();
-            if (!process.waitFor(5, TimeUnit.SECONDS)) {
-                process.destroyForcibly();
+        Path outputFile = Files.createTempFile("dynamic-refresh-", ".log");
+        try {
+            Process process = new ProcessBuilder(command)
+                    .redirectErrorStream(true)
+                    .redirectOutput(outputFile.toFile())
+                    .start();
+            if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+                process.destroy();
+                if (!process.waitFor(5, TimeUnit.SECONDS)) {
+                    process.destroyForcibly();
+                }
+                throw new IOException("动态刷数脚本执行超时");
             }
-            throw new IOException("动态刷数脚本执行超时");
+            return new ProcessResult(process.exitValue(), readBounded(outputFile));
+        } finally {
+            Files.deleteIfExists(outputFile);
         }
-        return process.exitValue();
+    }
+
+    private String readBounded(Path outputFile) throws IOException {
+        try (InputStream input = Files.newInputStream(outputFile);
+             ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int remaining = MAX_OUTPUT_BYTES;
+            int read;
+            while (remaining > 0
+                    && (read = input.read(buffer, 0, Math.min(buffer.length, remaining))) != -1) {
+                output.write(buffer, 0, read);
+                remaining -= read;
+            }
+            String value = new String(output.toByteArray(), StandardCharsets.UTF_8);
+            if (input.read() != -1) {
+                return value + "\n[输出已截断]";
+            }
+            return value;
+        }
     }
 
     private String required(Map<String, Object> task, String key) {
@@ -94,5 +123,23 @@ public class DynamicRefreshProcessRunner {
             throw new IllegalArgumentException(key + "不能为空");
         }
         return value.toString().trim();
+    }
+
+    static final class ProcessResult {
+        private final int exitCode;
+        private final String output;
+
+        ProcessResult(int exitCode, String output) {
+            this.exitCode = exitCode;
+            this.output = output;
+        }
+
+        int getExitCode() {
+            return exitCode;
+        }
+
+        String getOutput() {
+            return output;
+        }
     }
 }

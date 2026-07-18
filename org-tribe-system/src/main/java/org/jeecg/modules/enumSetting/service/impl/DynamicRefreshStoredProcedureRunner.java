@@ -8,8 +8,7 @@ import javax.sql.DataSource;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -46,16 +45,13 @@ public class DynamicRefreshStoredProcedureRunner {
             throw new IllegalArgumentException("存储过程名称不合法");
         }
 
-        List<String> arguments = splitArguments(task.get("shell_param"));
-        StringBuilder sql = new StringBuilder("{call ").append(routineName).append('(');
-        for (int index = 0; index < arguments.size(); index++) {
-            if (index > 0) {
-                sql.append(',');
-            }
-            sql.append('?');
-        }
-        sql.append(")}");
-        return new ProcedureCall(sql.toString(), arguments);
+        String taskId = required(task, "id", "任务编号不能为空");
+        Object rawParameter = task.get("shell_param");
+        String parameter = rawParameter == null ? "" : rawParameter.toString();
+        return new ProcedureCall(
+                "{call " + routineName + "(?,?)}",
+                Arrays.asList(parameter, taskId)
+        );
     }
 
     public void run(Map<String, Object> task) throws SQLException {
@@ -70,14 +66,13 @@ public class DynamicRefreshStoredProcedureRunner {
         }
     }
 
-    private List<String> splitArguments(Object rawParameters) {
-        if (rawParameters == null || rawParameters.toString().trim().isEmpty()) {
-            return Collections.emptyList();
+    private String required(Map<String, Object> task, String key, String message) {
+        Object rawValue = task.get(key);
+        String value = rawValue == null ? "" : rawValue.toString().trim();
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException(message);
         }
-        String[] values = rawParameters.toString().split("@", -1);
-        List<String> arguments = new ArrayList<>(values.length);
-        Collections.addAll(arguments, values);
-        return arguments;
+        return value;
     }
 
     static class ProcedureCall {

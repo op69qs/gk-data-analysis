@@ -1,15 +1,25 @@
 package org.jeecg.modules.enumSetting.service.impl;
 
 import org.junit.Test;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class DynamicRefreshProcessRunnerTest {
+
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     private final DynamicRefreshProcessRunner runner = new DynamicRefreshProcessRunner();
 
@@ -53,5 +63,28 @@ public class DynamicRefreshProcessRunnerTest {
         task.put("shell_name", "sh");
 
         runner.buildCommand(task);
+    }
+
+    @Test
+    public void capturesOutputAndNonZeroExitCode() throws Exception {
+        Path root = temporaryFolder.newFolder("dynamic-refresh").toPath();
+        Path script = root.resolve("fail.sh");
+        Files.write(
+                script,
+                Arrays.asList("#!/bin/sh", "echo expected failure >&2", "exit 9"),
+                StandardCharsets.UTF_8
+        );
+        Files.setPosixFilePermissions(script, PosixFilePermissions.fromString("rwx------"));
+
+        Map<String, Object> task = new HashMap<>();
+        task.put("shell_path", root.toString());
+        task.put("shell_name", script.getFileName().toString());
+        DynamicRefreshProcessRunner processRunner =
+                new DynamicRefreshProcessRunner(root.toString(), 10L);
+
+        DynamicRefreshProcessRunner.ProcessResult result = processRunner.run(task);
+
+        assertEquals(9, result.getExitCode());
+        assertTrue(result.getOutput().contains("expected failure"));
     }
 }
