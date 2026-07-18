@@ -12,7 +12,7 @@
       <section class="config-panel" aria-labelledby="chart-config-title">
         <h3 id="chart-config-title" class="panel-title">图表配置</h3>
         <index-library-convert-form
-          ref="form"
+          ref="convertForm"
           :form="form"
           :index-options="indexOptions"
           :index-loading="indexLoading"
@@ -211,14 +211,13 @@ export default {
       this.previewState = 'idle'
       this.previewMessage = ''
     },
-    validateForm() {
-      return new Promise(resolve => {
-        if (!this.$refs.form) {
-          resolve(false)
-          return
-        }
-        this.$refs.form.validate(valid => resolve(valid))
-      })
+    async validateForm() {
+      if (!this.$refs.convertForm) return false
+      try {
+        return await this.$refs.convertForm.validate() === true
+      } catch (error) {
+        return false
+      }
     },
     validatePieFields() {
       if (this.form.type !== 'pie') return true

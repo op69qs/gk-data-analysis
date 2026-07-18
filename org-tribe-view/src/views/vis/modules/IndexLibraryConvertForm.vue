@@ -1,18 +1,24 @@
 <template>
-  <a-form-model
-    ref="modelForm"
-    :model="form"
-    :rules="rules"
+  <a-form
     :label-col="{ span: 7 }"
     :wrapper-col="{ span: 17 }"
+    @submit.prevent
   >
-    <a-form-model-item label="方案名称">
+    <a-form-item label="方案名称">
       <a-input v-model="form.schemeName" disabled />
-    </a-form-model-item>
-    <a-form-model-item label="图表标题" prop="title">
+    </a-form-item>
+    <a-form-item
+      label="图表标题"
+      :validate-status="fieldStatus('title')"
+      :help="validationErrors.title"
+    >
       <a-input v-model.trim="form.title" placeholder="请输入图表标题" />
-    </a-form-model-item>
-    <a-form-model-item label="图表类型" prop="type">
+    </a-form-item>
+    <a-form-item
+      label="图表类型"
+      :validate-status="fieldStatus('type')"
+      :help="validationErrors.type"
+    >
       <div class="chart-type-grid" role="radiogroup" aria-label="图表类型">
         <button
           v-for="item in chartTypes"
@@ -31,8 +37,12 @@
           </span>
         </button>
       </div>
-    </a-form-model-item>
-    <a-form-model-item label="指标" prop="schemecolumns">
+    </a-form-item>
+    <a-form-item
+      label="指标"
+      :validate-status="fieldStatus('schemecolumns')"
+      :help="validationErrors.schemecolumns"
+    >
       <a-select
         mode="multiple"
         :value="selectedIndexIds"
@@ -48,7 +58,7 @@
           {{ item.name }}
         </a-select-option>
       </a-select>
-    </a-form-model-item>
+    </a-form-item>
     <div v-if="form.type === 'barAndLine'" class="series-directions">
       <div
         v-for="column in form.schemecolumns"
@@ -68,24 +78,26 @@
     </div>
     <a-row :gutter="12">
       <a-col :xs="24" :sm="12">
-        <a-form-model-item
+        <a-form-item
           label="维度"
-          prop="dimensionFlag"
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
+          :validate-status="fieldStatus('dimensionFlag')"
+          :help="validationErrors.dimensionFlag"
         >
           <a-select v-model="form.dimensionFlag" placeholder="请选择维度">
             <a-select-option value="1">国库</a-select-option>
             <a-select-option value="2">地区</a-select-option>
           </a-select>
-        </a-form-model-item>
+        </a-form-item>
       </a-col>
       <a-col :xs="24" :sm="12">
-        <a-form-model-item
+        <a-form-item
           label="时间粒度"
-          prop="periodFlag"
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
+          :validate-status="fieldStatus('periodFlag')"
+          :help="validationErrors.periodFlag"
         >
           <a-select v-model="form.periodFlag" placeholder="请选择粒度">
             <a-select-option value="1">日</a-select-option>
@@ -93,97 +105,104 @@
             <a-select-option value="3">季</a-select-option>
             <a-select-option value="4">年</a-select-option>
           </a-select>
-        </a-form-model-item>
+        </a-form-item>
       </a-col>
     </a-row>
-    <a-form-model-item label="时间范围" prop="timeType">
+    <a-form-item
+      label="时间范围"
+      :validate-status="fieldStatus('timeType')"
+      :help="validationErrors.timeType"
+    >
       <a-radio-group v-model="form.timeType">
         <a-radio value="1">至今</a-radio>
         <a-radio value="2">时间区间</a-radio>
         <a-radio value="3">当前</a-radio>
       </a-radio-group>
-    </a-form-model-item>
+    </a-form-item>
     <a-row :gutter="12">
       <a-col :xs="24" :sm="12">
-        <a-form-model-item
+        <a-form-item
           label="开始"
-          prop="startDate"
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
+          :validate-status="fieldStatus('startDate')"
+          :help="validationErrors.startDate"
         >
           <a-input
             v-model.trim="form.startDate"
             :disabled="dateState.disableStart"
             :placeholder="startDatePlaceholder"
           />
-        </a-form-model-item>
+        </a-form-item>
       </a-col>
       <a-col :xs="24" :sm="12">
-        <a-form-model-item
+        <a-form-item
           label="结束"
-          prop="endDate"
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
+          :validate-status="fieldStatus('endDate')"
+          :help="validationErrors.endDate"
         >
           <a-input
             v-model.trim="form.endDate"
             :disabled="dateState.disableEnd"
             :placeholder="endDatePlaceholder"
           />
-        </a-form-model-item>
+        </a-form-item>
       </a-col>
     </a-row>
     <a-row :gutter="12">
       <a-col :xs="24" :sm="12">
-        <a-form-model-item
+        <a-form-item
           label="单位值"
-          prop="price"
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
+          :validate-status="fieldStatus('price')"
+          :help="validationErrors.price"
         >
           <a-input v-model.trim="form.price" placeholder="如 10000" />
-        </a-form-model-item>
+        </a-form-item>
       </a-col>
       <a-col :xs="24" :sm="12">
-        <a-form-model-item
+        <a-form-item
           label="展示单位"
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
         >
           <a-input v-model.trim="form.unit" placeholder="如 万元" />
-        </a-form-model-item>
+        </a-form-item>
       </a-col>
     </a-row>
-    <a-form-model-item label="横轴模式">
+    <a-form-item label="横轴模式">
       <a-radio-group v-model="form.xTurn">
         <a-radio value="0">时间</a-radio>
         <a-radio value="1">维度</a-radio>
       </a-radio-group>
-    </a-form-model-item>
-    <a-form-model-item v-if="form.type === 'pie'" label="统计方向">
+    </a-form-item>
+    <a-form-item v-if="form.type === 'pie'" label="统计方向">
       <a-select v-model="form.direction" allowClear placeholder="请选择统计方向">
         <a-select-option value="X">指标</a-select-option>
         <a-select-option value="Y">维度</a-select-option>
       </a-select>
-    </a-form-model-item>
-    <a-form-model-item v-else label="维度编码">
+    </a-form-item>
+    <a-form-item v-else label="维度编码">
       <a-input
         v-model.trim="form.direction"
         placeholder="横轴为时间时选择国库或地区编码"
       />
-    </a-form-model-item>
+    </a-form-item>
     <a-row v-if="form.type === 'pie'" :gutter="12">
       <a-col :xs="24" :sm="12">
-        <a-form-model-item
+        <a-form-item
           label="国库/地区"
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
         >
           <a-input v-model.trim="form.GK" placeholder="编码" />
-        </a-form-model-item>
+        </a-form-item>
       </a-col>
       <a-col :xs="24" :sm="12">
-        <a-form-model-item
+        <a-form-item
           label="指标编码"
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
@@ -197,10 +216,10 @@
               {{ item.name }}
             </a-select-option>
           </a-select>
-        </a-form-model-item>
+        </a-form-item>
       </a-col>
     </a-row>
-  </a-form-model>
+  </a-form>
 </template>
 
 <script>
@@ -259,6 +278,36 @@ export function validateDateSelection(periodFlag, timeType, startDate, endDate) 
   return String(startDate) > String(endDate) ? '开始日期不能大于结束日期' : ''
 }
 
+export function validateIndexLibraryForm(form) {
+  const source = form || {}
+  const errors = {}
+  if (!String(source.title || '').trim()) errors.title = '请输入图表标题'
+  if (!CHART_TYPES.some(item => item.type === source.type)) {
+    errors.type = '请选择图表类型'
+  }
+  if (!Array.isArray(source.schemecolumns) || !source.schemecolumns.length) {
+    errors.schemecolumns = '请至少选择一个指标'
+  }
+  if (!source.dimensionFlag) errors.dimensionFlag = '请选择维度'
+  if (!source.periodFlag) errors.periodFlag = '请选择时间粒度'
+  if (!source.timeType) errors.timeType = '请选择时间范围'
+  if (!String(source.price || '').trim()) errors.price = '请输入单位值'
+
+  if (!errors.periodFlag && !errors.timeType) {
+    const dateError = validateDateSelection(
+      source.periodFlag,
+      source.timeType,
+      source.startDate,
+      source.endDate
+    )
+    if (dateError) {
+      const field = dateError.indexOf('结束日期') === 0 ? 'endDate' : 'startDate'
+      errors[field] = dateError
+    }
+  }
+  return errors
+}
+
 export default {
   name: 'IndexLibraryConvertForm',
   props: {
@@ -275,23 +324,7 @@ export default {
   data() {
     return {
       chartTypes: CHART_TYPES.map(item => ({ ...item, icon: ICONS[item.type] })),
-      rules: {
-        title: [{ required: true, message: '请输入图表标题', trigger: 'blur' }],
-        type: [{ required: true, message: '请选择图表类型', trigger: 'change' }],
-        schemecolumns: [{
-          required: true,
-          type: 'array',
-          min: 1,
-          message: '请至少选择一个指标',
-          trigger: 'change'
-        }],
-        dimensionFlag: [{ required: true, message: '请选择维度', trigger: 'change' }],
-        periodFlag: [{ required: true, message: '请选择时间粒度', trigger: 'change' }],
-        timeType: [{ required: true, message: '请选择时间范围', trigger: 'change' }],
-        startDate: [{ validator: this.validateDateField, trigger: ['blur', 'change'] }],
-        endDate: [{ validator: this.validateDateField, trigger: ['blur', 'change'] }],
-        price: [{ required: true, message: '请输入单位值', trigger: 'blur' }]
-      }
+      validationErrors: {}
     }
   },
   computed: {
@@ -323,17 +356,16 @@ export default {
     }
   },
   methods: {
-    validate(callback) {
-      this.$refs.modelForm.validate(callback)
+    validate() {
+      this.validationErrors = validateIndexLibraryForm(this.form)
+      if (Object.keys(this.validationErrors).length) {
+        this.$message.error('请完善图表配置后再预览')
+        return Promise.resolve(false)
+      }
+      return Promise.resolve(true)
     },
-    validateDateField(rule, value, callback) {
-      const message = validateDateSelection(
-        this.form.periodFlag,
-        this.form.timeType,
-        this.form.startDate,
-        this.form.endDate
-      )
-      callback(message ? new Error(message) : undefined)
+    fieldStatus(field) {
+      return this.validationErrors[field] ? 'error' : ''
     },
     selectChartType(type) {
       this.form.type = type

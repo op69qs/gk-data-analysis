@@ -456,7 +456,13 @@ const formSource = await readFile(
 )
 const convertSource = `${modalSource}\n${formSource}`
 assert.match(modalSource, /width="80%"/)
-assert.match(formSource, /a-form-model/)
+assert.match(modalSource, /ref="convertForm"/)
+assert.match(modalSource, /await this\.\$refs\.convertForm\.validate\(\)/)
+assert.doesNotMatch(formSource, /a-form-model/)
+assert.match(formSource, /<a-form(?:\s|>)/)
+assert.match(formSource, /<a-form-item(?:\s|>)/)
+assert.doesNotMatch(formSource, /\$refs\.modelForm/)
+assert.doesNotMatch(formSource, /:rules=|(?:\s)prop=/)
 assert.match(formSource, /role="radiogroup"/)
 assert.match(formSource, /role="radio"/)
 assert.match(formSource, /aria-checked/)
@@ -504,6 +510,7 @@ const formContext = {
 }
 vm.runInNewContext(sfcScript(formSource), formContext)
 const validateDateSelection = formContext.validateDateSelection
+const formComponent = formContext.component
 for (const sample of [
   ['1', '2', '2026-01-01', '2026-01-31'],
   ['2', '2', '2026-01', '2026-12'],
@@ -524,6 +531,64 @@ assert.match(validateDateSelection('2', '2', '2026-12', '2026-01'), /开始日�
 assert.match(validateDateSelection('1', '1', '', ''), /请输入开始日期/)
 assert.match(validateDateSelection('1', '2', '2026-01-01', ''), /请输入结束日期/)
 assert.match(validateDateSelection('4', '4', '', ''), /请输入开始日期/)
+
+function createFormVm(form) {
+  const messages = []
+  const instance = {
+    ...formComponent.data(),
+    form,
+    indexOptions: [],
+    indexLoading: false,
+    $message: {
+      error(message) {
+        messages.push(message)
+      }
+    }
+  }
+  Object.assign(instance, formComponent.methods)
+  return { instance, messages }
+}
+
+const validFormVm = createFormVm({
+  title: '财政收入趋势',
+  type: 'bar',
+  schemecolumns: [{ chartId: 'I1', chartDirection: 'Columnar' }],
+  dimensionFlag: '1',
+  periodFlag: '2',
+  timeType: '2',
+  startDate: '2026-01',
+  endDate: '2026-06',
+  price: '10000'
+})
+assert.strictEqual(await validFormVm.instance.validate(), true)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(validFormVm.instance.validationErrors)),
+  {}
+)
+assert.deepStrictEqual(validFormVm.messages, [])
+
+const invalidFormVm = createFormVm({
+  title: '',
+  type: '',
+  schemecolumns: [],
+  dimensionFlag: '',
+  periodFlag: '1',
+  timeType: '2',
+  startDate: '2026-02-30',
+  endDate: '',
+  price: ''
+})
+assert.strictEqual(await invalidFormVm.instance.validate(), false)
+assert.strictEqual(invalidFormVm.instance.validationErrors.title, '请输入图表标题')
+assert.strictEqual(invalidFormVm.instance.validationErrors.type, '请选择图表类型')
+assert.strictEqual(
+  invalidFormVm.instance.validationErrors.schemecolumns,
+  '请至少选择一个指标'
+)
+assert.strictEqual(invalidFormVm.instance.validationErrors.dimensionFlag, '请选择维度')
+assert.match(invalidFormVm.instance.validationErrors.startDate, /yyyy-MM-dd/)
+assert.strictEqual(invalidFormVm.instance.validationErrors.price, '请输入单位值')
+assert.deepStrictEqual(invalidFormVm.messages, ['请完善图表配置后再预览'])
 
 const chartContext = {
   component: null,
@@ -758,9 +823,9 @@ function createModalVm() {
       }
     },
     $refs: {
-      form: {
-        validate(callback) {
-          callback(true)
+      convertForm: {
+        validate() {
+          return Promise.resolve(true)
         }
       },
       chartPreview: {
@@ -854,6 +919,18 @@ openVm.instance.previewOption = { series: [] }
 modalComponent.watch.form.handler.call(openVm.instance)
 assert.strictEqual(openVm.instance.previewReady, false)
 assert.strictEqual(openVm.instance.previewOption, null)
+
+const invalidPreviewVm = createModalVm()
+await invalidPreviewVm.instance.open(modalRecord)
+invalidPreviewVm.instance.$refs.convertForm.validate = () => Promise.resolve(false)
+const barRequestsBeforeInvalidPreview = barPreviewRequests.length
+const pieRequestsBeforeInvalidPreview = piePreviewRequests.length
+assert.strictEqual(await invalidPreviewVm.instance.handlePreview(), false)
+assert.strictEqual(barPreviewRequests.length, barRequestsBeforeInvalidPreview)
+assert.strictEqual(piePreviewRequests.length, pieRequestsBeforeInvalidPreview)
+assert.strictEqual(invalidPreviewVm.instance.previewReady, false)
+assert.strictEqual(invalidPreviewVm.instance.previewState, 'idle')
+assert.strictEqual(invalidPreviewVm.instance.previewLoading, false)
 
 const previewVm = createModalVm()
 await previewVm.instance.open(modalRecord)
