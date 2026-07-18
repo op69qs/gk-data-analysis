@@ -18,15 +18,22 @@ public class IndexSchemeProductionContractTest {
 
     @Test
     public void productionControllerExposesOnlyApprovedMethods() throws Exception {
-        Class<?> controller = Class.forName(
-                "org.jeecg.modules.indexlib.controller.IndexSchemeController");
+        assertPublicMethods("org.jeecg.modules.indexlib.controller.IndexSchemeController",
+                "getIndexInfo", "deleteScheme", "selectSchemeTable");
+        assertPublicMethods("org.jeecg.modules.indexlib.controller.IndexBarLineController",
+                "saveIndexBarLine", "getIndexBarLineData");
+        assertPublicMethods("org.jeecg.modules.indexlib.controller.IndexPieController",
+                "saveIndexPie", "getIndexPieData");
+    }
+
+    private void assertPublicMethods(String className, String... expected) throws Exception {
+        Class<?> controller = Class.forName(className);
         Set<String> actual = Arrays.stream(controller.getDeclaredMethods())
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .map(Method::getName)
                 .collect(Collectors.toSet());
 
-        assertEquals(new HashSet<>(Arrays.asList(
-                "getIndexInfo", "deleteScheme", "selectSchemeTable")), actual);
+        assertEquals(new HashSet<>(Arrays.asList(expected)), actual);
     }
 
     @Test
@@ -38,6 +45,18 @@ public class IndexSchemeProductionContractTest {
         assertPostMapping(controller, "getIndexInfo", "getIndexInfo");
         assertPostMapping(controller, "deleteScheme", "/deleteScheme");
         assertPostMapping(controller, "selectSchemeTable", "/selectSchemeTable");
+
+        Class<?> barLine = Class.forName(
+                "org.jeecg.modules.indexlib.controller.IndexBarLineController");
+        assertArrayEquals(new String[]{"/IndexBarLine"},
+                barLine.getAnnotation(RequestMapping.class).value());
+        assertPostMapping(barLine, "saveIndexBarLine", "/saveIndexBarLine");
+
+        Class<?> pie = Class.forName(
+                "org.jeecg.modules.indexlib.controller.IndexPieController");
+        assertArrayEquals(new String[]{"/IndexPie"},
+                pie.getAnnotation(RequestMapping.class).value());
+        assertPostMapping(pie, "saveIndexPie", "/saveIndexPie");
     }
 
     private void assertPostMapping(Class<?> controller, String methodName, String url)
