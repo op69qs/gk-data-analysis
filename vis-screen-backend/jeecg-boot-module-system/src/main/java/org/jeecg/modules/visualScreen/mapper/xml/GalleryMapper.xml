@@ -75,11 +75,31 @@
 
     <insert id="add">
         INSERT INTO  visual_screen.vs_gallery_info
+        (
+        id,
+        option,
+        query_path,
+        content,
+        type,
+        title,
+        sort,
+        state,
+        business_id,
+        time_type,
+        dimension_type,
+        dacct_radio,
+        title_old,
+        add_time,
+        add_user,
+        index_scheme_id,
+        index_scheme_name,
+        condition
+        )
         VALUES
         (
         #{params.id},
         #{params.option},
-        #{params.query_path,jdbcType=VARCHAR},
+        #{params.query_path},
         #{params.content},
         #{params.type},
         #{params.title},
@@ -87,7 +107,14 @@
         #{params.state},
         #{params.business_id},
         #{params.time_type},
-        #{params.dimension_type}
+        #{params.dimension_type},
+        #{params.dacct_radio},
+        #{params.title_old},
+        #{params.add_time},
+        #{params.add_user},
+        #{params.scheme_id},
+        #{params.scheme_name},
+        #{params.condition}
         )
     </insert>
 
