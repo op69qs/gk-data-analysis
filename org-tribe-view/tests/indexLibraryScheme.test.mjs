@@ -344,4 +344,414 @@ assert.deepStrictEqual(actionVm.messages, [{
   message: '删除指标方案成功'
 }])
 
+const modalSource = await readFile(
+  new URL('../src/views/vis/modules/IndexLibraryConvertModal.vue', import.meta.url),
+  'utf8'
+)
+const formSource = await readFile(
+  new URL('../src/views/vis/modules/IndexLibraryConvertForm.vue', import.meta.url),
+  'utf8'
+)
+const convertSource = `${modalSource}\n${formSource}`
+assert.match(modalSource, /width="80%"/)
+assert.match(formSource, /a-form-model/)
+assert.match(formSource, /role="radiogroup"/)
+assert.match(formSource, /role="radio"/)
+assert.match(formSource, /aria-checked/)
+assert.match(formSource, /已选择/)
+assert.match(modalSource, /previewBarLine/)
+assert.match(modalSource, /previewPie/)
+assert.match(modalSource, /previewReady/)
+assert.match(modalSource, /保存图表/)
+assert.match(modalSource, /暂无可预览数据/)
+assert.match(modalSource, /:disabled="!previewReady/)
+for (const icon of ['9.png', '8.png', '10.png', '7.png']) {
+  assert.match(formSource, new RegExp(icon.replace('.', '\\.')))
+}
+assert.doesNotMatch(convertSource, /value="map"/)
+assert.doesNotMatch(convertSource, /toGallery/)
+assert.doesNotMatch(convertSource, /SourceService|BigNumber|条形图/)
+
+const chartSource = await readFile(
+  new URL('../src/views/vis/modules/IndexLibraryChartPreview.vue', import.meta.url),
+  'utf8'
+)
+assert.match(chartSource, /echarts\.init/)
+assert.match(chartSource, /addEventListener\('resize'/)
+assert.match(chartSource, /removeEventListener\('resize'/)
+assert.match(chartSource, /\.dispose\(\)/)
+assert.match(chartSource, /getDataURL/)
+
+function sfcScript(source) {
+  return source
+    .match(/<script>([\s\S]*?)<\/script>/)[1]
+    .replace(/^import[\s\S]*?from ['"][^'"]+['"]\s*$/gm, '')
+    .replace(/export function /g, 'function ')
+    .replace('export default', 'component =')
+}
+
+const chartContext = {
+  component: null,
+  echarts: {
+    init() {
+      throw new Error('chart init should be replaced by the lifecycle test')
+    }
+  }
+}
+vm.runInNewContext(sfcScript(chartSource), chartContext)
+const chartComponent = chartContext.component
+const chartResponse = {
+  result: 'success',
+  type: 'barAndLine',
+  x: ['一月', '二月'],
+  data: [[0, '12.5'], ['3.2', '']],
+  indexInfoList: [
+    { I1: '收入', INDEX_TYPE: '0', INDEX_CORRE_TABLE: 'T1' },
+    { I2: '增长率', INDEX_TYPE: '1', INDEX_CORRE_TABLE: 'T2' }
+  ]
+}
+const chartCondition = {
+  schemecolumns: [
+    { chartId: 'I1', chartDirection: 'Columnar' },
+    { chartId: 'I2', chartDirection: 'Line' }
+  ]
+}
+const combinedOption = chartContext.buildChartOption(
+  'barAndLine',
+  chartResponse,
+  chartCondition
+)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(combinedOption.legend.data)),
+  ['收入', '增长率']
+)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(combinedOption.xAxis.data)),
+  ['一月', '二月']
+)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(combinedOption.series.map(item => item.type))),
+  ['bar', 'line']
+)
+assert.strictEqual(combinedOption.series[0].data[0], 0)
+assert.strictEqual(combinedOption.series[1].data[0], '3.2')
+
+for (const type of ['bar', 'line']) {
+  const option = chartContext.buildChartOption(type, chartResponse, chartCondition)
+  assert.strictEqual(option.series.every(item => item.type === type), true)
+}
+const pieOption = chartContext.buildChartOption('pie', {
+  result: 'success',
+  type: 'pie',
+  data: [{ name: '收入', value: 0 }]
+}, {})
+assert.strictEqual(pieOption.series[0].type, 'pie')
+assert.strictEqual(pieOption.series[0].data[0].value, 0)
+assert.strictEqual(pieOption.legend.orient, 'vertical')
+
+const resizeListeners = []
+const removedResizeListeners = []
+let disposed = false
+const chartInstance = {
+  setOption() {},
+  resize() {},
+  getDataURL() {
+    return 'data:image/png;base64,chart-preview'
+  },
+  dispose() {
+    disposed = true
+  }
+}
+chartContext.echarts.init = () => chartInstance
+chartContext.window = {
+  addEventListener(type, listener) {
+    resizeListeners.push({ type, listener })
+  },
+  removeEventListener(type, listener) {
+    removedResizeListeners.push({ type, listener })
+  }
+}
+const chartVm = {
+  ...chartComponent.data(),
+  type: 'barAndLine',
+  response: chartResponse,
+  condition: chartCondition,
+  $refs: { chart: {} }
+}
+Object.assign(chartVm, chartComponent.methods)
+chartComponent.mounted.call(chartVm)
+assert.strictEqual(resizeListeners.length, 1)
+assert.strictEqual(resizeListeners[0].listener, chartVm.handleResize)
+chartComponent.beforeDestroy.call(chartVm)
+assert.strictEqual(removedResizeListeners.length, 1)
+assert.strictEqual(removedResizeListeners[0].listener, chartVm.handleResize)
+assert.strictEqual(disposed, true)
+assert.strictEqual(chartVm.chart, null)
+
+const indexInfoRequests = []
+const barPreviewRequests = []
+const piePreviewRequests = []
+const barSaveRequests = []
+const pieSaveRequests = []
+let indexInfoResponse = {
+  result: 'success',
+  indexInfoList: [
+    { id: 'I1', name: '收入' },
+    { id: 'I2', name: '增长率' }
+  ]
+}
+let barPreviewResponse = chartResponse
+let piePreviewResponse = {
+  result: 'success',
+  type: 'pie',
+  data: [{ name: '收入', value: '0' }]
+}
+let barSaveResponse = { result: 'success', msg: '添加成功' }
+let pieSaveResponse = { result: 'success', msg: '添加成功' }
+let previewImage = 'data:image/png;base64,chart-preview'
+const modalContext = {
+  component: null,
+  IndexLibraryChartPreview: chartComponent,
+  IndexLibraryConvertForm: {},
+  CHART_TYPES,
+  parseSchemeCondition,
+  createInitialForm,
+  buildPreviewPayload,
+  buildSavePayload,
+  hasChartData,
+  buildChartOption: chartContext.buildChartOption,
+  getIndexInfo(params) {
+    indexInfoRequests.push(params)
+    return Promise.resolve(indexInfoResponse)
+  },
+  previewBarLine(params) {
+    barPreviewRequests.push(params)
+    return Promise.resolve(barPreviewResponse)
+  },
+  previewPie(params) {
+    piePreviewRequests.push(params)
+    return Promise.resolve(piePreviewResponse)
+  },
+  saveBarLine(params) {
+    barSaveRequests.push(params)
+    return Promise.resolve(barSaveResponse)
+  },
+  savePie(params) {
+    pieSaveRequests.push(params)
+    return Promise.resolve(pieSaveResponse)
+  }
+}
+vm.runInNewContext(sfcScript(modalSource), modalContext)
+const modalComponent = modalContext.component
+
+function createModalVm() {
+  const messages = []
+  const emitted = []
+  const instance = {
+    ...modalComponent.data(),
+    $message: {
+      error(message) {
+        messages.push({ type: 'error', message })
+      },
+      warning(message) {
+        messages.push({ type: 'warning', message })
+      },
+      success(message) {
+        messages.push({ type: 'success', message })
+      }
+    },
+    $refs: {
+      form: {
+        validate(callback) {
+          callback(true)
+        }
+      },
+      chartPreview: {
+        getDataURL() {
+          return previewImage
+        }
+      }
+    },
+    $set(target, key, value) {
+      target[key] = value
+    },
+    $nextTick(callback) {
+      if (callback) callback()
+      return Promise.resolve()
+    },
+    $emit(event) {
+      emitted.push(event)
+    }
+  }
+  Object.assign(instance, modalComponent.methods)
+  return { instance, messages, emitted }
+}
+
+const modalRecord = {
+  ID: 'scheme-modal',
+  SCHEME_DESCR: '财政收入',
+  SCHEME_COLUMS: 'I1,I2',
+  SCHEME_CONDITON: JSON.stringify({
+    SCHEME_ID: 'scheme-modal',
+    SCHEME_COLUMNS: [
+      { CHART_ID: 'I1', CHART_DIRECTION: 'Columnar' },
+      { CHART_ID: 'I2', CHART_DIRECTION: 'Line' }
+    ],
+    DIMENSION_FLAG: '1',
+    PERIOD_FLAG: '2',
+    TIME_TYPE: '2',
+    START_DATE: '2026-01',
+    END_DATE: '2026-06',
+    PRICE: '10000',
+    UNIT: '万元',
+    DIRECTION: 'X',
+    GK: 'GK01',
+    INDEX_NAME: 'I1',
+    X_TURN: '0',
+    TYPE: 'barAndLine',
+    TITLE: '财政收入趋势'
+  })
+}
+const openVm = createModalVm()
+await openVm.instance.open(modalRecord)
+assert.strictEqual(openVm.instance.visible, true)
+assert.strictEqual(openVm.instance.form.schemeName, '财政收入')
+assert.strictEqual(openVm.instance.form.title, '财政收入趋势')
+assert.strictEqual(openVm.instance.form.type, 'barAndLine')
+assert.strictEqual(openVm.instance.form.dimensionFlag, '1')
+assert.strictEqual(openVm.instance.form.periodFlag, '2')
+assert.strictEqual(openVm.instance.form.timeType, '2')
+assert.strictEqual(openVm.instance.form.startDate, '2026-01')
+assert.strictEqual(openVm.instance.form.endDate, '2026-06')
+assert.strictEqual(openVm.instance.form.price, '10000')
+assert.strictEqual(openVm.instance.form.unit, '万元')
+assert.strictEqual(openVm.instance.form.direction, 'X')
+assert.strictEqual(openVm.instance.form.GK, 'GK01')
+assert.strictEqual(openVm.instance.form.indexName, 'I1')
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(indexInfoRequests.pop())),
+  { SCHEME_COLUMS: 'I1,I2' }
+)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(openVm.instance.indexOptions)),
+  indexInfoResponse.indexInfoList
+)
+
+const noUnitCondition = JSON.parse(modalRecord.SCHEME_CONDITON)
+delete noUnitCondition.UNIT
+const noUnitVm = createModalVm()
+await noUnitVm.instance.open({
+  ...modalRecord,
+  SCHEME_CONDITON: JSON.stringify(noUnitCondition)
+})
+assert.strictEqual(noUnitVm.instance.form.price, '10000')
+assert.strictEqual(noUnitVm.instance.form.unit, undefined)
+
+openVm.instance.previewReady = true
+openVm.instance.previewOption = { series: [] }
+modalComponent.watch.form.handler.call(openVm.instance)
+assert.strictEqual(openVm.instance.previewReady, false)
+assert.strictEqual(openVm.instance.previewOption, null)
+
+const previewVm = createModalVm()
+await previewVm.instance.open(modalRecord)
+await previewVm.instance.handlePreview()
+assert.strictEqual(barPreviewRequests.length > 0, true)
+assert.strictEqual(previewVm.instance.previewReady, true)
+assert.strictEqual(previewVm.instance.previewOption.series.length, 2)
+assert.notStrictEqual(previewVm.instance.frozenCondition, previewVm.instance.form)
+assert.strictEqual(
+  typeof previewVm.instance.frozenCondition.option,
+  'string'
+)
+assert.deepStrictEqual(
+  JSON.parse(previewVm.instance.frozenCondition.option),
+  JSON.parse(JSON.stringify(previewVm.instance.previewOption))
+)
+
+const frozenTitle = previewVm.instance.frozenCondition.title
+previewVm.instance.form.title = '保存时不得覆盖冻结标题'
+await previewVm.instance.handleSave()
+const savedBar = barSaveRequests.pop()
+assert.strictEqual(JSON.parse(savedBar.condition).title, frozenTitle)
+assert.strictEqual(JSON.parse(savedBar.condition).price, '10000')
+assert.strictEqual(JSON.parse(savedBar.condition).unit, '万元')
+assert.strictEqual(
+  savedBar.content,
+  'data:image/png;base64,chart-preview'
+)
+assert.strictEqual(previewVm.instance.visible, false)
+assert.deepStrictEqual(previewVm.emitted, ['ok'])
+
+const pieVm = createModalVm()
+await pieVm.instance.open({
+  ...modalRecord,
+  SCHEME_CONDITON: JSON.stringify({
+    ...JSON.parse(modalRecord.SCHEME_CONDITON),
+    TYPE: 'pie'
+  })
+})
+await pieVm.instance.handlePreview()
+assert.strictEqual(piePreviewRequests.length > 0, true)
+assert.strictEqual(pieVm.instance.previewReady, true)
+await pieVm.instance.handleSave()
+assert.strictEqual(pieSaveRequests.length > 0, true)
+
+const emptyVm = createModalVm()
+barPreviewResponse = {
+  result: 'success',
+  type: 'bar',
+  x: ['一月'],
+  data: [[]],
+  indexInfoList: []
+}
+await emptyVm.instance.open({
+  ...modalRecord,
+  SCHEME_CONDITON: JSON.stringify({
+    ...JSON.parse(modalRecord.SCHEME_CONDITON),
+    TYPE: 'bar'
+  })
+})
+await emptyVm.instance.handlePreview()
+assert.strictEqual(emptyVm.instance.previewReady, false)
+assert.strictEqual(emptyVm.instance.previewState, 'empty')
+
+const previewFailureVm = createModalVm()
+barPreviewResponse = { result: 'failed', msg: '查询失败', data: [] }
+await previewFailureVm.instance.open(modalRecord)
+previewFailureVm.instance.form.type = 'bar'
+await previewFailureVm.instance.handlePreview()
+assert.strictEqual(previewFailureVm.instance.visible, true)
+assert.strictEqual(previewFailureVm.instance.previewReady, false)
+assert.deepStrictEqual(previewFailureVm.messages.slice(-1), [{
+  type: 'error',
+  message: '查询失败'
+}])
+
+barPreviewResponse = chartResponse
+barSaveResponse = { result: 'failed', msg: '保存失败' }
+const saveFailureVm = createModalVm()
+await saveFailureVm.instance.open(modalRecord)
+await saveFailureVm.instance.handlePreview()
+await saveFailureVm.instance.handleSave()
+assert.strictEqual(saveFailureVm.instance.visible, true)
+assert.deepStrictEqual(saveFailureVm.messages.slice(-1), [{
+  type: 'error',
+  message: '保存失败'
+}])
+
+barSaveResponse = { result: 'success', msg: '添加成功' }
+previewImage = ''
+const imageFailureVm = createModalVm()
+await imageFailureVm.instance.open(modalRecord)
+await imageFailureVm.instance.handlePreview()
+const saveCountBeforeImageFailure = barSaveRequests.length
+await imageFailureVm.instance.handleSave()
+assert.strictEqual(barSaveRequests.length, saveCountBeforeImageFailure)
+assert.strictEqual(imageFailureVm.instance.visible, true)
+assert.deepStrictEqual(imageFailureVm.messages.slice(-1), [{
+  type: 'error',
+  message: '预览图片生成失败，请重新预览'
+}])
+
 console.log('indexLibraryScheme tests passed')
