@@ -3,6 +3,7 @@ package org.jeecg.modules.indexlib;
 import org.junit.Test;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class IndexSchemeProductionContractTest {
 
@@ -51,12 +53,21 @@ public class IndexSchemeProductionContractTest {
         assertArrayEquals(new String[]{"/IndexBarLine"},
                 barLine.getAnnotation(RequestMapping.class).value());
         assertPostMapping(barLine, "saveIndexBarLine", "/saveIndexBarLine");
+        assertRequestMappingPost(barLine, "getIndexBarLineData", "/getIndexBarLineData");
 
         Class<?> pie = Class.forName(
                 "org.jeecg.modules.indexlib.controller.IndexPieController");
         assertArrayEquals(new String[]{"/IndexPie"},
                 pie.getAnnotation(RequestMapping.class).value());
         assertPostMapping(pie, "saveIndexPie", "/saveIndexPie");
+        assertRequestMappingPost(pie, "getIndexPieData", "/getIndexPieData");
+    }
+
+    @Test
+    public void removedChartControllersRemainAbsent() throws Exception {
+        assertClassAbsent("org.jeecg.modules.indexlib.controller.IndexMapController");
+        assertClassAbsent("org.jeecg.modules.indexlib.controller.IndexStripController");
+        assertClassAbsent("org.jeecg.modules.indexlib.controller.IndexBigNumberController");
     }
 
     private void assertPostMapping(Class<?> controller, String methodName, String url)
@@ -64,5 +75,23 @@ public class IndexSchemeProductionContractTest {
         Method method = controller.getDeclaredMethod(
                 methodName, com.alibaba.fastjson.JSONObject.class);
         assertArrayEquals(new String[]{url}, method.getAnnotation(PostMapping.class).value());
+    }
+
+    private void assertRequestMappingPost(Class<?> controller, String methodName, String url)
+            throws Exception {
+        Method method = controller.getDeclaredMethod(
+                methodName, com.alibaba.fastjson.JSONObject.class);
+        RequestMapping mapping = method.getAnnotation(RequestMapping.class);
+        assertArrayEquals(new String[]{url}, mapping.value());
+        assertArrayEquals(new RequestMethod[]{RequestMethod.POST}, mapping.method());
+    }
+
+    private void assertClassAbsent(String className) throws Exception {
+        try {
+            Class.forName(className);
+            fail(className + " must not exist");
+        } catch (ClassNotFoundException expected) {
+            // Production JAR has no controller with this name.
+        }
     }
 }

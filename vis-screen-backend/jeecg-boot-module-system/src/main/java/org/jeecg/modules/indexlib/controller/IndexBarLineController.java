@@ -151,7 +151,7 @@ public class IndexBarLineController extends BaseController {
                 info.put("INDEX_CORRE_TABLE", detail.get("INDEX_CORRE_TABLE").toString());
                 indexInfoList.add(info);
                 String type = String.valueOf(detail.get("INDEX_TYPE"));
-                types.add(type == null || type.isEmpty() || "null".equals(type) ? "0" : type);
+                types.add(type == null || type.isEmpty() || "null".equals("type") ? "0" : type);
             }
             result.put("indexInfoList", indexInfoList);
             String unionSql =
@@ -182,9 +182,13 @@ public class IndexBarLineController extends BaseController {
                 scale = IndexChartsHelper.setEChartsScale(pageData);
             } else {
                 sql.append(" GROUP BY bb.CODE ) tt ORDER BY tt.`CODE` ASC ");
-                String scaleString = "1".equals(pageData.getString("dimensionFlag"))
-                        ? indexSchemeService.getAllTrsInfo()
-                        : indexSchemeService.getAllAreaInfo();
+                String scaleString = "";
+                if ("1".equals(pageData.getString("dimensionFlag"))) {
+                    scaleString = indexSchemeService.getAllTrsInfo();
+                }
+                if ("2".equals(pageData.getString("dimensionFlag"))) {
+                    scaleString = indexSchemeService.getAllAreaInfo();
+                }
                 if (StringUtils.isEmpty(scaleString)) { return null; }
                 scale = Arrays.asList(scaleString.split(","));
             }

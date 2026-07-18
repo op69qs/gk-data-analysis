@@ -80,12 +80,46 @@ public class IndexChartsHelper {
         } else if ("3".equals(period)) {
             String[] first = start.split("Q");
             String[] last = end.split("Q");
-            int year = Integer.parseInt(first[0]);
-            int quarter = Integer.parseInt(first[1]);
-            while (year < Integer.parseInt(last[0])
-                    || year == Integer.parseInt(last[0]) && quarter <= Integer.parseInt(last[1])) {
-                result.add(year + "年" + getQuarterMap().get(String.valueOf(quarter)));
-                if (++quarter == 5) { quarter = 1; year++; }
+            if (first[0].equals(last[0])) {
+                if (first[1].equals(last[1])) {
+                    result.add(first[0] + "年" + getQuarterMap().get(first[1]));
+                } else {
+                    int count = Math.abs(Integer.valueOf(last[1]) - Integer.valueOf(first[1]));
+                    int year = Integer.valueOf(first[0]);
+                    int quarter = Integer.valueOf(first[1]);
+                    for (int i = 0; i <= count; i++) {
+                        result.add(year + "年" + getQuarterMap().get(String.valueOf(quarter)));
+                        if (quarter == 4) {
+                            year++;
+                            quarter = 1;
+                        } else {
+                            quarter++;
+                        }
+                    }
+                }
+            } else {
+                int yearCount = Integer.valueOf(last[0]) - Integer.valueOf(first[0]);
+                int year = Integer.valueOf(first[0]);
+                int quarter = Integer.valueOf(first[1]);
+                int endYear = Integer.valueOf(last[0]);
+                int endQuarter = Integer.valueOf(last[1]);
+                for (int i = 0; i <= yearCount; i++) {
+                    for (String ignored : getQuarterMap().keySet()) {
+                        result.add(year + "年" + getQuarterMap().get(String.valueOf(quarter)));
+                        if (quarter == 4) {
+                            year++;
+                            quarter = 1;
+                            break;
+                        } else {
+                            quarter++;
+                            if (year == endYear && quarter == endQuarter) {
+                                result.add(year + "年"
+                                        + getQuarterMap().get(String.valueOf(quarter)));
+                                return result;
+                            }
+                        }
+                    }
+                }
             }
         } else if ("4".equals(period)) {
             for (int year = Integer.parseInt(start); year <= Integer.parseInt(end); year++) {

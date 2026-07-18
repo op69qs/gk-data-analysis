@@ -45,6 +45,18 @@ public class DateUtil_old {
     }
     public static void main(String[] args) {
         System.out.println("getCurrentTime : " + getTime());
+        System.out.println("getCurrentTime : " + getCurrentDate());
+        System.out.println("getCurrentDateStr : " + getCurrentDateStr(Pattern.YYYY_MM_DD_HH_CN));
+        System.out.println("transformDateToStr : "
+                + transformDateToStr(getCurrentDate(), Pattern.YYYY_MM_DD_HH_MM_SS));
+        System.out.println("transformStrToDate : "
+                + transformStrToDate("2016-12-01 13:DateUtil25:07",
+                Pattern.YYYY_MM_DD_HH_MM_SS));
+        System.out.println("dateAdd : " + dateAdd(getCurrentDate(), Calendar.DATE, 1));
+        System.out.println("compareTo : "
+                + compareTo("2016-12-01 13:25:07", "2017-12-01 13:25:07",
+                Pattern.YYYY_MM_DD_HH_MM_SS));
+        System.out.println("getDateNumber : " + getDateNumber(getCurrentDate(), Calendar.DATE));
     }
 
     public enum Pattern {
