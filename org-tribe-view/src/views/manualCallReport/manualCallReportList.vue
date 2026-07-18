@@ -1,83 +1,78 @@
 <template>
   <a-card :bordered="false">
-    <a-tabs v-model="activeTab">
-      <a-tab-pane key="refresh" tab="动态刷数">
-        <div class="table-page-search-wrapper">
-          <a-form layout="inline" @submit.prevent="searchQuery">
-            <a-row :gutter="24">
-              <a-col :md="8" :sm="12">
-                <a-form-item label="任务名称">
-                  <a-input v-model="queryParam.task_name" placeholder="请输入任务名称" allowClear />
-                </a-form-item>
-              </a-col>
-              <a-col :md="8" :sm="12">
-                <a-form-item label="执行状态">
-                  <a-select v-model="queryParam.status" placeholder="请选择执行状态" allowClear>
-                    <a-select-option value="0">未执行</a-select-option>
-                    <a-select-option value="1">正在执行</a-select-option>
-                    <a-select-option value="200">执行成功</a-select-option>
-                    <a-select-option value="500">执行失败</a-select-option>
-                  </a-select>
-                </a-form-item>
-              </a-col>
-              <a-col :md="8" :sm="24">
-                <span class="table-page-search-submitButtons">
-                  <a-button type="primary" @click="searchQuery">查询</a-button>
-                  <a-button type="primary" ghost class="action-button" @click="handleAdd">新增</a-button>
-                  <a-button class="action-button" @click="searchReset">重置</a-button>
-                </span>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
+    <div class="table-page-search-wrapper">
+      <a-form layout="inline" @submit.prevent="searchQuery">
+        <a-row :gutter="24">
+          <a-col :md="8" :sm="12">
+            <a-form-item label="任务名称">
+              <a-input v-model="queryParam.task_name" placeholder="请输入任务名称" allowClear />
+            </a-form-item>
+          </a-col>
+          <a-col :md="8" :sm="12">
+            <a-form-item label="执行状态">
+              <a-select v-model="queryParam.status" placeholder="请选择执行状态" allowClear>
+                <a-select-option value="0">未执行</a-select-option>
+                <a-select-option value="1">正在执行</a-select-option>
+                <a-select-option value="200">执行成功</a-select-option>
+                <a-select-option value="500">执行失败</a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-col>
+          <a-col :md="8" :sm="24">
+            <span class="table-page-search-submitButtons">
+              <a-button type="primary" @click="searchQuery">查询</a-button>
+              <a-button type="primary" ghost class="action-button" @click="handleAdd">新增</a-button>
+              <a-button class="action-button" @click="searchReset">重置</a-button>
+            </span>
+          </a-col>
+        </a-row>
+      </a-form>
+    </div>
 
-        <a-table
-          rowKey="id"
-          size="middle"
-          :columns="columns"
-          :dataSource="dataSource"
-          :pagination="ipagination"
-          :loading="loading"
-          :scroll="{ x: 1050 }"
-          @change="handleTableChange">
-          <span slot="taskType" slot-scope="text">{{ taskTypeText(text) }}</span>
-          <a-tag slot="status" slot-scope="text" :color="statusMeta(text).color">
-            {{ statusMeta(text).text }}
-          </a-tag>
-          <span slot="action" slot-scope="text, record">
-            <a :disabled="isRunning(record)" @click="!isRunning(record) && handleEdit(record)">修改</a>
-            <a-divider type="vertical" />
-            <a :disabled="isRunning(record)" @click="!isRunning(record) && confirmStart(record)">启动</a>
-            <a-divider type="vertical" />
-            <a-popconfirm v-if="!isRunning(record)" title="确定删除该任务吗？" @confirm="handleDelete({ id: record.id })">
-              <a>删除</a>
-            </a-popconfirm>
-            <a v-else disabled>删除</a>
-          </span>
-        </a-table>
+    <a-table
+      rowKey="id"
+      size="middle"
+      tableLayout="fixed"
+      :columns="columns"
+      :dataSource="dataSource"
+      :pagination="ipagination"
+      :loading="loading"
+      @change="handleTableChange">
+      <span slot="taskType" slot-scope="text">{{ taskTypeText(text) }}</span>
+      <a-tag slot="status" slot-scope="text" :color="statusMeta(text).color">
+        {{ statusMeta(text).text }}
+      </a-tag>
+      <span slot="action" slot-scope="text, record">
+        <a :disabled="isRunning(record)" @click="!isRunning(record) && handleEdit(record)">修改</a>
+        <a-divider type="vertical" />
+        <a :disabled="isRunning(record)" @click="!isRunning(record) && confirmStart(record)">启动</a>
+        <a-divider type="vertical" />
+        <a-popconfirm v-if="!isRunning(record)" title="确定删除该任务吗？" @confirm="handleDelete({ id: record.id })">
+          <a>删除</a>
+        </a-popconfirm>
+        <a v-else disabled>删除</a>
+        <a-divider type="vertical" />
+        <a @click="showRunHistory(record)">运行记录</a>
+      </span>
+    </a-table>
 
-        <call-modal ref="modalForm" @ok="modalFormOk" />
-      </a-tab-pane>
-      <a-tab-pane key="report" tab="报告管理">
-        <report-management />
-      </a-tab-pane>
-    </a-tabs>
+    <call-modal ref="modalForm" @ok="modalFormOk" />
+    <run-history-modal ref="runHistoryModal" />
   </a-card>
 </template>
 
 <script>
 import { postAction } from '@/api/manage'
 import { ListMixin } from '@/mixins/ListMixin'
-import ReportManagement from '@/views/intelligenceReport/reportManagement'
 import CallModal from './modules/callModal'
+import RunHistoryModal from './modules/runHistoryModal'
 
 export default {
   name: 'ManualCallReportList',
   mixins: [ListMixin],
-  components: { CallModal, ReportManagement },
+  components: { CallModal, RunHistoryModal },
   data() {
     return {
-      activeTab: 'refresh',
       queryParam: { task_name: '', status: undefined },
       url: {
         list: '/errorLogController/getData',
@@ -86,13 +81,13 @@ export default {
       },
       columns: [
         { title: '序号', width: 70, customRender: (text, record, index) => index + 1 },
-        { title: '任务名称', dataIndex: 'task_name', width: 150 },
+        { title: '任务名称', dataIndex: 'task_name', width: 150, ellipsis: true },
         { title: '类型', dataIndex: 'task_type', width: 100, scopedSlots: { customRender: 'taskType' } },
         { title: '执行状态', dataIndex: 'status', width: 110, scopedSlots: { customRender: 'status' } },
-        { title: '脚本路径', dataIndex: 'shell_path', width: 210 },
-        { title: '脚本名称', dataIndex: 'shell_name', width: 210 },
-        { title: '参数', dataIndex: 'shell_param', width: 130 },
-        { title: '操作', key: 'action', fixed: 'right', width: 170, scopedSlots: { customRender: 'action' } }
+        { title: '脚本路径', dataIndex: 'shell_path', width: 190, ellipsis: true },
+        { title: '脚本名称', dataIndex: 'shell_name', width: 190, ellipsis: true },
+        { title: '参数', dataIndex: 'shell_param', width: 130, ellipsis: true },
+        { title: '操作', key: 'action', width: 260, scopedSlots: { customRender: 'action' } }
       ]
     }
   },
@@ -143,14 +138,17 @@ export default {
         onOk() {
           return postAction(that.url.call, { id: record.id }).then(res => {
             if (res.result === 'success') {
-              that.$message.success(res.msg)
+              that.$message.info(res.msg || '任务已提交，请在运行记录中查看执行结果')
               that.loadData()
             } else {
-              that.$message.warning(res.msg)
+              that.$message.warning(res.msg || '任务提交失败')
             }
           })
         }
       })
+    },
+    showRunHistory(record) {
+      this.$refs.runHistoryModal.show(record)
     }
   }
 }
