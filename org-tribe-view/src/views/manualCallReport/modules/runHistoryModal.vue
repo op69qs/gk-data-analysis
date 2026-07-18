@@ -98,8 +98,8 @@ export default {
     statusMeta(status) {
       return {
         '1': { text: '正在执行', color: 'processing' },
-        '200': { text: '成功', color: 'success' },
-        '500': { text: '失败', color: 'error' }
+        '200': { text: '成功', color: 'green' },
+        '500': { text: '失败', color: 'red' }
       }[String(status)] || { text: status || '未知', color: 'default' }
     },
     close() {

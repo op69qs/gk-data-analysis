@@ -127,8 +127,8 @@ export default {
       return {
         '0': { text: '未执行', color: 'default' },
         '1': { text: '正在执行', color: 'processing' },
-        '200': { text: '成功', color: 'success' },
-        '500': { text: '失败', color: 'error' }
+        '200': { text: '成功', color: 'green' },
+        '500': { text: '失败', color: 'red' }
       }[String(status)] || { text: status || '未执行', color: 'default' }
     },
     confirmStart(record) {
