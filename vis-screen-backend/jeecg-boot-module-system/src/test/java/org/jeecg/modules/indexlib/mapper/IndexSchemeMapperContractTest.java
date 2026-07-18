@@ -5,10 +5,16 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class IndexSchemeMapperContractTest {
@@ -23,15 +29,49 @@ public class IndexSchemeMapperContractTest {
     }
 
     @Test
-    public void schemeListUsesProductionTableFieldsAndFilters() {
-        String sql = statement(mapperXml, "select", "selectSchemeTable");
-        assertTrue(sql.contains("visual_screen.vs_lib_index_scheme"));
-        assertTrue(sql.contains("AS \"SCHEME_DESCR\""));
-        assertTrue(sql.contains("AS \"ADD_DATE\""));
-        assertTrue(sql.contains("AS \"realname\""));
-        assertTrue(sql.contains("visual_screen.f_get_IndexName"));
-        assertTrue(sql.contains("#{params.begin_time}"));
-        assertTrue(sql.contains("#{params.end_time}"));
+    public void mapperInterfacesMatchXmlStatementIds() {
+        assertEquals(methodNames(IndexSchemeMapper.class), statementIds(mapperXml));
+        assertEquals(methodNames(IndexRelationMapper.class), statementIds(relationMapperXml));
+    }
+
+    @Test
+    public void descriptionAggregationsDeduplicateBeforeOrdering() {
+        assertDescriptionAggregation(
+                statement(mapperXml, "select", "getAllTrsInfo"),
+                "guoku_dscr", "guoku_id");
+        assertDescriptionAggregation(
+                statement(mapperXml, "select", "getAllAreaInfo"),
+                "area_dscr", "area_no_id");
+    }
+
+    @Test
+    public void schemeDetailsExposeProductionChartKeys() {
+        String details = statement(mapperXml, "select", "getSchemeInfoById");
+        assertAliases(details, "SCHEME_DESCR", "SCHEME_COLUMS",
+                "SCHEME_SQL", "SCHEME_CONDITON");
+        assertTrue(details.contains("#{params.scheme_id}"));
+    }
+
+    @Test
+    public void schemeCountAndListShareFiltersAndListUsesBoundPagination() {
+        String count = statement(mapperXml, "select", "getSchemeCount");
+        String list = statement(mapperXml, "select", "selectSchemeTable");
+        Set<String> expectedFilters = new HashSet<>(
+                Arrays.asList("schemeDescr", "begin_time", "end_time"));
+
+        assertEquals(expectedFilters, parameters(count));
+        Set<String> listParameters = parameters(list);
+        assertTrue(listParameters.remove("pageSize"));
+        assertTrue(listParameters.remove("page"));
+        assertEquals(expectedFilters, listParameters);
+
+        String normalizedList = normalize(list);
+        assertTrue(normalizedList.contains(
+                "limit #{params.pagesize,jdbctype=integer} "
+                        + "offset #{params.page,jdbctype=integer}"));
+        assertAliases(list, "SCHEME_DESCR", "ADD_DATE");
+        assertTrue(list.contains("AS \"realname\""));
+        assertTrue(list.contains("visual_screen.f_get_IndexName"));
     }
 
     @Test
@@ -41,7 +81,7 @@ public class IndexSchemeMapperContractTest {
     }
 
     @Test
-    public void relationQueriesUseProductionTableAndKeys() {
+    public void relationQueriesExposeProductionChartKeys() {
         String batch = statement(relationMapperXml, "select", "getBatchIndexInfo");
         assertTrue(batch.contains("indicators_lib.lib_index_relation"));
         assertTrue(batch.contains("#{params.SCHEME_COLUMS}"));
@@ -49,6 +89,7 @@ public class IndexSchemeMapperContractTest {
         String details = statement(relationMapperXml, "select", "getIndexDetails");
         assertTrue(details.contains("indicators_lib.lib_index_relation"));
         assertTrue(details.contains("#{params.INDEX_ID}"));
+        assertAliases(details, "INDEX_NAME", "INDEX_TYPE", "INDEX_CORRE_TABLE");
     }
 
     private String load(String resource) throws Exception {
@@ -72,5 +113,51 @@ public class IndexSchemeMapperContractTest {
                 .matcher(xml);
         assertTrue("Missing " + element + " " + id, matcher.find());
         return matcher.group();
+    }
+
+    private Set<String> methodNames(Class<?> mapperInterface) {
+        return Arrays.stream(mapperInterface.getDeclaredMethods())
+                .map(Method::getName)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<String> statementIds(String xml) {
+        Matcher matcher = Pattern.compile(
+                "<(?:select|insert|update|delete)\\b[^>]*\\bid=\"([^\"]+)\"",
+                Pattern.CASE_INSENSITIVE).matcher(xml);
+        Set<String> ids = new HashSet<>();
+        while (matcher.find()) {
+            ids.add(matcher.group(1));
+        }
+        return ids;
+    }
+
+    private Set<String> parameters(String sql) {
+        Matcher matcher = Pattern.compile("#\\{params\\.([A-Za-z_]+)").matcher(sql);
+        Set<String> parameters = new HashSet<>();
+        while (matcher.find()) {
+            parameters.add(matcher.group(1));
+        }
+        return parameters;
+    }
+
+    private void assertDescriptionAggregation(String sql, String description, String id) {
+        String normalized = normalize(sql);
+        assertTrue(normalized.contains(
+                "string_agg(d." + description + ", ',' order by d.sort_id)"));
+        assertTrue(normalized.contains(
+                "min(a." + id + ") as sort_id"));
+        assertTrue(normalized.contains("group by a." + description));
+    }
+
+    private void assertAliases(String sql, String... aliases) {
+        for (String alias : aliases) {
+            assertTrue("Missing quoted production alias " + alias,
+                    sql.contains("AS \"" + alias + "\""));
+        }
+    }
+
+    private String normalize(String sql) {
+        return sql.replaceAll("\\s+", " ").trim().toLowerCase();
     }
 }

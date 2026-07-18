@@ -14,7 +14,9 @@
     </select>
 
     <select id="getIndexDetails" resultType="java.util.HashMap">
-        SELECT *
+        SELECT a.index_name AS "INDEX_NAME",
+               a.index_type AS "INDEX_TYPE",
+               a.index_corre_table AS "INDEX_CORRE_TABLE"
         FROM indicators_lib.lib_index_relation a
         WHERE a.index_id = #{params.INDEX_ID}
     </select>

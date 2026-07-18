@@ -4,18 +4,22 @@
 <mapper namespace="org.jeecg.modules.indexlib.mapper.IndexSchemeMapper">
 
     <select id="getAllTrsInfo" resultType="String">
-        SELECT string_agg(d.guoku_dscr, ',' ORDER BY d.guoku_id)
+        SELECT string_agg(d.guoku_dscr, ',' ORDER BY d.sort_id)
         FROM (
-            SELECT DISTINCT a.guoku_id, a.guoku_dscr
+            SELECT a.guoku_dscr,
+                   MIN(a.guoku_id) AS sort_id
             FROM edw.cm_guoku_dimnsn a
+            GROUP BY a.guoku_dscr
         ) d
     </select>
 
     <select id="getAllAreaInfo" resultType="String">
-        SELECT string_agg(d.area_dscr, ',' ORDER BY d.area_no_id)
+        SELECT string_agg(d.area_dscr, ',' ORDER BY d.sort_id)
         FROM (
-            SELECT DISTINCT a.area_no_id, a.area_dscr
+            SELECT a.area_dscr,
+                   MIN(a.area_no_id) AS sort_id
             FROM edw.cm_guoku_dimnsn a
+            GROUP BY a.area_dscr
         ) d
     </select>
 
@@ -24,7 +28,10 @@
     </select>
 
     <select id="getSchemeInfoById" resultType="java.util.HashMap">
-        SELECT *
+        SELECT s.scheme_descr AS "SCHEME_DESCR",
+               s.scheme_colums AS "SCHEME_COLUMS",
+               s.scheme_sql AS "SCHEME_SQL",
+               s.scheme_conditon AS "SCHEME_CONDITON"
         FROM visual_screen.vs_lib_index_scheme s
         WHERE s.id = #{params.scheme_id}
         ORDER BY s.id
