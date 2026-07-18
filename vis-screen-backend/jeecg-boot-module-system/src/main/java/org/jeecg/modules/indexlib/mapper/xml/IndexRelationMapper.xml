@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.indexlib.mapper.IndexRelationMapper">
+
+    <select id="getBatchIndexInfo" resultType="java.util.HashMap">
+        SELECT a.index_id AS "id",
+               a.index_name AS "name"
+        FROM indicators_lib.lib_index_relation a
+        WHERE POSITION(',' || a.index_id || ',' IN
+                       ',' || #{params.SCHEME_COLUMS} || ',') &gt; 0
+        ORDER BY POSITION(',' || a.index_id || ',' IN
+                          ',' || #{params.SCHEME_COLUMS} || ',')
+    </select>
+
+    <select id="getIndexDetails" resultType="java.util.HashMap">
+        SELECT *
+        FROM indicators_lib.lib_index_relation a
+        WHERE a.index_id = #{params.INDEX_ID}
+    </select>
+</mapper>

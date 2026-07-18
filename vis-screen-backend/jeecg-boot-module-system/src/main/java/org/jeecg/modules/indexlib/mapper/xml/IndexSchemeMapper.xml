@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.indexlib.mapper.IndexSchemeMapper">
+
+    <select id="getAllTrsInfo" resultType="String">
+        SELECT string_agg(d.guoku_dscr, ',' ORDER BY d.guoku_id)
+        FROM (
+            SELECT DISTINCT a.guoku_id, a.guoku_dscr
+            FROM edw.cm_guoku_dimnsn a
+        ) d
+    </select>
+
+    <select id="getAllAreaInfo" resultType="String">
+        SELECT string_agg(d.area_dscr, ',' ORDER BY d.area_no_id)
+        FROM (
+            SELECT DISTINCT a.area_no_id, a.area_dscr
+            FROM edw.cm_guoku_dimnsn a
+        ) d
+    </select>
+
+    <select id="execSchemeSql" resultType="java.util.HashMap">
+        ${params.schemeSql}
+    </select>
+
+    <select id="getSchemeInfoById" resultType="java.util.HashMap">
+        SELECT *
+        FROM visual_screen.vs_lib_index_scheme s
+        WHERE s.id = #{params.scheme_id}
+        ORDER BY s.id
+    </select>
+
+    <select id="getSchemeCount" resultType="int">
+        SELECT COUNT(1)
+        FROM visual_screen.vs_lib_index_scheme s
+        WHERE 1 = 1
+        <if test="params.schemeDescr != null and params.schemeDescr != ''">
+            AND s.scheme_descr LIKE CONCAT(CONCAT('%', #{params.schemeDescr}), '%')
+        </if>
+        <if test="params.begin_time != null and params.begin_time != ''">
+            AND LEFT(s.add_date, 10) &gt;= #{params.begin_time}
+        </if>
+        <if test="params.end_time != null and params.end_time != ''">
+            AND LEFT(s.add_date, 10) &lt;= #{params.end_time}
+        </if>
+    </select>
+
+    <select id="selectSchemeTable" resultType="java.util.HashMap">
+        SELECT s.id AS "ID",
+               s.scheme_descr AS "SCHEME_DESCR",
+               s.scheme_conditon AS "SCHEME_CONDITON",
+               visual_screen.f_get_IndexName(s.scheme_colums) AS "INDEX_NAME",
+               s.add_date AS "ADD_DATE",
+               su.realname AS "realname"
+        FROM visual_screen.vs_lib_index_scheme s
+        LEFT JOIN visual_screen.sys_user su ON s.add_userid = su.id
+        WHERE 1 = 1
+        <if test="params.schemeDescr != null and params.schemeDescr != ''">
+            AND s.scheme_descr LIKE CONCAT(CONCAT('%', #{params.schemeDescr}), '%')
+        </if>
+        <if test="params.begin_time != null and params.begin_time != ''">
+            AND LEFT(s.add_date, 10) &gt;= #{params.begin_time}
+        </if>
+        <if test="params.end_time != null and params.end_time != ''">
+            AND LEFT(s.add_date, 10) &lt;= #{params.end_time}
+        </if>
+        ORDER BY s.add_date DESC NULLS LAST
+        LIMIT #{params.pageSize,jdbcType=INTEGER}
+        OFFSET #{params.page,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteSchemeById">
+        DELETE FROM visual_screen.vs_lib_index_scheme
+        WHERE id = #{params.schemeId}
+    </delete>
+
+    <select id="getIndexNames" resultType="java.util.HashMap">
+        SELECT a.index_id AS "INDEX_ID",
+               a.index_name AS "INDEX_NAME"
+        FROM indicators_lib.lib_index_relation a
+        WHERE POSITION(',' || a.index_id || ',' IN
+                       ',' || #{params.indexColumns} || ',') &gt; 0
+    </select>
+</mapper>
