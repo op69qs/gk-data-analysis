@@ -106,7 +106,8 @@
                 if (!item) {
                     return false
                 }
-                return ['h', 'specialHtml', 'v', 'bigNumber'].indexOf(item.type) === -1
+                return ['b', 't', 'bar', 'line', 'pie', 'barAndLine']
+                    .indexOf(item.type) !== -1
             },
             getCoverSrc(item) {
                 if (!item) {

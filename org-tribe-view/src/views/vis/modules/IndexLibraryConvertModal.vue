@@ -131,6 +131,7 @@ export default {
       previewResponse: null,
       previewOption: null,
       frozenCondition: null,
+      indexInfoRevision: 0,
       previewRevision: 0
     }
   },
@@ -144,6 +145,8 @@ export default {
   },
   methods: {
     open(record) {
+      this.indexInfoRevision += 1
+      this.indexLoading = false
       try {
         this.record = record || {}
         this.condition = parseSchemeCondition(this.record.SCHEME_CONDITON)
@@ -170,6 +173,7 @@ export default {
       }
     },
     loadIndexInfo() {
+      const revision = ++this.indexInfoRevision
       const conditionColumns = this.condition &&
         Array.isArray(this.condition.schemecolumns)
         ? this.condition.schemecolumns
@@ -180,10 +184,12 @@ export default {
       const columns = (this.record && this.record.SCHEME_COLUMS) || conditionColumns
       if (!columns) {
         this.indexOptions = []
+        this.indexLoading = false
         return Promise.resolve(false)
       }
       this.indexLoading = true
       return getIndexInfo({ SCHEME_COLUMS: columns }).then(res => {
+        if (revision !== this.indexInfoRevision) return false
         if (res && res.result === 'success') {
           this.indexOptions = Array.isArray(res.indexInfoList)
             ? res.indexInfoList
@@ -194,11 +200,14 @@ export default {
         this.$message.warning((res && res.msg) || '指标信息加载失败')
         return false
       }).catch(() => {
+        if (revision !== this.indexInfoRevision) return false
         this.indexOptions = []
         this.$message.error('指标信息加载失败，请稍后重试')
         return false
       }).finally(() => {
-        this.indexLoading = false
+        if (revision === this.indexInfoRevision) {
+          this.indexLoading = false
+        }
       })
     },
     invalidatePreview() {
@@ -350,6 +359,8 @@ export default {
       })
     },
     handleCancel() {
+      this.indexInfoRevision += 1
+      this.indexLoading = false
       this.visible = false
       this.saving = false
       this.invalidatePreview()

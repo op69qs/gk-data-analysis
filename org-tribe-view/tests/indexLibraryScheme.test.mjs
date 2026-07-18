@@ -748,7 +748,13 @@ for (const type of ['h', 'specialHtml', 'v', 'bigNumber']) {
     `${type} should preserve its non-image behavior`
   )
 }
-
+for (const type of ['', 'map', 'futureWidget']) {
+  assert.strictEqual(
+    galleryComponent.methods.isImageGalleryItem({ type, content: 'content' }),
+    false,
+    `${type || 'empty type'} must not be treated as an image cover`
+  )
+}
 const indexInfoRequests = []
 const barPreviewRequests = []
 const piePreviewRequests = []
@@ -761,6 +767,7 @@ let indexInfoResponse = {
     { id: 'I2', name: '增长率' }
   ]
 }
+let indexInfoHandler = () => Promise.resolve(indexInfoResponse)
 let barPreviewResponse = chartResponse
 let barPreviewHandler = () => Promise.resolve(barPreviewResponse)
 let piePreviewResponse = {
@@ -784,7 +791,7 @@ const modalContext = {
   buildChartOption: chartContext.buildChartOption,
   getIndexInfo(params) {
     indexInfoRequests.push(params)
-    return Promise.resolve(indexInfoResponse)
+    return indexInfoHandler(params)
   },
   previewBarLine(params) {
     barPreviewRequests.push(params)
@@ -903,6 +910,55 @@ assert.deepStrictEqual(
   JSON.parse(JSON.stringify(openVm.instance.indexOptions)),
   indexInfoResponse.indexInfoList
 )
+
+const firstIndexInfo = deferred()
+const secondIndexInfo = deferred()
+const indexInfoQueue = [firstIndexInfo, secondIndexInfo]
+indexInfoHandler = () => indexInfoQueue.shift().promise
+const concurrentIndexInfoVm = createModalVm()
+const firstIndexInfoRequest = concurrentIndexInfoVm.instance.open(modalRecord)
+const latestRecord = {
+  ...modalRecord,
+  SCHEME_COLUMS: 'I3',
+  SCHEME_CONDITON: JSON.stringify({
+    ...JSON.parse(modalRecord.SCHEME_CONDITON),
+    SCHEME_COLUMNS: [{ CHART_ID: 'I3', CHART_DIRECTION: 'Columnar' }]
+  })
+}
+const secondIndexInfoRequest = concurrentIndexInfoVm.instance.open(latestRecord)
+secondIndexInfo.resolve({
+  result: 'success',
+  indexInfoList: [{ id: 'I3', name: '最新指标' }]
+})
+await settleWithin(secondIndexInfoRequest, 'latest index-info request did not settle')
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(concurrentIndexInfoVm.instance.indexOptions)),
+  [{ id: 'I3', name: '最新指标' }]
+)
+assert.strictEqual(concurrentIndexInfoVm.instance.indexLoading, false)
+firstIndexInfo.reject(new Error('stale index-info request failed'))
+await settleWithin(firstIndexInfoRequest, 'stale index-info request did not settle')
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(concurrentIndexInfoVm.instance.indexOptions)),
+  [{ id: 'I3', name: '最新指标' }]
+)
+assert.strictEqual(concurrentIndexInfoVm.instance.indexLoading, false)
+assert.deepStrictEqual(concurrentIndexInfoVm.messages, [])
+
+const closedIndexInfo = deferred()
+indexInfoHandler = () => closedIndexInfo.promise
+const closedIndexInfoVm = createModalVm()
+const closedIndexInfoRequest = closedIndexInfoVm.instance.open(modalRecord)
+closedIndexInfoVm.instance.handleCancel()
+closedIndexInfo.resolve({
+  result: 'success',
+  indexInfoList: [{ id: 'stale-after-close', name: '关闭后旧指标' }]
+})
+await settleWithin(closedIndexInfoRequest, 'closed index-info request did not settle')
+assert.strictEqual(closedIndexInfoVm.instance.indexOptions.length, 0)
+assert.strictEqual(closedIndexInfoVm.instance.indexLoading, false)
+assert.deepStrictEqual(closedIndexInfoVm.messages, [])
+indexInfoHandler = () => Promise.resolve(indexInfoResponse)
 
 const noUnitCondition = JSON.parse(modalRecord.SCHEME_CONDITON)
 delete noUnitCondition.UNIT

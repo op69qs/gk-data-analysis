@@ -11,6 +11,8 @@ WHERE (table_schema = 'visual_screen'
        AND table_name IN ('vs_lib_index_scheme', 'vs_gallery_info', 'sys_user'))
    OR (table_schema = 'indicators_lib'
        AND table_name = 'lib_index_relation')
+   OR (table_schema = 'edw'
+       AND table_name = 'cm_guoku_dimnsn')
 ORDER BY table_schema, table_name;
 
 SELECT 'BEFORE: gallery production columns' AS checkpoint;
@@ -41,7 +43,8 @@ BEGIN
             ('visual_screen', 'vs_lib_index_scheme'),
             ('visual_screen', 'vs_gallery_info'),
             ('visual_screen', 'sys_user'),
-            ('indicators_lib', 'lib_index_relation')
+            ('indicators_lib', 'lib_index_relation'),
+            ('edw', 'cm_guoku_dimnsn')
         ) AS required(table_schema, table_name)
     LOOP
         IF NOT EXISTS (
@@ -56,6 +59,59 @@ BEGIN
     END LOOP;
 END;
 $contract$ LANGUAGE plpgsql;
+
+DO $required_columns$
+DECLARE
+    required_column record;
+BEGIN
+    FOR required_column IN
+        SELECT required.table_schema, required.table_name, required.column_name
+        FROM (VALUES
+            ('visual_screen', 'vs_lib_index_scheme', 'id'),
+            ('visual_screen', 'vs_lib_index_scheme', 'scheme_descr'),
+            ('visual_screen', 'vs_lib_index_scheme', 'scheme_sql'),
+            ('visual_screen', 'vs_lib_index_scheme', 'scheme_colums'),
+            ('visual_screen', 'vs_lib_index_scheme', 'scheme_conditon'),
+            ('visual_screen', 'vs_lib_index_scheme', 'add_userid'),
+            ('visual_screen', 'vs_lib_index_scheme', 'add_date'),
+            ('visual_screen', 'vs_gallery_info', 'id'),
+            ('visual_screen', 'vs_gallery_info', 'option'),
+            ('visual_screen', 'vs_gallery_info', 'query_path'),
+            ('visual_screen', 'vs_gallery_info', 'content'),
+            ('visual_screen', 'vs_gallery_info', 'type'),
+            ('visual_screen', 'vs_gallery_info', 'title'),
+            ('visual_screen', 'vs_gallery_info', 'sort'),
+            ('visual_screen', 'vs_gallery_info', 'state'),
+            ('visual_screen', 'vs_gallery_info', 'business_id'),
+            ('visual_screen', 'vs_gallery_info', 'time_type'),
+            ('visual_screen', 'vs_gallery_info', 'dimension_type'),
+            ('visual_screen', 'sys_user', 'id'),
+            ('visual_screen', 'sys_user', 'realname'),
+            ('indicators_lib', 'lib_index_relation', 'index_id'),
+            ('indicators_lib', 'lib_index_relation', 'index_name'),
+            ('indicators_lib', 'lib_index_relation', 'index_type'),
+            ('indicators_lib', 'lib_index_relation', 'index_corre_table'),
+            ('edw', 'cm_guoku_dimnsn', 'guoku_dscr'),
+            ('edw', 'cm_guoku_dimnsn', 'guoku_id'),
+            ('edw', 'cm_guoku_dimnsn', 'area_dscr'),
+            ('edw', 'cm_guoku_dimnsn', 'area_no_id')
+        ) AS required(table_schema, table_name, column_name)
+    LOOP
+        IF NOT EXISTS (
+            SELECT 1
+            FROM information_schema.columns actual
+            WHERE actual.table_schema = required_column.table_schema
+              AND actual.table_name = required_column.table_name
+              AND actual.column_name = required_column.column_name
+        ) THEN
+            RAISE EXCEPTION 'missing required production column: %',
+                required_column.table_schema || '.' ||
+                required_column.table_name || '.' ||
+                required_column.column_name;
+        END IF;
+    END LOOP;
+END;
+$required_columns$ LANGUAGE plpgsql;
 
 -- The checked production Vastbase structure stores these gallery values as text.
 -- This Vastbase release does not accept ADD COLUMN IF NOT EXISTS, so each DDL
@@ -172,6 +228,8 @@ WHERE (table_schema = 'visual_screen'
        AND table_name IN ('vs_lib_index_scheme', 'vs_gallery_info', 'sys_user'))
    OR (table_schema = 'indicators_lib'
        AND table_name = 'lib_index_relation')
+   OR (table_schema = 'edw'
+       AND table_name = 'cm_guoku_dimnsn')
 ORDER BY table_schema, table_name;
 
 SELECT 'AFTER: gallery production columns' AS checkpoint;
