@@ -130,6 +130,17 @@ assert.throws(
   ),
   /请先预览当前图表配置/
 )
+for (const type of ['map', 'strip', 'bigNumber']) {
+  assert.throws(
+    () => buildSavePayload(
+      { ...form, type: 'bar', content: '{"series":[]}' },
+      productionRow,
+      true,
+      { ...previewCondition, type }
+    ),
+    /不支持的图表类型/
+  )
+}
 const savePayload = buildSavePayload(
   { ...form, title: '保存时不应覆盖', content: '{"series":[]}' },
   productionRow,

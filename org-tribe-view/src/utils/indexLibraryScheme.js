@@ -108,6 +108,12 @@ function copyDefined(target, source) {
   return target
 }
 
+function assertSupportedChartType(type) {
+  if (CHART_TYPE_NAMES.indexOf(type) === -1) {
+    throw new Error('不支持的图表类型')
+  }
+}
+
 export function normalizeSchemeRow(row) {
   const source = row && typeof row === 'object' ? row : {}
   return {
@@ -164,9 +170,7 @@ export function buildPreviewPayload(form, record) {
   if (payload.scheme_id === undefined) {
     payload.scheme_id = firstOwnValue(sourceRecord, ['ID', 'id'])
   }
-  if (CHART_TYPE_NAMES.indexOf(payload.type) === -1) {
-    throw new Error('不支持的图表类型')
-  }
+  assertSupportedChartType(payload.type)
   return payload
 }
 
@@ -186,9 +190,14 @@ export function buildSavePayload(
     sourceForm.previewCondition ||
     sourceRecord.previewCondition ||
     buildPreviewPayload(sourceForm, sourceRecord)
+  const normalizedCondition = copyDefined(
+    {},
+    parseSchemeCondition(previewCondition)
+  )
+  assertSupportedChartType(normalizedCondition.type)
 
   return {
-    condition: JSON.stringify(copyDefined({}, parseSchemeCondition(previewCondition))),
+    condition: JSON.stringify(normalizedCondition),
     content: sourceForm.content
   }
 }
