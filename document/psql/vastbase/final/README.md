@@ -41,6 +41,7 @@
 - 验证结果：原 `001 -> 012` 整包可联合编译和创建，无残留半成品。
 - `013_adm_tables_init.sql` 已在现有 `001 -> 012` 环境中单独执行完整事务创建并回滚，随后正式导入；实库核验结果为 330 张表、2 张视图。
 - 重新生成后拆出的 `014_adm_indexes_init.sql`、`015_adm_routines_init.sql`、`016_adm_events_init.sql` 尚未导入目标库。
+- `017_dynamic_refresh_run_log_init.sql` 是动态刷数运行记录的幂等增量脚本。现有数据库只执行 `017`，不得为增加该表而重跑会删除并重建 ADM 表的 `013_adm_tables_init.sql`。
 
 ## 建议执行方式
 

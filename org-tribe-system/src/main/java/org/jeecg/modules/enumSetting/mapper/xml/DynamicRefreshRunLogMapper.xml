@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.enumSetting.mapper.DynamicRefreshRunLogMapper">
+
+    <sql id="runLogColumns">
+        id, task_id, task_name, task_type, shell_path, shell_name, shell_param,
+        status, start_time, end_time, result_message, create_user
+    </sql>
+
+    <insert id="add">
+        INSERT INTO adm.exec_shell_task_run_log (
+            id, task_id, task_name, task_type, shell_path, shell_name, shell_param,
+            status, start_time, result_message, create_user
+        ) VALUES (
+            #{params.id}, #{params.task_id}, #{params.task_name}, #{params.task_type},
+            #{params.shell_path}, #{params.shell_name}, #{params.shell_param},
+            #{params.status},
+            <choose>
+                <when test="params.start_time != null and params.start_time != ''">
+                    TO_TIMESTAMP(#{params.start_time}, 'YYYY-MM-DD HH24:MI:SS')
+                </when>
+                <otherwise>CURRENT_TIMESTAMP</otherwise>
+            </choose>,
+            #{params.result_message}, #{params.create_user}
+        )
+    </insert>
+
+    <select id="getData" resultType="java.util.HashMap">
+        SELECT <include refid="runLogColumns"/>
+        FROM adm.exec_shell_task_run_log
+        WHERE task_id = #{params.task_id}
+        ORDER BY start_time DESC, id DESC
+        LIMIT #{params.rows} OFFSET #{params.page}
+    </select>
+
+    <select id="getCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM adm.exec_shell_task_run_log
+        WHERE task_id = #{params.task_id}
+    </select>
+
+    <select id="getById" resultType="java.util.HashMap">
+        SELECT <include refid="runLogColumns"/>
+        FROM adm.exec_shell_task_run_log
+        WHERE id = #{id}
+    </select>
+
+    <update id="complete">
+        UPDATE adm.exec_shell_task_run_log
+        SET status = #{status},
+            end_time = CURRENT_TIMESTAMP,
+            result_message = #{resultMessage}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteByTaskId">
+        DELETE FROM adm.exec_shell_task_run_log
+        WHERE task_id = #{taskId}
+    </delete>
+
+</mapper>

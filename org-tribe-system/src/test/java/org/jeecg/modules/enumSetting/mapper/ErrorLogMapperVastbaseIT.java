@@ -25,6 +25,9 @@ public class ErrorLogMapperVastbaseIT {
     @Autowired
     private ErrorLogMapper errorLogMapper;
 
+    @Autowired
+    private DynamicRefreshRunLogMapper runLogMapper;
+
     @Test
     public void queriesExecShellTaskThroughRealMyBatisMapper() {
         PageData parameters = new PageData();
@@ -71,6 +74,29 @@ public class ErrorLogMapperVastbaseIT {
         assertEquals(null, errorLogMapper.getTaskById(id));
     }
 
+    @Test
+    @Transactional
+    public void persistsAndQueriesRunHistoryThroughRealVastbase() {
+        String taskId = uuid();
+        String oldRunId = uuid();
+        String newRunId = uuid();
+        assertEquals(1, errorLogMapper.add(task(taskId, "mapper-history-" + taskId)));
+        assertEquals(1, runLogMapper.add(runLog(oldRunId, taskId, "2026-07-17 10:00:00")));
+        assertEquals(1, runLogMapper.add(runLog(newRunId, taskId, "2026-07-17 11:00:00")));
+
+        PageData query = new PageData();
+        query.put("task_id", taskId);
+        query.put("page", 0);
+        query.put("rows", 10);
+        assertEquals(Integer.valueOf(2), runLogMapper.getCount(query));
+        List<Map<String, Object>> rows = runLogMapper.getData(query);
+        assertEquals(newRunId, rows.get(0).get("id"));
+        assertTrue(rows.get(0).containsKey("result_message"));
+
+        assertEquals(1, runLogMapper.complete(newRunId, "500", "mapper integration failure"));
+        assertEquals("500", runLogMapper.getById(newRunId).get("status"));
+    }
+
     private PageData task(String id, String taskName) {
         PageData task = new PageData();
         task.put("id", id);
@@ -83,6 +109,25 @@ public class ErrorLogMapperVastbaseIT {
         task.put("create_time", now());
         task.put("update_time", now());
         return task;
+    }
+
+    private PageData runLog(String id, String taskId, String startTime) {
+        PageData runLog = new PageData();
+        runLog.put("id", id);
+        runLog.put("task_id", taskId);
+        runLog.put("task_name", "mapper-history-" + taskId);
+        runLog.put("task_type", "1");
+        runLog.put("shell_path", "/home/app/dwbi/");
+        runLog.put("shell_name", "adm.p_all_control");
+        runLog.put("shell_param", "202510");
+        runLog.put("status", "1");
+        runLog.put("start_time", startTime);
+        runLog.put("result_message", "任务执行中");
+        return runLog;
+    }
+
+    private String uuid() {
+        return UUID.randomUUID().toString().replace("-", "");
     }
 
     private String now() {
