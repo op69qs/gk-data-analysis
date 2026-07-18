@@ -219,6 +219,24 @@ public class IndexChartControllerTest {
     }
 
     @Test
+    public void equalDailyScaleReturnsOriginalValueWithoutParsing() {
+        assertEqualScale("1", "2026-02-03");
+        assertEqualScale("1", "not-a-day");
+    }
+
+    @Test
+    public void equalMonthlyScaleReturnsOriginalValueWithoutParsing() {
+        assertEqualScale("2", "2026-02");
+        assertEqualScale("2", "not-a-month");
+    }
+
+    @Test
+    public void equalYearlyScaleReturnsOriginalValueWithoutParsing() {
+        assertEqualScale("4", "2026");
+        assertEqualScale("4", "not-a-year");
+    }
+
+    @Test
     public void galleryAndPageWhereOverrideBarLineQuarterCondition() {
         JSONObject condition = baseRequest("bar");
         condition.put("xTurn", "0");
@@ -445,6 +463,15 @@ public class IndexChartControllerTest {
         condition.put("startDate", start);
         condition.put("endDate", end);
         assertEquals(Arrays.asList(expected), IndexChartsHelper.setEChartsScale(condition));
+    }
+
+    private void assertEqualScale(String periodFlag, String value) {
+        Map<String, Object> condition = new HashMap<>();
+        condition.put("periodFlag", periodFlag);
+        condition.put("startDate", value);
+        condition.put("endDate", value);
+        assertEquals(Collections.singletonList(value),
+                IndexChartsHelper.setEChartsScale(condition));
     }
 
     private JSONObject saveRequest(String type) {

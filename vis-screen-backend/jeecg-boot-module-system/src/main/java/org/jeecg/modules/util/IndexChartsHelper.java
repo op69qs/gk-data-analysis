@@ -64,19 +64,28 @@ public class IndexChartsHelper {
         String start = map.get("startDate").toString();
         String end = map.get("endDate").toString();
         if ("1".equals(period)) {
-            LocalDate first = LocalDate.parse(start);
-            long count = ChronoUnit.DAYS.between(first, LocalDate.parse(end));
-            Stream.iterate(first, date -> date.plusDays(1)).limit(count + 1)
-                    .forEach(date -> result.add(date.toString()));
+            if (start.equals(end)) {
+                result.add(start);
+            } else {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                LocalDate first = LocalDate.parse(start, formatter);
+                long count = ChronoUnit.DAYS.between(first, LocalDate.parse(end, formatter));
+                Stream.iterate(first, date -> date.plusDays(1)).limit(count + 1)
+                        .forEach(date -> result.add(date.toString()));
+            }
         } else if ("2".equals(period)) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
-            LocalDate first = DateUtil_old.transformStrToDate(start, DateUtil_old.Pattern.YYYY_MM)
-                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalDate last = DateUtil_old.transformStrToDate(end, DateUtil_old.Pattern.YYYY_MM)
-                    .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            Stream.iterate(first, date -> date.plusMonths(1))
-                    .limit(ChronoUnit.MONTHS.between(first, last) + 1)
-                    .forEach(date -> result.add(date.format(formatter)));
+            if (start.equals(end)) {
+                result.add(start);
+            } else {
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM");
+                LocalDate first = DateUtil_old.transformStrToDate(start, DateUtil_old.Pattern.YYYY_MM)
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                LocalDate last = DateUtil_old.transformStrToDate(end, DateUtil_old.Pattern.YYYY_MM)
+                        .toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                Stream.iterate(first, date -> date.plusMonths(1))
+                        .limit(ChronoUnit.MONTHS.between(first, last) + 1)
+                        .forEach(date -> result.add(date.format(formatter)));
+            }
         } else if ("3".equals(period)) {
             String[] first = start.split("Q");
             String[] last = end.split("Q");
@@ -122,8 +131,12 @@ public class IndexChartsHelper {
                 }
             }
         } else if ("4".equals(period)) {
-            for (int year = Integer.parseInt(start); year <= Integer.parseInt(end); year++) {
-                result.add(String.valueOf(year));
+            if (start.equals(end)) {
+                result.add(start);
+            } else {
+                for (int year = Integer.parseInt(start); year <= Integer.parseInt(end); year++) {
+                    result.add(String.valueOf(year));
+                }
             }
         }
         return result;
