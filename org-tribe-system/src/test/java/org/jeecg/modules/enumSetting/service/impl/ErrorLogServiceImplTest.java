@@ -14,7 +14,7 @@ public class ErrorLogServiceImplTest {
 
     @Test
     public void marksRunningBeforeSubmittingTask() {
-        FakeMapper mapper = new FakeMapper(1);
+        ServiceTestMapperStub mapper = new ServiceTestMapperStub(1);
         RecordingTaskRunner runner = new RecordingTaskRunner();
         ErrorLogServiceImpl service = new ErrorLogServiceImpl(mapper, new SyncTaskExecutor(), runner);
         PageData parameters = new PageData();
@@ -28,7 +28,7 @@ public class ErrorLogServiceImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void rejectsTaskThatIsAlreadyRunning() {
-        FakeMapper mapper = new FakeMapper(0);
+        ServiceTestMapperStub mapper = new ServiceTestMapperStub(0);
         ErrorLogServiceImpl service = new ErrorLogServiceImpl(
                 mapper, new SyncTaskExecutor(), new RecordingTaskRunner()
         );
@@ -40,7 +40,7 @@ public class ErrorLogServiceImplTest {
 
     @Test
     public void normalizesRequiredTaskFieldsBeforeInsert() {
-        FakeMapper mapper = new FakeMapper(1);
+        ServiceTestMapperStub mapper = new ServiceTestMapperStub(1);
         ErrorLogServiceImpl service = new ErrorLogServiceImpl(
                 mapper, new SyncTaskExecutor(), new RecordingTaskRunner()
         );
@@ -71,12 +71,12 @@ public class ErrorLogServiceImplTest {
         }
     }
 
-    private static class FakeMapper implements ErrorLogMapper {
+    private static class ServiceTestMapperStub implements ErrorLogMapper {
         private final int markResult;
         private String markedId;
         private PageData added;
 
-        FakeMapper(int markResult) {
+        ServiceTestMapperStub(int markResult) {
             this.markResult = markResult;
         }
 
@@ -88,12 +88,12 @@ public class ErrorLogServiceImplTest {
 
         @Override
         public List<Map<String, Object>> getData(PageData pd) {
-            return null;
+            throw new UnsupportedOperationException("getData is covered by ErrorLogMapperVastbaseIT");
         }
 
         @Override
         public Integer getCount(PageData pd) {
-            return 0;
+            throw new UnsupportedOperationException("getCount is covered by ErrorLogMapperVastbaseIT");
         }
 
         @Override
@@ -103,19 +103,23 @@ public class ErrorLogServiceImplTest {
         }
 
         @Override
-        public int edit(PageData pd) { return 0; }
+        public int edit(PageData pd) {
+            throw new UnsupportedOperationException("not used by this service unit test");
+        }
 
         @Override
-        public int del(String id) { return 0; }
+        public int del(String id) {
+            throw new UnsupportedOperationException("not used by this service unit test");
+        }
 
         @Override
         public Map<String, Object> getTaskById(String id) {
-            return null;
+            throw new UnsupportedOperationException("not used by this service unit test");
         }
 
         @Override
         public int updateTaskStatus(String id, String status) {
-            return 0;
+            throw new UnsupportedOperationException("not used by this service unit test");
         }
     }
 }
