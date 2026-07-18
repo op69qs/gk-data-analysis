@@ -79,6 +79,7 @@ export default {
         end_time: ''
       },
       loading: false,
+      requestRevision: 0,
       dataSource: [],
       pagination: {
         current: 1,
@@ -126,6 +127,9 @@ export default {
   created() {
     this.loadData()
   },
+  beforeDestroy() {
+    this.requestRevision += 1
+  },
   methods: {
     onDateChange(dates, dateStrings) {
       this.queryParam.begin_time = this.formatDateValue(dates[0], dateStrings[0])
@@ -151,9 +155,11 @@ export default {
       return this.searchQuery()
     },
     loadData() {
+      const requestRevision = ++this.requestRevision
       const beginTime = this.queryParam.begin_time || ''
       const endTime = this.queryParam.end_time || ''
       if (beginTime && endTime && beginTime > endTime) {
+        this.loading = false
         this.$message.error('开始日期不能大于结束日期')
         return Promise.resolve(false)
       }
@@ -167,6 +173,9 @@ export default {
       }
       this.loading = true
       return listSchemes(params).then(res => {
+        if (requestRevision !== this.requestRevision) {
+          return
+        }
         if (res && res.result === 'success') {
           const rows = Array.isArray(res.rows) ? res.rows : []
           this.dataSource = rows.map(normalizeSchemeRow)
@@ -177,11 +186,16 @@ export default {
           this.$message.error((res && res.msg) || '方案列表加载失败')
         }
       }).catch(() => {
+        if (requestRevision !== this.requestRevision) {
+          return
+        }
         this.dataSource = []
         this.pagination.total = 0
         this.$message.error('方案列表加载失败，请稍后重试')
       }).finally(() => {
-        this.loading = false
+        if (requestRevision === this.requestRevision) {
+          this.loading = false
+        }
       })
     },
     handleTableChange(pagination) {
@@ -190,7 +204,11 @@ export default {
       return this.loadData()
     },
     handleDelete(record) {
-      const schemeId = record.ID || (record.raw && record.raw.ID)
+      const schemeId = record.id || record.ID || (record.raw && record.raw.ID)
+      if (!schemeId) {
+        this.$message.error('方案ID缺失，无法删除')
+        return Promise.resolve(false)
+      }
       return deleteScheme({ schemeId }).then(res => {
         if (res && res.result === 'success') {
           this.$message.success(res.msg || '删除指标方案成功')

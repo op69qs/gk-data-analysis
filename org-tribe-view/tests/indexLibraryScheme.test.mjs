@@ -2,6 +2,40 @@ import assert from 'assert'
 import { readFile } from 'fs/promises'
 import vm from 'vm'
 
+function deferred() {
+  let resolve
+  let reject
+  const promise = new Promise((done, fail) => {
+    resolve = done
+    reject = fail
+  })
+  return { promise, resolve, reject }
+}
+
+async function waitFor(predicate, failureMessage, timeoutMs = 1000) {
+  const deadline = Date.now() + timeoutMs
+  while (!predicate()) {
+    if (Date.now() >= deadline) {
+      throw new Error(failureMessage)
+    }
+    await new Promise(resolve => setTimeout(resolve, 0))
+  }
+}
+
+async function settleWithin(promise, failureMessage, timeoutMs = 1000) {
+  let timeout
+  try {
+    return await Promise.race([
+      promise,
+      new Promise((resolve, reject) => {
+        timeout = setTimeout(() => reject(new Error(failureMessage)), timeoutMs)
+      })
+    ])
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
 const utilsSource = await readFile(
   new URL('../src/utils/indexLibraryScheme.js', import.meta.url),
   'utf8'
@@ -216,6 +250,7 @@ let listResponse = {
   rows: [productionRow],
   total: '11'
 }
+let listHandler = () => Promise.resolve(listResponse)
 let deleteResponse = {
   result: 'success',
   msg: '删除指标方案成功'
@@ -226,7 +261,7 @@ const componentContext = {
   normalizeSchemeRow,
   listSchemes(params) {
     listRequests.push(params)
-    return Promise.resolve(listResponse)
+    return listHandler(params)
   },
   deleteScheme(params) {
     deleteRequests.push(params)
@@ -282,6 +317,52 @@ assert.deepStrictEqual(
 assert.strictEqual(listVm.instance.loading, false)
 assert.strictEqual(listVm.instance.pagination.total, 11)
 assert.strictEqual(listVm.instance.dataSource[0].raw, productionRow)
+
+const olderListResponse = deferred()
+const latestListResponse = deferred()
+const listResponseQueue = [olderListResponse, latestListResponse]
+listHandler = () => listResponseQueue.shift().promise
+const concurrentListVm = createListVm()
+const olderListRequest = concurrentListVm.instance.loadData()
+concurrentListVm.instance.queryParam.name = '最新查询'
+const latestListRequest = concurrentListVm.instance.loadData()
+latestListResponse.resolve({
+  result: 'success',
+  rows: [{ ...productionRow, ID: 'latest', SCHEME_DESCR: '最新方案' }],
+  total: '1'
+})
+await settleWithin(latestListRequest, 'latest list request did not settle')
+olderListResponse.resolve({
+  result: 'success',
+  rows: [{ ...productionRow, ID: 'older', SCHEME_DESCR: '过期方案' }],
+  total: '99'
+})
+await settleWithin(olderListRequest, 'older list request did not settle')
+assert.strictEqual(concurrentListVm.instance.dataSource[0].id, 'latest')
+assert.strictEqual(concurrentListVm.instance.pagination.total, 1)
+assert.strictEqual(concurrentListVm.instance.loading, false)
+
+const rejectedOlderListResponse = deferred()
+const pendingLatestListResponse = deferred()
+const rejectionQueue = [rejectedOlderListResponse, pendingLatestListResponse]
+listHandler = () => rejectionQueue.shift().promise
+const rejectedListVm = createListVm()
+const rejectedOlderRequest = rejectedListVm.instance.loadData()
+const pendingLatestRequest = rejectedListVm.instance.loadData()
+rejectedOlderListResponse.reject(new Error('stale request failed'))
+await settleWithin(rejectedOlderRequest, 'rejected older list request did not settle')
+assert.strictEqual(rejectedListVm.instance.loading, true)
+assert.deepStrictEqual(rejectedListVm.messages, [])
+pendingLatestListResponse.resolve({
+  result: 'success',
+  rows: [{ ...productionRow, ID: 'latest-after-reject' }],
+  total: '2'
+})
+await settleWithin(pendingLatestRequest, 'pending latest list request did not settle')
+assert.strictEqual(rejectedListVm.instance.dataSource[0].id, 'latest-after-reject')
+assert.strictEqual(rejectedListVm.instance.pagination.total, 2)
+assert.strictEqual(rejectedListVm.instance.loading, false)
+listHandler = () => Promise.resolve(listResponse)
 
 const invalidDateVm = createListVm()
 invalidDateVm.instance.onDateChange([
@@ -342,6 +423,27 @@ assert.strictEqual(actionVm.instance.pagination.current, 2)
 assert.deepStrictEqual(actionVm.messages, [{
   type: 'success',
   message: '删除指标方案成功'
+}])
+
+const normalizedIdVm = createListVm()
+await normalizedIdVm.instance.handleDelete({
+  id: 'normalized-id',
+  ID: 'legacy-top-level-id',
+  raw: { ID: 'raw-production-id' }
+})
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(deleteRequests.pop())),
+  { schemeId: 'normalized-id' }
+)
+
+const missingIdVm = createListVm()
+const deleteRequestsBeforeMissingId = deleteRequests.length
+const missingIdResult = await missingIdVm.instance.handleDelete({ raw: {} })
+assert.strictEqual(missingIdResult, false)
+assert.strictEqual(deleteRequests.length, deleteRequestsBeforeMissingId)
+assert.deepStrictEqual(missingIdVm.messages, [{
+  type: 'error',
+  message: '方案ID缺失，无法删除'
 }])
 
 const modalSource = await readFile(
@@ -772,27 +874,30 @@ assert.deepStrictEqual(
   JSON.parse(JSON.stringify(previewVm.instance.previewOption))
 )
 
-function deferred() {
-  let resolve
-  const promise = new Promise(done => {
-    resolve = done
-  })
-  return { promise, resolve }
-}
-
 const firstPreview = deferred()
 const secondPreview = deferred()
 const previewQueue = [firstPreview, secondPreview]
 barPreviewHandler = () => previewQueue.shift().promise
 const concurrentVm = createModalVm()
 await concurrentVm.instance.open(modalRecord)
+const requestsBeforeConcurrentPreview = barPreviewRequests.length
 const firstRequest = concurrentVm.instance.handlePreview()
+await waitFor(
+  () => barPreviewRequests.length === requestsBeforeConcurrentPreview + 1 &&
+    previewQueue.length === 1,
+  'first concurrent preview did not issue its API request'
+)
 const secondRequest = concurrentVm.instance.handlePreview()
+await waitFor(
+  () => barPreviewRequests.length === requestsBeforeConcurrentPreview + 2 &&
+    previewQueue.length === 0,
+  'second concurrent preview did not issue its API request'
+)
 secondPreview.resolve({
   ...chartResponse,
   x: ['最新响应']
 })
-await secondRequest
+await settleWithin(secondRequest, 'second concurrent preview did not settle')
 assert.deepStrictEqual(
   JSON.parse(JSON.stringify(concurrentVm.instance.previewResponse.x)),
   ['最新响应']
@@ -802,7 +907,7 @@ firstPreview.resolve({
   ...chartResponse,
   x: ['过期响应']
 })
-await firstRequest
+await settleWithin(firstRequest, 'first concurrent preview did not settle')
 assert.deepStrictEqual(
   JSON.parse(JSON.stringify(concurrentVm.instance.previewResponse.x)),
   ['最新响应']
