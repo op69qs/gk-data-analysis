@@ -6,7 +6,7 @@
                     <a-col :span="8" v-for="item in dataSource" :key="item.id">
                         <a-card hoverable>
                             <img
-                                    v-if="item.type === 'b' || item.type === 't'"
+                                    v-if="isImageGalleryItem(item)"
                                     slot="cover"
                                     alt="example"
                                     :src="getCoverSrc(item)"
@@ -32,7 +32,7 @@
                     <a-col :span="8" v-for="item in dataSource" :key="item.id">
                         <a-card hoverable>
                             <img
-                                    v-if="item.type === 'b' || item.type === 't'"
+                                    v-if="isImageGalleryItem(item)"
                                     slot="cover"
                                     alt="example"
                                     :src="getCoverSrc(item)"
@@ -102,6 +102,12 @@
             };
         },
         methods: {
+            isImageGalleryItem(item) {
+                if (!item) {
+                    return false
+                }
+                return ['h', 'specialHtml', 'v', 'bigNumber'].indexOf(item.type) === -1
+            },
             getCoverSrc(item) {
                 if (!item) {
                     return ''

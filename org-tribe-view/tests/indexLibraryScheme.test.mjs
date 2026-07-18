@@ -385,10 +385,43 @@ assert.match(chartSource, /getDataURL/)
 function sfcScript(source) {
   return source
     .match(/<script>([\s\S]*?)<\/script>/)[1]
-    .replace(/^import[\s\S]*?from ['"][^'"]+['"]\s*$/gm, '')
+    .replace(/^\s*import[\s\S]*?from ['"][^'"]+['"]\s*$/gm, '')
     .replace(/export function /g, 'function ')
     .replace('export default', 'component =')
 }
+
+assert.match(formSource, /:disabled="dateState\.disableStart"/)
+assert.match(formSource, /:disabled="dateState\.disableEnd"/)
+const formContext = {
+  component: null,
+  barIcon: '9.png',
+  lineIcon: '8.png',
+  pieIcon: '10.png',
+  combinedIcon: '7.png',
+  CHART_TYPES
+}
+vm.runInNewContext(sfcScript(formSource), formContext)
+const validateDateSelection = formContext.validateDateSelection
+for (const sample of [
+  ['1', '2', '2026-01-01', '2026-01-31'],
+  ['2', '2', '2026-01', '2026-12'],
+  ['3', '2', '2026Q1', '2026Q4'],
+  ['4', '2', '2026', '2027']
+]) {
+  assert.strictEqual(validateDateSelection(...sample), '')
+}
+assert.strictEqual(validateDateSelection('1', '1', '2026-01-01', ''), '')
+assert.strictEqual(validateDateSelection('2', '1', '2026-01', ''), '')
+assert.strictEqual(validateDateSelection('3', '4', '2026Q2', ''), '')
+assert.strictEqual(validateDateSelection('4', '3', '', ''), '')
+assert.match(validateDateSelection('1', '2', '2026-02-30', '2026-03-01'), /yyyy-MM-dd/)
+assert.match(validateDateSelection('2', '2', '2026-13', '2026-12'), /yyyy-MM/)
+assert.match(validateDateSelection('3', '2', '2026-Q1', '2026Q4'), /yyyyQ\[1-4\]/)
+assert.match(validateDateSelection('4', '2', '26', '2027'), /yyyy/)
+assert.match(validateDateSelection('2', '2', '2026-12', '2026-01'), /开始日期不能大于结束日期/)
+assert.match(validateDateSelection('1', '1', '', ''), /请输入开始日期/)
+assert.match(validateDateSelection('1', '2', '2026-01-01', ''), /请输入结束日期/)
+assert.match(validateDateSelection('4', '4', '', ''), /请输入开始日期/)
 
 const chartContext = {
   component: null,
@@ -426,15 +459,32 @@ assert.deepStrictEqual(
   ['收入', '增长率']
 )
 assert.deepStrictEqual(
-  JSON.parse(JSON.stringify(combinedOption.xAxis.data)),
+  JSON.parse(JSON.stringify(combinedOption.xAxis[0].data)),
   ['一月', '二月']
 )
+assert.strictEqual(Array.isArray(combinedOption.xAxis), true)
+assert.strictEqual(Array.isArray(combinedOption.yAxis), true)
+assert.strictEqual(combinedOption.yAxis.length, 2)
 assert.deepStrictEqual(
   JSON.parse(JSON.stringify(combinedOption.series.map(item => item.type))),
   ['bar', 'line']
 )
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(combinedOption.series.map(item => item.yAxisIndex))),
+  [0, 1]
+)
 assert.strictEqual(combinedOption.series[0].data[0], 0)
 assert.strictEqual(combinedOption.series[1].data[0], '3.2')
+
+const bigScreenOption = JSON.parse(JSON.stringify(combinedOption))
+assert.doesNotThrow(() => {
+  bigScreenOption.yAxis[0].name = '金额(万元)'
+  bigScreenOption.legend.top = '0%'
+  bigScreenOption.legend.width = '75%'
+  bigScreenOption.xAxis[0].data = ['三月']
+})
+assert.strictEqual(bigScreenOption.yAxis[0].name, '金额(万元)')
+assert.deepStrictEqual(bigScreenOption.xAxis[0].data, ['三月'])
 
 for (const type of ['bar', 'line']) {
   const option = chartContext.buildChartOption(type, chartResponse, chartCondition)
@@ -488,6 +538,50 @@ assert.strictEqual(removedResizeListeners[0].listener, chartVm.handleResize)
 assert.strictEqual(disposed, true)
 assert.strictEqual(chartVm.chart, null)
 
+const gallerySource = await readFile(
+  new URL('../src/views/vis/GalleryList.vue', import.meta.url),
+  'utf8'
+)
+assert.strictEqual(
+  (gallerySource
+    .split('<script>')[0]
+    .match(/isImageGalleryItem\(item\)/g) || []).length,
+  2
+)
+const galleryContext = {
+  component: null,
+  ListMixin: {},
+  GalleryListModal: {},
+  getBusinessTypeList() {
+    return Promise.resolve({ result: 'success', rows: [] })
+  },
+  getGalleryList() {
+    return Promise.resolve({ result: 'success', rows: [], total: 0 })
+  },
+  resolveVisMediaUrl(value) {
+    return value
+  }
+}
+vm.runInNewContext(sfcScript(gallerySource), galleryContext)
+const galleryComponent = galleryContext.component
+for (const type of ['b', 't', 'bar', 'line', 'pie', 'barAndLine']) {
+  assert.strictEqual(
+    galleryComponent.methods.isImageGalleryItem({
+      type,
+      content: 'data:image/png;base64,preview'
+    }),
+    true,
+    `${type} should render an image cover`
+  )
+}
+for (const type of ['h', 'specialHtml', 'v', 'bigNumber']) {
+  assert.strictEqual(
+    galleryComponent.methods.isImageGalleryItem({ type, content: 'content' }),
+    false,
+    `${type} should preserve its non-image behavior`
+  )
+}
+
 const indexInfoRequests = []
 const barPreviewRequests = []
 const piePreviewRequests = []
@@ -501,6 +595,7 @@ let indexInfoResponse = {
   ]
 }
 let barPreviewResponse = chartResponse
+let barPreviewHandler = () => Promise.resolve(barPreviewResponse)
 let piePreviewResponse = {
   result: 'success',
   type: 'pie',
@@ -526,7 +621,7 @@ const modalContext = {
   },
   previewBarLine(params) {
     barPreviewRequests.push(params)
-    return Promise.resolve(barPreviewResponse)
+    return barPreviewHandler(params)
   },
   previewPie(params) {
     piePreviewRequests.push(params)
@@ -590,7 +685,9 @@ function createModalVm() {
 const modalRecord = {
   ID: 'scheme-modal',
   SCHEME_DESCR: '财政收入',
-  SCHEME_COLUMS: 'I1,I2',
+  INDEX_NAME: '收入,增长率',
+  ADD_DATE: '2026-07-01',
+  realname: '管理员',
   SCHEME_CONDITON: JSON.stringify({
     SCHEME_ID: 'scheme-modal',
     SCHEME_COLUMNS: [
@@ -609,7 +706,10 @@ const modalRecord = {
     INDEX_NAME: 'I1',
     X_TURN: '0',
     TYPE: 'barAndLine',
-    TITLE: '财政收入趋势'
+    TITLE: '财政收入趋势',
+    DIMENSION_TYPE: 'g',
+    TITLE_OLD: '历史标题',
+    ADD_USER: 'user-1'
   })
 }
 const openVm = createModalVm()
@@ -664,10 +764,69 @@ assert.strictEqual(
   typeof previewVm.instance.frozenCondition.option,
   'string'
 )
+assert.strictEqual(previewVm.instance.frozenCondition.dimension_type, 'g')
+assert.strictEqual(previewVm.instance.frozenCondition.title_old, '历史标题')
+assert.strictEqual(previewVm.instance.frozenCondition.add_user, 'user-1')
 assert.deepStrictEqual(
   JSON.parse(previewVm.instance.frozenCondition.option),
   JSON.parse(JSON.stringify(previewVm.instance.previewOption))
 )
+
+function deferred() {
+  let resolve
+  const promise = new Promise(done => {
+    resolve = done
+  })
+  return { promise, resolve }
+}
+
+const firstPreview = deferred()
+const secondPreview = deferred()
+const previewQueue = [firstPreview, secondPreview]
+barPreviewHandler = () => previewQueue.shift().promise
+const concurrentVm = createModalVm()
+await concurrentVm.instance.open(modalRecord)
+const firstRequest = concurrentVm.instance.handlePreview()
+const secondRequest = concurrentVm.instance.handlePreview()
+secondPreview.resolve({
+  ...chartResponse,
+  x: ['最新响应']
+})
+await secondRequest
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(concurrentVm.instance.previewResponse.x)),
+  ['最新响应']
+)
+assert.strictEqual(concurrentVm.instance.previewLoading, false)
+firstPreview.resolve({
+  ...chartResponse,
+  x: ['过期响应']
+})
+await firstRequest
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(concurrentVm.instance.previewResponse.x)),
+  ['最新响应']
+)
+assert.strictEqual(concurrentVm.instance.previewLoading, false)
+barPreviewHandler = () => Promise.resolve(barPreviewResponse)
+
+const sparseCondition = JSON.parse(modalRecord.SCHEME_CONDITON)
+delete sparseCondition.DIMENSION_TYPE
+delete sparseCondition.TITLE_OLD
+delete sparseCondition.ADD_USER
+const sparseVm = createModalVm()
+await sparseVm.instance.open({
+  ...modalRecord,
+  SCHEME_CONDITON: JSON.stringify(sparseCondition)
+})
+await sparseVm.instance.handlePreview()
+for (const field of ['dimension_type', 'title_old', 'add_user']) {
+  assert.strictEqual(
+    Object.prototype.hasOwnProperty.call(sparseVm.instance.frozenCondition, field),
+    false,
+    `${field} must not be inferred`
+  )
+}
 
 const frozenTitle = previewVm.instance.frozenCondition.title
 previewVm.instance.form.title = '保存时不得覆盖冻结标题'

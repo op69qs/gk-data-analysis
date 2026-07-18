@@ -111,7 +111,11 @@
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
         >
-          <a-input v-model.trim="form.startDate" placeholder="开始日期" />
+          <a-input
+            v-model.trim="form.startDate"
+            :disabled="dateState.disableStart"
+            :placeholder="startDatePlaceholder"
+          />
         </a-form-model-item>
       </a-col>
       <a-col :xs="24" :sm="12">
@@ -121,7 +125,11 @@
           :label-col="{ span: 10 }"
           :wrapper-col="{ span: 14 }"
         >
-          <a-input v-model.trim="form.endDate" placeholder="结束日期" />
+          <a-input
+            v-model.trim="form.endDate"
+            :disabled="dateState.disableEnd"
+            :placeholder="endDatePlaceholder"
+          />
         </a-form-model-item>
       </a-col>
     </a-row>
@@ -209,6 +217,48 @@ const ICONS = {
   barAndLine: combinedIcon
 }
 
+const DATE_FORMATS = {
+  1: {
+    hint: 'yyyy-MM-dd',
+    valid(value) {
+      const match = /^([1-9]\d{3})-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.exec(value)
+      if (!match) return false
+      const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
+      return date.getUTCFullYear() === Number(match[1]) &&
+        date.getUTCMonth() === Number(match[2]) - 1 &&
+        date.getUTCDate() === Number(match[3])
+    }
+  },
+  2: {
+    hint: 'yyyy-MM',
+    valid: value => /^[1-9]\d{3}-(0[1-9]|1[0-2])$/.test(value)
+  },
+  3: {
+    hint: 'yyyyQ[1-4]',
+    valid: value => /^[1-9]\d{3}Q[1-4]$/.test(value)
+  },
+  4: {
+    hint: 'yyyy',
+    valid: value => /^[1-9]\d{3}$/.test(value)
+  }
+}
+
+export function validateDateSelection(periodFlag, timeType, startDate, endDate) {
+  const mode = String(timeType || '')
+  const format = DATE_FORMATS[String(periodFlag)] || DATE_FORMATS[1]
+  if (mode === '3') return ''
+  if (!startDate) return '请输入开始日期'
+  if (!format.valid(String(startDate))) {
+    return `开始日期格式应为 ${format.hint}`
+  }
+  if (mode === '1' || mode === '4') return ''
+  if (!endDate) return '请输入结束日期'
+  if (!format.valid(String(endDate))) {
+    return `结束日期格式应为 ${format.hint}`
+  }
+  return String(startDate) > String(endDate) ? '开始日期不能大于结束日期' : ''
+}
+
 export default {
   name: 'IndexLibraryConvertForm',
   props: {
@@ -238,8 +288,8 @@ export default {
         dimensionFlag: [{ required: true, message: '请选择维度', trigger: 'change' }],
         periodFlag: [{ required: true, message: '请选择时间粒度', trigger: 'change' }],
         timeType: [{ required: true, message: '请选择时间范围', trigger: 'change' }],
-        startDate: [{ required: true, message: '请输入开始日期', trigger: 'blur' }],
-        endDate: [{ required: true, message: '请输入结束日期', trigger: 'blur' }],
+        startDate: [{ validator: this.validateDateField, trigger: ['blur', 'change'] }],
+        endDate: [{ validator: this.validateDateField, trigger: ['blur', 'change'] }],
         price: [{ required: true, message: '请输入单位值', trigger: 'blur' }]
       }
     }
@@ -249,11 +299,41 @@ export default {
       return Array.isArray(this.form.schemecolumns)
         ? this.form.schemecolumns.map(item => String(item.chartId))
         : []
+    },
+    dateState() {
+      const mode = String(this.form.timeType || '')
+      return {
+        disableStart: mode === '3',
+        disableEnd: mode === '1' || mode === '3' || mode === '4'
+      }
+    },
+    dateFormatHint() {
+      const format = DATE_FORMATS[String(this.form.periodFlag)] || DATE_FORMATS[1]
+      return format.hint
+    },
+    startDatePlaceholder() {
+      return this.dateState.disableStart
+        ? '后端按当前时间计算'
+        : `格式：${this.dateFormatHint}`
+    },
+    endDatePlaceholder() {
+      return this.dateState.disableEnd
+        ? '该时间类型无需填写'
+        : `格式：${this.dateFormatHint}`
     }
   },
   methods: {
     validate(callback) {
       this.$refs.modelForm.validate(callback)
+    },
+    validateDateField(rule, value, callback) {
+      const message = validateDateSelection(
+        this.form.periodFlag,
+        this.form.timeType,
+        this.form.startDate,
+        this.form.endDate
+      )
+      callback(message ? new Error(message) : undefined)
     },
     selectChartType(type) {
       this.form.type = type

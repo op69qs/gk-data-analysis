@@ -41,13 +41,17 @@ export function buildCartesianSeries(type, response, condition) {
   const values = Array.isArray(response.data) ? response.data : []
   return values.map((data, index) => {
     const item = indexInfoList[index]
-    return {
+    const series = {
       name: seriesName(item, index),
       type: type === 'barAndLine'
         ? combinedSeriesType(item, index, condition)
         : type,
       data: Array.isArray(data) ? data.slice() : []
     }
+    if (type === 'barAndLine') {
+      series.yAxisIndex = item && String(item.INDEX_TYPE) === '1' ? 1 : 0
+    }
+    return series
   })
 }
 
@@ -77,7 +81,19 @@ export function buildChartOption(type, response, condition) {
   const indexInfoList = Array.isArray(source.indexInfoList)
     ? source.indexInfoList
     : []
-  return {
+  const xAxis = {
+    type: 'category',
+    data: Array.isArray(source.x) ? source.x.slice() : [],
+    axisLine: { lineStyle: { color: '#788696' } },
+    axisLabel: { color: '#d9e2ec' }
+  }
+  const valueAxis = {
+    type: 'value',
+    axisLine: { lineStyle: { color: '#788696' } },
+    axisLabel: { color: '#d9e2ec' },
+    splitLine: { lineStyle: { color: '#3b424a' } }
+  }
+  const option = {
     backgroundColor: '#252a30',
     color: ['#29a3ff', '#f4cb3f', '#31c5a4', '#ef7f5a', '#8b7cf6'],
     textStyle: { color: '#d9e2ec' },
@@ -92,20 +108,26 @@ export function buildChartOption(type, response, condition) {
       bottom: 42,
       left: 68
     },
-    xAxis: {
-      type: 'category',
-      data: Array.isArray(source.x) ? source.x.slice() : [],
-      axisLine: { lineStyle: { color: '#788696' } },
-      axisLabel: { color: '#d9e2ec' }
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: { lineStyle: { color: '#788696' } },
-      axisLabel: { color: '#d9e2ec' },
-      splitLine: { lineStyle: { color: '#3b424a' } }
-    },
+    xAxis,
+    yAxis: valueAxis,
     series: buildCartesianSeries(type, source, condition)
   }
+  if (type === 'barAndLine') {
+    option.xAxis = [xAxis]
+    option.yAxis = [
+      valueAxis,
+      {
+        ...valueAxis,
+        position: 'right',
+        axisLabel: {
+          color: '#d9e2ec',
+          formatter: '{value}%'
+        },
+        splitLine: { show: false }
+      }
+    ]
+  }
+  return option
 }
 
 export default {

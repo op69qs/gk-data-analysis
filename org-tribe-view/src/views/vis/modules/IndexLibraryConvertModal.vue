@@ -170,7 +170,14 @@ export default {
       }
     },
     loadIndexInfo() {
-      const columns = this.record && this.record.SCHEME_COLUMS
+      const conditionColumns = this.condition &&
+        Array.isArray(this.condition.schemecolumns)
+        ? this.condition.schemecolumns
+          .map(item => item && item.chartId)
+          .filter(id => id !== undefined && id !== null && id !== '')
+          .join(',')
+        : ''
+      const columns = (this.record && this.record.SCHEME_COLUMS) || conditionColumns
       if (!columns) {
         this.indexOptions = []
         return Promise.resolve(false)
@@ -230,7 +237,16 @@ export default {
       return true
     },
     handlePreview() {
+      const revision = ++this.previewRevision
+      this.previewLoading = false
+      this.previewReady = false
+      this.previewOption = null
+      this.previewResponse = null
+      this.frozenCondition = null
+      this.previewState = 'idle'
+      this.previewMessage = ''
       return this.validateForm().then(valid => {
+        if (revision !== this.previewRevision) return false
         if (!valid || !this.validatePieFields()) return false
         let payload
         try {
@@ -240,7 +256,6 @@ export default {
           return false
         }
 
-        const revision = this.previewRevision
         const request = payload.type === 'pie' ? previewPie : previewBarLine
         this.previewLoading = true
         this.previewReady = false
