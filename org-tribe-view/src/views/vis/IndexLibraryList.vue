@@ -3,12 +3,12 @@
     <div class="table-page-search-wrapper">
       <a-form layout="inline" @keyup.enter.native="searchQuery">
         <a-row :gutter="24">
-          <a-col :md="6" :sm="12">
+          <a-col :md="6" :sm="24">
             <a-form-item label="方案名称">
               <a-input placeholder="请输入关键字" v-model="queryParam.name"></a-input>
             </a-form-item>
           </a-col>
-          <a-col :md="8" :sm="16">
+          <a-col :md="8" :sm="24">
             <a-form-item label="创建日期">
               <a-range-picker
                 v-model="createDateRange"
@@ -19,10 +19,10 @@
               />
             </a-form-item>
           </a-col>
-          <a-col :md="6" :sm="8">
+          <a-col :md="6" :sm="24">
             <span class="table-page-search-submitButtons" style="float: left; overflow: hidden;">
               <a-button type="primary" icon="search" @click="searchQuery">查询</a-button>
-              <a-button type="primary" icon="reload" style="margin-left: 8px" @click="handleReset">重置</a-button>
+              <a-button icon="reload" style="margin-left: 8px" @click="handleReset">重置</a-button>
             </span>
           </a-col>
         </a-row>
@@ -37,18 +37,22 @@
         rowKey="id"
         :columns="columns"
         :dataSource="dataSource"
-        :pagination="ipagination"
+        :pagination="pagination"
         :loading="loading"
+        :scroll="{ x: 800 }"
         @change="handleTableChange"
       >
-        <template slot="serial" slot-scope="text, record, index">
-          {{ (ipagination.current - 1) * ipagination.pageSize + index + 1 }}
+        <template slot="indexName" slot-scope="text, record">
+          {{ record.raw && record.raw.INDEX_NAME }}
+        </template>
+        <template slot="creator" slot-scope="text, record">
+          {{ record.raw && record.raw.realname }}
         </template>
         <template slot="action" slot-scope="text, record">
-          <a @click="handleConvert(record)">转图</a>
+          <a href="#" @click.prevent="handleConvert(record)">转图</a>
           <a-divider type="vertical" />
-          <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete({ id: record.id })">
-            <a>删除</a>
+          <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete(record)">
+            <a href="#" @click.prevent>删除</a>
           </a-popconfirm>
         </template>
       </a-table>
@@ -59,38 +63,55 @@
 </template>
 
 <script>
-import { ListMixin } from '@/mixins/ListMixin'
+import { listSchemes, deleteScheme } from '@/api/indexLibraryScheme'
+import { normalizeSchemeRow } from '@/utils/indexLibraryScheme'
 import IndexLibraryConvertModal from './modules/IndexLibraryConvertModal'
 
 export default {
   name: 'IndexLibraryList',
-  mixins: [ListMixin],
   components: { IndexLibraryConvertModal },
   data() {
     return {
       createDateRange: [],
-      queryParam: {},
+      queryParam: {
+        name: '',
+        begin_time: '',
+        end_time: ''
+      },
+      loading: false,
+      dataSource: [],
+      pagination: {
+        current: 1,
+        pageSize: 10,
+        pageSizeOptions: ['10', '20', '50'],
+        showQuickJumper: true,
+        showSizeChanger: true,
+        showTotal: total => `共${total}条`,
+        total: 0
+      },
       columns: [
         {
-          title: '序号',
-          dataIndex: 'serial',
-          align: 'center',
-          width: 80,
-          scopedSlots: { customRender: 'serial' }
+          title: '方案名称',
+          dataIndex: 'name',
+          width: 220
         },
         {
-          title: '名称',
-          dataIndex: 'name'
-        },
-        {
-          title: '创建时间',
-          align: 'center',
-          dataIndex: 'create_time'
+          title: '指标名称',
+          dataIndex: 'indexName',
+          scopedSlots: { customRender: 'indexName' }
         },
         {
           title: '创建人',
           align: 'center',
-          dataIndex: 'username'
+          dataIndex: 'username',
+          width: 140,
+          scopedSlots: { customRender: 'creator' }
+        },
+        {
+          title: '创建时间',
+          align: 'center',
+          dataIndex: 'createTime',
+          width: 180
         },
         {
           title: '操作',
@@ -99,25 +120,94 @@ export default {
           align: 'center',
           width: 160
         }
-      ],
-      url: {
-        list: '/vis/api/indexLibraryScheme/getPage',
-        delete: '/vis/api/indexLibraryScheme/del'
-      }
+      ]
     }
+  },
+  created() {
+    this.loadData()
   },
   methods: {
     onDateChange(dates, dateStrings) {
-      this.queryParam.startDate = dateStrings[0] || undefined
-      this.queryParam.endDate = dateStrings[1] || undefined
+      this.queryParam.begin_time = this.formatDateValue(dates[0], dateStrings[0])
+      this.queryParam.end_time = this.formatDateValue(dates[1], dateStrings[1])
+    },
+    formatDateValue(date, fallback) {
+      if (date && typeof date.format === 'function') {
+        return date.format('YYYY-MM-DD')
+      }
+      return fallback || ''
+    },
+    searchQuery() {
+      this.pagination.current = 1
+      return this.loadData()
     },
     handleReset() {
       this.createDateRange = []
-      this.queryParam = {}
-      this.searchQuery()
+      this.queryParam = {
+        name: '',
+        begin_time: '',
+        end_time: ''
+      }
+      return this.searchQuery()
+    },
+    loadData() {
+      const beginTime = this.queryParam.begin_time || ''
+      const endTime = this.queryParam.end_time || ''
+      if (beginTime && endTime && beginTime > endTime) {
+        this.$message.error('开始日期不能大于结束日期')
+        return Promise.resolve(false)
+      }
+
+      const params = {
+        name: this.queryParam.name || '',
+        begin_time: beginTime,
+        end_time: endTime,
+        pageNo: this.pagination.current,
+        pageSize: this.pagination.pageSize
+      }
+      this.loading = true
+      return listSchemes(params).then(res => {
+        if (res && res.result === 'success') {
+          const rows = Array.isArray(res.rows) ? res.rows : []
+          this.dataSource = rows.map(normalizeSchemeRow)
+          this.pagination.total = Number(res.total) || 0
+        } else {
+          this.dataSource = []
+          this.pagination.total = 0
+          this.$message.error((res && res.msg) || '方案列表加载失败')
+        }
+      }).catch(() => {
+        this.dataSource = []
+        this.pagination.total = 0
+        this.$message.error('方案列表加载失败，请稍后重试')
+      }).finally(() => {
+        this.loading = false
+      })
+    },
+    handleTableChange(pagination) {
+      this.pagination.current = pagination.current
+      this.pagination.pageSize = pagination.pageSize
+      return this.loadData()
+    },
+    handleDelete(record) {
+      const schemeId = record.ID || (record.raw && record.raw.ID)
+      return deleteScheme({ schemeId }).then(res => {
+        if (res && res.result === 'success') {
+          this.$message.success(res.msg || '删除指标方案成功')
+          if (this.dataSource.length === 1 && this.pagination.current > 1) {
+            this.pagination.current -= 1
+          }
+          return this.loadData()
+        }
+        this.$message.error((res && res.msg) || '删除指标方案失败')
+        return false
+      }).catch(() => {
+        this.$message.error('删除指标方案失败，请稍后重试')
+        return false
+      })
     },
     handleConvert(record) {
-      this.$refs.convertModal.open(record)
+      this.$refs.convertModal.open(record.raw)
     }
   }
 }

@@ -1,5 +1,6 @@
 import assert from 'assert'
 import { readFile } from 'fs/promises'
+import vm from 'vm'
 
 const utilsSource = await readFile(
   new URL('../src/utils/indexLibraryScheme.js', import.meta.url),
@@ -187,5 +188,160 @@ assert.strictEqual((apiSource.match(/postAction\(/g) || []).length, 7)
 assert.strictEqual(/IndexPie\/getIndexPieData[\s\S]+IndexPie\/saveIndexPie/.test(apiSource), true)
 assert.strictEqual(/IndexBarLine\/getIndexBarLineData[\s\S]+IndexBarLine\/saveIndexBarLine/.test(apiSource), true)
 assert.strictEqual(/Index(Map|Strip|BigNumber)|schemeSql/.test(apiSource), false)
+
+const listSource = await readFile(
+  new URL('../src/views/vis/IndexLibraryList.vue', import.meta.url),
+  'utf8'
+)
+assert.match(listSource, /begin_time/)
+assert.match(listSource, /end_time/)
+assert.match(listSource, /listSchemes/)
+assert.match(listSource, /deleteScheme/)
+assert.match(listSource, /normalizeSchemeRow/)
+assert.match(listSource, /INDEX_NAME/)
+assert.match(listSource, /realname/)
+assert.match(listSource, /convertModal\.open\(record\.raw\)/)
+assert.doesNotMatch(listSource, /indexLibraryScheme\/getPage/)
+assert.doesNotMatch(listSource, /indexLibraryScheme\/del/)
+assert.doesNotMatch(listSource, /ListMixin/)
+
+const componentScript = listSource
+  .match(/<script>([\s\S]*?)<\/script>/)[1]
+  .replace(/^import .*$/gm, '')
+  .replace('export default', 'component =')
+const listRequests = []
+const deleteRequests = []
+let listResponse = {
+  result: 'success',
+  rows: [productionRow],
+  total: '11'
+}
+let deleteResponse = {
+  result: 'success',
+  msg: '删除指标方案成功'
+}
+const componentContext = {
+  component: null,
+  IndexLibraryConvertModal: {},
+  normalizeSchemeRow,
+  listSchemes(params) {
+    listRequests.push(params)
+    return Promise.resolve(listResponse)
+  },
+  deleteScheme(params) {
+    deleteRequests.push(params)
+    return Promise.resolve(deleteResponse)
+  }
+}
+vm.runInNewContext(componentScript, componentContext)
+const listComponent = componentContext.component
+
+function createListVm() {
+  const messages = []
+  const openedRecords = []
+  const instance = {
+    ...listComponent.data(),
+    $message: {
+      error(message) {
+        messages.push({ type: 'error', message })
+      },
+      success(message) {
+        messages.push({ type: 'success', message })
+      }
+    },
+    $refs: {
+      convertModal: {
+        open(record) {
+          openedRecords.push(record)
+        }
+      }
+    }
+  }
+  Object.assign(instance, listComponent.methods)
+  return { instance, messages, openedRecords }
+}
+
+const listVm = createListVm()
+listVm.instance.queryParam = {
+  name: '收入',
+  begin_time: '2026-01-01',
+  end_time: '2026-01-31'
+}
+listVm.instance.pagination.current = 2
+await listVm.instance.loadData()
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(listRequests.pop())),
+  {
+  name: '收入',
+  begin_time: '2026-01-01',
+  end_time: '2026-01-31',
+  pageNo: 2,
+  pageSize: 10
+  }
+)
+assert.strictEqual(listVm.instance.loading, false)
+assert.strictEqual(listVm.instance.pagination.total, 11)
+assert.strictEqual(listVm.instance.dataSource[0].raw, productionRow)
+
+const invalidDateVm = createListVm()
+invalidDateVm.instance.onDateChange([
+  { format: pattern => pattern === 'YYYY-MM-DD' ? '2026-02-01' : '' },
+  { format: pattern => pattern === 'YYYY-MM-DD' ? '2026-01-31' : '' }
+], ['unstable-start', 'unstable-end'])
+assert.strictEqual(invalidDateVm.instance.queryParam.begin_time, '2026-02-01')
+assert.strictEqual(invalidDateVm.instance.queryParam.end_time, '2026-01-31')
+invalidDateVm.instance.queryParam = {
+  name: '',
+  begin_time: '2026-02-01',
+  end_time: '2026-01-31'
+}
+const requestsBeforeInvalidDate = listRequests.length
+await invalidDateVm.instance.loadData()
+assert.strictEqual(listRequests.length, requestsBeforeInvalidDate)
+assert.deepStrictEqual(invalidDateVm.messages, [{
+  type: 'error',
+  message: '开始日期不能大于结束日期'
+}])
+
+const paginationVm = createListVm()
+paginationVm.instance.pagination.current = 4
+await paginationVm.instance.searchQuery()
+assert.strictEqual(paginationVm.instance.pagination.current, 1)
+paginationVm.instance.queryParam = {
+  name: '待重置',
+  begin_time: '2026-01-01',
+  end_time: '2026-01-31'
+}
+paginationVm.instance.createDateRange = ['start', 'end']
+await paginationVm.instance.handleReset()
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(paginationVm.instance.queryParam)),
+  {
+    name: '',
+    begin_time: '',
+    end_time: ''
+  }
+)
+assert.strictEqual(paginationVm.instance.createDateRange.length, 0)
+await paginationVm.instance.handleTableChange({ current: 3, pageSize: 20 })
+assert.strictEqual(paginationVm.instance.pagination.current, 3)
+assert.strictEqual(paginationVm.instance.pagination.pageSize, 20)
+
+const actionVm = createListVm()
+const normalizedRow = normalizeSchemeRow(productionRow)
+actionVm.instance.handleConvert(normalizedRow)
+assert.strictEqual(actionVm.openedRecords[0], productionRow)
+actionVm.instance.dataSource = [normalizedRow]
+actionVm.instance.pagination.current = 3
+await actionVm.instance.handleDelete(normalizedRow)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(deleteRequests.pop())),
+  { schemeId: 's1' }
+)
+assert.strictEqual(actionVm.instance.pagination.current, 2)
+assert.deepStrictEqual(actionVm.messages, [{
+  type: 'success',
+  message: '删除指标方案成功'
+}])
 
 console.log('indexLibraryScheme tests passed')
