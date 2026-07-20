@@ -258,7 +258,8 @@ Expected: `indexLibraryScheme tests passed` 和 `Vue template compile passed`。
 - [ ] **Step 5: 提交 Task 2**
 
 ```bash
-git add org-tribe-view/src/views/vis/modules/IndexLibraryConvertForm.vue \
+git add org-tribe-view/src/utils/indexLibraryScheme.js \
+        org-tribe-view/src/views/vis/modules/IndexLibraryConvertForm.vue \
         org-tribe-view/tests/indexLibraryScheme.test.mjs
 git commit -m "feat(vis): restore production index chart form"
 ```
