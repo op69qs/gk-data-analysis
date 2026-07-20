@@ -159,6 +159,7 @@ git commit -m "test(vis): lock production chart form contract"
 ### Task 2: 复刻生产单列表单
 
 **Files:**
+- Modify: `org-tribe-view/src/utils/indexLibraryScheme.js`
 - Modify: `org-tribe-view/src/views/vis/modules/IndexLibraryConvertForm.vue`
 - Modify: `org-tribe-view/tests/indexLibraryScheme.test.mjs`
 
@@ -226,12 +227,19 @@ Expected: 生产表单结构或验证断言失败。
 要求：
 
 - `form.type` 与 `chartValue` 映射仍使用既有 `CHART_TYPES`；
+- 切换图型时清理 `direction/GK/indexName/dateId`，并将 `xTurn`
+  恢复为生产默认账期模式，防止饼图的 `X/Y` 被柱图当作维度编码；
 - 指标显示为 `indexOptions.map(item => item.name).join('、')` 的禁用输入；
 - 维度、周期、单位使用禁用 select；
 - 日/月使用 `el-date-picker`；季使用现有 `dataMonth.vue`；年区间使用 `dataYear.vue`；
 - 所有候选项来自方案条件或生产接口已经返回的数据；
 - 按钮文案必须是“生成图片”，由 `$emit('generate')` 触发父组件预览；
 - 已生成状态由 prop `generated` 控制颜色和渐变区域。
+- 非饼图 `xTurn='1'` 时，`buildPreviewPayload` 必须把所选
+  `dateId` 转换成 `startDate=endDate=dateId`，且不得把 `dateId`
+  发送给后端；`timeType='4'` 单时间同样发送相同起止边界。
+- 柱折 `chartDirection` 只允许 `Columnar/Line`；非法回显按指标顺序
+  规范化，删除至空必须阻止生成。
 
 - [ ] **Step 4: 运行测试和 Vue 模板编译**
 
@@ -267,10 +275,12 @@ git commit -m "feat(vis): restore production index chart form"
 **Interfaces:**
 - Consumes: Task 2 的 `generate` 事件和 `generated` prop。
 - Produces:
-  - `handleGenerate(): Promise<boolean>`
-  - `handleOk(): Promise<boolean>`
-  - `invalidatePreview(): void`
-  - `buildChartOption(type, response, condition)` 支持 `condition.colourArray` 和 `condition.isGradual`。
+- `handleGenerate(): Promise<boolean>`
+- `handleOk(): Promise<boolean>`
+- `invalidatePreview(): void`
+- `buildChartOption(type, response, condition)` 支持 `condition.colourArray` 和 `condition.isGradual`。
+- `hasGeneratedPreview: boolean` 仅控制生成后的颜色/渐变区可见性；
+  `previewReady: boolean` 单独控制当前配置是否允许保存。
 
 - [ ] **Step 1: 增加状态机 RED 测试**
 
@@ -316,9 +326,9 @@ Expected: 新状态机或模板断言失败。
 >
   <index-library-convert-form
     ref="convertForm"
-    :form="form"
-    :index-options="indexOptions"
-    :generated="previewReady"
+  :form="form"
+  :index-options="indexOptions"
+    :generated="hasGeneratedPreview"
     @generate="handleGenerate"
   />
   <index-library-chart-preview
@@ -335,6 +345,12 @@ Expected: 新状态机或模板断言失败。
 `handleOk` 复用既有保存逻辑，并继续以冻结条件生成保存 payload。
 `modalTitle` 返回 `${方案名称} - 转图`，与生产演示一致；方案名称为空时回退
 为“转图”。
+
+首次生成成功时同时设置 `hasGeneratedPreview=true` 与
+`previewReady=true`。后续标题、时间、横轴、颜色、渐变、比率或柱折方向
+变化时，只将 `previewReady=false` 并保留 `hasGeneratedPreview=true`，
+从而让生产后处理控件继续可见，但要求重新点击“生成图片”才能确定保存。
+关闭或切换方案时两者都清零。
 
 - [ ] **Step 4: 在 Preview 应用生产颜色和渐变**
 
