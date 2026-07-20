@@ -1,71 +1,50 @@
 <template>
   <a-modal
-    title="指标方案转图"
+    :title="modalTitle"
     width="80%"
     :visible="visible"
     :maskClosable="false"
     :destroyOnClose="true"
+    :confirmLoading="saving"
+    :okButtonProps="{ props: { disabled: !previewReady || saving } }"
+    cancelText="关闭"
+    okText="确定"
     wrapClassName="index-library-convert-modal"
+    @ok="handleOk"
     @cancel="handleCancel"
   >
-    <div class="convert-layout">
-      <section class="config-panel" aria-labelledby="chart-config-title">
-        <h3 id="chart-config-title" class="panel-title">图表配置</h3>
-        <index-library-convert-form
-          ref="convertForm"
-          :form="form"
-          :index-options="indexOptions"
-          :index-loading="indexLoading"
+    <index-library-convert-form
+      ref="convertForm"
+      :form="form"
+      :index-options="indexOptions"
+      :index-loading="indexLoading"
+      :generated="hasGeneratedPreview"
+      @generate="handleGenerate"
+    />
+
+    <section
+      v-if="hasGeneratedPreview || previewLoading || previewState !== 'idle'"
+      class="preview-panel"
+      aria-live="polite"
+    >
+      <a-spin :spinning="previewLoading">
+        <index-library-chart-preview
+          v-if="previewState === 'ready'"
+          ref="chartPreview"
+          :type="frozenCondition.type"
+          :response="previewResponse"
+          :condition="frozenCondition"
         />
-      </section>
-
-      <section
-        class="preview-panel"
-        aria-labelledby="chart-preview-title"
-        aria-live="polite"
-      >
-        <div class="preview-heading">
-          <h3 id="chart-preview-title" class="panel-title">图表预览</h3>
-          <span class="preview-status">
-            {{ previewReady ? '当前配置已预览' : '配置变化后需重新预览' }}
-          </span>
-        </div>
-        <a-spin :spinning="previewLoading">
-          <index-library-chart-preview
-            v-if="previewState === 'ready'"
-            ref="chartPreview"
-            :type="frozenCondition.type"
-            :response="previewResponse"
-            :condition="frozenCondition"
-          />
-          <a-empty
-            v-else-if="previewState === 'empty'"
-            description="暂无可预览数据"
-          />
-          <a-empty
-            v-else-if="previewState === 'error'"
-            :description="previewMessage || '预览失败，请检查配置'"
-          />
-          <div v-else class="preview-placeholder">
-            <a-icon type="bar-chart" />
-            <p>完成配置后点击“预览图表”查看真实数据</p>
-          </div>
-        </a-spin>
-      </section>
-    </div>
-
-    <template slot="footer">
-      <a-button @click="handleCancel">关闭</a-button>
-      <a-button :loading="previewLoading" @click="handlePreview">预览图表</a-button>
-      <a-button
-        type="primary"
-        :disabled="!previewReady || saving"
-        :loading="saving"
-        @click="handleSave"
-      >
-        保存图表
-      </a-button>
-    </template>
+        <a-empty
+          v-else-if="previewState === 'empty'"
+          description="暂无可预览数据"
+        />
+        <a-empty
+          v-else-if="previewState === 'error'"
+          :description="previewMessage || '生成图片失败，请检查配置'"
+        />
+      </a-spin>
+    </section>
   </a-modal>
 </template>
 
@@ -125,20 +104,34 @@ export default {
       indexLoading: false,
       previewLoading: false,
       saving: false,
+      hasGeneratedPreview: false,
       previewReady: false,
       previewState: 'idle',
       previewMessage: '',
       previewResponse: null,
       previewOption: null,
       frozenCondition: null,
+      generatedFormSnapshot: '',
       indexInfoRevision: 0,
       previewRevision: 0
+    }
+  },
+  computed: {
+    modalTitle() {
+      const name = this.form && this.form.schemeName
+      return name ? `${name} - 转图` : '转图'
     }
   },
   watch: {
     form: {
       deep: true,
       handler() {
+        if (
+          this.generatedFormSnapshot &&
+          this.previewFormSignature() === this.generatedFormSnapshot
+        ) {
+          return
+        }
         this.invalidatePreview()
       }
     }
@@ -147,6 +140,7 @@ export default {
     open(record) {
       this.indexInfoRevision += 1
       this.indexLoading = false
+      this.resetPreview()
       try {
         this.record = record || {}
         this.condition = parseSchemeCondition(this.record.SCHEME_CONDITON)
@@ -164,7 +158,6 @@ export default {
           GK: initial.GK,
           indexName: initial.indexName
         }
-        this.invalidatePreview()
         this.visible = true
         return this.loadIndexInfo()
       } catch (error) {
@@ -214,11 +207,29 @@ export default {
       this.previewRevision += 1
       this.previewLoading = false
       this.previewReady = false
+      this.generatedFormSnapshot = ''
+      if (!this.hasGeneratedPreview) {
+        this.previewOption = null
+        this.previewResponse = null
+        this.frozenCondition = null
+        this.previewState = 'idle'
+        this.previewMessage = ''
+      }
+    },
+    resetPreview() {
+      this.previewRevision += 1
+      this.previewLoading = false
+      this.hasGeneratedPreview = false
+      this.previewReady = false
       this.previewOption = null
       this.previewResponse = null
       this.frozenCondition = null
       this.previewState = 'idle'
       this.previewMessage = ''
+      this.generatedFormSnapshot = ''
+    },
+    previewFormSignature() {
+      return JSON.stringify(this.form || {})
     },
     async validateForm() {
       if (!this.$refs.convertForm) return false
@@ -244,14 +255,17 @@ export default {
       }
       return true
     },
-    handlePreview() {
+    handleGenerate() {
       const revision = ++this.previewRevision
       this.previewLoading = false
       this.previewReady = false
-      this.previewOption = null
-      this.previewResponse = null
-      this.frozenCondition = null
-      this.previewState = 'idle'
+      this.generatedFormSnapshot = ''
+      if (!this.hasGeneratedPreview) {
+        this.previewOption = null
+        this.previewResponse = null
+        this.frozenCondition = null
+        this.previewState = 'idle'
+      }
       this.previewMessage = ''
       return this.validateForm().then(valid => {
         if (revision !== this.previewRevision) return false
@@ -265,9 +279,19 @@ export default {
         }
 
         const request = payload.type === 'pie' ? previewPie : previewBarLine
+        const frozenPayload = {
+          ...clone(payload),
+          colourArray: Array.isArray(this.form.colourArray)
+            ? this.form.colourArray.slice()
+            : [],
+          isGradual: this.form.isGradual === true,
+          isRate: this.form.isRate === true
+        }
         this.previewLoading = true
         this.previewReady = false
-        this.previewState = 'idle'
+        if (!this.hasGeneratedPreview) {
+          this.previewState = 'idle'
+        }
         return request(payload).then(res => {
           if (revision !== this.previewRevision) return false
           if (!res || res.result !== 'success') {
@@ -282,10 +306,10 @@ export default {
             return false
           }
 
-          const option = buildChartOption(payload.type, res, payload)
+          const option = buildChartOption(payload.type, res, frozenPayload)
           const optionJson = JSON.stringify(option)
           const frozen = {
-            ...clone(payload),
+            ...frozenPayload,
             option: optionJson,
             query_path: payload.type === 'pie'
               ? 'IndexPie/getIndexPieData'
@@ -299,7 +323,9 @@ export default {
           this.previewOption = option
           this.frozenCondition = Object.freeze(frozen)
           this.previewState = 'ready'
+          this.hasGeneratedPreview = true
           this.previewReady = true
+          this.generatedFormSnapshot = this.previewFormSignature()
           return true
         }).catch(() => {
           if (revision === this.previewRevision) {
@@ -315,15 +341,15 @@ export default {
         })
       })
     },
-    handleSave() {
+    handleOk() {
       if (!this.previewReady || !this.frozenCondition) {
-        this.$message.error('请先预览当前图表配置')
+        this.$message.error('请先生成当前图表配置')
         return Promise.resolve(false)
       }
       const preview = this.$refs.chartPreview
       const content = preview && preview.getDataURL()
       if (!content || content.indexOf('data:image/') !== 0) {
-        this.$message.error('预览图片生成失败，请重新预览')
+        this.$message.error('预览图片生成失败，请重新生成')
         return Promise.resolve(false)
       }
 
@@ -335,6 +361,13 @@ export default {
           this.previewReady,
           this.frozenCondition
         )
+        const savedCondition = JSON.parse(payload.condition)
+        savedCondition.colourArray = Array.isArray(this.frozenCondition.colourArray)
+          ? this.frozenCondition.colourArray.slice()
+          : []
+        savedCondition.isGradual = this.frozenCondition.isGradual === true
+        savedCondition.isRate = this.frozenCondition.isRate === true
+        payload.condition = JSON.stringify(savedCondition)
       } catch (error) {
         this.$message.error(error.message)
         return Promise.resolve(false)
@@ -346,6 +379,7 @@ export default {
         if (res && res.result === 'success') {
           this.$message.success(res.msg || '保存成功')
           this.visible = false
+          this.resetPreview()
           this.$emit('ok')
           return true
         }
@@ -363,70 +397,19 @@ export default {
       this.indexLoading = false
       this.visible = false
       this.saving = false
-      this.invalidatePreview()
+      this.resetPreview()
     }
   }
 }
 </script>
 
 <style scoped>
-.convert-layout {
-  display: grid;
-  grid-template-columns: minmax(380px, 0.9fr) minmax(480px, 1.35fr);
-  gap: 20px;
-  min-height: 560px;
-}
-
-.config-panel,
 .preview-panel {
-  min-width: 0;
-  border: 1px solid #e8e8e8;
-}
-
-.config-panel {
-  padding: 18px 18px 8px;
-  overflow-y: auto;
-  max-height: 68vh;
-}
-
-.preview-panel {
-  display: flex;
-  flex-direction: column;
-  padding: 18px;
+  margin-top: 20px;
+  padding: 16px;
+  min-height: 460px;
   color: #d9e2ec;
   background: #252a30;
-}
-
-.panel-title {
-  margin: 0 0 16px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.preview-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.preview-status {
-  color: #aebbc8;
-  font-size: 12px;
-}
-
-.preview-placeholder {
-  display: flex;
-  min-height: 460px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #aebbc8;
-  text-align: center;
-}
-
-.preview-placeholder .anticon {
-  margin-bottom: 12px;
-  font-size: 48px;
 }
 
 .preview-panel /deep/ .ant-empty {
@@ -440,18 +423,7 @@ export default {
   color: #d9e2ec;
 }
 
-@media (max-width: 1100px) {
-  .convert-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .config-panel {
-    max-height: none;
-  }
-}
-
 @media (max-width: 640px) {
-  .config-panel,
   .preview-panel {
     padding: 12px;
   }

@@ -4,6 +4,7 @@
 
 <script>
 import echarts from 'echarts'
+import { PRODUCTION_COLORS } from '@/utils/indexLibraryScheme'
 
 const META_KEYS = ['INDEX_TYPE', 'INDEX_CORRE_TABLE', 'id', 'chartId']
 
@@ -34,6 +35,23 @@ function combinedSeriesType(item, index, condition) {
     : 'bar'
 }
 
+function gradientEndColor(color) {
+  const match = /^#([0-9a-f]{6})$/i.exec(String(color || ''))
+  if (!match) return color
+  const value = match[1]
+  const channels = [0, 2, 4].map(offset =>
+    parseInt(value.slice(offset, offset + 2), 16)
+  )
+  return `rgba(${channels.join(', ')}, 0.15)`
+}
+
+function barGradient(color) {
+  return new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+    { offset: 0, color },
+    { offset: 1, color: gradientEndColor(color) }
+  ])
+}
+
 export function buildCartesianSeries(type, response, condition) {
   const indexInfoList = Array.isArray(response.indexInfoList)
     ? response.indexInfoList
@@ -57,11 +75,18 @@ export function buildCartesianSeries(type, response, condition) {
 
 export function buildChartOption(type, response, condition) {
   const source = response && typeof response === 'object' ? response : {}
+  const sourceCondition = condition && typeof condition === 'object'
+    ? condition
+    : {}
+  const colors = Array.isArray(sourceCondition.colourArray) &&
+    sourceCondition.colourArray.length
+    ? sourceCondition.colourArray.slice()
+    : PRODUCTION_COLORS.slice()
   if (type === 'pie') {
     const data = Array.isArray(source.data) ? source.data.slice() : []
     return {
       backgroundColor: '#252a30',
-      color: ['#29a3ff', '#f4cb3f', '#31c5a4', '#ef7f5a', '#8b7cf6'],
+      color: colors,
       textStyle: { color: '#d9e2ec' },
       tooltip: { trigger: 'item' },
       legend: {
@@ -95,7 +120,7 @@ export function buildChartOption(type, response, condition) {
   }
   const option = {
     backgroundColor: '#252a30',
-    color: ['#29a3ff', '#f4cb3f', '#31c5a4', '#ef7f5a', '#8b7cf6'],
+    color: colors,
     textStyle: { color: '#d9e2ec' },
     tooltip: { trigger: 'axis' },
     legend: {
@@ -110,7 +135,16 @@ export function buildChartOption(type, response, condition) {
     },
     xAxis,
     yAxis: valueAxis,
-    series: buildCartesianSeries(type, source, condition)
+    series: buildCartesianSeries(type, source, sourceCondition)
+  }
+  if (sourceCondition.isGradual === true) {
+    option.series.forEach((series, index) => {
+      if (series.type === 'bar') {
+        series.itemStyle = {
+          color: barGradient(colors[index % colors.length])
+        }
+      }
+    })
   }
   if (type === 'barAndLine') {
     option.xAxis = [xAxis]

@@ -734,7 +734,13 @@ const formSource = await readFile(
 )
 const convertSource = `${modalSource}\n${formSource}`
 assert.match(modalSource, /width="80%"/)
+assert.match(modalSource, /:title="modalTitle"/)
 assert.match(modalSource, /ref="convertForm"/)
+assert.match(modalSource, /:generated="hasGeneratedPreview"/)
+assert.match(modalSource, /@generate="handleGenerate"/)
+assert.match(modalSource, /cancelText="关闭"/)
+assert.match(modalSource, /okText="确定"/)
+assert.match(modalSource, /@ok="handleOk"/)
 assert.match(modalSource, /await this\.\$refs\.convertForm\.validate\(\)/)
 assert.doesNotMatch(formSource, /a-form-model/)
 assert.match(formSource, /<a-form(?:\s|>)/)
@@ -770,9 +776,10 @@ assert.doesNotMatch(formSource, /v-model\.trim="form\.(?:startDate|endDate|direc
 assert.match(modalSource, /previewBarLine/)
 assert.match(modalSource, /previewPie/)
 assert.match(modalSource, /previewReady/)
-assert.match(modalSource, /保存图表/)
 assert.match(modalSource, /暂无可预览数据/)
-assert.match(modalSource, /:disabled="!previewReady/)
+assert.match(modalSource, /disabled:\s*!previewReady\s*\|\|\s*saving/)
+assert.doesNotMatch(modalSource, /预览图表/)
+assert.doesNotMatch(modalSource, /保存图表/)
 for (const icon of ['9.png', '8.png', '10.png', '7.png']) {
   assert.match(formSource, new RegExp(icon.replace('.', '\\.')))
 }
@@ -1036,7 +1043,13 @@ assert.strictEqual(
 
 const chartContext = {
   component: null,
+  PRODUCTION_COLORS,
   echarts: {
+    graphic: {
+      LinearGradient: function (x, y, x2, y2, colorStops) {
+        return { type: 'linear', x, y, x2, y2, colorStops }
+      }
+    },
     init() {
       throw new Error('chart init should be replaced by the lifecycle test')
     }
@@ -1086,6 +1099,33 @@ assert.deepStrictEqual(
 )
 assert.strictEqual(combinedOption.series[0].data[0], 0)
 assert.strictEqual(combinedOption.series[1].data[0], '3.2')
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(combinedOption.color)),
+  PRODUCTION_COLORS
+)
+
+const selectedColors = ['#112233', '#445566']
+const gradualOption = chartContext.buildChartOption(
+  'barAndLine',
+  chartResponse,
+  {
+    ...chartCondition,
+    colourArray: selectedColors,
+    isGradual: true
+  }
+)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(gradualOption.color)),
+  selectedColors
+)
+assert.strictEqual(gradualOption.series[0].itemStyle.color.type, 'linear')
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(
+    gradualOption.series[0].itemStyle.color.colorStops.map(item => item.color)
+  )),
+  ['#112233', 'rgba(17, 34, 51, 0.15)']
+)
+assert.strictEqual(gradualOption.series[1].itemStyle, undefined)
 
 const bigScreenOption = JSON.parse(JSON.stringify(combinedOption))
 assert.doesNotThrow(() => {
@@ -1105,10 +1145,15 @@ const pieOption = chartContext.buildChartOption('pie', {
   result: 'success',
   type: 'pie',
   data: [{ name: '收入', value: 0 }]
-}, {})
+}, { colourArray: selectedColors, isGradual: true })
 assert.strictEqual(pieOption.series[0].type, 'pie')
 assert.strictEqual(pieOption.series[0].data[0].value, 0)
 assert.strictEqual(pieOption.legend.orient, 'vertical')
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(pieOption.color)),
+  selectedColors
+)
+assert.strictEqual(pieOption.series[0].itemStyle, undefined)
 
 const resizeListeners = []
 const removedResizeListeners = []
@@ -1333,6 +1378,16 @@ const modalRecord = {
 const openVm = createModalVm()
 await openVm.instance.open(modalRecord)
 assert.strictEqual(openVm.instance.visible, true)
+assert.strictEqual(openVm.instance.hasGeneratedPreview, false)
+assert.strictEqual(openVm.instance.previewReady, false)
+assert.strictEqual(
+  modalComponent.computed.modalTitle.call(openVm.instance),
+  '财政收入 - 转图'
+)
+assert.strictEqual(
+  modalComponent.computed.modalTitle.call({ form: { schemeName: '' } }),
+  '转图'
+)
 assert.strictEqual(openVm.instance.form.schemeName, '财政收入')
 assert.strictEqual(openVm.instance.form.title, '财政收入趋势')
 assert.strictEqual(openVm.instance.form.type, 'barAndLine')
@@ -1414,18 +1469,19 @@ await noUnitVm.instance.open({
 assert.strictEqual(noUnitVm.instance.form.price, '10000')
 assert.strictEqual(noUnitVm.instance.form.unit, undefined)
 
+openVm.instance.hasGeneratedPreview = true
 openVm.instance.previewReady = true
-openVm.instance.previewOption = { series: [] }
+openVm.instance.generatedFormSnapshot = openVm.instance.previewFormSignature()
 modalComponent.watch.form.handler.call(openVm.instance)
-assert.strictEqual(openVm.instance.previewReady, false)
-assert.strictEqual(openVm.instance.previewOption, null)
+assert.strictEqual(openVm.instance.hasGeneratedPreview, true)
+assert.strictEqual(openVm.instance.previewReady, true)
 
 const invalidPreviewVm = createModalVm()
 await invalidPreviewVm.instance.open(modalRecord)
 invalidPreviewVm.instance.$refs.convertForm.validate = () => Promise.resolve(false)
 const barRequestsBeforeInvalidPreview = barPreviewRequests.length
 const pieRequestsBeforeInvalidPreview = piePreviewRequests.length
-assert.strictEqual(await invalidPreviewVm.instance.handlePreview(), false)
+assert.strictEqual(await invalidPreviewVm.instance.handleGenerate(), false)
 assert.strictEqual(barPreviewRequests.length, barRequestsBeforeInvalidPreview)
 assert.strictEqual(piePreviewRequests.length, pieRequestsBeforeInvalidPreview)
 assert.strictEqual(invalidPreviewVm.instance.previewReady, false)
@@ -1434,8 +1490,9 @@ assert.strictEqual(invalidPreviewVm.instance.previewLoading, false)
 
 const previewVm = createModalVm()
 await previewVm.instance.open(modalRecord)
-await previewVm.instance.handlePreview()
+await previewVm.instance.handleGenerate()
 assert.strictEqual(barPreviewRequests.length > 0, true)
+assert.strictEqual(previewVm.instance.hasGeneratedPreview, true)
 assert.strictEqual(previewVm.instance.previewReady, true)
 assert.strictEqual(previewVm.instance.previewOption.series.length, 2)
 assert.notStrictEqual(previewVm.instance.frozenCondition, previewVm.instance.form)
@@ -1450,6 +1507,66 @@ assert.deepStrictEqual(
   JSON.parse(previewVm.instance.frozenCondition.option),
   JSON.parse(JSON.stringify(previewVm.instance.previewOption))
 )
+modalComponent.watch.form.handler.call(previewVm.instance)
+assert.strictEqual(previewVm.instance.hasGeneratedPreview, true)
+assert.strictEqual(previewVm.instance.previewReady, true)
+
+const savesBeforeStaleConfiguration = barSaveRequests.length
+previewVm.instance.form.colourArray = ['#112233', '#445566']
+previewVm.instance.form.isGradual = true
+previewVm.instance.form.isRate = true
+previewVm.instance.form.schemecolumns[0].chartDirection = 'Line'
+modalComponent.watch.form.handler.call(previewVm.instance)
+assert.strictEqual(previewVm.instance.hasGeneratedPreview, true)
+assert.strictEqual(previewVm.instance.previewReady, false)
+assert.strictEqual(await previewVm.instance.handleOk(), false)
+assert.strictEqual(barSaveRequests.length, savesBeforeStaleConfiguration)
+await previewVm.instance.handleGenerate()
+assert.strictEqual(previewVm.instance.hasGeneratedPreview, true)
+assert.strictEqual(previewVm.instance.previewReady, true)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(previewVm.instance.frozenCondition.colourArray)),
+  ['#112233', '#445566']
+)
+assert.strictEqual(previewVm.instance.frozenCondition.isGradual, true)
+assert.strictEqual(previewVm.instance.frozenCondition.isRate, true)
+assert.strictEqual(
+  previewVm.instance.frozenCondition.schemecolumns[0].chartDirection,
+  'Line'
+)
+assert.deepStrictEqual(
+  JSON.parse(previewVm.instance.frozenCondition.option).color,
+  ['#112233', '#445566']
+)
+
+for (const [label, mutate] of [
+  ['title', form => {
+    form.title = '变更后的标题'
+  }],
+  ['time', form => {
+    form.startDate = '2026-02'
+  }],
+  ['x axis', form => {
+    form.xTurn = '1'
+    form.dateId = '2026-05'
+  }]
+]) {
+  const invalidationVm = createModalVm()
+  await invalidationVm.instance.open(modalRecord)
+  await invalidationVm.instance.handleGenerate()
+  mutate(invalidationVm.instance.form)
+  modalComponent.watch.form.handler.call(invalidationVm.instance)
+  assert.strictEqual(
+    invalidationVm.instance.previewReady,
+    false,
+    `${label} change must invalidate saving`
+  )
+  assert.strictEqual(
+    invalidationVm.instance.hasGeneratedPreview,
+    true,
+    `${label} change must keep generated controls visible`
+  )
+}
 
 const firstPreview = deferred()
 const secondPreview = deferred()
@@ -1458,13 +1575,13 @@ barPreviewHandler = () => previewQueue.shift().promise
 const concurrentVm = createModalVm()
 await concurrentVm.instance.open(modalRecord)
 const requestsBeforeConcurrentPreview = barPreviewRequests.length
-const firstRequest = concurrentVm.instance.handlePreview()
+const firstRequest = concurrentVm.instance.handleGenerate()
 await waitFor(
   () => barPreviewRequests.length === requestsBeforeConcurrentPreview + 1 &&
     previewQueue.length === 1,
   'first concurrent preview did not issue its API request'
 )
-const secondRequest = concurrentVm.instance.handlePreview()
+const secondRequest = concurrentVm.instance.handleGenerate()
 await waitFor(
   () => barPreviewRequests.length === requestsBeforeConcurrentPreview + 2 &&
     previewQueue.length === 0,
@@ -1501,7 +1618,7 @@ await sparseVm.instance.open({
   ...modalRecord,
   SCHEME_CONDITON: JSON.stringify(sparseCondition)
 })
-await sparseVm.instance.handlePreview()
+await sparseVm.instance.handleGenerate()
 for (const field of ['dimension_type', 'title_old', 'add_user']) {
   assert.strictEqual(
     Object.prototype.hasOwnProperty.call(sparseVm.instance.frozenCondition, field),
@@ -1512,17 +1629,48 @@ for (const field of ['dimension_type', 'title_old', 'add_user']) {
 
 const frozenTitle = previewVm.instance.frozenCondition.title
 previewVm.instance.form.title = '保存时不得覆盖冻结标题'
-await previewVm.instance.handleSave()
+previewVm.instance.form.title = frozenTitle
+modalComponent.watch.form.handler.call(previewVm.instance)
+await previewVm.instance.handleOk()
 const savedBar = barSaveRequests.pop()
-assert.strictEqual(JSON.parse(savedBar.condition).title, frozenTitle)
-assert.strictEqual(JSON.parse(savedBar.condition).price, '10000')
-assert.strictEqual(JSON.parse(savedBar.condition).unit, '万元')
+const savedBarCondition = JSON.parse(savedBar.condition)
+assert.strictEqual(savedBarCondition.title, frozenTitle)
+assert.strictEqual(savedBarCondition.price, '10000')
+assert.strictEqual(savedBarCondition.unit, '万元')
+assert.deepStrictEqual(
+  savedBarCondition.colourArray,
+  ['#112233', '#445566']
+)
+assert.strictEqual(savedBarCondition.isGradual, true)
+assert.strictEqual(savedBarCondition.isRate, true)
+assert.strictEqual(
+  savedBarCondition.schemecolumns[0].chartDirection,
+  'Line'
+)
 assert.strictEqual(
   savedBar.content,
   'data:image/png;base64,chart-preview'
 )
 assert.strictEqual(previewVm.instance.visible, false)
+assert.strictEqual(previewVm.instance.hasGeneratedPreview, false)
+assert.strictEqual(previewVm.instance.previewReady, false)
 assert.deepStrictEqual(previewVm.emitted, ['ok'])
+
+const closeVm = createModalVm()
+await closeVm.instance.open(modalRecord)
+await closeVm.instance.handleGenerate()
+closeVm.instance.handleCancel()
+assert.strictEqual(closeVm.instance.hasGeneratedPreview, false)
+assert.strictEqual(closeVm.instance.previewReady, false)
+assert.strictEqual(closeVm.instance.frozenCondition, null)
+
+const switchVm = createModalVm()
+await switchVm.instance.open(modalRecord)
+await switchVm.instance.handleGenerate()
+await switchVm.instance.open(latestRecord)
+assert.strictEqual(switchVm.instance.hasGeneratedPreview, false)
+assert.strictEqual(switchVm.instance.previewReady, false)
+assert.strictEqual(switchVm.instance.frozenCondition, null)
 
 const pieVm = createModalVm()
 await pieVm.instance.open({
@@ -1532,10 +1680,10 @@ await pieVm.instance.open({
     TYPE: 'pie'
   })
 })
-await pieVm.instance.handlePreview()
+await pieVm.instance.handleGenerate()
 assert.strictEqual(piePreviewRequests.length > 0, true)
 assert.strictEqual(pieVm.instance.previewReady, true)
-await pieVm.instance.handleSave()
+await pieVm.instance.handleOk()
 assert.strictEqual(pieSaveRequests.length > 0, true)
 
 const emptyVm = createModalVm()
@@ -1553,15 +1701,16 @@ await emptyVm.instance.open({
     TYPE: 'bar'
   })
 })
-await emptyVm.instance.handlePreview()
+await emptyVm.instance.handleGenerate()
 assert.strictEqual(emptyVm.instance.previewReady, false)
+assert.strictEqual(emptyVm.instance.hasGeneratedPreview, false)
 assert.strictEqual(emptyVm.instance.previewState, 'empty')
 
 const previewFailureVm = createModalVm()
 barPreviewResponse = { result: 'failed', msg: '查询失败', data: [] }
 await previewFailureVm.instance.open(modalRecord)
 previewFailureVm.instance.form.type = 'bar'
-await previewFailureVm.instance.handlePreview()
+await previewFailureVm.instance.handleGenerate()
 assert.strictEqual(previewFailureVm.instance.visible, true)
 assert.strictEqual(previewFailureVm.instance.previewReady, false)
 assert.deepStrictEqual(previewFailureVm.messages.slice(-1), [{
@@ -1573,8 +1722,8 @@ barPreviewResponse = chartResponse
 barSaveResponse = { result: 'failed', msg: '保存失败' }
 const saveFailureVm = createModalVm()
 await saveFailureVm.instance.open(modalRecord)
-await saveFailureVm.instance.handlePreview()
-await saveFailureVm.instance.handleSave()
+await saveFailureVm.instance.handleGenerate()
+await saveFailureVm.instance.handleOk()
 assert.strictEqual(saveFailureVm.instance.visible, true)
 assert.deepStrictEqual(saveFailureVm.messages.slice(-1), [{
   type: 'error',
@@ -1585,14 +1734,14 @@ barSaveResponse = { result: 'success', msg: '添加成功' }
 previewImage = ''
 const imageFailureVm = createModalVm()
 await imageFailureVm.instance.open(modalRecord)
-await imageFailureVm.instance.handlePreview()
+await imageFailureVm.instance.handleGenerate()
 const saveCountBeforeImageFailure = barSaveRequests.length
-await imageFailureVm.instance.handleSave()
+await imageFailureVm.instance.handleOk()
 assert.strictEqual(barSaveRequests.length, saveCountBeforeImageFailure)
 assert.strictEqual(imageFailureVm.instance.visible, true)
 assert.deepStrictEqual(imageFailureVm.messages.slice(-1), [{
   type: 'error',
-  message: '预览图片生成失败，请重新预览'
+  message: '预览图片生成失败，请重新生成'
 }])
 
 console.log('indexLibraryScheme tests passed')
