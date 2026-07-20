@@ -1405,11 +1405,9 @@ const modalRecord = {
     columns: 'I1,I2',
     DIMENSION_FLAG: '1',
     PERIOD_FLAG: '2',
-    TIME_TYPE: '2',
     START_DATE: '2026-01',
     END_DATE: '2026-06',
     PRICE: '10000',
-    UNIT: '万元',
     DIRECTION: 'X',
     GK: 'GK01',
     INDEX_NAME: 'I1',
@@ -1443,7 +1441,8 @@ assert.strictEqual(openVm.instance.form.timeType, '2')
 assert.strictEqual(openVm.instance.form.startDate, '2026-01')
 assert.strictEqual(openVm.instance.form.endDate, '2026-06')
 assert.strictEqual(openVm.instance.form.price, '10000')
-assert.strictEqual(openVm.instance.form.unit, '万元')
+assert.strictEqual(openVm.instance.form.unit, '10000')
+assert.strictEqual(openVm.instance.form.dacct_radio, '1')
 assert.strictEqual(openVm.instance.form.direction, 'X')
 assert.strictEqual(openVm.instance.form.GK, 'GK01')
 assert.strictEqual(openVm.instance.form.indexName, 'I1')
@@ -1538,6 +1537,12 @@ const previewVm = createModalVm()
 await previewVm.instance.open(modalRecord)
 await previewVm.instance.handleGenerate()
 assert.strictEqual(barPreviewRequests.length > 0, true)
+const productionPreviewPayload =
+  barPreviewRequests[barPreviewRequests.length - 1]
+assert.strictEqual(productionPreviewPayload.columns, 'I1,I2')
+assert.strictEqual(productionPreviewPayload.timeType, '2')
+assert.strictEqual(productionPreviewPayload.unit, '10000')
+assert.strictEqual(productionPreviewPayload.dacct_radio, '1')
 assert.strictEqual(previewVm.instance.hasGeneratedPreview, true)
 assert.strictEqual(previewVm.instance.previewReady, true)
 assert.strictEqual(previewVm.instance.previewOption.series.length, 2)
@@ -1682,7 +1687,9 @@ const savedBar = barSaveRequests.pop()
 const savedBarCondition = JSON.parse(savedBar.condition)
 assert.strictEqual(savedBarCondition.title, frozenTitle)
 assert.strictEqual(savedBarCondition.price, '10000')
-assert.strictEqual(savedBarCondition.unit, '万元')
+assert.strictEqual(savedBarCondition.unit, '10000')
+assert.strictEqual(savedBarCondition.timeType, '2')
+assert.strictEqual(savedBarCondition.dacct_radio, '1')
 assert.strictEqual(savedBarCondition.columns, 'I1,I2')
 assert.deepStrictEqual(
   savedBarCondition.colourArray,
