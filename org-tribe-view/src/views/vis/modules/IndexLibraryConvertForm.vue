@@ -1,225 +1,390 @@
 <template>
-  <a-form
-    :label-col="{ span: 7 }"
-    :wrapper-col="{ span: 17 }"
-    @submit.prevent
-  >
-    <a-form-item label="方案名称">
-      <a-input v-model="form.schemeName" disabled />
-    </a-form-item>
-    <a-form-item
-      label="图表标题"
-      :validate-status="fieldStatus('title')"
-      :help="validationErrors.title"
+  <div class="production-chart-form">
+    <div class="form-label">选择图表类型：</div>
+    <a-radio-group
+      v-model="chartValue"
+      class="chart-type-group"
+      role="radiogroup"
+      aria-label="图表类型"
+      @change="onChartChange"
     >
-      <a-input v-model.trim="form.title" placeholder="请输入图表标题" />
-    </a-form-item>
-    <a-form-item
-      label="图表类型"
-      :validate-status="fieldStatus('type')"
-      :help="validationErrors.type"
-    >
-      <div class="chart-type-grid" role="radiogroup" aria-label="图表类型">
-        <button
-          v-for="item in chartTypes"
-          :key="item.type"
-          type="button"
-          role="radio"
-          class="chart-type-card"
-          :class="{ 'chart-type-card--selected': form.type === item.type }"
-          :aria-checked="String(form.type === item.type)"
-          @click="selectChartType(item.type)"
-        >
-          <img :src="item.icon" :alt="`${item.label}图标`" />
-          <span class="chart-type-card__label">{{ item.label }}</span>
-          <span class="chart-type-card__state">
-            {{ form.type === item.type ? '已选择' : '选择' }}
-          </span>
-        </button>
-      </div>
-    </a-form-item>
-    <a-form-item
-      label="指标"
-      :validate-status="fieldStatus('schemecolumns')"
-      :help="validationErrors.schemecolumns"
-    >
-      <a-select
-        mode="multiple"
-        :value="selectedIndexIds"
-        placeholder="请选择指标"
-        :loading="indexLoading"
-        @change="handleIndexChange"
+      <a-radio
+        v-for="item in chartTypes"
+        :key="item.value"
+        :value="item.value"
+        role="radio"
+        :aria-checked="String(form.type === item.type)"
       >
-        <a-select-option
-          v-for="item in indexOptions"
-          :key="String(item.id)"
-          :value="String(item.id)"
-        >
-          {{ item.name }}
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-    <div v-if="form.type === 'barAndLine'" class="series-directions">
-      <div
-        v-for="column in form.schemecolumns"
-        :key="String(column.chartId)"
-        class="series-direction-row"
-      >
-        <span>{{ indexLabel(column.chartId) }}</span>
-        <a-select
-          :value="column.chartDirection"
-          size="small"
-          @change="value => updateChartDirection(column.chartId, value)"
-        >
-          <a-select-option value="Columnar">柱状</a-select-option>
-          <a-select-option value="Line">折线</a-select-option>
-        </a-select>
-      </div>
-    </div>
-    <a-row :gutter="12">
-      <a-col :xs="24" :sm="12">
-        <a-form-item
-          label="维度"
-          :label-col="{ span: 10 }"
-          :wrapper-col="{ span: 14 }"
-          :validate-status="fieldStatus('dimensionFlag')"
-          :help="validationErrors.dimensionFlag"
-        >
-          <a-select v-model="form.dimensionFlag" placeholder="请选择维度">
-            <a-select-option value="1">国库</a-select-option>
-            <a-select-option value="2">地区</a-select-option>
-          </a-select>
-        </a-form-item>
-      </a-col>
-      <a-col :xs="24" :sm="12">
-        <a-form-item
-          label="时间粒度"
-          :label-col="{ span: 10 }"
-          :wrapper-col="{ span: 14 }"
-          :validate-status="fieldStatus('periodFlag')"
-          :help="validationErrors.periodFlag"
-        >
-          <a-select v-model="form.periodFlag" placeholder="请选择粒度">
-            <a-select-option value="1">日</a-select-option>
-            <a-select-option value="2">月</a-select-option>
-            <a-select-option value="3">季</a-select-option>
-            <a-select-option value="4">年</a-select-option>
-          </a-select>
-        </a-form-item>
-      </a-col>
-    </a-row>
-    <a-form-item
-      label="时间范围"
-      :validate-status="fieldStatus('timeType')"
-      :help="validationErrors.timeType"
-    >
-      <a-radio-group v-model="form.timeType">
-        <a-radio value="1">至今</a-radio>
-        <a-radio value="2">时间区间</a-radio>
-        <a-radio value="3">当前</a-radio>
-      </a-radio-group>
-    </a-form-item>
-    <a-row :gutter="12">
-      <a-col :xs="24" :sm="12">
-        <a-form-item
-          label="开始"
-          :label-col="{ span: 10 }"
-          :wrapper-col="{ span: 14 }"
-          :validate-status="fieldStatus('startDate')"
-          :help="validationErrors.startDate"
-        >
-          <a-input
-            v-model.trim="form.startDate"
-            :disabled="dateState.disableStart"
-            :placeholder="startDatePlaceholder"
-          />
-        </a-form-item>
-      </a-col>
-      <a-col :xs="24" :sm="12">
-        <a-form-item
-          label="结束"
-          :label-col="{ span: 10 }"
-          :wrapper-col="{ span: 14 }"
-          :validate-status="fieldStatus('endDate')"
-          :help="validationErrors.endDate"
-        >
-          <a-input
-            v-model.trim="form.endDate"
-            :disabled="dateState.disableEnd"
-            :placeholder="endDatePlaceholder"
-          />
-        </a-form-item>
-      </a-col>
-    </a-row>
-    <a-row :gutter="12">
-      <a-col :xs="24" :sm="12">
-        <a-form-item
-          label="单位值"
-          :label-col="{ span: 10 }"
-          :wrapper-col="{ span: 14 }"
-          :validate-status="fieldStatus('price')"
-          :help="validationErrors.price"
-        >
-          <a-input v-model.trim="form.price" placeholder="如 10000" />
-        </a-form-item>
-      </a-col>
-      <a-col :xs="24" :sm="12">
-        <a-form-item
-          label="展示单位"
-          :label-col="{ span: 10 }"
-          :wrapper-col="{ span: 14 }"
-        >
-          <a-input v-model.trim="form.unit" placeholder="如 万元" />
-        </a-form-item>
-      </a-col>
-    </a-row>
-    <a-form-item label="横轴模式">
-      <a-radio-group v-model="form.xTurn">
-        <a-radio value="0">时间</a-radio>
-        <a-radio value="1">维度</a-radio>
-      </a-radio-group>
-    </a-form-item>
-    <a-form-item v-if="form.type === 'pie'" label="统计方向">
-      <a-select v-model="form.direction" allowClear placeholder="请选择统计方向">
-        <a-select-option value="X">指标</a-select-option>
-        <a-select-option value="Y">维度</a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item v-else label="维度编码">
-      <a-input
-        v-model.trim="form.direction"
-        placeholder="横轴为时间时选择国库或地区编码"
-      />
-    </a-form-item>
-    <a-row v-if="form.type === 'pie'" :gutter="12">
-      <a-col :xs="24" :sm="12">
-        <a-form-item
-          label="国库/地区"
-          :label-col="{ span: 10 }"
-          :wrapper-col="{ span: 14 }"
-        >
-          <a-input v-model.trim="form.GK" placeholder="编码" />
-        </a-form-item>
-      </a-col>
-      <a-col :xs="24" :sm="12">
-        <a-form-item
-          label="指标编码"
-          :label-col="{ span: 10 }"
-          :wrapper-col="{ span: 14 }"
-        >
-          <a-select v-model="form.indexName" allowClear placeholder="请选择指标">
-            <a-select-option
-              v-for="item in indexOptions"
-              :key="String(item.id)"
-              :value="String(item.id)"
+        <img
+          :src="item.icon"
+          :alt="`${item.label}图标`"
+          :title="item.label"
+        />
+        <span class="chart-type-state">
+          {{ form.type === item.type ? '已选择' : item.label }}
+        </span>
+      </a-radio>
+    </a-radio-group>
+
+    <a-form layout="inline" class="production-form-fields" @submit.prevent>
+      <a-row>
+        <a-col :md="12" :sm="24">
+          <a-form-item
+            label="图表标题"
+            required
+            :validate-status="fieldStatus('title')"
+            :help="validationErrors.title"
+          >
+            <a-input
+              v-model.trim="form.title"
+              placeholder="请输入图表标题"
+            />
+          </a-form-item>
+        </a-col>
+        <a-col :md="12" :sm="24">
+          <a-form-item
+            label="指标"
+            required
+            :validate-status="fieldStatus('schemecolumns')"
+            :help="validationErrors.schemecolumns"
+          >
+            <a-input
+              :value="indexDisplay"
+              disabled
+              aria-label="指标"
+              placeholder="方案未返回指标"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
+
+      <a-row>
+        <a-col :md="8" :sm="24">
+          <a-form-item
+            label="维度"
+            required
+            :validate-status="fieldStatus('dimensionFlag')"
+            :help="validationErrors.dimensionFlag"
+          >
+            <a-select :value="form.dimensionFlag" disabled>
+              <a-select-option value="1">国库</a-select-option>
+              <a-select-option value="2">地区</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :md="8" :sm="24">
+          <a-form-item
+            label="周期"
+            required
+            :validate-status="fieldStatus('periodFlag')"
+            :help="validationErrors.periodFlag"
+          >
+            <a-select :value="form.periodFlag" disabled>
+              <a-select-option value="1">日</a-select-option>
+              <a-select-option value="2">月</a-select-option>
+              <a-select-option value="3">季</a-select-option>
+              <a-select-option value="4">年</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :md="8" :sm="24">
+          <a-form-item
+            label="单位"
+            required
+            :validate-status="fieldStatus('price')"
+            :help="validationErrors.price"
+          >
+            <a-select :value="form.price" disabled>
+              <a-select-option
+                v-for="item in priceOptions"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+      </a-row>
+
+      <a-row>
+        <a-col :md="10" :sm="24">
+          <a-form-item
+            label="时间类型"
+            required
+            :validate-status="fieldStatus('timeType')"
+            :help="validationErrors.timeType"
+          >
+            <a-radio-group
+              :value="form.timeType"
+              @change="onTimeTypeChange"
             >
-              {{ item.name }}
+              <a-radio
+                v-for="item in timeTypeOptions"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </a-radio>
+            </a-radio-group>
+          </a-form-item>
+        </a-col>
+        <a-col :md="14" :sm="24">
+          <a-form-item
+            v-if="!dateControl.disabled"
+            label="选择时间"
+            required
+            :validate-status="dateValidationStatus"
+            :help="dateValidationHelp"
+          >
+            <el-date-picker
+              v-if="isDayOrMonth && dateControl.range"
+              v-model="dateRange"
+              :type="dateControl.kind === 'date' ? 'daterange' : 'monthrange'"
+              :value-format="dateControl.kind === 'date' ? 'yyyy-MM-dd' : 'yyyy-MM'"
+              range-separator="~"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+            />
+            <el-date-picker
+              v-else-if="isDayOrMonth"
+              v-model="startDateValue"
+              :type="dateControl.kind"
+              :value-format="dateControl.kind === 'date' ? 'yyyy-MM-dd' : 'yyyy-MM'"
+              :placeholder="dateControl.kind === 'date' ? '请选择日期' : '请选择月份'"
+            />
+            <data-month
+              v-else-if="dateControl.kind === 'quarter'"
+              :time-type="quarterTimeType"
+              :chose-quarter-data="startQuarterValue"
+              :chose-quarter-data1="endQuarterValue"
+              @startquarter="setStartQuarter"
+              @endquarter="setEndQuarter"
+            />
+            <data-year
+              v-else-if="dateControl.kind === 'year' && dateControl.range"
+              :start-year-data="form.startDate"
+              :end-year-data="form.endDate"
+              @startYearValue="setStartDate"
+              @endYearValue="setEndDate"
+            />
+            <el-date-picker
+              v-else
+              v-model="startDateValue"
+              type="year"
+              value-format="yyyy"
+              placeholder="请选择年份"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
+
+      <a-row v-if="form.type !== 'pie'">
+        <a-col :md="9" :sm="24">
+          <a-form-item
+            label="横轴显示"
+            required
+            :validate-status="fieldStatus('xTurn')"
+            :help="validationErrors.xTurn"
+          >
+            <a-select v-model="form.xTurn" placeholder="请选择横轴显示">
+              <a-select-option value="0">账期</a-select-option>
+              <a-select-option value="1">{{ dimensionLabel }}</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :md="11" :sm="24">
+          <a-form-item
+            v-if="form.xTurn === '0'"
+            :label="dimensionLabel"
+            required
+            :validate-status="fieldStatus('direction')"
+            :help="validationErrors.direction"
+          >
+            <a-select
+              :value="form.direction"
+              allow-clear
+              :placeholder="`请选择${dimensionLabel}`"
+              @change="value => setFormField('direction', value)"
+            >
+              <a-select-option
+                v-for="item in dimensionCandidates"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item
+            v-else
+            label="账期"
+            required
+            :validate-status="fieldStatus('dateId')"
+            :help="validationErrors.dateId"
+          >
+            <a-select
+              :value="form.dateId"
+              allow-clear
+              placeholder="请选择具体账期"
+              @change="value => setFormField('dateId', value)"
+            >
+              <a-select-option
+                v-for="item in accountingPeriodCandidates"
+                :key="item"
+                :value="item"
+              >
+                {{ item }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :md="4" :sm="24">
+          <a-button type="primary" @click="generateImage">生成图片</a-button>
+        </a-col>
+      </a-row>
+
+      <a-row v-else>
+        <a-col :md="8" :sm="24">
+          <a-form-item
+            label="统计方向"
+            required
+            :validate-status="fieldStatus('direction')"
+            :help="validationErrors.direction"
+          >
+            <a-select
+              :value="form.direction"
+              allow-clear
+              placeholder="请选择统计方向"
+              @change="value => setFormField('direction', value)"
+            >
+              <a-select-option value="X">指标</a-select-option>
+              <a-select-option value="Y">维度</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :md="8" :sm="24">
+          <a-form-item
+            v-if="form.direction === 'X'"
+            :label="dimensionLabel"
+            required
+            :validate-status="fieldStatus('GK')"
+            :help="validationErrors.GK"
+          >
+            <a-select
+              :value="form.GK"
+              allow-clear
+              :placeholder="`请选择${dimensionLabel}`"
+              @change="value => setFormField('GK', value)"
+            >
+              <a-select-option
+                v-for="item in dimensionCandidates"
+                :key="item.value"
+                :value="item.value"
+              >
+                {{ item.label }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item
+            v-else-if="form.direction === 'Y'"
+            label="指标"
+            required
+            :validate-status="fieldStatus('indexName')"
+            :help="validationErrors.indexName"
+          >
+            <a-select
+              :value="form.indexName"
+              allow-clear
+              placeholder="请选择指标"
+              @change="value => setFormField('indexName', value)"
+            >
+              <a-select-option
+                v-for="item in indexOptions"
+                :key="String(item.id)"
+                :value="String(item.id)"
+              >
+                {{ item.name }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :md="4" :sm="12" class="switch-field">
+          是否包含比率：
+          <a-switch
+            :checked="form.isRate === true"
+            @change="value => setFormField('isRate', value)"
+          />
+        </a-col>
+        <a-col :md="4" :sm="12">
+          <a-button type="primary" @click="generateImage">生成图片</a-button>
+        </a-col>
+      </a-row>
+
+      <a-row v-if="generated" class="generated-settings">
+        <a-col :md="18" :sm="24">
+          <span class="setting-label">设置图表颜色：</span>
+          <a-select
+            v-model="selectedColorIndexes"
+            mode="multiple"
+            :max-tag-count="4"
+            placeholder="请选择颜色"
+          >
+            <a-select-option
+              v-for="(color, index) in productionColors"
+              :key="index"
+              :value="index"
+            >
+              <span class="color-option" :style="{ background: color }">
+                色值{{ index + 1 }}
+              </span>
             </a-select-option>
           </a-select>
-        </a-form-item>
-      </a-col>
-    </a-row>
-  </a-form>
+        </a-col>
+        <a-col
+          v-if="form.type !== 'pie'"
+          :md="6"
+          :sm="24"
+          class="switch-field"
+        >
+          是否渐变：
+          <a-switch
+            :checked="form.isGradual === true"
+            @change="value => setFormField('isGradual', value)"
+          />
+        </a-col>
+      </a-row>
+
+      <div
+        v-if="form.type === 'barAndLine'"
+        class="series-directions"
+        aria-label="柱状折线方向"
+      >
+        <div class="series-direction-header">
+          <span>指标</span>
+          <span>柱折方向</span>
+          <span>操作</span>
+        </div>
+        <div
+          v-for="(column, index) in form.schemecolumns"
+          :key="String(column.chartId)"
+          class="series-direction-row"
+        >
+          <span>{{ indexLabel(column.chartId) }}</span>
+          <a-select
+            :value="column.chartDirection"
+            @change="value => updateChartDirection(column.chartId, value)"
+          >
+            <a-select-option value="Columnar">柱状图</a-select-option>
+            <a-select-option value="Line">折线图</a-select-option>
+          </a-select>
+          <a-button type="danger" size="small" @click="removeSeries(index)">
+            删除
+          </a-button>
+        </div>
+      </div>
+    </a-form>
+  </div>
 </template>
 
 <script>
@@ -227,7 +392,16 @@ import barIcon from '@/assets/9.png'
 import lineIcon from '@/assets/8.png'
 import pieIcon from '@/assets/10.png'
 import combinedIcon from '@/assets/7.png'
-import { CHART_TYPES } from '@/utils/indexLibraryScheme'
+import dataMonth from './dataMonth.vue'
+import dataYear from './dataYear.vue'
+import {
+  CHART_TYPES,
+  PRODUCTION_COLORS,
+  getTimeTypeOptions,
+  getDateControl,
+  getDimensionCandidates,
+  validateProductionChartFields
+} from '@/utils/indexLibraryScheme'
 
 const ICONS = {
   bar: barIcon,
@@ -260,6 +434,14 @@ const DATE_FORMATS = {
     hint: 'yyyy',
     valid: value => /^[1-9]\d{3}$/.test(value)
   }
+}
+
+function normalizeQuarter(value) {
+  return String(value || '').replace(/^([1-9]\d{3})-Q([1-4])$/, '$1Q$2')
+}
+
+function quarterPickerValue(value) {
+  return String(value || '').replace(/^([1-9]\d{3})Q([1-4])$/, '$1-Q$2')
 }
 
 export function validateDateSelection(periodFlag, timeType, startDate, endDate) {
@@ -305,11 +487,15 @@ export function validateIndexLibraryForm(form) {
       errors[field] = dateError
     }
   }
-  return errors
+  return Object.assign(errors, validateProductionChartFields(source))
 }
 
 export default {
   name: 'IndexLibraryConvertForm',
+  components: {
+    dataMonth,
+    dataYear
+  },
   props: {
     form: {
       type: Object,
@@ -319,40 +505,125 @@ export default {
       type: Array,
       default: () => []
     },
-    indexLoading: Boolean
+    indexLoading: Boolean,
+    generated: {
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
       chartTypes: CHART_TYPES.map(item => ({ ...item, icon: ICONS[item.type] })),
+      productionColors: PRODUCTION_COLORS,
       validationErrors: {}
     }
   },
   computed: {
-    selectedIndexIds() {
-      return Array.isArray(this.form.schemecolumns)
-        ? this.form.schemecolumns.map(item => String(item.chartId))
-        : []
-    },
-    dateState() {
-      const mode = String(this.form.timeType || '')
-      return {
-        disableStart: mode === '3',
-        disableEnd: mode === '1' || mode === '3' || mode === '4'
+    chartValue: {
+      get() {
+        const selected = CHART_TYPES.find(item => item.type === this.form.type)
+        return selected ? selected.value : ''
+      },
+      set(value) {
+        const selected = CHART_TYPES.find(item => String(item.value) === String(value))
+        this.selectChartType(selected ? selected.type : '')
       }
     },
-    dateFormatHint() {
-      const format = DATE_FORMATS[String(this.form.periodFlag)] || DATE_FORMATS[1]
-      return format.hint
+    indexDisplay() {
+      return this.indexOptions.map(item => item.name).join('、')
     },
-    startDatePlaceholder() {
-      return this.dateState.disableStart
-        ? '后端按当前时间计算'
-        : `格式：${this.dateFormatHint}`
+    priceOptions() {
+      const labels = {
+        1: '元',
+        10000: '万元',
+        100000000: '亿元'
+      }
+      const value = String(this.form.price == null ? '' : this.form.price)
+      const options = Object.keys(labels).map(key => ({
+        value: key,
+        label: labels[key]
+      }))
+      if (value && !labels[value]) {
+        options.push({
+          value,
+          label: this.form.unit || value
+        })
+      }
+      return options
     },
-    endDatePlaceholder() {
-      return this.dateState.disableEnd
-        ? '该时间类型无需填写'
-        : `格式：${this.dateFormatHint}`
+    timeTypeOptions() {
+      return getTimeTypeOptions(this.form.dacct_radio)
+    },
+    dateControl() {
+      return getDateControl(this.form.periodFlag, this.form.timeType)
+    },
+    isDayOrMonth() {
+      return this.dateControl.kind === 'date' || this.dateControl.kind === 'month'
+    },
+    dateRange: {
+      get() {
+        return this.form.startDate && this.form.endDate
+          ? [this.form.startDate, this.form.endDate]
+          : []
+      },
+      set(value) {
+        const range = Array.isArray(value) ? value : []
+        this.setStartDate(range[0] || '')
+        this.setEndDate(range[1] || '')
+      }
+    },
+    startDateValue: {
+      get() {
+        return this.form.startDate
+      },
+      set(value) {
+        this.setStartDate(value)
+      }
+    },
+    quarterTimeType() {
+      if (this.dateControl.range) return 2
+      return String(this.form.timeType) === '4' ? 3 : 1
+    },
+    startQuarterValue() {
+      return quarterPickerValue(this.form.startDate)
+    },
+    endQuarterValue() {
+      return quarterPickerValue(this.form.endDate)
+    },
+    dateValidationStatus() {
+      return this.validationErrors.startDate || this.validationErrors.endDate
+        ? 'error'
+        : ''
+    },
+    dateValidationHelp() {
+      return this.validationErrors.startDate || this.validationErrors.endDate
+    },
+    dimensionLabel() {
+      if (String(this.form.dimensionFlag) === '1') return '国库'
+      if (String(this.form.dimensionFlag) === '2') return '地区'
+      return '维度'
+    },
+    dimensionCandidates() {
+      return getDimensionCandidates(this.form)
+    },
+    accountingPeriodCandidates() {
+      const values = [this.form.dateId, this.form.startDate, this.form.endDate]
+        .filter(value => value != null && String(value).trim() !== '')
+        .map(value => String(value))
+      return values.filter((value, index) => values.indexOf(value) === index)
+    },
+    selectedColorIndexes: {
+      get() {
+        const selected = Array.isArray(this.form.colourArray)
+          ? this.form.colourArray
+          : []
+        return selected
+          .map(color => PRODUCTION_COLORS.indexOf(color))
+          .filter(index => index >= 0)
+      },
+      set(indexes) {
+        this.selectColors(indexes)
+      }
     }
   },
   methods: {
@@ -367,35 +638,79 @@ export default {
     fieldStatus(field) {
       return this.validationErrors[field] ? 'error' : ''
     },
+    onChartChange(event) {
+      const value = event && event.target ? event.target.value : event
+      const selected = CHART_TYPES.find(item => String(item.value) === String(value))
+      if (selected) this.selectChartType(selected.type)
+    },
     selectChartType(type) {
-      this.form.type = type
+      const selected = CHART_TYPES.find(item => item.type === type)
+      if (!selected) return
+      this.form.type = selected.type
       if (type === 'barAndLine') {
-        this.form.schemecolumns = this.form.schemecolumns.map((item, index) => ({
+        const columns = Array.isArray(this.form.schemecolumns)
+          ? this.form.schemecolumns
+          : []
+        this.form.schemecolumns = columns.map((item, index) => ({
           ...item,
           chartDirection: item.chartDirection || (index ? 'Line' : 'Columnar')
         }))
       }
     },
-    handleIndexChange(ids) {
-      const current = Array.isArray(this.form.schemecolumns)
-        ? this.form.schemecolumns
-        : []
-      this.form.schemecolumns = ids.map((id, index) => {
-        const existing = current.find(item => String(item.chartId) === String(id))
-        return existing || {
-          chartId: id,
-          chartDirection: this.form.type === 'barAndLine' && index > 0
-            ? 'Line'
-            : 'Columnar'
-        }
-      })
+    onTimeTypeChange(event) {
+      const value = event && event.target ? event.target.value : event
+      this.setFormField('timeType', value)
+      const state = getDateControl(this.form.periodFlag, value)
+      if (state.disabled) {
+        this.setStartDate('')
+        this.setEndDate('')
+      } else if (!state.range) {
+        this.setEndDate('')
+      }
+    },
+    setFormField(field, value) {
+      if (typeof this.$set === 'function') {
+        this.$set(this.form, field, value)
+      } else {
+        this.form[field] = value
+      }
+    },
+    setStartDate(value) {
+      this.setFormField('startDate', value || '')
+    },
+    setEndDate(value) {
+      this.setFormField('endDate', value || '')
+    },
+    setStartQuarter(value) {
+      this.setStartDate(normalizeQuarter(value))
+    },
+    setEndQuarter(value) {
+      this.setEndDate(normalizeQuarter(value))
+    },
+    generateImage() {
+      this.$emit('generate')
+    },
+    selectColors(indexes) {
+      const selectedIndexes = Array.isArray(indexes) ? indexes : []
+      this.setFormField('colourArray', selectedIndexes
+        .map(index => PRODUCTION_COLORS[Number(index)])
+        .filter(Boolean))
     },
     updateChartDirection(chartId, chartDirection) {
-      this.form.schemecolumns = this.form.schemecolumns.map(item =>
+      const columns = Array.isArray(this.form.schemecolumns)
+        ? this.form.schemecolumns
+        : []
+      this.form.schemecolumns = columns.map(item =>
         String(item.chartId) === String(chartId)
           ? { ...item, chartDirection }
           : item
       )
+    },
+    removeSeries(index) {
+      const columns = Array.isArray(this.form.schemecolumns)
+        ? this.form.schemecolumns
+        : []
+      this.form.schemecolumns = columns.filter((item, itemIndex) => itemIndex !== index)
     },
     indexLabel(id) {
       const item = this.indexOptions.find(option => String(option.id) === String(id))
@@ -406,76 +721,103 @@ export default {
 </script>
 
 <style scoped>
-.chart-type-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(72px, 1fr));
-  gap: 8px;
-}
-
-.chart-type-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 4px;
+.production-chart-form {
   color: #595959;
-  background: #fff;
-  border: 1px solid #d9d9d9;
-  cursor: pointer;
 }
 
-.chart-type-card:hover,
-.chart-type-card:focus {
-  border-color: #e51c46;
-  outline: 2px solid rgba(229, 28, 70, 0.18);
+.form-label {
+  margin-bottom: 8px;
 }
 
-.chart-type-card--selected {
-  border-color: #e51c46;
+.chart-type-group {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 16px;
 }
 
-.chart-type-card img {
-  width: 38px;
-  height: 38px;
+.chart-type-group img {
+  width: 60px;
+  height: 60px;
   object-fit: contain;
+  vertical-align: middle;
 }
 
-.chart-type-card__label {
+.chart-type-state {
+  display: block;
+  min-height: 20px;
+  margin-left: 24px;
+  color: #767676;
+  font-size: 12px;
+  text-align: center;
+}
+
+.production-form-fields,
+.production-form-fields .ant-form-item {
+  width: 100%;
+}
+
+.production-form-fields .ant-select,
+.production-form-fields .ant-input,
+.production-form-fields .el-date-editor {
+  width: 100%;
+}
+
+.switch-field {
+  padding-top: 8px;
+}
+
+.generated-settings {
+  margin: 16px 0;
+  color: #777;
+}
+
+.setting-label {
+  margin-right: 8px;
+}
+
+.generated-settings .ant-select {
+  width: 80%;
+}
+
+.color-option {
+  display: inline-block;
+  padding: 0 8px;
+  color: #fff;
   font-size: 12px;
 }
 
-.chart-type-card__state {
-  min-height: 18px;
-  color: #767676;
-  font-size: 11px;
+.series-directions {
+  margin-top: 16px;
+  border: 1px solid #e8e8e8;
 }
 
-.chart-type-card--selected .chart-type-card__state {
-  color: #b51235;
+.series-direction-header,
+.series-direction-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 160px 80px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.series-direction-header {
+  background: #fafafa;
   font-weight: 600;
 }
 
-.series-directions {
-  margin: -8px 0 16px 29%;
-  padding: 8px;
-  background: #fafafa;
-}
-
 .series-direction-row {
-  display: grid;
-  grid-template-columns: 1fr 92px;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.series-direction-row:last-child {
-  margin-bottom: 0;
+  border-top: 1px solid #e8e8e8;
 }
 
 @media (max-width: 640px) {
-  .chart-type-grid {
-    grid-template-columns: repeat(2, minmax(96px, 1fr));
+  .chart-type-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(110px, 1fr));
+  }
+
+  .series-direction-header,
+  .series-direction-row {
+    grid-template-columns: 1fr;
   }
 }
 </style>

@@ -664,6 +664,28 @@ assert.match(formSource, /role="radiogroup"/)
 assert.match(formSource, /role="radio"/)
 assert.match(formSource, /aria-checked/)
 assert.match(formSource, /已选择/)
+assert.match(formSource, /class="production-chart-form"/)
+assert.match(formSource, /<a-radio-group[^]*v-for="item in chartTypes"/)
+assert.match(formSource, /图表标题/)
+assert.match(formSource, /<a-input[^]*disabled[^]*指标/)
+assert.match(formSource, /时间类型/)
+assert.match(formSource, /选择时间/)
+assert.match(formSource, /<el-date-picker/)
+assert.match(formSource, /<data-month/)
+assert.match(formSource, /<data-year/)
+assert.match(formSource, /横轴显示/)
+assert.match(formSource, /统计方向/)
+assert.match(formSource, /dimensionCandidates/)
+assert.match(formSource, /生成图片/)
+assert.match(formSource, /\$emit\('generate'\)/)
+assert.match(formSource, /generated/)
+assert.match(formSource, /设置图表颜色/)
+assert.match(formSource, /是否包含比率/)
+assert.match(formSource, /是否渐变/)
+assert.match(formSource, /validateProductionChartFields/)
+assert.doesNotMatch(formSource, /config-panel/)
+assert.doesNotMatch(formSource, /v-model(?:\.trim)?="form\.(?:dimensionFlag|periodFlag|price|unit)"/)
+assert.doesNotMatch(formSource, /v-model\.trim="form\.(?:startDate|endDate|direction|GK)"/)
 assert.match(modalSource, /previewBarLine/)
 assert.match(modalSource, /previewPie/)
 assert.match(modalSource, /previewReady/)
@@ -695,15 +717,22 @@ function sfcScript(source) {
     .replace('export default', 'component =')
 }
 
-assert.match(formSource, /:disabled="dateState\.disableStart"/)
-assert.match(formSource, /:disabled="dateState\.disableEnd"/)
+assert.match(formSource, /dateControl\.disabled/)
+assert.match(formSource, /dateControl\.range/)
 const formContext = {
   component: null,
   barIcon: '9.png',
   lineIcon: '8.png',
   pieIcon: '10.png',
   combinedIcon: '7.png',
-  CHART_TYPES
+  dataMonth: {},
+  dataYear: {},
+  CHART_TYPES,
+  PRODUCTION_COLORS,
+  getTimeTypeOptions,
+  getDateControl,
+  getDimensionCandidates,
+  validateProductionChartFields
 }
 vm.runInNewContext(sfcScript(formSource), formContext)
 const validateDateSelection = formContext.validateDateSelection
@@ -755,7 +784,9 @@ const validFormVm = createFormVm({
   timeType: '2',
   startDate: '2026-01',
   endDate: '2026-06',
-  price: '10000'
+  price: '10000',
+  xTurn: '0',
+  direction: 'GK01'
 })
 assert.strictEqual(await validFormVm.instance.validate(), true)
 assert.deepStrictEqual(
@@ -763,6 +794,41 @@ assert.deepStrictEqual(
   {}
 )
 assert.deepStrictEqual(validFormVm.messages, [])
+
+const interactionForm = {
+  title: '财政收入趋势',
+  type: 'bar',
+  schemecolumns: [
+    { chartId: 'I1', chartDirection: 'Columnar' },
+    { chartId: 'I2' }
+  ]
+}
+const interactionEvents = []
+const interactionVm = {
+  form: interactionForm,
+  $set(target, field, value) {
+    target[field] = value
+  },
+  $emit(event) {
+    interactionEvents.push(event)
+  }
+}
+Object.assign(interactionVm, formComponent.methods)
+interactionVm.selectChartType('barAndLine')
+assert.strictEqual(interactionForm.type, 'barAndLine')
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(
+    interactionForm.schemecolumns.map(item => item.chartDirection)
+  )),
+  ['Columnar', 'Line']
+)
+interactionVm.selectColors([0, 2, 99])
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(interactionForm.colourArray)),
+  [PRODUCTION_COLORS[0], PRODUCTION_COLORS[2]]
+)
+interactionVm.generateImage()
+assert.deepStrictEqual(interactionEvents, ['generate'])
 
 const invalidFormVm = createFormVm({
   title: '',
@@ -786,6 +852,56 @@ assert.strictEqual(invalidFormVm.instance.validationErrors.dimensionFlag, '请�
 assert.match(invalidFormVm.instance.validationErrors.startDate, /yyyy-MM-dd/)
 assert.strictEqual(invalidFormVm.instance.validationErrors.price, '请输入单位值')
 assert.deepStrictEqual(invalidFormVm.messages, ['请完善图表配置后再预览'])
+
+const missingDimensionVm = createFormVm({
+  title: '财政收入趋势',
+  type: 'bar',
+  schemecolumns: [{ chartId: 'I1', chartDirection: 'Columnar' }],
+  dimensionFlag: '1',
+  periodFlag: '2',
+  timeType: '3',
+  price: '10000',
+  xTurn: '0',
+  direction: ''
+})
+assert.strictEqual(await missingDimensionVm.instance.validate(), false)
+assert.strictEqual(
+  missingDimensionVm.instance.validationErrors.direction,
+  '请选择国库'
+)
+
+const missingAccountingPeriodVm = createFormVm({
+  title: '财政收入趋势',
+  type: 'line',
+  schemecolumns: [{ chartId: 'I1', chartDirection: 'Line' }],
+  dimensionFlag: '2',
+  periodFlag: '2',
+  timeType: '3',
+  price: '10000',
+  xTurn: '1',
+  dateId: ''
+})
+assert.strictEqual(await missingAccountingPeriodVm.instance.validate(), false)
+assert.strictEqual(
+  missingAccountingPeriodVm.instance.validationErrors.dateId,
+  '请选择账期'
+)
+
+const missingPieDirectionVm = createFormVm({
+  title: '财政收入占比',
+  type: 'pie',
+  schemecolumns: [{ chartId: 'I1', chartDirection: 'Columnar' }],
+  dimensionFlag: '1',
+  periodFlag: '2',
+  timeType: '3',
+  price: '10000',
+  direction: ''
+})
+assert.strictEqual(await missingPieDirectionVm.instance.validate(), false)
+assert.strictEqual(
+  missingPieDirectionVm.instance.validationErrors.direction,
+  '请选择统计方向'
+)
 
 const chartContext = {
   component: null,
