@@ -28,15 +28,30 @@ for command_name in jar rg; do
   fi
 done
 
+absolute_artifact_path() {
+  local artifact="$1"
+  local artifact_dir
+  local artifact_name
+
+  if [[ "${artifact}" == /* ]]; then
+    printf '%s\n' "${artifact}"
+    return
+  fi
+
+  artifact_dir="$(dirname -- "${artifact}")"
+  artifact_name="$(basename -- "${artifact}")"
+  printf '%s/%s\n' "$(cd "${artifact_dir}" && pwd -P)" "${artifact_name}"
+}
+
 tmp_dir="$(mktemp -d "${TMPDIR:-/tmp}/index-scheme-artifacts.XXXXXX")"
-trap 'rm -rf "${tmp_dir}"' EXIT
+trap 'rm -rf -- "${tmp_dir}"' EXIT
 
 system_extract="${tmp_dir}/system"
 vis_extract="${tmp_dir}/vis"
 mkdir -p "${system_extract}" "${vis_extract}"
 
-system_jar="$(realpath "${system_jar}")"
-vis_jar="$(realpath "${vis_jar}")"
+system_jar="$(absolute_artifact_path "${system_jar}")"
+vis_jar="$(absolute_artifact_path "${vis_jar}")"
 
 (
   cd "${system_extract}"
@@ -53,25 +68,105 @@ if [[ ! -d "${static_js}" ]]; then
   exit 1
 fi
 
-mapfile -t index_scheme_assets < <(rg -a -l '生成图片' "${static_js}" || true)
+index_html="${system_extract}/static/index.html"
+if [[ ! -f "${index_html}" ]]; then
+  echo "system artifact has no static/index.html: ${system_jar}" >&2
+  exit 1
+fi
+
+declare -a referenced_assets=()
+declare -A seen_referenced_assets=()
+html_js_attribute_pattern="(?i)(?:src|href)\\s*=\\s*(?:\"[^\"]+\\.js(?:\\?[^\"[:space:]]*)?\"|'[^']+\\.js(?:\\?[^'[:space:]]*)?'|[^[:space:]>\"']+\\.js(?:\\?[^[:space:]>\"']*)?)"
+
+while IFS= read -r attribute; do
+  reference="${attribute#*=}"
+  reference="${reference#"${reference%%[![:space:]]*}"}"
+  reference="${reference%"${reference##*[![:space:]]}"}"
+  reference="${reference#\"}"
+  reference="${reference%\"}"
+  reference="${reference#\'}"
+  reference="${reference%\'}"
+  reference="${reference%%\?*}"
+  reference="${reference%%\#*}"
+
+  case "${reference}" in
+    http://*|https://*|//*|data:*)
+      continue
+      ;;
+  esac
+
+  reference="${reference#/}"
+  reference="${reference#./}"
+  reference="${reference#static/}"
+
+  case "/${reference}/" in
+    */../*|*/./*)
+      echo "index.html contains an unsafe JavaScript path: ${reference}" >&2
+      exit 1
+      ;;
+  esac
+
+  asset="${system_extract}/static/${reference}"
+  if [[ ! -f "${asset}" ]]; then
+    echo "index.html references a missing JavaScript asset: ${reference}" >&2
+    exit 1
+  fi
+
+  if [[ -z "${seen_referenced_assets["${asset}"]+present}" ]]; then
+    referenced_assets+=("${asset}")
+    seen_referenced_assets["${asset}"]=1
+  fi
+done < <(rg -o -N --pcre2 "${html_js_attribute_pattern}" "${index_html}" || true)
+
+if (( ${#referenced_assets[@]} == 0 )); then
+  echo "system artifact index.html references no local JavaScript assets" >&2
+  exit 1
+fi
+
+declare -a index_scheme_assets=()
+for asset in "${referenced_assets[@]}"; do
+  if rg -a -q -F 'indexLibraryScheme/toGallery' "${asset}"; then
+    echo "referenced system asset still contains the removed toGallery endpoint: ${asset}" >&2
+    exit 1
+  fi
+
+  is_index_scheme_asset=true
+  for signature in \
+    '生成图片' \
+    'IndexBarLine/getIndexBarLineData' \
+    'IndexPie/getIndexPieData' \
+    '柱状图' \
+    '折线图' \
+    '饼图' \
+    '柱状折线图'
+  do
+    if ! rg -a -q -F "${signature}" "${asset}"; then
+      is_index_scheme_asset=false
+      break
+    fi
+  done
+
+  if [[ "${is_index_scheme_asset}" == true ]]; then
+    index_scheme_assets+=("${asset}")
+  fi
+done
+
 if (( ${#index_scheme_assets[@]} == 0 )); then
-  echo "system artifact does not contain the production action text: 生成图片" >&2
+  echo "referenced assets do not contain the complete production index scheme feature" >&2
   exit 1
 fi
 
-if rg -a -q '图库标题' "${static_js}"; then
-  echo "system artifact still contains the removed field text: 图库标题" >&2
-  exit 1
-fi
-
-if rg -a -q '/vis/api/indexLibraryScheme/toGallery' "${static_js}"; then
-  echo "system artifact still contains the removed toGallery endpoint" >&2
-  exit 1
-fi
-
+map_option_pattern="[\"']?(value|chartType|chart_type)[\"']?\\s*:\\s*[\"']map[\"']|IndexMap"
 for asset in "${index_scheme_assets[@]}"; do
-  if rg -a -q '地图' "${asset}"; then
-    echo "index scheme asset still contains an out-of-scope map option: ${asset}" >&2
+  if rg -a -q -F '图库标题' "${asset}"; then
+    echo "index scheme asset still contains the removed field text: 图库标题 (${asset})" >&2
+    exit 1
+  fi
+
+  # Shared chunks legitimately contain ECharts series with type:"map".
+  # Reject only signatures used by the removed index-scheme map option.
+  if rg -a -q "${map_option_pattern}" "${asset}"; then
+    echo "index scheme asset still contains an out-of-scope map option signature: ${asset}" >&2
     exit 1
   fi
 done
