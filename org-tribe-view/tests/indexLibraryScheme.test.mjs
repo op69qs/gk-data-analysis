@@ -1266,6 +1266,7 @@ let piePreviewResponse = {
 }
 let barSaveResponse = { result: 'success', msg: '添加成功' }
 let pieSaveResponse = { result: 'success', msg: '添加成功' }
+let barSaveHandler = () => Promise.resolve(barSaveResponse)
 let previewImage = 'data:image/png;base64,chart-preview'
 const modalContext = {
   component: null,
@@ -1292,7 +1293,7 @@ const modalContext = {
   },
   saveBarLine(params) {
     barSaveRequests.push(params)
-    return Promise.resolve(barSaveResponse)
+    return barSaveHandler(params)
   },
   savePie(params) {
     pieSaveRequests.push(params)
@@ -1655,6 +1656,123 @@ assert.strictEqual(previewVm.instance.visible, false)
 assert.strictEqual(previewVm.instance.hasGeneratedPreview, false)
 assert.strictEqual(previewVm.instance.previewReady, false)
 assert.deepStrictEqual(previewVm.emitted, ['ok'])
+
+const closeDuringSave = deferred()
+barSaveHandler = () => closeDuringSave.promise
+const closeDuringSaveVm = createModalVm()
+await closeDuringSaveVm.instance.open(modalRecord)
+await closeDuringSaveVm.instance.handleGenerate()
+const closeSaveCount = barSaveRequests.length
+const closeSaveRequest = closeDuringSaveVm.instance.handleOk()
+await waitFor(
+  () => barSaveRequests.length === closeSaveCount + 1,
+  'save before close did not issue its API request'
+)
+assert.strictEqual(closeDuringSaveVm.instance.saving, true)
+closeDuringSaveVm.instance.handleCancel()
+assert.strictEqual(closeDuringSaveVm.instance.saving, false)
+closeDuringSave.resolve({ result: 'success', msg: '过期保存成功' })
+assert.strictEqual(
+  await settleWithin(closeSaveRequest, 'save before close did not settle'),
+  false
+)
+assert.strictEqual(closeDuringSaveVm.instance.visible, false)
+assert.strictEqual(closeDuringSaveVm.instance.saving, false)
+assert.deepStrictEqual(closeDuringSaveVm.messages, [])
+assert.deepStrictEqual(closeDuringSaveVm.emitted, [])
+
+const oldSaveWithoutReplacement = deferred()
+barSaveHandler = () => oldSaveWithoutReplacement.promise
+const openDuringSaveVm = createModalVm()
+await openDuringSaveVm.instance.open(modalRecord)
+await openDuringSaveVm.instance.handleGenerate()
+const openSaveCount = barSaveRequests.length
+const oldOpenSaveRequest = openDuringSaveVm.instance.handleOk()
+await waitFor(
+  () => barSaveRequests.length === openSaveCount + 1,
+  'save before opening a new record did not issue its API request'
+)
+await openDuringSaveVm.instance.open(latestRecord)
+assert.strictEqual(openDuringSaveVm.instance.visible, true)
+assert.strictEqual(openDuringSaveVm.instance.saving, false)
+oldSaveWithoutReplacement.resolve({ result: 'success', msg: '旧方案保存成功' })
+assert.strictEqual(
+  await settleWithin(oldOpenSaveRequest, 'old save after open did not settle'),
+  false
+)
+assert.strictEqual(openDuringSaveVm.instance.visible, true)
+assert.strictEqual(openDuringSaveVm.instance.saving, false)
+assert.deepStrictEqual(openDuringSaveVm.messages, [])
+assert.deepStrictEqual(openDuringSaveVm.emitted, [])
+
+const supersededByInvalidSave = deferred()
+barSaveHandler = () => supersededByInvalidSave.promise
+const invalidReplacementVm = createModalVm()
+await invalidReplacementVm.instance.open(modalRecord)
+await invalidReplacementVm.instance.handleGenerate()
+const invalidReplacementCount = barSaveRequests.length
+const supersededSaveRequest = invalidReplacementVm.instance.handleOk()
+await waitFor(
+  () => barSaveRequests.length === invalidReplacementCount + 1,
+  'save before invalid replacement did not issue its API request'
+)
+invalidReplacementVm.instance.previewReady = false
+assert.strictEqual(await invalidReplacementVm.instance.handleOk(), false)
+assert.strictEqual(invalidReplacementVm.instance.saving, false)
+supersededByInvalidSave.resolve({ result: 'success', msg: '失效保存成功' })
+assert.strictEqual(
+  await settleWithin(supersededSaveRequest, 'superseded save did not settle'),
+  false
+)
+assert.deepStrictEqual(invalidReplacementVm.messages, [{
+  type: 'error',
+  message: '请先生成当前图表配置'
+}])
+assert.deepStrictEqual(invalidReplacementVm.emitted, [])
+
+const oldSaveWithReplacement = deferred()
+const replacementSave = deferred()
+const saveQueue = [oldSaveWithReplacement, replacementSave]
+barSaveHandler = () => saveQueue.shift().promise
+const replacementSaveVm = createModalVm()
+await replacementSaveVm.instance.open(modalRecord)
+await replacementSaveVm.instance.handleGenerate()
+const replacementSaveCount = barSaveRequests.length
+const oldReplacementRequest = replacementSaveVm.instance.handleOk()
+await waitFor(
+  () => barSaveRequests.length === replacementSaveCount + 1,
+  'old replacement save did not issue its API request'
+)
+await replacementSaveVm.instance.open(latestRecord)
+await replacementSaveVm.instance.handleGenerate()
+const latestReplacementRequest = replacementSaveVm.instance.handleOk()
+await waitFor(
+  () => barSaveRequests.length === replacementSaveCount + 2,
+  'latest replacement save did not issue its API request'
+)
+assert.strictEqual(replacementSaveVm.instance.saving, true)
+oldSaveWithReplacement.resolve({ result: 'success', msg: '旧方案保存成功' })
+assert.strictEqual(
+  await settleWithin(oldReplacementRequest, 'old replacement save did not settle'),
+  false
+)
+assert.strictEqual(replacementSaveVm.instance.visible, true)
+assert.strictEqual(replacementSaveVm.instance.saving, true)
+assert.deepStrictEqual(replacementSaveVm.messages, [])
+assert.deepStrictEqual(replacementSaveVm.emitted, [])
+replacementSave.resolve({ result: 'success', msg: '新方案保存成功' })
+assert.strictEqual(
+  await settleWithin(latestReplacementRequest, 'latest replacement save did not settle'),
+  true
+)
+assert.strictEqual(replacementSaveVm.instance.visible, false)
+assert.strictEqual(replacementSaveVm.instance.saving, false)
+assert.deepStrictEqual(replacementSaveVm.messages, [{
+  type: 'success',
+  message: '新方案保存成功'
+}])
+assert.deepStrictEqual(replacementSaveVm.emitted, ['ok'])
+barSaveHandler = () => Promise.resolve(barSaveResponse)
 
 const closeVm = createModalVm()
 await closeVm.instance.open(modalRecord)

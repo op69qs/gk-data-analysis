@@ -113,7 +113,8 @@ export default {
       frozenCondition: null,
       generatedFormSnapshot: '',
       indexInfoRevision: 0,
-      previewRevision: 0
+      previewRevision: 0,
+      saveRevision: 0
     }
   },
   computed: {
@@ -140,6 +141,8 @@ export default {
     open(record) {
       this.indexInfoRevision += 1
       this.indexLoading = false
+      this.saveRevision += 1
+      this.saving = false
       this.resetPreview()
       try {
         this.record = record || {}
@@ -230,6 +233,16 @@ export default {
     },
     previewFormSignature() {
       return JSON.stringify(this.form || {})
+    },
+    saveRecordId(record) {
+      if (!record || typeof record !== 'object') return ''
+      const id = record.ID === undefined ? record.id : record.ID
+      return id === undefined || id === null ? '' : String(id)
+    },
+    isCurrentSave(revision, record, recordId) {
+      return revision === this.saveRevision &&
+        record === this.record &&
+        recordId === this.saveRecordId(this.record)
     },
     async validateForm() {
       if (!this.$refs.convertForm) return false
@@ -342,6 +355,10 @@ export default {
       })
     },
     handleOk() {
+      const revision = ++this.saveRevision
+      const record = this.record
+      const recordId = this.saveRecordId(record)
+      this.saving = false
       if (!this.previewReady || !this.frozenCondition) {
         this.$message.error('请先生成当前图表配置')
         return Promise.resolve(false)
@@ -376,6 +393,7 @@ export default {
       const request = this.frozenCondition.type === 'pie' ? savePie : saveBarLine
       this.saving = true
       return request(payload).then(res => {
+        if (!this.isCurrentSave(revision, record, recordId)) return false
         if (res && res.result === 'success') {
           this.$message.success(res.msg || '保存成功')
           this.visible = false
@@ -386,15 +404,19 @@ export default {
         this.$message.error((res && res.msg) || '保存失败')
         return false
       }).catch(() => {
+        if (!this.isCurrentSave(revision, record, recordId)) return false
         this.$message.error('保存失败，请稍后重试')
         return false
       }).finally(() => {
-        this.saving = false
+        if (this.isCurrentSave(revision, record, recordId)) {
+          this.saving = false
+        }
       })
     },
     handleCancel() {
       this.indexInfoRevision += 1
       this.indexLoading = false
+      this.saveRevision += 1
       this.visible = false
       this.saving = false
       this.resetPreview()
