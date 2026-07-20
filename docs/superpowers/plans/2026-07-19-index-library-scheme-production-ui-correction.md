@@ -282,6 +282,7 @@ git commit -m "feat(vis): restore production index chart form"
 - `buildChartOption(type, response, condition)` 支持 `condition.colourArray` 和 `condition.isGradual`。
 - `hasGeneratedPreview: boolean` 仅控制生成后的颜色/渐变区可见性；
   `previewReady: boolean` 单独控制当前配置是否允许保存。
+- 独立 `saveRevision: number` 屏蔽关闭或切换方案后的旧保存响应。
 
 - [ ] **Step 1: 增加状态机 RED 测试**
 
@@ -300,6 +301,8 @@ assert.doesNotMatch(convertModalSource, /保存图表/)
 - `handleGenerate()` 成功前 `handleOk()` 不调用保存；
 - 标题、时间、颜色、渐变、比率或方向改变后保存重新失效；
 - 旧 preview response 不得覆盖新 response；
+- 保存中关闭或打开另一方案后，旧 save response 不得关闭新弹窗、发消息、
+  发出 `ok` 或提前清除新保存的 loading；
 - `frozenCondition.colourArray`、`isGradual`、`isRate` 写入 `condition`；
 - `content` 仍为 `data:image/...`。
 
@@ -346,6 +349,10 @@ Expected: 新状态机或模板断言失败。
 `handleOk` 复用既有保存逻辑，并继续以冻结条件生成保存 payload。
 `modalTitle` 返回 `${方案名称} - 转图`，与生产演示一致；方案名称为空时回退
 为“转图”。
+
+`open`、`handleCancel` 和每次 `handleOk` 必须推进独立
+`saveRevision`。保存请求捕获 revision 与当前方案 ID，`then/catch/finally`
+只有在两者仍匹配时才能修改弹窗、消息、事件或 `saving`。
 
 首次生成成功时同时设置 `hasGeneratedPreview=true` 与
 `previewReady=true`。后续标题、时间、横轴、颜色、渐变、比率或柱折方向
