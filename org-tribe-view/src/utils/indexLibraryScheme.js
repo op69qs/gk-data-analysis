@@ -124,6 +124,17 @@ function cloneSchemeColumns(value) {
   })
 }
 
+export function normalizeBarLineColumns(value) {
+  if (!Array.isArray(value)) return []
+  return value.map((item, index) => ({
+    ...item,
+    chartDirection: item &&
+      (item.chartDirection === 'Columnar' || item.chartDirection === 'Line')
+      ? item.chartDirection
+      : index === 0 ? 'Columnar' : 'Line'
+  }))
+}
+
 function normalizeConditionObject(source) {
   const normalized = {}
   for (const [field, aliases] of CONDITION_FIELDS) {
@@ -236,6 +247,16 @@ export function validateProductionChartFields(form) {
   } else if (xTurn === '1' && !String(source.dateId || '').trim()) {
     errors.dateId = '请选择账期'
   }
+  if (
+    type === 'barAndLine' &&
+    Array.isArray(source.schemecolumns) &&
+    source.schemecolumns.some(item =>
+      !item ||
+      (item.chartDirection !== 'Columnar' && item.chartDirection !== 'Line')
+    )
+  ) {
+    errors.schemecolumns = '柱状折线方向仅支持柱状图或折线图'
+  }
   return errors
 }
 
@@ -283,6 +304,9 @@ export function createInitialForm(record, condition) {
     sourceRecord,
     ['SCHEME_DESCR', 'schemeDescr', 'name']
   )
+  if (form.type === 'barAndLine') {
+    form.schemecolumns = normalizeBarLineColumns(form.schemecolumns)
+  }
   return form
 }
 
@@ -296,6 +320,31 @@ export function buildPreviewPayload(form, record) {
     payload.scheme_id = firstOwnValue(sourceRecord, ['ID', 'id'])
   }
   const sanitizedPayload = sanitizeUiCandidateMetadata(payload)
+  const dateId = sourceForm.dateId == null
+    ? ''
+    : String(sourceForm.dateId).trim()
+  if (
+    sanitizedPayload.type !== 'pie' &&
+    String(sanitizedPayload.xTurn) === '1' &&
+    dateId
+  ) {
+    sanitizedPayload.startDate = dateId
+    sanitizedPayload.endDate = dateId
+  }
+  if (
+    String(sanitizedPayload.timeType) === '4' &&
+    sanitizedPayload.startDate != null &&
+    String(sanitizedPayload.startDate) !== ''
+  ) {
+    sanitizedPayload.startDate = String(sanitizedPayload.startDate)
+    sanitizedPayload.endDate = sanitizedPayload.startDate
+  }
+  if (sanitizedPayload.type === 'barAndLine') {
+    sanitizedPayload.schemecolumns = normalizeBarLineColumns(
+      sanitizedPayload.schemecolumns
+    )
+  }
+  delete sanitizedPayload.dateId
   assertSupportedChartType(sanitizedPayload.type)
   return sanitizedPayload
 }
@@ -319,6 +368,11 @@ export function buildSavePayload(
   const normalizedCondition = sanitizeUiCandidateMetadata(
     parseSchemeCondition(previewCondition)
   )
+  if (normalizedCondition.type === 'barAndLine') {
+    normalizedCondition.schemecolumns = normalizeBarLineColumns(
+      normalizedCondition.schemecolumns
+    )
+  }
   assertSupportedChartType(normalizedCondition.type)
 
   return {

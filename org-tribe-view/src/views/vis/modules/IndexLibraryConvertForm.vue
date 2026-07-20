@@ -400,6 +400,7 @@ import {
   getTimeTypeOptions,
   getDateControl,
   getDimensionCandidates,
+  normalizeBarLineColumns,
   validateProductionChartFields
 } from '@/utils/indexLibraryScheme'
 
@@ -646,15 +647,19 @@ export default {
     selectChartType(type) {
       const selected = CHART_TYPES.find(item => item.type === type)
       if (!selected) return
-      this.form.type = selected.type
+      this.setFormField('type', selected.type)
+      this.setFormField('xTurn', '0')
+      for (const field of ['direction', 'GK', 'indexName', 'dateId']) {
+        this.setFormField(field, '')
+      }
       if (type === 'barAndLine') {
         const columns = Array.isArray(this.form.schemecolumns)
           ? this.form.schemecolumns
           : []
-        this.form.schemecolumns = columns.map((item, index) => ({
-          ...item,
-          chartDirection: item.chartDirection || (index ? 'Line' : 'Columnar')
-        }))
+        this.setFormField(
+          'schemecolumns',
+          normalizeBarLineColumns(columns)
+        )
       }
     },
     onTimeTypeChange(event) {
@@ -700,17 +705,23 @@ export default {
       const columns = Array.isArray(this.form.schemecolumns)
         ? this.form.schemecolumns
         : []
-      this.form.schemecolumns = columns.map(item =>
-        String(item.chartId) === String(chartId)
-          ? { ...item, chartDirection }
-          : item
+      this.setFormField(
+        'schemecolumns',
+        normalizeBarLineColumns(columns.map(item =>
+          String(item.chartId) === String(chartId)
+            ? { ...item, chartDirection }
+            : item
+        ))
       )
     },
     removeSeries(index) {
       const columns = Array.isArray(this.form.schemecolumns)
         ? this.form.schemecolumns
         : []
-      this.form.schemecolumns = columns.filter((item, itemIndex) => itemIndex !== index)
+      this.setFormField(
+        'schemecolumns',
+        columns.filter((item, itemIndex) => itemIndex !== index)
+      )
     },
     indexLabel(id) {
       const item = this.indexOptions.find(option => String(option.id) === String(id))

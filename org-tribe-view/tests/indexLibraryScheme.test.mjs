@@ -53,6 +53,7 @@ const {
   getTimeTypeOptions,
   getDateControl,
   getDimensionCandidates,
+  normalizeBarLineColumns,
   validateProductionChartFields
 } = await import(utilsUrl)
 
@@ -212,6 +213,18 @@ assert.deepStrictEqual(
   }),
   {}
 )
+assert.deepStrictEqual(
+  validateProductionChartFields({
+    type: 'barAndLine',
+    xTurn: '0',
+    dimensionFlag: '1',
+    direction: 'GK01',
+    schemecolumns: [
+      { chartId: 'I1', chartDirection: 'Area' }
+    ]
+  }),
+  { schemecolumns: '柱状折线方向仅支持柱状图或折线图' }
+)
 
 const productionRow = {
   ID: 's1',
@@ -283,6 +296,26 @@ assert.strictEqual(form.schemeName, '收入')
 assert.strictEqual(form.type, 'line')
 assert.deepStrictEqual(form.schemecolumns, normalizedCondition.schemecolumns)
 
+const normalizedBarLineForm = createInitialForm({
+  ID: 'invalid-directions',
+  SCHEME_CONDITON: JSON.stringify({
+    TYPE: 'barAndLine',
+    SCHEME_COLUMNS: [
+      { CHART_ID: 'I1', CHART_DIRECTION: 'Area' },
+      { CHART_ID: 'I2', CHART_DIRECTION: 'Pie' },
+      { CHART_ID: 'I3', CHART_DIRECTION: 'Line' }
+    ]
+  })
+})
+assert.deepStrictEqual(
+  normalizedBarLineForm.schemecolumns,
+  [
+    { chartId: 'I1', chartDirection: 'Columnar' },
+    { chartId: 'I2', chartDirection: 'Line' },
+    { chartId: 'I3', chartDirection: 'Line' }
+  ]
+)
+
 for (const type of CHART_TYPES.map(item => item.type)) {
   const payload = buildPreviewPayload({ ...form, type }, productionRow)
   assert.strictEqual(payload.type, type)
@@ -302,6 +335,54 @@ for (const type of CHART_TYPES.map(item => item.type)) {
   assert.strictEqual(Object.prototype.hasOwnProperty.call(payload, 'schemeSql'), false)
   assert.strictEqual(Object.prototype.hasOwnProperty.call(payload, 'previewToken'), false)
 }
+
+for (const type of ['bar', 'line', 'barAndLine']) {
+  for (const [periodFlag, dateId] of [
+    ['1', '2026-07-20'],
+    ['2', '2026-07'],
+    ['3', '2026Q3'],
+    ['4', '2026']
+  ]) {
+    const payload = buildPreviewPayload({
+      ...form,
+      type,
+      periodFlag,
+      xTurn: '1',
+      dateId,
+      startDate: 'stale-start',
+      endDate: 'stale-end'
+    }, productionRow)
+    assert.strictEqual(payload.startDate, dateId)
+    assert.strictEqual(payload.endDate, dateId)
+    assert.strictEqual(typeof payload.startDate, 'string')
+    assert.strictEqual(typeof payload.endDate, 'string')
+    assert.strictEqual(
+      Object.prototype.hasOwnProperty.call(payload, 'dateId'),
+      false
+    )
+  }
+}
+
+for (const [periodFlag, startDate] of [
+  ['1', '2026-07-20'],
+  ['2', '2026-07'],
+  ['3', '2026Q3'],
+  ['4', '2026']
+]) {
+  const payload = buildPreviewPayload({
+    ...form,
+    type: 'pie',
+    periodFlag,
+    timeType: '4',
+    startDate,
+    endDate: 'stale-end'
+  }, productionRow)
+  assert.strictEqual(payload.startDate, startDate)
+  assert.strictEqual(payload.endDate, startDate)
+  assert.strictEqual(typeof payload.startDate, 'string')
+  assert.strictEqual(typeof payload.endDate, 'string')
+}
+
 assert.throws(
   () => buildPreviewPayload({ ...form, type: 'map' }, productionRow),
   /不支持的图表类型/
@@ -732,6 +813,7 @@ const formContext = {
   getTimeTypeOptions,
   getDateControl,
   getDimensionCandidates,
+  normalizeBarLineColumns,
   validateProductionChartFields
 }
 vm.runInNewContext(sfcScript(formSource), formContext)
@@ -797,10 +879,15 @@ assert.deepStrictEqual(validFormVm.messages, [])
 
 const interactionForm = {
   title: '财政收入趋势',
-  type: 'bar',
+  type: 'pie',
+  xTurn: '1',
+  direction: 'X',
+  GK: 'GK01',
+  indexName: 'I1',
+  dateId: '2026-07',
   schemecolumns: [
     { chartId: 'I1', chartDirection: 'Columnar' },
-    { chartId: 'I2' }
+    { chartId: 'I2', chartDirection: 'Pie' }
   ]
 }
 const interactionEvents = []
@@ -816,6 +903,11 @@ const interactionVm = {
 Object.assign(interactionVm, formComponent.methods)
 interactionVm.selectChartType('barAndLine')
 assert.strictEqual(interactionForm.type, 'barAndLine')
+assert.strictEqual(interactionForm.xTurn, '0')
+assert.strictEqual(interactionForm.direction, '')
+assert.strictEqual(interactionForm.GK, '')
+assert.strictEqual(interactionForm.indexName, '')
+assert.strictEqual(interactionForm.dateId, '')
 assert.deepStrictEqual(
   JSON.parse(JSON.stringify(
     interactionForm.schemecolumns.map(item => item.chartDirection)
@@ -901,6 +993,45 @@ assert.strictEqual(await missingPieDirectionVm.instance.validate(), false)
 assert.strictEqual(
   missingPieDirectionVm.instance.validationErrors.direction,
   '请选择统计方向'
+)
+
+const invalidBarLineDirectionVm = createFormVm({
+  title: '财政收入趋势',
+  type: 'barAndLine',
+  schemecolumns: [{ chartId: 'I1', chartDirection: 'Pie' }],
+  dimensionFlag: '1',
+  periodFlag: '2',
+  timeType: '3',
+  price: '10000',
+  xTurn: '0',
+  direction: 'GK01'
+})
+assert.strictEqual(await invalidBarLineDirectionVm.instance.validate(), false)
+assert.strictEqual(
+  invalidBarLineDirectionVm.instance.validationErrors.schemecolumns,
+  '柱状折线方向仅支持柱状图或折线图'
+)
+
+const deleteAllBarLineVm = createFormVm({
+  title: '财政收入趋势',
+  type: 'barAndLine',
+  schemecolumns: [
+    { chartId: 'I1', chartDirection: 'Columnar' },
+    { chartId: 'I2', chartDirection: 'Line' }
+  ],
+  dimensionFlag: '1',
+  periodFlag: '2',
+  timeType: '3',
+  price: '10000',
+  xTurn: '0',
+  direction: 'GK01'
+})
+deleteAllBarLineVm.instance.removeSeries(1)
+deleteAllBarLineVm.instance.removeSeries(0)
+assert.strictEqual(await deleteAllBarLineVm.instance.validate(), false)
+assert.strictEqual(
+  deleteAllBarLineVm.instance.validationErrors.schemecolumns,
+  '请至少选择一个指标'
 )
 
 const chartContext = {
