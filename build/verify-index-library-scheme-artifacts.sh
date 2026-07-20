@@ -156,8 +156,14 @@ if (( ${#index_scheme_assets[@]} == 0 )); then
   exit 1
 fi
 
+chart_types_pattern='Object\.freeze\(\s*\[\s*\{\s*value\s*:\s*"1"\s*,\s*type\s*:\s*"bar"\s*,\s*label\s*:\s*"柱状图"\s*\}\s*,\s*\{\s*value\s*:\s*"2"\s*,\s*type\s*:\s*"line"\s*,\s*label\s*:\s*"折线图"\s*\}\s*,\s*\{\s*value\s*:\s*"3"\s*,\s*type\s*:\s*"pie"\s*,\s*label\s*:\s*"饼图"\s*\}\s*,\s*\{\s*value\s*:\s*"4"\s*,\s*type\s*:\s*"barAndLine"\s*,\s*label\s*:\s*"柱状折线图"\s*\}\s*\]\s*\)'
 map_option_pattern="[\"']?(value|chartType|chart_type)[\"']?\\s*:\\s*[\"']map[\"']|IndexMap"
 for asset in "${index_scheme_assets[@]}"; do
+  if ! rg -a -U -q --pcre2 "${chart_types_pattern}" "${asset}"; then
+    echo "index scheme asset does not contain the exact four production chart types: ${asset}" >&2
+    exit 1
+  fi
+
   if rg -a -q -F '图库标题' "${asset}"; then
     echo "index scheme asset still contains the removed field text: 图库标题 (${asset})" >&2
     exit 1
