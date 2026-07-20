@@ -47,7 +47,8 @@
   - `getTimeTypeOptions(dacctRadio): Array<{ value: string, label: string }>`
   - `getDateControl(periodFlag, timeType): { kind: string, range: boolean, disabled: boolean }`
   - `getDimensionCandidates(condition): Array<{ value: string, label: string }>`
-  - 扩展后的 `validateIndexLibraryForm(form)`。
+  - `validateProductionChartFields(form): Record<string, string>`，供 Task 2
+    的 `validateIndexLibraryForm(form)` 合并使用。
 
 - [ ] **Step 1: 在现有测试文件中先增加生产契约失败断言**
 
@@ -77,15 +78,17 @@ assert.deepStrictEqual(
 assert.ok(PRODUCTION_COLORS.length >= 10)
 ```
 
-再增加模板源码断言：
+增加 `validateProductionChartFields` 断言，至少覆盖：
 
 ```js
-assert.match(convertFormSource, /选择图表类型/)
-assert.match(convertFormSource, /生成图片/)
-assert.match(convertFormSource, /设置图表颜色/)
-assert.match(convertFormSource, /是否渐变/)
-assert.doesNotMatch(convertFormSource, /mode="multiple"[^]*请选择指标/)
-assert.doesNotMatch(convertFormSource, /维度编码/)
+assert.deepStrictEqual(
+  validateProductionChartFields({ type: 'pie', direction: 'X', GK: '' }),
+  { GK: '请选择国库或地区' }
+)
+assert.deepStrictEqual(
+  validateProductionChartFields({ type: 'bar', xTurn: '1', dateId: '' }),
+  { dateId: '请选择账期' }
+)
 ```
 
 - [ ] **Step 2: 运行测试并确认 RED**
@@ -129,13 +132,19 @@ export function getDateControl(periodFlag, timeType) {
 }
 ```
 
-`getDimensionCandidates` 只读取方案条件中已存在的维度数组/编码，不请求参考分支 API，也不生成虚构候选值。
+`getDimensionCandidates` 只读取方案条件中已存在的维度数组/编码，不请求参考分支 API，也不生成虚构候选值。新增候选字段必须加入
+`CONDITION_FIELDS` 白名单，并用
+`parseSchemeCondition → createInitialForm → getDimensionCandidates`
+的真实链路测试，不能直接把未经规范化的对象传给 helper。
+
+`getTimeTypeOptions` 对缺失、空值或非法 `dacct_radio` 只返回“当前”，
+不得猜测为模式 `1`。
 
 - [ ] **Step 4: 运行测试确认新增纯函数 GREEN**
 
 Run: Task 1 Step 2 的同一命令。
 
-Expected: 纯函数断言通过；模板断言仍可作为 Task 2 的预期失败。
+Expected: Task 1 的纯函数和验证断言全部通过；本提交整体为绿色。
 
 - [ ] **Step 5: 提交 Task 1**
 
@@ -154,7 +163,7 @@ git commit -m "test(vis): lock production chart form contract"
 - Modify: `org-tribe-view/tests/indexLibraryScheme.test.mjs`
 
 **Interfaces:**
-- Consumes: Task 1 的 `PRODUCTION_COLORS`、`getTimeTypeOptions`、`getDateControl`、`getDimensionCandidates`。
+- Consumes: Task 1 的 `PRODUCTION_COLORS`、`getTimeTypeOptions`、`getDateControl`、`getDimensionCandidates`、`validateProductionChartFields`。
 - Produces:
   - `validate(): Promise<boolean>`
   - `selectChartType(type): void`
@@ -180,6 +189,9 @@ assert.doesNotMatch(convertFormSource, /config-panel/)
 ```
 
 并为验证函数增加缺失维度/账期/饼图方向时的失败断言。
+`IndexLibraryConvertForm.vue` 的 `validateIndexLibraryForm` 必须合并
+`validateProductionChartFields(form)` 的结果，避免 Task 1 的纯函数契约
+与实际表单验证脱节。
 
 - [ ] **Step 2: 运行测试确认 RED**
 
