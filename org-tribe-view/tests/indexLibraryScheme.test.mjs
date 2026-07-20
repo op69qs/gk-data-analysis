@@ -43,12 +43,16 @@ const utilsSource = await readFile(
 const utilsUrl = `data:text/javascript;base64,${Buffer.from(utilsSource).toString('base64')}`
 const {
   CHART_TYPES,
+  PRODUCTION_COLORS,
   normalizeSchemeRow,
   parseSchemeCondition,
   createInitialForm,
   buildPreviewPayload,
   buildSavePayload,
-  hasChartData
+  hasChartData,
+  getTimeTypeOptions,
+  getDateControl,
+  getDimensionCandidates
 } = await import(utilsUrl)
 
 assert.deepStrictEqual(CHART_TYPES.map(item => item.type), [
@@ -60,6 +64,50 @@ assert.deepStrictEqual(CHART_TYPES.map(item => item.type), [
 assert.strictEqual(CHART_TYPES.some(item => item.type === 'map'), false)
 assert.strictEqual(CHART_TYPES.some(item => item.type === 'strip'), false)
 assert.strictEqual(CHART_TYPES.some(item => item.type === 'bigNumber'), false)
+
+assert.deepStrictEqual(
+  getTimeTypeOptions('1').map(item => item.value),
+  ['1', '2', '3']
+)
+assert.deepStrictEqual(
+  getTimeTypeOptions('0').map(item => item.value),
+  ['3', '4']
+)
+assert.deepStrictEqual(
+  getDateControl('2', '2'),
+  { kind: 'month', range: true, disabled: false }
+)
+assert.deepStrictEqual(
+  getDateControl('3', '1'),
+  { kind: 'quarter', range: false, disabled: false }
+)
+assert.deepStrictEqual(
+  getDateControl('4', '3'),
+  { kind: 'year', range: false, disabled: true }
+)
+assert.ok(PRODUCTION_COLORS.length >= 10)
+assert.strictEqual(Object.isFrozen(PRODUCTION_COLORS), true)
+
+assert.deepStrictEqual(
+  getDimensionCandidates({
+    dimenOption: [
+      { value: 'GK01', label: '中央国库' },
+      { id: 'GK02', name: '省级国库' }
+    ]
+  }),
+  [
+    { value: 'GK01', label: '中央国库' },
+    { value: 'GK02', label: '省级国库' }
+  ]
+)
+assert.deepStrictEqual(
+  getDimensionCandidates({ DIM_CODE: 'GK01,GK02,GK01' }),
+  [
+    { value: 'GK01', label: 'GK01' },
+    { value: 'GK02', label: 'GK02' }
+  ]
+)
+assert.deepStrictEqual(getDimensionCandidates({}), [])
 
 const productionRow = {
   ID: 's1',

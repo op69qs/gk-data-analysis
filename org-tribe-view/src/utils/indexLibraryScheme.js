@@ -5,7 +5,47 @@ export const CHART_TYPES = Object.freeze([
   { value: '4', type: 'barAndLine', label: '柱状折线图' }
 ])
 
+export const PRODUCTION_COLORS = Object.freeze([
+  '#2670F7',
+  '#FBE268',
+  '#39C6FF',
+  '#FF7147',
+  '#AC9EBF',
+  '#72EDFF',
+  '#DBA644',
+  '#2DB1CB',
+  '#58C5D7',
+  '#5DB5D9'
+])
+
 const CHART_TYPE_NAMES = CHART_TYPES.map(item => item.type)
+
+export function getTimeTypeOptions(dacctRadio) {
+  return String(dacctRadio) === '0'
+    ? [
+        { value: '3', label: '当前' },
+        { value: '4', label: '时间' }
+      ]
+    : [
+        { value: '1', label: '至今' },
+        { value: '2', label: '时间区间' },
+        { value: '3', label: '当前' }
+      ]
+}
+
+export function getDateControl(periodFlag, timeType) {
+  const kinds = {
+    '1': 'date',
+    '2': 'month',
+    '3': 'quarter',
+    '4': 'year'
+  }
+  return {
+    kind: kinds[String(periodFlag)] || 'date',
+    range: String(timeType) === '2',
+    disabled: String(timeType) === '3'
+  }
+}
 
 const CONDITION_FIELDS = [
   ['scheme_id', ['scheme_id', 'schemeId', 'SCHEME_ID']],
@@ -112,6 +152,65 @@ function assertSupportedChartType(type) {
   if (CHART_TYPE_NAMES.indexOf(type) === -1) {
     throw new Error('不支持的图表类型')
   }
+}
+
+export function getDimensionCandidates(condition) {
+  const source = condition && typeof condition === 'object' ? condition : {}
+  const sourceCandidates = firstOwnValue(source, [
+    'dimensionCandidates',
+    'dimensionOptions',
+    'dimenOption',
+    'dimensions',
+    'DIMENSION_CANDIDATES',
+    'DIMENSION_OPTIONS'
+  ])
+  const rawCandidates = Array.isArray(sourceCandidates) && sourceCandidates.length
+    ? sourceCandidates
+    : String(firstOwnValue(source, [
+      'dimCode',
+      'dimensionCode',
+      'dimensionCodes',
+      'DIM_CODE',
+      'DIMENSION_CODE',
+      'DIMENSION_CODES'
+    ]) || '').split(',')
+  const candidates = []
+  const seenValues = new Set()
+
+  for (const item of rawCandidates) {
+    const objectItem = item && typeof item === 'object' ? item : null
+    const rawValue = objectItem
+      ? firstOwnValue(objectItem, [
+        'value',
+        'id',
+        'code',
+        'dimCode',
+        'DIM_CODE',
+        'DIMENSION_CODE'
+      ])
+      : item
+    const value = rawValue == null ? '' : String(rawValue).trim()
+    if (!value || seenValues.has(value)) continue
+
+    const rawLabel = objectItem
+      ? firstOwnValue(objectItem, [
+        'label',
+        'name',
+        'text',
+        'title',
+        'descr',
+        'DIMENSION_NAME'
+      ])
+      : value
+    candidates.push({
+      value,
+      label: rawLabel == null || String(rawLabel).trim() === ''
+        ? value
+        : String(rawLabel).trim()
+    })
+    seenValues.add(value)
+  }
+  return candidates
 }
 
 export function normalizeSchemeRow(row) {
