@@ -21,16 +21,20 @@ export const PRODUCTION_COLORS = Object.freeze([
 const CHART_TYPE_NAMES = CHART_TYPES.map(item => item.type)
 
 export function getTimeTypeOptions(dacctRadio) {
-  return String(dacctRadio) === '0'
-    ? [
-        { value: '3', label: '当前' },
-        { value: '4', label: '时间' }
-      ]
-    : [
-        { value: '1', label: '至今' },
-        { value: '2', label: '时间区间' },
-        { value: '3', label: '当前' }
-      ]
+  if (dacctRadio === '1') {
+    return [
+      { value: '1', label: '至今' },
+      { value: '2', label: '时间区间' },
+      { value: '3', label: '当前' }
+    ]
+  }
+  if (dacctRadio === '0') {
+    return [
+      { value: '3', label: '当前' },
+      { value: '4', label: '时间' }
+    ]
+  }
+  return [{ value: '3', label: '当前' }]
 }
 
 export function getDateControl(periodFlag, timeType) {
@@ -76,6 +80,9 @@ const CONDITION_FIELDS = [
   ['time_type', ['time_type']],
   ['dimension_type', ['dimension_type', 'dimensionType', 'DIMENSION_TYPE']],
   ['dacct_radio', ['dacct_radio', 'dacctRadio', 'DACCT_RADIO']],
+  ['dimCode', ['dimCode']],
+  ['dimenOption', ['dimenOption']],
+  ['dimensionCandidates', ['dimensionCandidates']],
   ['title_old', ['title_old', 'titleOld', 'TITLE_OLD']],
   ['add_user', ['add_user', 'addUser', 'ADD_USER']]
 ]
@@ -156,51 +163,24 @@ function assertSupportedChartType(type) {
 
 export function getDimensionCandidates(condition) {
   const source = condition && typeof condition === 'object' ? condition : {}
-  const sourceCandidates = firstOwnValue(source, [
-    'dimensionCandidates',
-    'dimensionOptions',
-    'dimenOption',
-    'dimensions',
-    'DIMENSION_CANDIDATES',
-    'DIMENSION_OPTIONS'
-  ])
-  const rawCandidates = Array.isArray(sourceCandidates) && sourceCandidates.length
+  const sourceCandidates = [source.dimensionCandidates, source.dimenOption]
+    .find(value => Array.isArray(value) && value.length)
+  const rawCandidates = sourceCandidates
     ? sourceCandidates
-    : String(firstOwnValue(source, [
-      'dimCode',
-      'dimensionCode',
-      'dimensionCodes',
-      'DIM_CODE',
-      'DIMENSION_CODE',
-      'DIMENSION_CODES'
-    ]) || '').split(',')
+    : String(source.dimCode || '').split(',')
   const candidates = []
   const seenValues = new Set()
 
   for (const item of rawCandidates) {
     const objectItem = item && typeof item === 'object' ? item : null
     const rawValue = objectItem
-      ? firstOwnValue(objectItem, [
-        'value',
-        'id',
-        'code',
-        'dimCode',
-        'DIM_CODE',
-        'DIMENSION_CODE'
-      ])
+      ? objectItem.value
       : item
     const value = rawValue == null ? '' : String(rawValue).trim()
     if (!value || seenValues.has(value)) continue
 
     const rawLabel = objectItem
-      ? firstOwnValue(objectItem, [
-        'label',
-        'name',
-        'text',
-        'title',
-        'descr',
-        'DIMENSION_NAME'
-      ])
+      ? objectItem.label
       : value
     candidates.push({
       value,
@@ -211,6 +191,40 @@ export function getDimensionCandidates(condition) {
     seenValues.add(value)
   }
   return candidates
+}
+
+export function validateProductionChartFields(form) {
+  const source = form && typeof form === 'object' ? form : {}
+  const type = source.type
+  const xTurn = String(source.xTurn == null ? '' : source.xTurn)
+  const errors = {}
+
+  if (type === 'pie') {
+    const direction = String(source.direction || '')
+    if (direction !== 'X' && direction !== 'Y') {
+      errors.direction = '请选择统计方向'
+    } else if (direction === 'X' && !String(source.GK || '').trim()) {
+      errors.GK = '请选择国库或地区'
+    } else if (direction === 'Y' && !String(source.indexName || '').trim()) {
+      errors.indexName = '请选择指标'
+    }
+    return errors
+  }
+
+  if (type !== 'bar' && type !== 'line' && type !== 'barAndLine') {
+    return errors
+  }
+  if (xTurn !== '0' && xTurn !== '1') {
+    errors.xTurn = '请选择横轴显示'
+  } else if (xTurn === '0' && !String(source.direction || '').trim()) {
+    const dimensionName = String(source.dimensionFlag) === '1'
+      ? '国库'
+      : String(source.dimensionFlag) === '2' ? '地区' : '维度'
+    errors.direction = `请选择${dimensionName}`
+  } else if (xTurn === '1' && !String(source.dateId || '').trim()) {
+    errors.dateId = '请选择账期'
+  }
+  return errors
 }
 
 export function normalizeSchemeRow(row) {
@@ -268,6 +282,9 @@ export function buildPreviewPayload(form, record) {
 
   if (payload.scheme_id === undefined) {
     payload.scheme_id = firstOwnValue(sourceRecord, ['ID', 'id'])
+  }
+  for (const field of ['dimCode', 'dimenOption', 'dimensionCandidates']) {
+    delete payload[field]
   }
   assertSupportedChartType(payload.type)
   return payload

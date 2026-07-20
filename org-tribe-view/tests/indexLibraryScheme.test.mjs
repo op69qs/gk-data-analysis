@@ -52,7 +52,8 @@ const {
   hasChartData,
   getTimeTypeOptions,
   getDateControl,
-  getDimensionCandidates
+  getDimensionCandidates,
+  validateProductionChartFields
 } = await import(utilsUrl)
 
 assert.deepStrictEqual(CHART_TYPES.map(item => item.type), [
@@ -66,13 +67,35 @@ assert.strictEqual(CHART_TYPES.some(item => item.type === 'strip'), false)
 assert.strictEqual(CHART_TYPES.some(item => item.type === 'bigNumber'), false)
 
 assert.deepStrictEqual(
-  getTimeTypeOptions('1').map(item => item.value),
-  ['1', '2', '3']
+  getTimeTypeOptions('1'),
+  [
+    { value: '1', label: '至今' },
+    { value: '2', label: '时间区间' },
+    { value: '3', label: '当前' }
+  ]
 )
 assert.deepStrictEqual(
-  getTimeTypeOptions('0').map(item => item.value),
-  ['3', '4']
+  getTimeTypeOptions('0'),
+  [
+    { value: '3', label: '当前' },
+    { value: '4', label: '时间' }
+  ]
 )
+for (const invalidDacctRadio of [
+  undefined,
+  null,
+  '',
+  '2',
+  'invalid',
+  0,
+  1,
+  ' 1 '
+]) {
+  assert.deepStrictEqual(
+    getTimeTypeOptions(invalidDacctRadio),
+    [{ value: '3', label: '当前' }]
+  )
+}
 assert.deepStrictEqual(
   getDateControl('2', '2'),
   { kind: 'month', range: true, disabled: false }
@@ -85,14 +108,36 @@ assert.deepStrictEqual(
   getDateControl('4', '3'),
   { kind: 'year', range: false, disabled: true }
 )
-assert.ok(PRODUCTION_COLORS.length >= 10)
+assert.deepStrictEqual(PRODUCTION_COLORS, [
+  '#2670F7',
+  '#FBE268',
+  '#39C6FF',
+  '#FF7147',
+  '#AC9EBF',
+  '#72EDFF',
+  '#DBA644',
+  '#2DB1CB',
+  '#58C5D7',
+  '#5DB5D9'
+])
 assert.strictEqual(Object.isFrozen(PRODUCTION_COLORS), true)
 
+function dimensionCandidatesThroughProductionChain(condition) {
+  const record = {
+    ID: 'candidate-scheme',
+    SCHEME_DESCR: '候选维度方案',
+    SCHEME_CONDITON: JSON.stringify(condition)
+  }
+  const parsed = parseSchemeCondition(record.SCHEME_CONDITON)
+  const initialForm = createInitialForm(record, parsed)
+  return getDimensionCandidates(initialForm)
+}
+
 assert.deepStrictEqual(
-  getDimensionCandidates({
+  dimensionCandidatesThroughProductionChain({
     dimenOption: [
       { value: 'GK01', label: '中央国库' },
-      { id: 'GK02', name: '省级国库' }
+      { value: 'GK02', label: '省级国库' }
     ]
   }),
   [
@@ -101,13 +146,72 @@ assert.deepStrictEqual(
   ]
 )
 assert.deepStrictEqual(
-  getDimensionCandidates({ DIM_CODE: 'GK01,GK02,GK01' }),
+  dimensionCandidatesThroughProductionChain({
+    dimensionCandidates: [
+      { value: 'AREA01', label: '甲地区' },
+      { value: 'AREA02', label: '乙地区' }
+    ]
+  }),
+  [
+    { value: 'AREA01', label: '甲地区' },
+    { value: 'AREA02', label: '乙地区' }
+  ]
+)
+assert.deepStrictEqual(
+  dimensionCandidatesThroughProductionChain({
+    dimensionCandidates: [],
+    dimenOption: [{ value: 'GK03', label: '基层国库' }]
+  }),
+  [{ value: 'GK03', label: '基层国库' }]
+)
+assert.deepStrictEqual(
+  dimensionCandidatesThroughProductionChain({
+    dimCode: 'GK01,GK02,GK01'
+  }),
   [
     { value: 'GK01', label: 'GK01' },
     { value: 'GK02', label: 'GK02' }
   ]
 )
-assert.deepStrictEqual(getDimensionCandidates({}), [])
+assert.deepStrictEqual(dimensionCandidatesThroughProductionChain({}), [])
+
+assert.deepStrictEqual(
+  validateProductionChartFields({
+    type: 'bar',
+    xTurn: '0',
+    dimensionFlag: '1'
+  }),
+  { direction: '请选择国库' }
+)
+assert.deepStrictEqual(
+  validateProductionChartFields({ type: 'line', xTurn: '1' }),
+  { dateId: '请选择账期' }
+)
+assert.deepStrictEqual(
+  validateProductionChartFields({ type: 'pie' }),
+  { direction: '请选择统计方向' }
+)
+assert.deepStrictEqual(
+  validateProductionChartFields({ type: 'pie', direction: 'X', GK: '' }),
+  { GK: '请选择国库或地区' }
+)
+assert.deepStrictEqual(
+  validateProductionChartFields({
+    type: 'pie',
+    direction: 'Y',
+    indexName: ''
+  }),
+  { indexName: '请选择指标' }
+)
+assert.deepStrictEqual(
+  validateProductionChartFields({
+    type: 'barAndLine',
+    xTurn: '0',
+    dimensionFlag: '2',
+    direction: 'AREA01'
+  }),
+  {}
+)
 
 const productionRow = {
   ID: 's1',
@@ -202,6 +306,28 @@ assert.throws(
   () => buildPreviewPayload({ ...form, type: 'map' }, productionRow),
   /不支持的图表类型/
 )
+
+const candidateMetadataRecord = {
+  ID: 'candidate-preview',
+  SCHEME_CONDITON: JSON.stringify({
+    TYPE: 'bar',
+    dimCode: 'GK01',
+    dimenOption: [{ value: 'GK01', label: '中央国库' }],
+    dimensionCandidates: [{ value: 'GK01', label: '中央国库' }]
+  })
+}
+const candidateMetadataForm = createInitialForm(candidateMetadataRecord)
+const candidateMetadataPreview = buildPreviewPayload(
+  candidateMetadataForm,
+  candidateMetadataRecord
+)
+for (const field of ['dimCode', 'dimenOption', 'dimensionCandidates']) {
+  assert.strictEqual(
+    Object.prototype.hasOwnProperty.call(candidateMetadataPreview, field),
+    false,
+    `${field} must remain UI-only`
+  )
+}
 
 const previewCondition = Object.freeze(buildPreviewPayload(form, productionRow))
 assert.throws(
