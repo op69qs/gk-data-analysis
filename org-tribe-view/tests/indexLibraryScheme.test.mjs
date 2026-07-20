@@ -290,6 +290,54 @@ assert.deepStrictEqual(normalizedCondition, {
   unit: '万元'
 })
 
+const productionConditionWithColumns = parseSchemeCondition(JSON.stringify({
+  columns: 'I1,I2',
+  TYPE: 'barAndLine',
+  START_DATE: '2026-01',
+  END_DATE: '2026-06',
+  PRICE: '10000'
+}))
+assert.strictEqual(productionConditionWithColumns.columns, 'I1,I2')
+assert.deepStrictEqual(productionConditionWithColumns.schemecolumns, [
+  { chartId: 'I1' },
+  { chartId: 'I2' }
+])
+const legacyProductionForm = createInitialForm({
+  ID: 'legacy-production-row',
+  SCHEME_DESCR: '生产旧方案',
+  SCHEME_CONDITON: JSON.stringify({
+    columns: 'I1,I2',
+    TYPE: 'barAndLine',
+    START_DATE: '2026-01',
+    END_DATE: '2026-06',
+    PRICE: '10000'
+  })
+})
+assert.strictEqual(legacyProductionForm.columns, 'I1,I2')
+assert.deepStrictEqual(legacyProductionForm.schemecolumns, [
+  { chartId: 'I1', chartDirection: 'Columnar' },
+  { chartId: 'I2', chartDirection: 'Line' }
+])
+assert.strictEqual(legacyProductionForm.unit, '10000')
+assert.strictEqual(legacyProductionForm.dacct_radio, '1')
+assert.strictEqual(legacyProductionForm.timeType, '2')
+
+const explicitLegacyValues = createInitialForm({
+  ID: 'explicit-legacy-values',
+  SCHEME_CONDITON: JSON.stringify({
+    columns: 'I1',
+    START_DATE: '2026-01',
+    END_DATE: '2026-06',
+    PRICE: '10000',
+    UNIT: '万元',
+    DACCT_RADIO: '2',
+    TIME_TYPE: '3'
+  })
+})
+assert.strictEqual(explicitLegacyValues.unit, '万元')
+assert.strictEqual(explicitLegacyValues.dacct_radio, '2')
+assert.strictEqual(explicitLegacyValues.timeType, '3')
+
 const form = createInitialForm(productionRow, normalizedCondition)
 assert.strictEqual(form.scheme_id, 's1')
 assert.strictEqual(form.schemeName, '收入')
@@ -1354,10 +1402,7 @@ const modalRecord = {
   realname: '管理员',
   SCHEME_CONDITON: JSON.stringify({
     SCHEME_ID: 'scheme-modal',
-    SCHEME_COLUMNS: [
-      { CHART_ID: 'I1', CHART_DIRECTION: 'Columnar' },
-      { CHART_ID: 'I2', CHART_DIRECTION: 'Line' }
-    ],
+    columns: 'I1,I2',
     DIMENSION_FLAG: '1',
     PERIOD_FLAG: '2',
     TIME_TYPE: '2',
@@ -1468,7 +1513,7 @@ await noUnitVm.instance.open({
   SCHEME_CONDITON: JSON.stringify(noUnitCondition)
 })
 assert.strictEqual(noUnitVm.instance.form.price, '10000')
-assert.strictEqual(noUnitVm.instance.form.unit, undefined)
+assert.strictEqual(noUnitVm.instance.form.unit, '10000')
 
 openVm.instance.hasGeneratedPreview = true
 openVm.instance.previewReady = true
@@ -1638,6 +1683,7 @@ const savedBarCondition = JSON.parse(savedBar.condition)
 assert.strictEqual(savedBarCondition.title, frozenTitle)
 assert.strictEqual(savedBarCondition.price, '10000')
 assert.strictEqual(savedBarCondition.unit, '万元')
+assert.strictEqual(savedBarCondition.columns, 'I1,I2')
 assert.deepStrictEqual(
   savedBarCondition.colourArray,
   ['#112233', '#445566']

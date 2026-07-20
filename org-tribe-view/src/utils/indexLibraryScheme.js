@@ -64,6 +64,7 @@ const CONDITION_FIELDS = [
     'SCHEME_COLUMNS',
     'SCHEMECOLUMNS'
   ]],
+  ['columns', ['columns', 'COLUMNS']],
   ['dimensionFlag', ['dimensionFlag', 'dimension_flag', 'DIMENSION_FLAG']],
   ['periodFlag', ['periodFlag', 'period_flag', 'PERIOD_FLAG']],
   ['timeType', ['timeType', 'TIME_TYPE']],
@@ -144,6 +145,16 @@ function normalizeConditionObject(source) {
         ? cloneSchemeColumns(value)
         : value
     }
+  }
+  if (
+    normalized.schemecolumns === undefined &&
+    normalized.columns !== undefined
+  ) {
+    normalized.schemecolumns = String(normalized.columns)
+      .split(',')
+      .map(chartId => chartId.trim())
+      .filter(Boolean)
+      .map(chartId => ({ chartId }))
   }
   return normalized
 }
@@ -304,6 +315,20 @@ export function createInitialForm(record, condition) {
     sourceRecord,
     ['SCHEME_DESCR', 'schemeDescr', 'name']
   )
+  if (form.unit === undefined && form.price !== undefined) {
+    form.unit = form.price
+  }
+  const hasExistingDateRange =
+    form.startDate !== undefined &&
+    form.startDate !== null &&
+    String(form.startDate).trim() !== '' &&
+    form.endDate !== undefined &&
+    form.endDate !== null &&
+    String(form.endDate).trim() !== ''
+  if (hasExistingDateRange) {
+    if (form.dacct_radio === undefined) form.dacct_radio = '1'
+    if (form.timeType === undefined) form.timeType = '2'
+  }
   if (form.type === 'barAndLine') {
     form.schemecolumns = normalizeBarLineColumns(form.schemecolumns)
   }
