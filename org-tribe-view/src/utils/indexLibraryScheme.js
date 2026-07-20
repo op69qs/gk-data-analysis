@@ -21,14 +21,18 @@ export const PRODUCTION_COLORS = Object.freeze([
 const CHART_TYPE_NAMES = CHART_TYPES.map(item => item.type)
 
 export function getTimeTypeOptions(dacctRadio) {
-  if (dacctRadio === '1') {
+  const normalized = typeof dacctRadio === 'number' &&
+    (dacctRadio === 0 || dacctRadio === 1)
+    ? String(dacctRadio)
+    : dacctRadio
+  if (normalized === '1') {
     return [
       { value: '1', label: '至今' },
       { value: '2', label: '时间区间' },
       { value: '3', label: '当前' }
     ]
   }
-  if (dacctRadio === '0') {
+  if (normalized === '0') {
     return [
       { value: '3', label: '当前' },
       { value: '4', label: '时间' }
@@ -153,6 +157,14 @@ function copyDefined(target, source) {
     }
   }
   return target
+}
+
+function sanitizeUiCandidateMetadata(condition) {
+  const sanitized = copyDefined({}, condition)
+  for (const field of ['dimCode', 'dimenOption', 'dimensionCandidates']) {
+    delete sanitized[field]
+  }
+  return sanitized
 }
 
 function assertSupportedChartType(type) {
@@ -283,11 +295,9 @@ export function buildPreviewPayload(form, record) {
   if (payload.scheme_id === undefined) {
     payload.scheme_id = firstOwnValue(sourceRecord, ['ID', 'id'])
   }
-  for (const field of ['dimCode', 'dimenOption', 'dimensionCandidates']) {
-    delete payload[field]
-  }
-  assertSupportedChartType(payload.type)
-  return payload
+  const sanitizedPayload = sanitizeUiCandidateMetadata(payload)
+  assertSupportedChartType(sanitizedPayload.type)
+  return sanitizedPayload
 }
 
 export function buildSavePayload(
@@ -306,8 +316,7 @@ export function buildSavePayload(
     sourceForm.previewCondition ||
     sourceRecord.previewCondition ||
     buildPreviewPayload(sourceForm, sourceRecord)
-  const normalizedCondition = copyDefined(
-    {},
+  const normalizedCondition = sanitizeUiCandidateMetadata(
     parseSchemeCondition(previewCondition)
   )
   assertSupportedChartType(normalizedCondition.type)

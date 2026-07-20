@@ -81,14 +81,14 @@ assert.deepStrictEqual(
     { value: '4', label: '时间' }
   ]
 )
+assert.deepStrictEqual(getTimeTypeOptions(1), getTimeTypeOptions('1'))
+assert.deepStrictEqual(getTimeTypeOptions(0), getTimeTypeOptions('0'))
 for (const invalidDacctRadio of [
   undefined,
   null,
   '',
   '2',
   'invalid',
-  0,
-  1,
   ' 1 '
 ]) {
   assert.deepStrictEqual(
@@ -362,6 +362,29 @@ assert.deepStrictEqual(JSON.parse(savePayload.condition), previewCondition)
 assert.strictEqual(JSON.parse(savePayload.condition).title, '收入趋势')
 for (const forbidden of ['map', 'strip', 'bigNumber', 'schemeSql', 'previewToken']) {
   assert.strictEqual(savePayload.condition.includes(forbidden), false)
+}
+
+const savePayloadWithUiMetadata = buildSavePayload(
+  { ...form, content: '{"series":[]}' },
+  productionRow,
+  true,
+  {
+    ...previewCondition,
+    dimCode: 'GK01',
+    dimenOption: [{ value: 'GK01', label: '中央国库' }],
+    dimensionCandidates: [{ value: 'GK01', label: '中央国库' }]
+  }
+)
+const savedConditionWithoutUiMetadata = JSON.parse(
+  savePayloadWithUiMetadata.condition
+)
+assert.deepStrictEqual(savedConditionWithoutUiMetadata, previewCondition)
+for (const field of ['dimCode', 'dimenOption', 'dimensionCandidates']) {
+  assert.strictEqual(
+    Object.prototype.hasOwnProperty.call(savedConditionWithoutUiMetadata, field),
+    false,
+    `${field} must not be saved`
+  )
 }
 
 assert.strictEqual(hasChartData(null), false)
