@@ -223,14 +223,14 @@ public class GalleryMapperContractTest {
         assertTrue("The historical varchar(1000) entry point must remain available",
                 sql.contains("create or replace function "
                         + "visual_screen.f_get_indexname( "
-                        + "scheme_columns varchar(1000))"));
+                        + "varchar(1000))"));
         assertEquals("Only the text implementation and varchar compatibility overload "
                         + "are expected",
                 2,
                 countMatches(sql, "create or replace function\\s+"
                         + "visual_screen\\.f_get_indexname\\s*\\("));
         assertTrue("The varchar overload must delegate explicitly to the text overload",
-                sql.contains("visual_screen.f_get_indexname(scheme_columns::text)"));
+                sql.contains("visual_screen.f_get_indexname($1::text)"));
     }
 
     @Test

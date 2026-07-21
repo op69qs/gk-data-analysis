@@ -225,14 +225,15 @@ $function$
 LANGUAGE plpgsql
 STABLE;
 
--- Preserve the historical MySQL-compatible varchar entry point.  The explicit
--- cast selects the text implementation and avoids an overloaded-call ambiguity.
+-- Preserve the historical MySQL-compatible varchar entry point.  Keep this
+-- argument anonymous because CREATE OR REPLACE must not rename a deployed input
+-- parameter; the explicit cast selects the text implementation.
 CREATE OR REPLACE FUNCTION visual_screen.f_get_IndexName(
-    scheme_columns varchar(1000))
+    varchar(1000))
 RETURNS varchar(2000)
 AS $compatibility$
 BEGIN
-    RETURN visual_screen.f_get_IndexName(scheme_columns::text);
+    RETURN visual_screen.f_get_IndexName($1::text);
 END;
 $compatibility$
 LANGUAGE plpgsql
