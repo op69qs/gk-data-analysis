@@ -236,7 +236,7 @@ export default {
       if (!this.chart || typeof this.chart.getDataURL !== 'function') return ''
       return this.chart.getDataURL({
         pixelRatio: 2,
-        backgroundColor: '#252a30'
+        backgroundColor: '#00a0e900'
       })
     }
   }

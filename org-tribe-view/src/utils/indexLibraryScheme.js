@@ -460,7 +460,7 @@ export function buildSavePayload(
   assertSupportedChartType(normalizedCondition.type)
 
   return {
-    condition: JSON.stringify(normalizedCondition),
+    condition: normalizedCondition,
     content: sourceForm.content
   }
 }

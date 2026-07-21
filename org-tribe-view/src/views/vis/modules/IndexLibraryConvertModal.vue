@@ -380,10 +380,9 @@ export default {
           }
 
           const option = buildChartOption(payload.type, res, frozenPayload)
-          const optionJson = JSON.stringify(option)
           const frozen = {
             ...frozenPayload,
-            option: optionJson,
+            option,
             query_path: payload.type === 'pie'
               ? 'IndexPie/getIndexPieData'
               : 'IndexBarLine/getIndexBarLineData',
@@ -438,13 +437,12 @@ export default {
           this.previewReady,
           this.frozenCondition
         )
-        const savedCondition = JSON.parse(payload.condition)
+        const savedCondition = payload.condition
         savedCondition.colourArray = Array.isArray(this.frozenCondition.colourArray)
           ? this.frozenCondition.colourArray.slice()
           : []
         savedCondition.isGradual = this.frozenCondition.isGradual === true
         savedCondition.isRate = this.frozenCondition.isRate === true
-        payload.condition = JSON.stringify(savedCondition)
       } catch (error) {
         this.$message.error(error.message)
         return Promise.resolve(false)

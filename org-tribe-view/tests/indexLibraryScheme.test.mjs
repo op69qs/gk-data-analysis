@@ -529,17 +529,29 @@ for (const type of ['map', 'strip', 'bigNumber']) {
   )
 }
 const savePayload = buildSavePayload(
-  { ...form, title: '保存时不应覆盖', content: '{"series":[]}' },
+  {
+    ...form,
+    title: '保存时不应覆盖',
+    content: 'data:image/png;base64,chart-preview'
+  },
   productionRow,
   true,
-  previewCondition
+  {
+    ...previewCondition,
+    option: { series: [{ type: 'bar', data: [1] }] }
+  }
 )
 assert.deepStrictEqual(Object.keys(savePayload).sort(), ['condition', 'content'])
-assert.strictEqual(savePayload.content, '{"series":[]}')
-assert.deepStrictEqual(JSON.parse(savePayload.condition), previewCondition)
-assert.strictEqual(JSON.parse(savePayload.condition).title, '收入趋势')
+assert.strictEqual(savePayload.content, 'data:image/png;base64,chart-preview')
+assert.strictEqual(typeof savePayload.condition, 'object')
+assert.strictEqual(typeof savePayload.condition.option, 'object')
+assert.deepStrictEqual(
+  savePayload.condition.option,
+  { series: [{ type: 'bar', data: [1] }] }
+)
+assert.strictEqual(savePayload.condition.title, '收入趋势')
 for (const forbidden of ['map', 'strip', 'bigNumber', 'schemeSql', 'previewToken']) {
-  assert.strictEqual(savePayload.condition.includes(forbidden), false)
+  assert.strictEqual(JSON.stringify(savePayload.condition).includes(forbidden), false)
 }
 
 const savePayloadWithUiMetadata = buildSavePayload(
@@ -553,9 +565,7 @@ const savePayloadWithUiMetadata = buildSavePayload(
     dimensionCandidates: [{ value: 'GK01', label: '中央国库' }]
   }
 )
-const savedConditionWithoutUiMetadata = JSON.parse(
-  savePayloadWithUiMetadata.condition
-)
+const savedConditionWithoutUiMetadata = savePayloadWithUiMetadata.condition
 assert.deepStrictEqual(savedConditionWithoutUiMetadata, previewCondition)
 for (const field of ['dimCode', 'dimenOption', 'dimensionCandidates']) {
   assert.strictEqual(
@@ -941,6 +951,8 @@ assert.match(chartSource, /addEventListener\('resize'/)
 assert.match(chartSource, /removeEventListener\('resize'/)
 assert.match(chartSource, /\.dispose\(\)/)
 assert.match(chartSource, /getDataURL/)
+assert.match(chartSource, /pixelRatio:\s*2/)
+assert.match(chartSource, /backgroundColor:\s*'#00a0e900'/)
 
 function sfcScript(source) {
   return source
@@ -1761,13 +1773,13 @@ assert.strictEqual(previewVm.instance.previewOption.series.length, 2)
 assert.notStrictEqual(previewVm.instance.frozenCondition, previewVm.instance.form)
 assert.strictEqual(
   typeof previewVm.instance.frozenCondition.option,
-  'string'
+  'object'
 )
 assert.strictEqual(previewVm.instance.frozenCondition.dimension_type, 'g')
 assert.strictEqual(previewVm.instance.frozenCondition.title_old, '历史标题')
 assert.strictEqual(previewVm.instance.frozenCondition.add_user, 'user-1')
 assert.deepStrictEqual(
-  JSON.parse(previewVm.instance.frozenCondition.option),
+  JSON.parse(JSON.stringify(previewVm.instance.frozenCondition.option)),
   JSON.parse(JSON.stringify(previewVm.instance.previewOption))
 )
 modalComponent.watch.form.handler.call(previewVm.instance)
@@ -1798,7 +1810,7 @@ assert.strictEqual(
   'Line'
 )
 assert.deepStrictEqual(
-  JSON.parse(previewVm.instance.frozenCondition.option).color,
+  JSON.parse(JSON.stringify(previewVm.instance.frozenCondition.option.color)),
   ['#112233', '#445566']
 )
 
@@ -1896,7 +1908,9 @@ previewVm.instance.form.title = frozenTitle
 modalComponent.watch.form.handler.call(previewVm.instance)
 await previewVm.instance.handleOk()
 const savedBar = barSaveRequests.pop()
-const savedBarCondition = JSON.parse(savedBar.condition)
+const savedBarCondition = savedBar.condition
+assert.strictEqual(typeof savedBarCondition, 'object')
+assert.strictEqual(typeof savedBarCondition.option, 'object')
 assert.strictEqual(savedBarCondition.title, frozenTitle)
 assert.strictEqual(savedBarCondition.price, '10000')
 assert.strictEqual(savedBarCondition.unit, '10000')
