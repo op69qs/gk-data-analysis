@@ -225,19 +225,28 @@ $function$
 LANGUAGE plpgsql
 STABLE;
 
--- Preserve the historical MySQL-compatible varchar entry point.  Keep this
--- argument anonymous because CREATE OR REPLACE must not rename a deployed input
--- parameter; the explicit cast selects the text implementation.
-CREATE OR REPLACE FUNCTION visual_screen.f_get_IndexName(
+-- Preserve an existing historical varchar entry point byte-for-byte: replacing
+-- it can fail when the deployed input parameter name differs.  Create the
+-- compatibility wrapper only when that identity is absent.
+DO $varchar_compatibility$
+BEGIN
+    IF to_regprocedure(
+        'visual_screen.f_get_indexname(character varying)') IS NULL THEN
+        EXECUTE $create_varchar_compatibility$
+CREATE FUNCTION visual_screen.f_get_IndexName(
     varchar(1000))
 RETURNS varchar(2000)
-AS $compatibility$
+AS $compatibility_body$
 BEGIN
     RETURN visual_screen.f_get_IndexName($1::text);
 END;
-$compatibility$
+$compatibility_body$
 LANGUAGE plpgsql
-STABLE;
+STABLE
+$create_varchar_compatibility$;
+    END IF;
+END;
+$varchar_compatibility$ LANGUAGE plpgsql;
 
 SELECT 'AFTER: required production tables' AS checkpoint;
 SELECT table_schema, table_name

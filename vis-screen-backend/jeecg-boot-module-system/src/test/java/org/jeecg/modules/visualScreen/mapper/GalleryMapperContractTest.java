@@ -221,14 +221,25 @@ public class GalleryMapperContractTest {
                 sql.contains("create or replace function "
                         + "visual_screen.f_get_indexname( scheme_columns text)"));
         assertTrue("The historical varchar(1000) entry point must remain available",
-                sql.contains("create or replace function "
+                sql.contains("create function "
                         + "visual_screen.f_get_indexname( "
                         + "varchar(1000))"));
-        assertEquals("Only the text implementation and varchar compatibility overload "
-                        + "are expected",
-                2,
+        assertEquals("Only the text implementation may use CREATE OR REPLACE",
+                1,
                 countMatches(sql, "create or replace function\\s+"
                         + "visual_screen\\.f_get_indexname\\s*\\("));
+        assertTrue("The varchar overload must only be created when absent",
+                Pattern.compile("if\\s+to_regprocedure\\s*\\(\\s*"
+                        + "'visual_screen\\.f_get_indexname\\(character varying\\)'"
+                        + "\\s*\\)\\s+is null\\s+then")
+                        .matcher(sql).find());
+        assertTrue("The missing varchar overload must be created without replacement",
+                sql.contains("execute $create_varchar_compatibility$ "
+                        + "create function visual_screen.f_get_indexname( "
+                        + "varchar(1000))"));
+        assertFalse("An existing varchar overload must never be replaced",
+                sql.contains("create or replace function "
+                        + "visual_screen.f_get_indexname( varchar(1000))"));
         assertTrue("The varchar overload must delegate explicitly to the text overload",
                 sql.contains("visual_screen.f_get_indexname($1::text)"));
     }
