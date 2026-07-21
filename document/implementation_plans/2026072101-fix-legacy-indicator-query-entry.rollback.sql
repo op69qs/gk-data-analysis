@@ -3,7 +3,7 @@
 
 BEGIN;
 
-UPDATE sys_permission
+UPDATE "jeecg-boot-os".sys_permission
 SET url = '/statistics/schemeIndex',
     component = 'statistics/schemeIndex',
     component_name = NULL,
@@ -15,7 +15,7 @@ WHERE id = 'cae8031ed1a7aeaed5625928a5ed74da'
   AND name = '指标查询';
 
 SELECT id, parent_id, name, url, component, component_name, redirect
-FROM sys_permission
+FROM "jeecg-boot-os".sys_permission
 WHERE id = 'cae8031ed1a7aeaed5625928a5ed74da';
 
 COMMIT;

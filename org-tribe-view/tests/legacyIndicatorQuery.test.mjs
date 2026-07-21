@@ -40,7 +40,10 @@ function legacyMenuUpdate(sql) {
   const where = "WHERE id = 'cae8031ed1a7aeaed5625928a5ed74da'"
   const whereAt = sql.indexOf(where)
   assert.notStrictEqual(whereAt, -1, 'legacy indicator-query menu guard is missing')
-  const updateAt = sql.lastIndexOf('UPDATE sys_permission', whereAt)
+  const updateMatches = [
+    ...sql.slice(0, whereAt).matchAll(/UPDATE\s+(?:"jeecg-boot-os"\.)?sys_permission/g)
+  ]
+  const updateAt = updateMatches.at(-1)?.index ?? -1
   const endAt = sql.indexOf(';', whereAt)
   assert.notStrictEqual(updateAt, -1, 'legacy indicator-query UPDATE is missing')
   assert.notStrictEqual(endAt, -1, 'legacy indicator-query UPDATE is unterminated')
