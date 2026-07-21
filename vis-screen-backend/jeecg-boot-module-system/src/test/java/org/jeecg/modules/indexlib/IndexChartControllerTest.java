@@ -135,7 +135,10 @@ public class IndexChartControllerTest {
         String sql = capturedSql();
         assertTrue(sql.contains("ROUND(tt.`I1`/1, 2) AS `I1`"));
         assertTrue(sql.contains("AND bb.CODE = 'D1'"));
-        assertTrue(sql.contains("GROUP BY bb.ACCOUNT_DATE, bb.CODE, bb.GK"));
+        assertTrue(sql.contains(
+                "bb.ACCOUNT_DATE, MIN(bb.CODE) AS CODE, MIN(bb.GK) AS GK"));
+        assertTrue(sql.contains("GROUP BY bb.ACCOUNT_DATE"));
+        assertFalse(sql.contains("GROUP BY bb.ACCOUNT_DATE, bb.CODE"));
         assertTrue(sql.contains("ORDER BY tt.`ACCOUNT_DATE` ASC"));
     }
 
@@ -153,12 +156,14 @@ public class IndexChartControllerTest {
                 indexInfo, new String[]{"I1"}, request, "I1");
 
         assertFalse(sql.contains("aa.COLID, aa.ACCOUNT_DATE"));
-        assertTrue(sql.contains(
-                "GROUP BY aa.ACCOUNT_DATE, aa.ACCOUNT_PERIOD, aa.CODE, aa.GK"));
+        assertTrue(sql.contains("MIN(aa.ACCOUNT_DATE) AS ACCOUNT_DATE, "
+                + "aa.ACCOUNT_PERIOD, MIN(aa.CODE) AS CODE, aa.GK"));
+        assertTrue(sql.contains("GROUP BY aa.ACCOUNT_PERIOD, aa.GK"));
+        assertFalse(sql.contains("GROUP BY aa.ACCOUNT_DATE"));
     }
 
     @Test
-    public void barLineDimensionAxisGroupsEverySelectedNonAggregateColumn() {
+    public void barLineDimensionAxisPreservesGroupingWithAggregatedMetadata() {
         stubSchemeAndIndex("I1", "0");
         when(indexSchemeService.getAllTrsInfo()).thenReturn("A,B");
         when(indexSchemeService.execSchemeSql(any(PageData.class)))
@@ -166,8 +171,11 @@ public class IndexChartControllerTest {
 
         barLineController.getIndexBarLineData(baseRequest("bar"));
 
-        assertTrue(capturedSql().contains(
-                "GROUP BY bb.ACCOUNT_DATE, bb.CODE, bb.GK"));
+        String sql = capturedSql();
+        assertTrue(sql.contains(
+                "MIN(bb.ACCOUNT_DATE) AS ACCOUNT_DATE, bb.CODE, MIN(bb.GK) AS GK"));
+        assertTrue(sql.contains("GROUP BY bb.CODE"));
+        assertFalse(sql.contains("GROUP BY bb.ACCOUNT_DATE, bb.CODE"));
     }
 
     @Test

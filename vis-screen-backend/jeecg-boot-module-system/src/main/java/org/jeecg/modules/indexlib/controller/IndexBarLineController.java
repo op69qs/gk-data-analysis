@@ -168,21 +168,28 @@ public class IndexBarLineController extends BaseController {
                 sql.append(" SUM(bb.`").append(column).append("`) AS `")
                         .append(column).append("`,");
             }
-            sql.append("bb.ACCOUNT_DATE, bb.CODE, bb.GK FROM (").append(unionSql)
+            boolean dateAxis = "0".equals(pageData.getString("xTurn"));
+            if (dateAxis) {
+                sql.append("bb.ACCOUNT_DATE, MIN(bb.CODE) AS CODE, MIN(bb.GK) AS GK ");
+            } else {
+                sql.append("MIN(bb.ACCOUNT_DATE) AS ACCOUNT_DATE, bb.CODE, "
+                        + "MIN(bb.GK) AS GK ");
+            }
+            sql.append("FROM (").append(unionSql)
                     .append(") bb WHERE 1=1 AND bb.ACCOUNT_DATE >= '")
                     .append(pageData.getString("startDate"))
                     .append("' AND bb.ACCOUNT_DATE <= '")
                     .append(pageData.getString("endDate")).append("'");
             List<String> scale;
-            if ("0".equals(pageData.getString("xTurn"))) {
+            if (dateAxis) {
                 if (StringUtils.isNotEmpty(pageData.getString("direction"))) {
                     sql.append(" AND bb.CODE = '").append(pageData.getString("direction")).append("'");
                 }
-                sql.append(" GROUP BY bb.ACCOUNT_DATE, bb.CODE, bb.GK ) tt "
+                sql.append(" GROUP BY bb.ACCOUNT_DATE ) tt "
                         + "ORDER BY tt.`ACCOUNT_DATE` ASC ");
                 scale = IndexChartsHelper.setEChartsScale(pageData);
             } else {
-                sql.append(" GROUP BY bb.ACCOUNT_DATE, bb.CODE, bb.GK ) tt "
+                sql.append(" GROUP BY bb.CODE ) tt "
                         + "ORDER BY tt.`CODE` ASC ");
                 String scaleString = "";
                 if ("1".equals(pageData.getString("dimensionFlag"))) {
