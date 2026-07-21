@@ -1,4 +1,4 @@
-# 恢复生产库旧“指标查询”菜单到统计页
+# 恢复生产库旧“指标查询”菜单到生产查询页
 
 ## 问题
 
@@ -18,35 +18,33 @@
 
 ## 修复判断
 
-- 该菜单父节点仍是旧 GK 的“指标库”，同组兄弟菜单为：
-  - `编辑指标`
-  - `新增指标`
-  - `指标管理`
-  - `公共指标管理`
-- 结合页面职责：
-  - `statistics/schemeIndex.vue` 是旧“方案列表/公共方案查询”入口页。
-  - `statistics/indexLibrary.vue` 是从方案列表点击“执行”后进入的实际查询页。
-- 因此旧“指标查询”菜单应恢复为：
-  - `url = /statistics/schemeIndex`
-  - `component = statistics/schemeIndex`
+- `statistics/schemeIndex.vue` 是独立的公共方案列表页。
+- `statistics/indexLibrary.vue` 是生产“指标查询”菜单直接打开的查询页。
+- 旧“指标查询”菜单应恢复为：
+  - `url = /statistics/indexLibrary`
+  - `component = statistics/indexLibrary`
+- vis“指标库方案”继续独立指向 `/vis/index-library`，本修复不修改它。
 
 ## 产出
 
-- 新增 SQL：`2026042618-fix-legacy-indicator-query-menu.sql`
+- 新增 SQL：`2026072101-fix-legacy-indicator-query-entry.sql`
+- 新增回退 SQL：`2026072101-fix-legacy-indicator-query-entry.rollback.sql`
 - 该 SQL 仅更新一条旧 GK 菜单记录，不修改 vis 菜单树。
 
 ## 验证
 
-- 使用事务包裹脚本进行预演，确认只会更新一条记录，并将其恢复为：
-  - `url = /statistics/schemeIndex`
-  - `component = statistics/schemeIndex`
-- 随后已直接执行到生产库并回读确认，当前实库该菜单已恢复为旧统计页入口。
+- 使用事务包裹脚本并提供回读 SQL，只匹配指定菜单 ID、父菜单 ID 和名称。
+- 预期修复结果：
+  - `url = /statistics/indexLibrary`
+  - `component = statistics/indexLibrary`
+- 当前只产出现场执行脚本，未连接现场数据库执行，不声明实库已经更新。
 
 ## 说明
 
 - 在应用该 SQL 前，前端源码侧已完成两项收口：
   - 取消 `util.js` 对 `statistics/indexLibrary` 与 `statistics/schemeIndex` 到 vis 的强制归一。
   - 恢复 `schemeIndex.vue` 与 `indexLibrary.vue` 的旧统计页实现。
-- 因此数据库修复后，这两个入口会重新分离：
-  - 旧“指标查询” -> `/statistics/schemeIndex`
+- 因此数据库修复后，三个入口继续保持各自职责：
+  - 旧“指标查询” -> `/statistics/indexLibrary`
+  - 旧公共方案列表 -> `/statistics/schemeIndex`
   - vis“指标库方案” -> `/vis/index-library`

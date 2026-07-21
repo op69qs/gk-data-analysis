@@ -23,4 +23,41 @@ assert.match(schemeIndex, /path:\s*'\/statistics\/indexLibrary'/)
 assert.doesNotMatch(indexLibrary, /\/vis\/index-library|vis\/IndexLibraryList/)
 assert.doesNotMatch(schemeIndex, /\/vis\/index-library|vis\/IndexLibraryList/)
 
+const convergeSql = await readFile(
+  resolve(projectRoot, '../document/implementation_plans/2026042615-vis-production-menu-converge.sql'),
+  'utf8'
+)
+const forwardSql = await readFile(
+  resolve(projectRoot, '../document/implementation_plans/2026072101-fix-legacy-indicator-query-entry.sql'),
+  'utf8'
+)
+const rollbackSql = await readFile(
+  resolve(projectRoot, '../document/implementation_plans/2026072101-fix-legacy-indicator-query-entry.rollback.sql'),
+  'utf8'
+)
+
+function legacyMenuUpdate(sql) {
+  const where = "WHERE id = 'cae8031ed1a7aeaed5625928a5ed74da'"
+  const whereAt = sql.indexOf(where)
+  assert.notStrictEqual(whereAt, -1, 'legacy indicator-query menu guard is missing')
+  const updateAt = sql.lastIndexOf('UPDATE sys_permission', whereAt)
+  const endAt = sql.indexOf(';', whereAt)
+  assert.notStrictEqual(updateAt, -1, 'legacy indicator-query UPDATE is missing')
+  assert.notStrictEqual(endAt, -1, 'legacy indicator-query UPDATE is unterminated')
+  return sql.slice(updateAt, endAt + 1)
+}
+
+for (const sql of [convergeSql, forwardSql]) {
+  const block = legacyMenuUpdate(sql)
+  assert.match(block, /SET url = '\/statistics\/indexLibrary'/)
+  assert.match(block, /component = 'statistics\/indexLibrary'/)
+  assert.match(block, /parent_id = 'aea6b487925d084dad182e09c95a6c79'/)
+  assert.match(block, /name = '指标查询'/)
+  assert.doesNotMatch(block, /\/vis\/|vis\//)
+}
+
+const rollbackBlock = legacyMenuUpdate(rollbackSql)
+assert.match(rollbackBlock, /SET url = '\/statistics\/schemeIndex'/)
+assert.match(rollbackBlock, /component = 'statistics\/schemeIndex'/)
+
 console.log('legacy indicator query page contract passed')

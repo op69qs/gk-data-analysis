@@ -440,11 +440,11 @@ WHERE permission_id IN (
 DELETE FROM sys_permission
 WHERE url = '/vis/preview' AND component_name = 'VisPreviewEntry';
 
--- 恢复旧 GK 菜单“指标库/指标查询”的原始统计页入口。
+-- 恢复旧 GK 菜单“指标库/指标查询”的原始生产查询页入口。
 -- 这条菜单属于旧“指标库”菜单树，不属于 vis 菜单树，不应继续指向 /vis/index-library。
 UPDATE sys_permission
-SET url = '/statistics/schemeIndex',
-    component = 'statistics/schemeIndex',
+SET url = '/statistics/indexLibrary',
+    component = 'statistics/indexLibrary',
     component_name = NULL,
     redirect = NULL,
     update_by = 'admin',
