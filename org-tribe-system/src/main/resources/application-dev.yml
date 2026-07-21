@@ -216,11 +216,6 @@ zuul:
       sensitiveHeaders:
       serviceId: vis
 
-vis:
-  ribbon:
-    ReadTimeout: 300000
-
-
 ##timeout config
 hystrix:
   command:

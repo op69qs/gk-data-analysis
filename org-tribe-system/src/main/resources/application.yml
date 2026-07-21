@@ -25,3 +25,7 @@ gk-nexus:
     audit-rocketmq-producer-group: ${NEXUS_AUDIT_MQ_PRODUCER_GROUP:gk-data-analysis-audit-producer}
     audit-rocketmq-topic: ${NEXUS_AUDIT_MQ_TOPIC:audit-log-topic}
     audit-rocketmq-tag: ${NEXUS_AUDIT_MQ_TAG:audit-log}
+
+vis:
+  ribbon:
+    ReadTimeout: 300000
