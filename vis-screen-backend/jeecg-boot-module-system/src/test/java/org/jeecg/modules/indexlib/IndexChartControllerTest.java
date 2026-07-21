@@ -144,6 +144,45 @@ public class IndexChartControllerTest {
     }
 
     @Test
+    public void barLineReadsVastbaseLowercaseDateAxisAndIndicatorKeys() {
+        String column = "2A0E4AB8B23911EA8BC1000C29587404";
+        stubSchemeAndIndex(column, "0");
+        JSONObject request = baseRequest("bar");
+        request.put("xTurn", "0");
+        request.put("direction", "2200020000");
+        request.put("startDate", "2026-01-01");
+        request.put("endDate", "2026-01-01");
+        when(indexSchemeService.execSchemeSql(any(PageData.class)))
+                .thenReturn(Collections.<Map<String, Object>>singletonList(
+                        row("account_date", "2026-01-01", column.toLowerCase(), "4")));
+
+        Map<String, Object> response = barLineController.getIndexBarLineData(request);
+
+        assertEquals(Collections.singletonList("2026-01-01"), response.get("x"));
+        assertEquals(Collections.singletonList(Collections.singletonList("4.00")),
+                response.get("data"));
+    }
+
+    @Test
+    public void barLineReadsVastbaseLowercaseDimensionAxisKeys() {
+        String column = "1E0B3446B23A11EA8BC1000C29587404";
+        stubSchemeAndIndex(column, "0");
+        when(indexSchemeService.getAllTrsInfo()).thenReturn("中央国库");
+        Map<String, Object> databaseRow = new HashMap<>();
+        databaseRow.put("code", "2200020000");
+        databaseRow.put("gk", "中央国库");
+        databaseRow.put(column.toLowerCase(), "12.345");
+        when(indexSchemeService.execSchemeSql(any(PageData.class)))
+                .thenReturn(Collections.singletonList(databaseRow));
+
+        Map<String, Object> response = barLineController.getIndexBarLineData(baseRequest("bar"));
+
+        assertEquals(Collections.singletonList("中央国库"), response.get("x"));
+        assertEquals(Collections.singletonList(Collections.singletonList("12.35")),
+                response.get("data"));
+    }
+
+    @Test
     public void barLineUnionUsesVastbaseStrictGroupingWithoutChangingRows() {
         List<Map<String, String>> indexInfo = Collections.singletonList(
                 Collections.singletonMap("INDEX_CORRE_TABLE", "T_INDEX"));

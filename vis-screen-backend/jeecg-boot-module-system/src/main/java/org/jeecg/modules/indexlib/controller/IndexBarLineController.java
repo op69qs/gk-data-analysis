@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Slf4j
@@ -211,9 +212,11 @@ public class IndexBarLineController extends BaseController {
                 for (String node : scale) {
                     String value = "";
                     for (Map<String, Object> row : rows) {
-                        if (node.equals(row.get("ACCOUNT_DATE")) || node.equals(row.get("CODE"))
-                                || node.equals(row.get("GK"))) {
-                            value = new BigDecimal(Double.valueOf(String.valueOf(row.get(column))))
+                        if (node.equals(getRowValue(row, "ACCOUNT_DATE"))
+                                || node.equals(getRowValue(row, "CODE"))
+                                || node.equals(getRowValue(row, "GK"))) {
+                            Object rawValue = getRowValue(row, column);
+                            value = new BigDecimal(Double.valueOf(String.valueOf(rawValue)))
                                     .setScale(2, BigDecimal.ROUND_HALF_UP).toPlainString();
                         }
                     }
@@ -231,6 +234,15 @@ public class IndexBarLineController extends BaseController {
             result.put("result", "failed");
         }
         return result;
+    }
+
+    private Object getRowValue(Map<String, Object> row, String key) {
+        if (row == null || key == null) { return null; }
+        if (row.containsKey(key)) { return row.get(key); }
+        String lowercaseKey = key.toLowerCase(Locale.ROOT);
+        if (row.containsKey(lowercaseKey)) { return row.get(lowercaseKey); }
+        String uppercaseKey = key.toUpperCase(Locale.ROOT);
+        return row.containsKey(uppercaseKey) ? row.get(uppercaseKey) : null;
     }
 
     private String getQuarterNow(String yearMonth) {
