@@ -41,25 +41,55 @@ public class IndexPieController extends BaseController {
     @ApiOperation("保存指标图至图库")
     public Map<String, Object> saveIndexPie(
             @RequestBody(required = false) JSONObject jsonObject) {
+        long startedAt = System.nanoTime();
+        String schemeId = null;
+        String chartType = "pie";
+        int contentLength = 0;
         Map<String, Object> result = new HashMap<>();
         try {
             PageData request = getPageData(jsonObject);
             JSONObject condition = JSONObject.parseObject(request.getString("condition"));
             PageData saved = getPageData(condition);
+            schemeId = saved.getString("scheme_id");
+            chartType = saved.getString("type");
+            String content = request.getString("content");
+            contentLength = content == null ? 0 : content.length();
+            log.info(
+                    "saveIndexPie started, schemeId={}, chartType={}, contentLength={}",
+                    schemeId,
+                    chartType,
+                    contentLength);
             saved.put("condition", condition.toJSONString());
+            long schemeLookupStartedAt = System.nanoTime();
             Map<String, String> scheme = indexSchemeService.getSchemeInfoById(saved);
+            log.info(
+                    "saveIndexPie scheme lookup completed, schemeId={}, elapsedMs={}",
+                    schemeId,
+                    (System.nanoTime() - schemeLookupStartedAt) / 1_000_000L);
             saved.put("scheme_name", scheme.get("SCHEME_DESCR"));
             saved.put("id", get32UUID());
             saved.put("state", "0");
             saved.put("business_id", "1010");
-            saved.put("content", request.getString("content"));
+            saved.put("content", content);
             saved.put("add_time",
                     DateUtil_old.getCurrentDateStr(DateUtil_old.Pattern.YYYY_MM_DD_HH_MM));
+            long galleryInsertStartedAt = System.nanoTime();
             galleryService.add(saved);
+            log.info(
+                    "saveIndexPie gallery insert completed, schemeId={}, elapsedMs={}, totalElapsedMs={}",
+                    schemeId,
+                    (System.nanoTime() - galleryInsertStartedAt) / 1_000_000L,
+                    (System.nanoTime() - startedAt) / 1_000_000L);
             result.put("msg", "添加成功");
             result.put("result", "success");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(
+                    "saveIndexPie failed, schemeId={}, chartType={}, contentLength={}, totalElapsedMs={}",
+                    schemeId,
+                    chartType,
+                    contentLength,
+                    (System.nanoTime() - startedAt) / 1_000_000L,
+                    e);
             result.put("msg", "添加失败");
             result.put("result", "failed");
         }
