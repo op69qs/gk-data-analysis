@@ -115,7 +115,8 @@ public class GalleryMapperContractTest {
         assertTrue(sql.contains("after"));
         assertTrue(sql.contains("information_schema.tables"));
         assertTrue(sql.contains("information_schema.columns"));
-        assertTrue(sql.contains("information_schema.routines"));
+        assertTrue(sql.contains("pg_proc"));
+        assertTrue(sql.contains("pg_namespace"));
         assertTrue(sql.contains("raise exception 'missing required production table: %'"));
         assertFalse(sql.matches("(?s).*create\\s+table\\b.*"));
         assertFalse(sql.matches("(?s).*(drop|truncate|delete\\s+from)\\s+"
@@ -209,6 +210,47 @@ public class GalleryMapperContractTest {
         assertTrue("Production function returns an empty string for no matches",
                 Pattern.compile("coalesce\\s*\\(\\s*string_agg\\(.*?\\)\\s*,\\s*''\\s*\\)",
                         Pattern.CASE_INSENSITIVE | Pattern.DOTALL).matcher(sql).find());
+    }
+
+    @Test
+    public void indexNameFunctionProvidesTextSignatureAndKeepsVarcharCompatibility()
+            throws Exception {
+        String sql = normalize(databaseContract());
+
+        assertTrue("The text column used by IndexSchemeMapper needs an exact overload",
+                sql.contains("create or replace function "
+                        + "visual_screen.f_get_indexname( scheme_columns text)"));
+        assertTrue("The historical varchar(1000) entry point must remain available",
+                sql.contains("create or replace function "
+                        + "visual_screen.f_get_indexname( "
+                        + "scheme_columns varchar(1000))"));
+        assertEquals("Only the text implementation and varchar compatibility overload "
+                        + "are expected",
+                2,
+                countMatches(sql, "create or replace function\\s+"
+                        + "visual_screen\\.f_get_indexname\\s*\\("));
+        assertTrue("The varchar overload must delegate explicitly to the text overload",
+                sql.contains("visual_screen.f_get_indexname(scheme_columns::text)"));
+    }
+
+    @Test
+    public void databaseContractReportsAndValidatesExactIndexNameIdentityArguments()
+            throws Exception {
+        String sql = normalize(databaseContract());
+
+        assertTrue(sql.contains("pg_get_function_identity_arguments(p.oid) "
+                + "as identity_arguments"));
+        assertTrue("BEFORE and AFTER catalog reports must expose exact signatures",
+                countMatches(sql, "pg_get_function_identity_arguments\\(p\\.oid\\)")
+                        >= 2);
+        assertTrue(Pattern.compile("to_regprocedure\\s*\\(\\s*"
+                + "'visual_screen\\.f_get_indexname\\(text\\)'\\s*\\)")
+                .matcher(sql).find());
+        assertTrue(Pattern.compile("to_regprocedure\\s*\\(\\s*"
+                + "'visual_screen\\.f_get_indexname\\(character varying\\)'\\s*\\)")
+                .matcher(sql).find());
+        assertTrue(sql.contains("raise exception "
+                + "'missing required index-name function signature: %'"));
     }
 
     private String loadResource(String resource) throws Exception {

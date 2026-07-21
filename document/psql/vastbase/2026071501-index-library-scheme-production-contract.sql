@@ -27,11 +27,15 @@ WHERE table_schema = 'visual_screen'
 ORDER BY ordinal_position;
 
 SELECT 'BEFORE: index-name routine' AS checkpoint;
-SELECT routine_schema, routine_name, data_type
-FROM information_schema.routines
-WHERE routine_schema = 'visual_screen'
-  AND lower(routine_name) = lower('f_get_IndexName')
-ORDER BY routine_name;
+SELECT n.nspname AS routine_schema,
+       p.proname AS routine_name,
+       pg_get_function_identity_arguments(p.oid) AS identity_arguments,
+       pg_get_function_result(p.oid) AS data_type
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'visual_screen'
+  AND lower(p.proname) = lower('f_get_IndexName')
+ORDER BY p.proname, identity_arguments;
 
 DO $contract$
 DECLARE
@@ -188,7 +192,7 @@ $gallery_columns$ LANGUAGE plpgsql;
 --   * repeated IDs in scheme_columns do not repeat the relation row;
 --   * empty/null input and no matches return an empty string.
 CREATE OR REPLACE FUNCTION visual_screen.f_get_IndexName(
-    scheme_columns varchar(1000))
+    scheme_columns text)
 RETURNS varchar(2000)
 AS $function$
 DECLARE
@@ -221,6 +225,19 @@ $function$
 LANGUAGE plpgsql
 STABLE;
 
+-- Preserve the historical MySQL-compatible varchar entry point.  The explicit
+-- cast selects the text implementation and avoids an overloaded-call ambiguity.
+CREATE OR REPLACE FUNCTION visual_screen.f_get_IndexName(
+    scheme_columns varchar(1000))
+RETURNS varchar(2000)
+AS $compatibility$
+BEGIN
+    RETURN visual_screen.f_get_IndexName(scheme_columns::text);
+END;
+$compatibility$
+LANGUAGE plpgsql
+STABLE;
+
 SELECT 'AFTER: required production tables' AS checkpoint;
 SELECT table_schema, table_name
 FROM information_schema.tables
@@ -244,8 +261,28 @@ WHERE table_schema = 'visual_screen'
 ORDER BY ordinal_position;
 
 SELECT 'AFTER: index-name routine' AS checkpoint;
-SELECT routine_schema, routine_name, data_type
-FROM information_schema.routines
-WHERE routine_schema = 'visual_screen'
-  AND lower(routine_name) = lower('f_get_IndexName')
-ORDER BY routine_name;
+SELECT n.nspname AS routine_schema,
+       p.proname AS routine_name,
+       pg_get_function_identity_arguments(p.oid) AS identity_arguments,
+       pg_get_function_result(p.oid) AS data_type
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'visual_screen'
+  AND lower(p.proname) = lower('f_get_IndexName')
+ORDER BY p.proname, identity_arguments;
+
+DO $required_index_name_signatures$
+BEGIN
+    IF to_regprocedure(
+        'visual_screen.f_get_indexname(text)') IS NULL THEN
+        RAISE EXCEPTION 'missing required index-name function signature: %',
+            'visual_screen.f_get_indexname(text)';
+    END IF;
+
+    IF to_regprocedure(
+        'visual_screen.f_get_indexname(character varying)') IS NULL THEN
+        RAISE EXCEPTION 'missing required index-name function signature: %',
+            'visual_screen.f_get_indexname(character varying)';
+    END IF;
+END;
+$required_index_name_signatures$ LANGUAGE plpgsql;
