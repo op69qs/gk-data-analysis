@@ -133,7 +133,8 @@ public class IndexChartControllerTest {
         assertEquals(Arrays.asList("2026-01-01", "2026-01-02"), response.get("x"));
         assertEquals(Collections.singletonList(Arrays.asList("4.00", "")), response.get("data"));
         String sql = capturedSql();
-        assertTrue(sql.contains("ROUND(tt.`I1`/1, 2) AS `I1`"));
+        assertTrue(sql.contains("ROUND(COALESCE(tt.`I1`, 0)/1, 2) AS `I1`"));
+        assertTrue(sql.contains("COALESCE(SUM(bb.`I1`), 0) AS `I1`"));
         assertTrue(sql.contains("AND bb.CODE = 'D1'"));
         assertTrue(sql.contains(
                 "bb.ACCOUNT_DATE, MIN(bb.CODE) AS CODE, MIN(bb.GK) AS GK"));
@@ -156,6 +157,8 @@ public class IndexChartControllerTest {
                 indexInfo, new String[]{"I1"}, request, "I1");
 
         assertFalse(sql.contains("aa.COLID, aa.ACCOUNT_DATE"));
+        assertFalse(sql.contains(",'')"));
+        assertTrue(sql.contains("IFNULL(SUM(IF(aa.COLID = 'I1',VALUE,NULL)),0)"));
         assertTrue(sql.contains("MIN(aa.ACCOUNT_DATE) AS ACCOUNT_DATE, "
                 + "aa.ACCOUNT_PERIOD, MIN(aa.CODE) AS CODE, aa.GK"));
         assertTrue(sql.contains("GROUP BY aa.ACCOUNT_PERIOD, aa.GK"));
@@ -172,6 +175,8 @@ public class IndexChartControllerTest {
         barLineController.getIndexBarLineData(baseRequest("bar"));
 
         String sql = capturedSql();
+        assertTrue(sql.contains("ROUND(COALESCE(tt.`I1`, 0)/1, 2) AS `I1`"));
+        assertTrue(sql.contains("COALESCE(SUM(bb.`I1`), 0) AS `I1`"));
         assertTrue(sql.contains(
                 "MIN(bb.ACCOUNT_DATE) AS ACCOUNT_DATE, bb.CODE, MIN(bb.GK) AS GK"));
         assertTrue(sql.contains("GROUP BY bb.CODE"));
@@ -216,7 +221,7 @@ public class IndexChartControllerTest {
         barLineController.getIndexBarLineData(baseRequest("bar"));
 
         String sql = capturedSql();
-        assertTrue(sql.contains("ROUND(tt.`I1` * 100, 2) AS `I1`"));
+        assertTrue(sql.contains("ROUND(COALESCE(tt.`I1`, 0) * 100, 2) AS `I1`"));
     }
 
     @Test
@@ -236,7 +241,7 @@ public class IndexChartControllerTest {
 
         assertEquals(1, ((List<?>) response.get("indexInfoList")).size());
         String sql = capturedSql();
-        assertTrue(sql.contains("ROUND(tt.`I2` * 100, 2) AS `I2`"));
+        assertTrue(sql.contains("ROUND(COALESCE(tt.`I2`, 0) * 100, 2) AS `I2`"));
         assertTrue(sql.contains("find_in_set(INDEX_ID, 'I2')"));
         assertTrue(!sql.contains("tt.`I1`"));
     }
@@ -302,7 +307,7 @@ public class IndexChartControllerTest {
         assertEquals(Collections.singletonList(Arrays.asList("", "", "", "")),
                 response.get("data"));
         String sql = capturedSql();
-        assertTrue(sql.contains("ROUND(tt.`I1`/10, 2) AS `I1`"));
+        assertTrue(sql.contains("ROUND(COALESCE(tt.`I1`, 0)/10, 2) AS `I1`"));
         assertTrue(sql.contains("bb.ACCOUNT_DATE >= '2025Q3'"));
         assertTrue(sql.contains("bb.ACCOUNT_DATE <= '2026Q2'"));
         verify(galleryService).getAll(any(PageData.class));
@@ -354,8 +359,28 @@ public class IndexChartControllerTest {
         String sql = capturedSql();
         assertTrue(sql.contains("aa.CODE ='ORG-1'"));
         assertTrue(sql.contains("GROUP BY aa.COLID"));
+        assertTrue(sql.contains("COALESCE(V.value, 0)"));
+        assertTrue(sql.contains("IFNULL(SUM(aa.value),0) AS value"));
+        assertFalse(sql.contains("IFNULL(SUM(aa.value),'')"));
         assertTrue(sql.contains("ACCOUNT_PERIOD >='2026-02-28'"));
         assertTrue(sql.contains("ACCOUNT_PERIOD <='2026-02-28'"));
+    }
+
+    @Test
+    public void pieYDirectionKeepsNumericZeroThroughAggregationAndRound() {
+        stubSchemeAndIndex("I1", "0");
+        when(indexSchemeService.execSchemeSql(any(PageData.class)))
+                .thenReturn(Collections.<Map<String, Object>>emptyList());
+        JSONObject request = baseRequest("pie");
+        request.put("direction", "Y");
+        request.put("indexName", "I1");
+
+        pieController.getIndexPieData(request);
+
+        String sql = capturedSql();
+        assertTrue(sql.contains("COALESCE(V.value, 0)"));
+        assertTrue(sql.contains("IFNULL(SUM(aa.value),0) AS value"));
+        assertFalse(sql.contains("IFNULL(SUM(aa.value),'')"));
     }
 
     @Test
@@ -379,7 +404,7 @@ public class IndexChartControllerTest {
         pieController.getIndexPieData(request);
 
         String sql = capturedSql();
-        assertTrue(sql.contains("ROUND(V.value/10"));
+        assertTrue(sql.contains("ROUND(COALESCE(V.value, 0)/10"));
         assertTrue(sql.contains("ACCOUNT_PERIOD >='2025Q3'"));
         assertTrue(sql.contains("ACCOUNT_PERIOD <='2026Q2'"));
     }

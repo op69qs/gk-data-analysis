@@ -228,19 +228,30 @@ export function getDimensionCandidates(condition) {
 }
 
 export function buildDimensionCandidatesFromTree(rows, dimCode) {
+  return buildDimensionCandidateMatch(rows, dimCode).candidates
+}
+
+export function buildDimensionCandidateMatch(rows, dimCode) {
   const flattened = []
+  const firstValue = (node, fields) => {
+    for (const field of fields) {
+      if (node[field] !== undefined && node[field] !== null) return node[field]
+    }
+    return undefined
+  }
   const visit = nodes => {
     if (!Array.isArray(nodes)) return
     for (const node of nodes) {
       if (!node || typeof node !== 'object') continue
-      const rawValue = node.id === undefined
-        ? node.value === undefined ? node.key : node.value
-        : node.id
+      const rawValue = firstValue(node, ['id', 'ID', 'value', 'VALUE', 'key', 'KEY'])
       const value = rawValue == null ? '' : String(rawValue).trim()
-      const rawLabel = node.label === undefined ? node.title : node.label
+      const rawLabel = firstValue(
+        node,
+        ['label', 'LABEL', 'title', 'TITLE', 'name', 'NAME']
+      )
       const label = rawLabel == null ? value : String(rawLabel).trim()
       if (value) flattened.push({ value, label: label || value })
-      visit(node.children)
+      visit(firstValue(node, ['children', 'CHILDREN']))
     }
   }
   visit(rows)
@@ -253,14 +264,26 @@ export function buildDimensionCandidatesFromTree(rows, dimCode) {
     .split(',')
     .map(value => value.trim())
     .filter(Boolean)
-  const values = requested.length ? requested : Array.from(byValue.keys())
+  const requestedValues = requested.filter(
+    (value, index) => requested.indexOf(value) === index
+  )
+  const values = requestedValues.length
+    ? requestedValues
+    : Array.from(byValue.keys())
   const seen = new Set()
-  return values.reduce((candidates, value) => {
-    if (seen.has(value)) return candidates
+  const candidates = values.reduce((result, value) => {
+    if (seen.has(value)) return result
     seen.add(value)
-    candidates.push(byValue.get(value) || { value, label: value })
-    return candidates
+    result.push(byValue.get(value) || { value, label: value })
+    return result
   }, [])
+  return {
+    candidates,
+    matchedCount: requestedValues.length
+      ? requestedValues.filter(value => byValue.has(value)).length
+      : candidates.length,
+    requestedCount: requestedValues.length
+  }
 }
 
 export function validateProductionChartFields(form) {

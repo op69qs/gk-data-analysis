@@ -26,7 +26,7 @@ public class IndexChartsHelper {
         StringBuilder sql = new StringBuilder("SELECT V.* FROM (SELECT");
         for (int i = 0; i < info.size(); i++) {
             sql.append(" IFNULL(SUM(IF(aa.COLID = '").append(columns[i])
-                    .append("',VALUE,NULL)),'') AS '").append(columns[i]).append("',");
+                    .append("',VALUE,NULL)),0) AS '").append(columns[i]).append("',");
         }
         sql.append(" MIN(aa.ACCOUNT_DATE) AS ACCOUNT_DATE, aa.ACCOUNT_PERIOD, "
                 + "MIN(aa.CODE) AS CODE, aa.GK FROM ( ");

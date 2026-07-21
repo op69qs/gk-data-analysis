@@ -146,13 +146,14 @@ public class IndexPieController extends BaseController {
             }
             result.put("indexInfoList", indexInfoList);
             String baseSql = IndexChartsHelper.createIndexPieSQL(indexInfoList, columns, pageData);
-            StringBuilder sql = new StringBuilder(" SELECT V.name, CAST(ROUND(V.value/")
+            StringBuilder sql = new StringBuilder(
+                    " SELECT V.name, CAST(ROUND(COALESCE(V.value, 0)/")
                     .append(pageData.getString("price"))
                     .append(", 2) AS char) as value FROM ( ");
             if ("X".equals(pageData.getString("direction"))) {
                 sql.append(" SELECT aa.CODE AS CODE, aa.COLID AS COLID, ")
                         .append("r.index_name AS name, aa.GK AS GK, ")
-                        .append("IFNULL(SUM(aa.value),'') AS value FROM (")
+                        .append("IFNULL(SUM(aa.value),0) AS value FROM (")
                         .append(baseSql).append(") aa LEFT JOIN ")
                         .append("`indicators_lib`.`lib_index_relation` r ")
                         .append("ON aa.COLID = r.`INDEX_ID` WHERE aa.CODE ='")
@@ -160,7 +161,7 @@ public class IndexPieController extends BaseController {
                         .append("' GROUP BY aa.COLID ) V ORDER BY V.value ASC ");
             } else {
                 sql.append(" SELECT aa.CODE AS CODE, aa.COLID AS COLID, aa.GK AS name, ")
-                        .append("IFNULL(SUM(aa.value),'') AS value FROM (")
+                        .append("IFNULL(SUM(aa.value),0) AS value FROM (")
                         .append(baseSql).append(") aa WHERE aa.COLID ='")
                         .append(pageData.getString("indexName"))
                         .append("' GROUP BY aa.CODE ORDER BY aa.CODE ASC ) V ");

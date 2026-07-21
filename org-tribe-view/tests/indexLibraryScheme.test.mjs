@@ -54,6 +54,7 @@ const {
   getDateControl,
   getDimensionCandidates,
   buildDimensionCandidatesFromTree,
+  buildDimensionCandidateMatch,
   normalizeBarLineColumns,
   validateProductionChartFields
 } = await import(utilsUrl)
@@ -196,6 +197,31 @@ assert.deepStrictEqual(
     { value: '2200020000', label: '中央国库' },
     { value: 'UNKNOWN', label: 'UNKNOWN' }
   ]
+)
+
+assert.deepStrictEqual(
+  buildDimensionCandidateMatch(
+    [
+      {
+        ID: 'ROOT',
+        NAME: '全部国库',
+        CHILDREN: [
+          { ID: 'GK01', LABEL: '中央国库' },
+          { VALUE: 'GK02', TITLE: '省级国库' }
+        ]
+      }
+    ],
+    'GK02,GK01,UNKNOWN'
+  ),
+  {
+    candidates: [
+      { value: 'GK02', label: '省级国库' },
+      { value: 'GK01', label: '中央国库' },
+      { value: 'UNKNOWN', label: 'UNKNOWN' }
+    ],
+    matchedCount: 2,
+    requestedCount: 3
+  }
 )
 
 assert.deepStrictEqual(
@@ -875,6 +901,10 @@ assert.match(formSource, /<data-year/)
 assert.match(formSource, /横轴显示/)
 assert.match(formSource, /统计方向/)
 assert.match(formSource, /dimensionCandidates/)
+assert.match(
+  formSource,
+  /<a-select-option value="0">账期<\/a-select-option>[^]*?<a-select-option value="1">\{\{ dimensionLabel \}\}<\/a-select-option>[^]*?v-if="form\.xTurn === '0'"[^]*?v-for="item in dimensionCandidates"[^]*?<a-form-item\s+v-else\s+label="账期"[^]*?:value="form\.dateId"/
+)
 assert.match(formSource, /生成图片/)
 assert.match(formSource, /\$emit\('generate'\)/)
 assert.match(formSource, /generated/)
@@ -1377,9 +1407,9 @@ let guokuTreeHandler = () => Promise.resolve({
   result: 'success',
   rows: [
     {
-      id: 'GK-ROOT',
-      label: '国库根节点',
-      children: [{ id: 'GK01', label: '中央国库' }]
+      ID: 'GK-ROOT',
+      NAME: '国库根节点',
+      CHILDREN: [{ ID: 'GK01', LABEL: '中央国库' }]
     }
   ]
 })
@@ -1406,6 +1436,7 @@ const modalContext = {
   buildSavePayload,
   hasChartData,
   buildDimensionCandidatesFromTree,
+  buildDimensionCandidateMatch,
   buildChartOption: chartContext.buildChartOption,
   getIndexInfo(params) {
     indexInfoRequests.push(params)
@@ -1553,7 +1584,7 @@ assert.deepStrictEqual(
 const areaVm = createModalVm()
 areaTreeHandler = () => Promise.resolve({
   result: 'success',
-  rows: [{ value: 'AREA01', title: '某地区' }]
+  rows: [{ VALUE: 'AREA01', NAME: '某地区' }]
 })
 await areaVm.instance.open({
   ...modalRecord,
@@ -1578,7 +1609,29 @@ assert.deepStrictEqual(
   )),
   [{ value: 'GK01', label: 'GK01' }]
 )
-assert.deepStrictEqual(treeFailureVm.messages, [])
+assert.strictEqual(treeFailureVm.messages.length, 1)
+assert.strictEqual(treeFailureVm.messages[0].type, 'warning')
+
+guokuTreeHandler = () => Promise.resolve({
+  result: 'success',
+  rows: [{ ID: 'OTHER', LABEL: '其他国库' }]
+})
+const unmatchedTreeVm = createModalVm()
+await unmatchedTreeVm.instance.open({
+  ...modalRecord,
+  SCHEME_CONDITON: JSON.stringify({
+    ...JSON.parse(modalRecord.SCHEME_CONDITON),
+    dimensionCandidates: [{ value: 'GK01', label: '现场候选' }]
+  })
+})
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(
+    getDimensionCandidates(unmatchedTreeVm.instance.form)
+  )),
+  [{ value: 'GK01', label: '现场候选' }]
+)
+assert.strictEqual(unmatchedTreeVm.messages.length, 1)
+assert.strictEqual(unmatchedTreeVm.messages[0].type, 'warning')
 guokuTreeHandler = () => Promise.resolve({
   result: 'success',
   rows: [{ id: 'GK01', label: '中央国库' }]

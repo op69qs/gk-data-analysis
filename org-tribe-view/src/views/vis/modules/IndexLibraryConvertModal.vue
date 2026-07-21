@@ -63,7 +63,7 @@ import {
   buildPreviewPayload,
   buildSavePayload,
   hasChartData,
-  buildDimensionCandidatesFromTree
+  buildDimensionCandidateMatch
 } from '@/utils/indexLibraryScheme'
 import IndexLibraryChartPreview, {
   buildChartOption
@@ -220,23 +220,34 @@ export default {
         ? getGuokuTree
         : dimensionFlag === '2' ? getAreaTree : null
       if (!request) return Promise.resolve(false)
+      const dimensionName = dimensionFlag === '1' ? '国库' : '地区'
 
       return request({}).then(res => {
         if (revision !== this.dimensionTreeRevision) return false
         if (!res || res.result !== 'success' || !Array.isArray(res.rows)) {
+          this.$message.warning(`${dimensionName}名称加载失败，已保留方案候选`)
           return false
         }
-        const candidates = buildDimensionCandidatesFromTree(
+        const match = buildDimensionCandidateMatch(
           res.rows,
           this.form.dimCode
         )
+        if (match.matchedCount === 0) {
+          this.$message.warning(`${dimensionName}编码未匹配到名称，已保留方案候选`)
+          return false
+        }
         if (typeof this.$set === 'function') {
-          this.$set(this.form, 'dimensionCandidates', candidates)
+          this.$set(this.form, 'dimensionCandidates', match.candidates)
         } else {
-          this.form.dimensionCandidates = candidates
+          this.form.dimensionCandidates = match.candidates
         }
         return true
-      }).catch(() => false)
+      }).catch(() => {
+        if (revision === this.dimensionTreeRevision) {
+          this.$message.warning(`${dimensionName}名称加载失败，已保留方案候选`)
+        }
+        return false
+      })
     },
     invalidatePreview() {
       this.previewRevision += 1

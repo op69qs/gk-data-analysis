@@ -158,14 +158,14 @@ public class IndexBarLineController extends BaseController {
                     IndexChartsHelper.createIndexUnionSQL(indexInfoList, columns, pageData, checked);
             StringBuilder sql = new StringBuilder(" SELECT ");
             for (int i = 0; i < columns.length; i++) {
-                sql.append(" ROUND(tt.`").append(columns[i]);
-                sql.append("0".equals(types.get(i)) ? "`/" + pageData.getString("price")
-                        : "` * 100");
+                sql.append(" ROUND(COALESCE(tt.`").append(columns[i]).append("`, 0)");
+                sql.append("0".equals(types.get(i)) ? "/" + pageData.getString("price")
+                        : " * 100");
                 sql.append(", 2) AS `").append(columns[i]).append("`,");
             }
             sql.append(" tt.ACCOUNT_DATE, tt.CODE, tt.GK FROM ( SELECT ");
             for (String column : columns) {
-                sql.append(" SUM(bb.`").append(column).append("`) AS `")
+                sql.append(" COALESCE(SUM(bb.`").append(column).append("`), 0) AS `")
                         .append(column).append("`,");
             }
             boolean dateAxis = "0".equals(pageData.getString("xTurn"));
