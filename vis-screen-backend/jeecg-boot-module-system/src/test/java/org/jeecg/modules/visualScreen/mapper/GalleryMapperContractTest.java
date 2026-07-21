@@ -216,6 +216,7 @@ public class GalleryMapperContractTest {
     public void indexNameFunctionProvidesTextSignatureAndKeepsVarcharCompatibility()
             throws Exception {
         String sql = normalize(databaseContract());
+        String compatibilityBlock = block(sql, "$varchar_compatibility$");
 
         assertTrue("The text column used by IndexSchemeMapper needs an exact overload",
                 sql.contains("create or replace function "
@@ -228,11 +229,17 @@ public class GalleryMapperContractTest {
                 1,
                 countMatches(sql, "create or replace function\\s+"
                         + "visual_screen\\.f_get_indexname\\s*\\("));
+        assertFalse("Vastbase does not provide PostgreSQL to_regprocedure",
+                sql.contains("to_regprocedure"));
         assertTrue("The varchar overload must only be created when absent",
-                Pattern.compile("if\\s+to_regprocedure\\s*\\(\\s*"
-                        + "'visual_screen\\.f_get_indexname\\(character varying\\)'"
-                        + "\\s*\\)\\s+is null\\s+then")
-                        .matcher(sql).find());
+                compatibilityBlock.contains("if not exists ( select 1 from pg_proc p "
+                        + "join pg_namespace n on n.oid = p.pronamespace "
+                        + "join pg_type argument_type "
+                        + "on argument_type.oid = p.proargtypes[0]"));
+        assertTrue("The varchar catalog guard must match one exact input argument",
+                compatibilityBlock.contains("p.pronargs = 1"));
+        assertTrue("The varchar catalog guard must match character varying by OID",
+                compatibilityBlock.contains("argument_type.typname = 'varchar'"));
         assertTrue("The missing varchar overload must be created without replacement",
                 sql.contains("execute $create_varchar_compatibility$ "
                         + "create function visual_screen.f_get_indexname( "
@@ -248,18 +255,29 @@ public class GalleryMapperContractTest {
     public void databaseContractReportsAndValidatesExactIndexNameIdentityArguments()
             throws Exception {
         String sql = normalize(databaseContract());
+        String signatureGate = block(sql, "$required_index_name_signatures$");
 
         assertTrue(sql.contains("pg_get_function_identity_arguments(p.oid) "
                 + "as identity_arguments"));
         assertTrue("BEFORE and AFTER catalog reports must expose exact signatures",
                 countMatches(sql, "pg_get_function_identity_arguments\\(p\\.oid\\)")
                         >= 2);
-        assertTrue(Pattern.compile("to_regprocedure\\s*\\(\\s*"
-                + "'visual_screen\\.f_get_indexname\\(text\\)'\\s*\\)")
-                .matcher(sql).find());
-        assertTrue(Pattern.compile("to_regprocedure\\s*\\(\\s*"
-                + "'visual_screen\\.f_get_indexname\\(character varying\\)'\\s*\\)")
-                .matcher(sql).find());
+        assertFalse("The migration must only use Vastbase-supported catalog APIs",
+                sql.contains("to_regprocedure"));
+        assertEquals("Both required overloads need independent catalog checks",
+                2, countMatches(signatureGate, "from pg_proc p"));
+        assertEquals("Both signature checks need the function namespace",
+                2, countMatches(signatureGate,
+                        "join pg_namespace n on n\\.oid = p\\.pronamespace"));
+        assertEquals("Both signature checks need the input type OID",
+                2, countMatches(signatureGate, "join pg_type argument_type on "
+                        + "argument_type\\.oid = p\\.proargtypes\\[0\\]"));
+        assertEquals("Both signature checks must require exactly one argument",
+                2, countMatches(signatureGate, "p\\.pronargs = 1"));
+        assertTrue("The text overload must be validated by exact input type",
+                signatureGate.contains("argument_type.typname = 'text'"));
+        assertTrue("The varchar overload must be validated by exact input type",
+                signatureGate.contains("argument_type.typname = 'varchar'"));
         assertTrue(sql.contains("raise exception "
                 + "'missing required index-name function signature: %'"));
     }

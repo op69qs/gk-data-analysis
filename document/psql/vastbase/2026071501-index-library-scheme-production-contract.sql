@@ -230,8 +230,17 @@ STABLE;
 -- compatibility wrapper only when that identity is absent.
 DO $varchar_compatibility$
 BEGIN
-    IF to_regprocedure(
-        'visual_screen.f_get_indexname(character varying)') IS NULL THEN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        JOIN pg_type argument_type
+          ON argument_type.oid = p.proargtypes[0]
+        WHERE n.nspname = 'visual_screen'
+          AND lower(p.proname) = lower('f_get_IndexName')
+          AND p.pronargs = 1
+          AND argument_type.typname = 'varchar'
+    ) THEN
         EXECUTE $create_varchar_compatibility$
 CREATE FUNCTION visual_screen.f_get_IndexName(
     varchar(1000))
@@ -283,14 +292,32 @@ ORDER BY p.proname, identity_arguments;
 
 DO $required_index_name_signatures$
 BEGIN
-    IF to_regprocedure(
-        'visual_screen.f_get_indexname(text)') IS NULL THEN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        JOIN pg_type argument_type
+          ON argument_type.oid = p.proargtypes[0]
+        WHERE n.nspname = 'visual_screen'
+          AND lower(p.proname) = lower('f_get_IndexName')
+          AND p.pronargs = 1
+          AND argument_type.typname = 'text'
+    ) THEN
         RAISE EXCEPTION 'missing required index-name function signature: %',
             'visual_screen.f_get_indexname(text)';
     END IF;
 
-    IF to_regprocedure(
-        'visual_screen.f_get_indexname(character varying)') IS NULL THEN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_proc p
+        JOIN pg_namespace n ON n.oid = p.pronamespace
+        JOIN pg_type argument_type
+          ON argument_type.oid = p.proargtypes[0]
+        WHERE n.nspname = 'visual_screen'
+          AND lower(p.proname) = lower('f_get_IndexName')
+          AND p.pronargs = 1
+          AND argument_type.typname = 'varchar'
+    ) THEN
         RAISE EXCEPTION 'missing required index-name function signature: %',
             'visual_screen.f_get_indexname(character varying)';
     END IF;
