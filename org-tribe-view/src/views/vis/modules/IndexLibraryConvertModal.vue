@@ -63,6 +63,7 @@ import {
   buildPreviewPayload,
   buildSavePayload,
   hasChartData,
+  getDimensionCandidates,
   buildDimensionCandidateMatch
 } from '@/utils/indexLibraryScheme'
 import IndexLibraryChartPreview, {
@@ -236,10 +237,26 @@ export default {
           this.$message.warning(`${dimensionName}编码未匹配到名称，已保留方案候选`)
           return false
         }
+        const matchedValues = new Set(match.matchedValues)
+        const originalByValue = new Map(
+          getDimensionCandidates(this.form)
+            .map(candidate => [candidate.value, candidate])
+        )
+        const candidates = match.candidates.map(candidate =>
+          matchedValues.has(candidate.value)
+            ? candidate
+            : originalByValue.get(candidate.value) || candidate
+        )
+        if (
+          match.requestedCount > 0 &&
+          match.matchedCount < match.requestedCount
+        ) {
+          this.$message.warning(`${dimensionName}编码部分未匹配，已保留原候选名称`)
+        }
         if (typeof this.$set === 'function') {
-          this.$set(this.form, 'dimensionCandidates', match.candidates)
+          this.$set(this.form, 'dimensionCandidates', candidates)
         } else {
-          this.form.dimensionCandidates = match.candidates
+          this.form.dimensionCandidates = candidates
         }
         return true
       }).catch(() => {

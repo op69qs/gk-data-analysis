@@ -151,8 +151,8 @@ public class IndexPieController extends BaseController {
                     .append(pageData.getString("price"))
                     .append(", 2) AS char) as value FROM ( ");
             if ("X".equals(pageData.getString("direction"))) {
-                sql.append(" SELECT aa.CODE AS CODE, aa.COLID AS COLID, ")
-                        .append("r.index_name AS name, aa.GK AS GK, ")
+                sql.append(" SELECT MIN(aa.CODE) AS CODE, aa.COLID AS COLID, ")
+                        .append("MIN(r.index_name) AS name, MIN(aa.GK) AS GK, ")
                         .append("IFNULL(SUM(aa.value),0) AS value FROM (")
                         .append(baseSql).append(") aa LEFT JOIN ")
                         .append("`indicators_lib`.`lib_index_relation` r ")
@@ -160,7 +160,8 @@ public class IndexPieController extends BaseController {
                         .append(pageData.getString("GK"))
                         .append("' GROUP BY aa.COLID ) V ORDER BY V.value ASC ");
             } else {
-                sql.append(" SELECT aa.CODE AS CODE, aa.COLID AS COLID, aa.GK AS name, ")
+                sql.append(" SELECT aa.CODE AS CODE, MIN(aa.COLID) AS COLID, ")
+                        .append("MIN(aa.GK) AS name, ")
                         .append("IFNULL(SUM(aa.value),0) AS value FROM (")
                         .append(baseSql).append(") aa WHERE aa.COLID ='")
                         .append(pageData.getString("indexName"))

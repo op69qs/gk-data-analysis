@@ -220,7 +220,8 @@ assert.deepStrictEqual(
       { value: 'UNKNOWN', label: 'UNKNOWN' }
     ],
     matchedCount: 2,
-    requestedCount: 3
+    requestedCount: 3,
+    matchedValues: ['GK02', 'GK01']
   }
 )
 
@@ -1435,6 +1436,7 @@ const modalContext = {
   buildPreviewPayload,
   buildSavePayload,
   hasChartData,
+  getDimensionCandidates,
   buildDimensionCandidatesFromTree,
   buildDimensionCandidateMatch,
   buildChartOption: chartContext.buildChartOption,
@@ -1632,6 +1634,34 @@ assert.deepStrictEqual(
 )
 assert.strictEqual(unmatchedTreeVm.messages.length, 1)
 assert.strictEqual(unmatchedTreeVm.messages[0].type, 'warning')
+
+guokuTreeHandler = () => Promise.resolve({
+  result: 'success',
+  rows: [{ ID: 'GK01', LABEL: '树中国库一' }]
+})
+const partialTreeVm = createModalVm()
+await partialTreeVm.instance.open({
+  ...modalRecord,
+  SCHEME_CONDITON: JSON.stringify({
+    ...JSON.parse(modalRecord.SCHEME_CONDITON),
+    dimCode: 'GK01,GK02',
+    dimensionCandidates: [
+      { value: 'GK01', label: '现场国库一' },
+      { value: 'GK02', label: '现场国库二' }
+    ]
+  })
+})
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(
+    getDimensionCandidates(partialTreeVm.instance.form)
+  )),
+  [
+    { value: 'GK01', label: '树中国库一' },
+    { value: 'GK02', label: '现场国库二' }
+  ]
+)
+assert.strictEqual(partialTreeVm.messages.length, 1)
+assert.strictEqual(partialTreeVm.messages[0].type, 'warning')
 guokuTreeHandler = () => Promise.resolve({
   result: 'success',
   rows: [{ id: 'GK01', label: '中央国库' }]

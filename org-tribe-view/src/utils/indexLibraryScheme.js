@@ -277,12 +277,12 @@ export function buildDimensionCandidateMatch(rows, dimCode) {
     result.push(byValue.get(value) || { value, label: value })
     return result
   }, [])
+  const matchedValues = values.filter(value => byValue.has(value))
   return {
     candidates,
-    matchedCount: requestedValues.length
-      ? requestedValues.filter(value => byValue.has(value)).length
-      : candidates.length,
-    requestedCount: requestedValues.length
+    matchedCount: matchedValues.length,
+    requestedCount: requestedValues.length,
+    matchedValues
   }
 }
 

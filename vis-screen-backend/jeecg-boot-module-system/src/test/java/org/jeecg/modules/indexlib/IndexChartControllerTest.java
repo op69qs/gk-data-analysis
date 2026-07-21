@@ -358,7 +358,10 @@ public class IndexChartControllerTest {
         assertEquals(Collections.emptyList(), response.get("data"));
         String sql = capturedSql();
         assertTrue(sql.contains("aa.CODE ='ORG-1'"));
+        assertTrue(sql.contains("MIN(aa.CODE) AS CODE, aa.COLID AS COLID, "
+                + "MIN(r.index_name) AS name, MIN(aa.GK) AS GK"));
         assertTrue(sql.contains("GROUP BY aa.COLID"));
+        assertFalse(sql.contains("GROUP BY aa.COLID,"));
         assertTrue(sql.contains("COALESCE(V.value, 0)"));
         assertTrue(sql.contains("IFNULL(SUM(aa.value),0) AS value"));
         assertFalse(sql.contains("IFNULL(SUM(aa.value),'')"));
@@ -378,6 +381,10 @@ public class IndexChartControllerTest {
         pieController.getIndexPieData(request);
 
         String sql = capturedSql();
+        assertTrue(sql.contains("aa.CODE AS CODE, MIN(aa.COLID) AS COLID, "
+                + "MIN(aa.GK) AS name"));
+        assertTrue(sql.contains("GROUP BY aa.CODE"));
+        assertFalse(sql.contains("GROUP BY aa.CODE,"));
         assertTrue(sql.contains("COALESCE(V.value, 0)"));
         assertTrue(sql.contains("IFNULL(SUM(aa.value),0) AS value"));
         assertFalse(sql.contains("IFNULL(SUM(aa.value),'')"));
