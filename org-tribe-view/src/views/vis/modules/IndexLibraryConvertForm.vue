@@ -20,17 +20,19 @@
           :alt="`${item.label}图标`"
           :title="item.label"
         />
-        <span class="chart-type-state">
-          {{ form.type === item.type ? '已选择' : item.label }}
+        <span class="sr-only">
+          {{ item.label }}{{ form.type === item.type ? '，已选择' : '' }}
         </span>
       </a-radio>
     </a-radio-group>
 
     <a-form layout="inline" class="production-form-fields" @submit.prevent>
       <a-row>
-        <a-col :md="12" :sm="24">
+        <a-col :md="12" :sm="12">
           <a-form-item
             label="图表标题"
+            :label-col="{ span: 3 }"
+            :wrapper-col="{ span: 18 }"
             required
             :validate-status="fieldStatus('title')"
             :help="validationErrors.title"
@@ -41,9 +43,11 @@
             />
           </a-form-item>
         </a-col>
-        <a-col :md="12" :sm="24">
+        <a-col :md="18" :sm="18">
           <a-form-item
             label="指标"
+            :label-col="{ span: 2 }"
+            :wrapper-col="{ span: 22 }"
             required
             :validate-status="fieldStatus('schemecolumns')"
             :help="validationErrors.schemecolumns"
@@ -59,9 +63,11 @@
       </a-row>
 
       <a-row>
-        <a-col :md="8" :sm="24">
+        <a-col :md="9" :sm="9">
           <a-form-item
             label="维度"
+            :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 18 }"
             required
             :validate-status="fieldStatus('dimensionFlag')"
             :help="validationErrors.dimensionFlag"
@@ -72,9 +78,11 @@
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :md="8" :sm="24">
+        <a-col :md="9" :sm="9">
           <a-form-item
             label="周期"
+            :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 18 }"
             required
             :validate-status="fieldStatus('periodFlag')"
             :help="validationErrors.periodFlag"
@@ -87,9 +95,11 @@
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :md="8" :sm="24">
+        <a-col :md="6" :sm="6">
           <a-form-item
             label="单位"
+            :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 18 }"
             required
             :validate-status="fieldStatus('price')"
             :help="validationErrors.price"
@@ -108,9 +118,11 @@
       </a-row>
 
       <a-row>
-        <a-col :md="10" :sm="24">
+        <a-col :md="9" :sm="9">
           <a-form-item
             label="时间类型"
+            :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 19 }"
             required
             :validate-status="fieldStatus('timeType')"
             :help="validationErrors.timeType"
@@ -129,10 +141,12 @@
             </a-radio-group>
           </a-form-item>
         </a-col>
-        <a-col :md="14" :sm="24">
+        <a-col :md="9" :sm="9">
           <a-form-item
             v-if="!dateControl.disabled"
             label="选择时间"
+            :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 18 }"
             required
             :validate-status="dateValidationStatus"
             :help="dateValidationHelp"
@@ -177,12 +191,21 @@
             />
           </a-form-item>
         </a-col>
+        <a-col v-if="form.type === 'pie'" :md="4" :sm="4" class="switch-field">
+          是否包含比率：
+          <a-switch
+            :checked="form.isRate === true"
+            @change="value => setFormField('isRate', value)"
+          />
+        </a-col>
       </a-row>
 
       <a-row v-if="form.type !== 'pie'">
-        <a-col :md="9" :sm="24">
+        <a-col :md="9" :sm="9">
           <a-form-item
             label="横轴显示"
+            :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 18, offset: 1 }"
             required
             :validate-status="fieldStatus('xTurn')"
             :help="validationErrors.xTurn"
@@ -193,10 +216,12 @@
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :md="11" :sm="24">
+        <a-col :md="10" :sm="10">
           <a-form-item
             v-if="form.xTurn === '0'"
             :label="dimensionLabel"
+            :label-col="{ span: 3 }"
+            :wrapper-col="{ span: 18, offset: 1 }"
             required
             :validate-status="fieldStatus('direction')"
             :help="validationErrors.direction"
@@ -219,6 +244,8 @@
           <a-form-item
             v-else
             label="账期"
+            :label-col="{ span: 3 }"
+            :wrapper-col="{ span: 18, offset: 1 }"
             required
             :validate-status="fieldStatus('dateId')"
             :help="validationErrors.dateId"
@@ -239,15 +266,17 @@
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :md="4" :sm="24">
+        <a-col :md="2" :sm="2" class="generate-action">
           <a-button type="primary" @click="generateImage">生成图片</a-button>
         </a-col>
       </a-row>
 
       <a-row v-else>
-        <a-col :md="8" :sm="24">
+        <a-col :md="9" :sm="9">
           <a-form-item
             label="统计方向"
+            :label-col="{ span: 4 }"
+            :wrapper-col="{ span: 18, offset: 1 }"
             required
             :validate-status="fieldStatus('direction')"
             :help="validationErrors.direction"
@@ -263,10 +292,12 @@
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :md="8" :sm="24">
+        <a-col :md="10" :sm="10">
           <a-form-item
             v-if="form.direction === 'X'"
             :label="dimensionLabel"
+            :label-col="{ span: 3 }"
+            :wrapper-col="{ span: 18, offset: 1 }"
             required
             :validate-status="fieldStatus('GK')"
             :help="validationErrors.GK"
@@ -289,6 +320,8 @@
           <a-form-item
             v-else-if="form.direction === 'Y'"
             label="指标"
+            :label-col="{ span: 3 }"
+            :wrapper-col="{ span: 18, offset: 1 }"
             required
             :validate-status="fieldStatus('indexName')"
             :help="validationErrors.indexName"
@@ -309,14 +342,7 @@
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :md="4" :sm="12" class="switch-field">
-          是否包含比率：
-          <a-switch
-            :checked="form.isRate === true"
-            @change="value => setFormField('isRate', value)"
-          />
-        </a-col>
-        <a-col :md="4" :sm="12">
+        <a-col :md="2" :sm="2" class="generate-action">
           <a-button type="primary" @click="generateImage">生成图片</a-button>
         </a-col>
       </a-row>
@@ -742,8 +768,14 @@ export default {
 
 .chart-type-group {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
   margin-bottom: 16px;
+}
+
+.chart-type-group ::v-deep .ant-radio-wrapper {
+  width: 25%;
+  margin-right: 0;
 }
 
 .chart-type-group img {
@@ -753,28 +785,44 @@ export default {
   vertical-align: middle;
 }
 
-.chart-type-state {
-  display: block;
-  min-height: 20px;
-  margin-left: 24px;
-  color: #767676;
-  font-size: 12px;
-  text-align: center;
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.production-form-fields,
-.production-form-fields .ant-form-item {
+.production-form-fields {
   width: 100%;
 }
 
-.production-form-fields .ant-select,
-.production-form-fields .ant-input,
-.production-form-fields .el-date-editor {
+.production-form-fields ::v-deep .ant-form-item {
+  display: flex;
+  width: 100%;
+}
+
+.production-form-fields ::v-deep .ant-form-item-control-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.production-form-fields ::v-deep .ant-select,
+.production-form-fields ::v-deep .ant-input,
+.production-form-fields ::v-deep .el-date-editor {
   width: 100%;
 }
 
 .switch-field {
   padding-top: 8px;
+}
+
+.generate-action {
+  padding-top: 4px;
 }
 
 .generated-settings {
@@ -786,7 +834,7 @@ export default {
   margin-right: 8px;
 }
 
-.generated-settings .ant-select {
+.generated-settings ::v-deep .ant-select {
   width: 80%;
 }
 
@@ -821,9 +869,12 @@ export default {
 }
 
 @media (max-width: 640px) {
-  .chart-type-group {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(110px, 1fr));
+  .chart-type-group ::v-deep .ant-radio-wrapper {
+    width: 50%;
+  }
+
+  .production-form-fields > .ant-row > [class*='ant-col-'] {
+    width: 100%;
   }
 
   .series-direction-header,

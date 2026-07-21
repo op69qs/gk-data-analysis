@@ -798,9 +798,51 @@ assert.doesNotMatch(formSource, /:rules=|(?:\s)prop=/)
 assert.match(formSource, /role="radiogroup"/)
 assert.match(formSource, /role="radio"/)
 assert.match(formSource, /aria-checked/)
-assert.match(formSource, /已选择/)
+assert.match(formSource, /class="sr-only"[^]*已选择/)
+assert.doesNotMatch(formSource, /class="chart-type-state"/)
 assert.match(formSource, /class="production-chart-form"/)
 assert.match(formSource, /<a-radio-group[^]*v-for="item in chartTypes"/)
+assert.match(formSource, /\.chart-type-group\s*{[^}]*width:\s*100%/)
+assert.match(
+  formSource,
+  /\.chart-type-group\s*::v-deep\s*\.ant-radio-wrapper\s*{[^}]*width:\s*25%/
+)
+assert.match(
+  formSource,
+  /\.production-form-fields\s*::v-deep\s*\.ant-form-item-control-wrapper\s*{[^}]*flex:\s*1/
+)
+assert.doesNotMatch(
+  formSource,
+  /\.production-form-fields\s+\.(?:ant-input|ant-select|el-date-editor)\s*{/
+)
+assert.match(
+  formSource,
+  /<a-col\s+:md="12"\s+:sm="12">\s*<a-form-item[^]*?label="图表标题"[^]*?:label-col="\{ span: 3 \}"[^]*?:wrapper-col="\{ span: 18 \}"/
+)
+assert.match(
+  formSource,
+  /<a-col\s+:md="18"\s+:sm="18">\s*<a-form-item[^]*?label="指标"[^]*?:label-col="\{ span: 2 \}"[^]*?:wrapper-col="\{ span: 22 \}"/
+)
+for (const [label, md, labelSpan, wrapperSpan] of [
+  ['维度', 9, 4, 18],
+  ['周期', 9, 4, 18],
+  ['单位', 6, 4, 18],
+  ['时间类型', 9, 4, 19],
+  ['选择时间', 9, 4, 18]
+]) {
+  assert.match(
+    formSource,
+    new RegExp(`<a-col\\s+:md="${md}"\\s+:sm="${md}">\\s*<a-form-item[^]*?label="${label}"[^]*?:label-col="\\{ span: ${labelSpan} \\}"[^]*?:wrapper-col="\\{ span: ${wrapperSpan} \\}"`)
+  )
+}
+assert.match(
+  formSource,
+  /<a-row v-if="form\.type !== 'pie'">[^]*?<a-col :md="9" :sm="9">[^]*?label="横轴显示"[^]*?:label-col="\{ span: 4 \}"[^]*?:wrapper-col="\{ span: 18, offset: 1 \}"[^]*?<a-col :md="10" :sm="10">[^]*?:label-col="\{ span: 3 \}"[^]*?:wrapper-col="\{ span: 18, offset: 1 \}"[^]*?<a-col :md="2" :sm="2" class="generate-action">/
+)
+assert.match(
+  formSource,
+  /<a-row v-else>[^]*?<a-col :md="9" :sm="9">[^]*?label="统计方向"[^]*?:label-col="\{ span: 4 \}"[^]*?:wrapper-col="\{ span: 18, offset: 1 \}"[^]*?<a-col :md="10" :sm="10">[^]*?:label-col="\{ span: 3 \}"[^]*?:wrapper-col="\{ span: 18, offset: 1 \}"[^]*?<a-col :md="2" :sm="2" class="generate-action">/
+)
 assert.match(formSource, /图表标题/)
 assert.match(formSource, /<a-input[^]*disabled[^]*指标/)
 assert.match(formSource, /时间类型/)
@@ -819,6 +861,8 @@ assert.match(formSource, /是否包含比率/)
 assert.match(formSource, /是否渐变/)
 assert.match(formSource, /validateProductionChartFields/)
 assert.doesNotMatch(formSource, /config-panel/)
+assert.doesNotMatch(formSource, /class="(?:form-left|form-right|left-panel|right-panel)"/)
+assert.doesNotMatch(formSource, /label="(?:方案名称|维度编码|单位值|展示单位)"/)
 assert.doesNotMatch(formSource, /v-model(?:\.trim)?="form\.(?:dimensionFlag|periodFlag|price|unit)"/)
 assert.doesNotMatch(formSource, /v-model\.trim="form\.(?:startDate|endDate|direction|GK)"/)
 assert.match(modalSource, /previewBarLine/)
