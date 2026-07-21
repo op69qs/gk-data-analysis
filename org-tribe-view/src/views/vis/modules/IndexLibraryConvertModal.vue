@@ -56,12 +56,14 @@ import {
   saveBarLine,
   savePie
 } from '@/api/indexLibraryScheme'
+import { getAreaTree, getGuokuTree } from '@/api/visScreen'
 import {
   parseSchemeCondition,
   createInitialForm,
   buildPreviewPayload,
   buildSavePayload,
-  hasChartData
+  hasChartData,
+  buildDimensionCandidatesFromTree
 } from '@/utils/indexLibraryScheme'
 import IndexLibraryChartPreview, {
   buildChartOption
@@ -113,6 +115,7 @@ export default {
       frozenCondition: null,
       generatedFormSnapshot: '',
       indexInfoRevision: 0,
+      dimensionTreeRevision: 0,
       previewRevision: 0,
       saveRevision: 0
     }
@@ -140,6 +143,7 @@ export default {
   methods: {
     open(record) {
       this.indexInfoRevision += 1
+      this.dimensionTreeRevision += 1
       this.indexLoading = false
       this.saveRevision += 1
       this.saving = false
@@ -162,7 +166,10 @@ export default {
           indexName: initial.indexName
         }
         this.visible = true
-        return this.loadIndexInfo()
+        return Promise.all([
+          this.loadIndexInfo(),
+          this.loadDimensionCandidates()
+        ]).then(results => results[0])
       } catch (error) {
         this.$message.error(error.message || '方案条件格式错误')
         return Promise.resolve(false)
@@ -205,6 +212,31 @@ export default {
           this.indexLoading = false
         }
       })
+    },
+    loadDimensionCandidates() {
+      const revision = ++this.dimensionTreeRevision
+      const dimensionFlag = String(this.form.dimensionFlag || '')
+      const request = dimensionFlag === '1'
+        ? getGuokuTree
+        : dimensionFlag === '2' ? getAreaTree : null
+      if (!request) return Promise.resolve(false)
+
+      return request({}).then(res => {
+        if (revision !== this.dimensionTreeRevision) return false
+        if (!res || res.result !== 'success' || !Array.isArray(res.rows)) {
+          return false
+        }
+        const candidates = buildDimensionCandidatesFromTree(
+          res.rows,
+          this.form.dimCode
+        )
+        if (typeof this.$set === 'function') {
+          this.$set(this.form, 'dimensionCandidates', candidates)
+        } else {
+          this.form.dimensionCandidates = candidates
+        }
+        return true
+      }).catch(() => false)
     },
     invalidatePreview() {
       this.previewRevision += 1
@@ -415,6 +447,7 @@ export default {
     },
     handleCancel() {
       this.indexInfoRevision += 1
+      this.dimensionTreeRevision += 1
       this.indexLoading = false
       this.saveRevision += 1
       this.visible = false

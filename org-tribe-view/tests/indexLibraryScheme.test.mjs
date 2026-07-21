@@ -53,6 +53,7 @@ const {
   getTimeTypeOptions,
   getDateControl,
   getDimensionCandidates,
+  buildDimensionCandidatesFromTree,
   normalizeBarLineColumns,
   validateProductionChartFields
 } = await import(utilsUrl)
@@ -175,6 +176,27 @@ assert.deepStrictEqual(
   ]
 )
 assert.deepStrictEqual(dimensionCandidatesThroughProductionChain({}), [])
+
+assert.deepStrictEqual(
+  buildDimensionCandidatesFromTree(
+    [
+      {
+        id: 'ROOT',
+        label: '全部国库',
+        children: [
+          { id: '2200020000', label: '中央国库', children: [] },
+          { value: '2200030000', title: '省级国库' }
+        ]
+      }
+    ],
+    '2200030000,2200020000,UNKNOWN'
+  ),
+  [
+    { value: '2200030000', label: '省级国库' },
+    { value: '2200020000', label: '中央国库' },
+    { value: 'UNKNOWN', label: 'UNKNOWN' }
+  ]
+)
 
 assert.deepStrictEqual(
   validateProductionChartFields({
@@ -1337,6 +1359,8 @@ for (const type of ['', 'map', 'futureWidget']) {
   )
 }
 const indexInfoRequests = []
+const guokuTreeRequests = []
+const areaTreeRequests = []
 const barPreviewRequests = []
 const piePreviewRequests = []
 const barSaveRequests = []
@@ -1349,6 +1373,17 @@ let indexInfoResponse = {
   ]
 }
 let indexInfoHandler = () => Promise.resolve(indexInfoResponse)
+let guokuTreeHandler = () => Promise.resolve({
+  result: 'success',
+  rows: [
+    {
+      id: 'GK-ROOT',
+      label: '国库根节点',
+      children: [{ id: 'GK01', label: '中央国库' }]
+    }
+  ]
+})
+let areaTreeHandler = () => Promise.resolve({ result: 'success', rows: [] })
 let barPreviewResponse = chartResponse
 let barPreviewHandler = () => Promise.resolve(barPreviewResponse)
 let piePreviewResponse = {
@@ -1370,10 +1405,19 @@ const modalContext = {
   buildPreviewPayload,
   buildSavePayload,
   hasChartData,
+  buildDimensionCandidatesFromTree,
   buildChartOption: chartContext.buildChartOption,
   getIndexInfo(params) {
     indexInfoRequests.push(params)
     return indexInfoHandler(params)
+  },
+  getGuokuTree(params) {
+    guokuTreeRequests.push(params)
+    return guokuTreeHandler(params)
+  },
+  getAreaTree(params) {
+    areaTreeRequests.push(params)
+    return areaTreeHandler(params)
   },
   previewBarLine(params) {
     barPreviewRequests.push(params)
@@ -1460,7 +1504,8 @@ const modalRecord = {
     TITLE: '财政收入趋势',
     DIMENSION_TYPE: 'g',
     TITLE_OLD: '历史标题',
-    ADD_USER: 'user-1'
+    ADD_USER: 'user-1',
+    dimCode: 'GK01'
   })
 }
 const openVm = createModalVm()
@@ -1491,6 +1536,12 @@ assert.strictEqual(openVm.instance.form.direction, 'X')
 assert.strictEqual(openVm.instance.form.GK, 'GK01')
 assert.strictEqual(openVm.instance.form.indexName, 'I1')
 assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(openVm.instance.form.dimensionCandidates)),
+  [{ value: 'GK01', label: '中央国库' }]
+)
+assert.strictEqual(guokuTreeRequests.length > 0, true)
+assert.strictEqual(areaTreeRequests.length, 0)
+assert.deepStrictEqual(
   JSON.parse(JSON.stringify(indexInfoRequests.pop())),
   { SCHEME_COLUMS: 'I1,I2' }
 )
@@ -1498,6 +1549,40 @@ assert.deepStrictEqual(
   JSON.parse(JSON.stringify(openVm.instance.indexOptions)),
   indexInfoResponse.indexInfoList
 )
+
+const areaVm = createModalVm()
+areaTreeHandler = () => Promise.resolve({
+  result: 'success',
+  rows: [{ value: 'AREA01', title: '某地区' }]
+})
+await areaVm.instance.open({
+  ...modalRecord,
+  SCHEME_CONDITON: JSON.stringify({
+    ...JSON.parse(modalRecord.SCHEME_CONDITON),
+    dimensionFlag: '2',
+    dimCode: 'AREA01'
+  })
+})
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(areaVm.instance.form.dimensionCandidates)),
+  [{ value: 'AREA01', label: '某地区' }]
+)
+assert.strictEqual(areaTreeRequests.length, 1)
+
+guokuTreeHandler = () => Promise.reject(new Error('tree unavailable'))
+const treeFailureVm = createModalVm()
+await treeFailureVm.instance.open(modalRecord)
+assert.deepStrictEqual(
+  JSON.parse(JSON.stringify(
+    getDimensionCandidates(treeFailureVm.instance.form)
+  )),
+  [{ value: 'GK01', label: 'GK01' }]
+)
+assert.deepStrictEqual(treeFailureVm.messages, [])
+guokuTreeHandler = () => Promise.resolve({
+  result: 'success',
+  rows: [{ id: 'GK01', label: '中央国库' }]
+})
 
 const firstIndexInfo = deferred()
 const secondIndexInfo = deferred()

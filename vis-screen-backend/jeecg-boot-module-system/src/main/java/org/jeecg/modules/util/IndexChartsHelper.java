@@ -28,9 +28,9 @@ public class IndexChartsHelper {
             sql.append(" IFNULL(SUM(IF(aa.COLID = '").append(columns[i])
                     .append("',VALUE,NULL)),'') AS '").append(columns[i]).append("',");
         }
-        sql.append(" aa.COLID, aa.ACCOUNT_DATE, aa.ACCOUNT_PERIOD, aa.CODE, aa.GK FROM ( ");
+        sql.append(" aa.ACCOUNT_DATE, aa.ACCOUNT_PERIOD, aa.CODE, aa.GK FROM ( ");
         createSUBSql(info, columns, pageData, sql, checked);
-        return sql.append(" ) aa GROUP BY aa.ACCOUNT_PERIOD, aa.GK ) V ")
+        return sql.append(" ) aa GROUP BY aa.ACCOUNT_DATE, aa.ACCOUNT_PERIOD, aa.CODE, aa.GK ) V ")
                 .append("ORDER BY V.ACCOUNT_PERIOD, V.GK ").toString();
     }
 

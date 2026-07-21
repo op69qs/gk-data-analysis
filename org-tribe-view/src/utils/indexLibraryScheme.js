@@ -227,6 +227,42 @@ export function getDimensionCandidates(condition) {
   return candidates
 }
 
+export function buildDimensionCandidatesFromTree(rows, dimCode) {
+  const flattened = []
+  const visit = nodes => {
+    if (!Array.isArray(nodes)) return
+    for (const node of nodes) {
+      if (!node || typeof node !== 'object') continue
+      const rawValue = node.id === undefined
+        ? node.value === undefined ? node.key : node.value
+        : node.id
+      const value = rawValue == null ? '' : String(rawValue).trim()
+      const rawLabel = node.label === undefined ? node.title : node.label
+      const label = rawLabel == null ? value : String(rawLabel).trim()
+      if (value) flattened.push({ value, label: label || value })
+      visit(node.children)
+    }
+  }
+  visit(rows)
+
+  const byValue = new Map()
+  for (const candidate of flattened) {
+    if (!byValue.has(candidate.value)) byValue.set(candidate.value, candidate)
+  }
+  const requested = String(dimCode || '')
+    .split(',')
+    .map(value => value.trim())
+    .filter(Boolean)
+  const values = requested.length ? requested : Array.from(byValue.keys())
+  const seen = new Set()
+  return values.reduce((candidates, value) => {
+    if (seen.has(value)) return candidates
+    seen.add(value)
+    candidates.push(byValue.get(value) || { value, label: value })
+    return candidates
+  }, [])
+}
+
 export function validateProductionChartFields(form) {
   const source = form && typeof form === 'object' ? form : {}
   const type = source.type

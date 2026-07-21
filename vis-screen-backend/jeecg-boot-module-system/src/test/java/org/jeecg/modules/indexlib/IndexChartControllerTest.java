@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -134,8 +135,39 @@ public class IndexChartControllerTest {
         String sql = capturedSql();
         assertTrue(sql.contains("ROUND(tt.`I1`/1, 2) AS `I1`"));
         assertTrue(sql.contains("AND bb.CODE = 'D1'"));
-        assertTrue(sql.contains("GROUP BY bb.ACCOUNT_DATE"));
+        assertTrue(sql.contains("GROUP BY bb.ACCOUNT_DATE, bb.CODE, bb.GK"));
         assertTrue(sql.contains("ORDER BY tt.`ACCOUNT_DATE` ASC"));
+    }
+
+    @Test
+    public void barLineUnionUsesVastbaseStrictGroupingWithoutChangingRows() {
+        List<Map<String, String>> indexInfo = Collections.singletonList(
+                Collections.singletonMap("INDEX_CORRE_TABLE", "T_INDEX"));
+        PageData request = new PageData();
+        request.put("startDate", "2026-01");
+        request.put("endDate", "2026-02");
+        request.put("dimensionFlag", "1");
+        request.put("periodFlag", "2");
+
+        String sql = IndexChartsHelper.createIndexUnionSQL(
+                indexInfo, new String[]{"I1"}, request, "I1");
+
+        assertFalse(sql.contains("aa.COLID, aa.ACCOUNT_DATE"));
+        assertTrue(sql.contains(
+                "GROUP BY aa.ACCOUNT_DATE, aa.ACCOUNT_PERIOD, aa.CODE, aa.GK"));
+    }
+
+    @Test
+    public void barLineDimensionAxisGroupsEverySelectedNonAggregateColumn() {
+        stubSchemeAndIndex("I1", "0");
+        when(indexSchemeService.getAllTrsInfo()).thenReturn("A,B");
+        when(indexSchemeService.execSchemeSql(any(PageData.class)))
+                .thenReturn(Collections.<Map<String, Object>>emptyList());
+
+        barLineController.getIndexBarLineData(baseRequest("bar"));
+
+        assertTrue(capturedSql().contains(
+                "GROUP BY bb.ACCOUNT_DATE, bb.CODE, bb.GK"));
     }
 
     @Test

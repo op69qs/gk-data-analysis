@@ -178,10 +178,12 @@ public class IndexBarLineController extends BaseController {
                 if (StringUtils.isNotEmpty(pageData.getString("direction"))) {
                     sql.append(" AND bb.CODE = '").append(pageData.getString("direction")).append("'");
                 }
-                sql.append(" GROUP BY bb.ACCOUNT_DATE ) tt ORDER BY tt.`ACCOUNT_DATE` ASC ");
+                sql.append(" GROUP BY bb.ACCOUNT_DATE, bb.CODE, bb.GK ) tt "
+                        + "ORDER BY tt.`ACCOUNT_DATE` ASC ");
                 scale = IndexChartsHelper.setEChartsScale(pageData);
             } else {
-                sql.append(" GROUP BY bb.CODE ) tt ORDER BY tt.`CODE` ASC ");
+                sql.append(" GROUP BY bb.ACCOUNT_DATE, bb.CODE, bb.GK ) tt "
+                        + "ORDER BY tt.`CODE` ASC ");
                 String scaleString = "";
                 if ("1".equals(pageData.getString("dimensionFlag"))) {
                     scaleString = indexSchemeService.getAllTrsInfo();
