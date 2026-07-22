@@ -196,9 +196,12 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                 "(  ");
         AtomicInteger count = new AtomicInteger(1);
         keys.forEach(map -> {
+            String colId = getRequiredMetadataValue(map, "COLID");
+            String tableName = getRequiredMetadataValue(map, "TABLENAME");
+            String type = getRequiredMetadataValue(map, "TYPE");
             // 拼接子查询
             builder.append(" SELECT\n" +
-                    "'" + map.get("COLID") + "' AS \"COLID\",\n" +
+                    "'" + colId + "' AS \"COLID\",\n" +
                     "       ACCOUNT_PERIOD AS \"ACCOUNT_DATE\",\n" +
                     "       REPLACE(REPLACE(REPLACE(REPLACE(\n" +
                     "       ACCOUNT_PERIOD,\n" +
@@ -216,19 +219,19 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                     "      ) AS \"ACCOUNT_PERIOD\",\n" +
                     "      INDEX_DIM_CODE AS \"CODE\",\n" +
                     "      INDEX_DIM_DESCR AS \"GK\",\n");
-            if ("1".equals(map.get("TYPE").toString())) {
+            if ("1".equals(type)) {
                 builder.append("ROUND((INDEX_VALUE*100),2) AS \"VALUE\" "); //根据指标类型(0数值/1比率)处理指标值
             }
-            if ("0".equals(map.get("TYPE").toString())) {
+            if ("0".equals(type)) {
                 builder.append("ROUND(INDEX_VALUE/" + Integer.parseInt(condition.get("price").toString()) + ",2) AS \"VALUE\" "); //根据指标类型(0数值/1比率)处理指标值
             }
-            builder.append(" FROM indicators_lib." + map.get("TABLENAME") + " ");
+            builder.append(" FROM indicators_lib." + tableName + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("dimCode"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + condition.get("dimCode").toString().replaceAll(",", "','") + "') ");
             }
 
-            builder.append("AND INDEX_ID = '" + map.get("COLID") + "'");
+            builder.append("AND INDEX_ID = '" + colId + "'");
             if (oConvertUtils.isNotEmpty(startDate) && oConvertUtils.isNotEmpty(endDate)) {
                 if (startDate.toString().contains("Q") || endDate.toString().contains("Q")) {
                     if (startDate.toString().equals(endDate.toString())) {
@@ -349,6 +352,22 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         mapRes.put("builder",builder.toString().endsWith(",") ? builder.substring(0, builder.lastIndexOf(",")) : builder.toString());
         mapRes.put("builderOderBy",builderOderBy.toString().endsWith(",") ? builderOderBy.substring(0, builderOderBy.lastIndexOf(",")) : builderOderBy.toString());
         return mapRes;
+    }
+
+    private String getRequiredMetadataValue(Map<String, Object> metadata, String expectedKey) {
+        Object value = metadata.get(expectedKey);
+        if (value == null) {
+            for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+                if (expectedKey.equalsIgnoreCase(entry.getKey())) {
+                    value = entry.getValue();
+                    break;
+                }
+            }
+        }
+        if (value == null || StringUtils.isBlank(value.toString())) {
+            throw new IllegalArgumentException("指标元数据缺少字段: " + expectedKey);
+        }
+        return value.toString();
     }
 
 

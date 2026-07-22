@@ -18,10 +18,11 @@ import static org.mockito.Mockito.when;
 public class CreateSchemeSQLTest {
 
     private CreateSchemeSQL sqlBuilder;
+    private IndexRelationService relationService;
 
     @Before
     public void setUp() {
-        IndexRelationService relationService = mock(IndexRelationService.class);
+        relationService = mock(IndexRelationService.class);
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("COLID", "18dbf0d2b0a211ea8bc1000c29587404");
         metadata.put("TABLENAME", "lib_indicators_000189");
@@ -70,5 +71,25 @@ public class CreateSchemeSQLTest {
         assertTrue(periodSql.contains("AS \"END_DATE\""));
         assertTrue(dimensionSql.contains("AS \"DIMCODE\""));
         assertTrue(dimensionSql.contains("AS \"DIMDESCR\""));
+    }
+
+    @Test
+    public void generatedSchemeSqlAcceptsLegacyLowerCamelMetadataKeys() {
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("colId", "18dbf0d2b0a211ea8bc1000c29587404");
+        metadata.put("tableName", "lib_indicators_000189");
+        metadata.put("type", "0");
+        when(relationService.getIndicatorsTableName(any(String[].class)))
+                .thenReturn(Collections.singletonList(metadata));
+
+        PageData pageData = new PageData();
+        pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404");
+        pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"2\",\"price\":\"1\"}");
+
+        String sql = sqlBuilder.getSchemeSQL(pageData);
+
+        assertTrue(sql.contains("FROM indicators_lib.lib_indicators_000189"));
+        assertTrue(sql.contains("AS \"COLID\""));
+        assertTrue(sql.contains("AS \"VALUE\""));
     }
 }
