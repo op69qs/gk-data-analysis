@@ -2596,6 +2596,7 @@
                 }
                 let params = {
                     mainCondition: this.obj,
+                    userId: userId,
                     columns: Array.from(new Set(col)).join(','),
                     titles: newObj,
                     screenConditon: this.obj33

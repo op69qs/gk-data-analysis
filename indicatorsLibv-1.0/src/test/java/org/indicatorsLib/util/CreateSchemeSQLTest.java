@@ -42,6 +42,7 @@ public class CreateSchemeSQLTest {
     public void generatedSchemeSqlUsesQuotedUppercaseAliasesForFixedColumns() {
         PageData pageData = new PageData();
         pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404");
+        pageData.put("userId", "user-1");
         pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"2\",\"price\":\"1\"}");
 
         String sql = sqlBuilder.getSchemeSQL(pageData);
@@ -85,6 +86,7 @@ public class CreateSchemeSQLTest {
 
         PageData pageData = new PageData();
         pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404");
+        pageData.put("userId", "user-1");
         pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"2\",\"price\":\"1\"}");
 
         String sql = sqlBuilder.getSchemeSQL(pageData);
@@ -101,6 +103,7 @@ public class CreateSchemeSQLTest {
 
         PageData pageData = new PageData();
         pageData.put("columns", "category-id");
+        pageData.put("userId", "user-1");
         pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"3\",\"price\":\"1\"}");
 
         assertNull(sqlBuilder.getSchemeSQL(pageData));
@@ -110,7 +113,33 @@ public class CreateSchemeSQLTest {
     public void mixedCategoryAndIndicatorSelectionDoesNotBuildPartialSql() {
         PageData pageData = new PageData();
         pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404,category-id");
+        pageData.put("userId", "user-1");
         pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"3\",\"price\":\"1\"}");
+
+        assertNull(sqlBuilder.getSchemeSQL(pageData));
+    }
+
+    @Test
+    public void generatedSchemeSqlRestrictsGuokuRowsToCurrentUsersHierarchy() {
+        PageData pageData = new PageData();
+        pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404");
+        pageData.put("userId", "user-1");
+        pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"2\",\"price\":\"1\"}");
+
+        String sql = sqlBuilder.getSchemeSQL(pageData);
+
+        assertTrue(sql.contains("WITH RECURSIVE authorized_guoku"));
+        assertTrue(sql.contains("FROM dmcode.cm_guoku_dimnsn"));
+        assertTrue(sql.contains("JOIN \"jeecg-boot-os\".sys_user"));
+        assertTrue(sql.contains("u.ID = 'user-1'"));
+        assertTrue(sql.contains("SELECT guoku_id FROM authorized_guoku"));
+    }
+
+    @Test
+    public void generatedSchemeSqlFailsClosedWithoutUserId() {
+        PageData pageData = new PageData();
+        pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404");
+        pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"2\",\"price\":\"1\"}");
 
         assertNull(sqlBuilder.getSchemeSQL(pageData));
     }

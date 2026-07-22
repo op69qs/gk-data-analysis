@@ -178,6 +178,13 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         StringBuilder builderOderBy = new StringBuilder();
         Object startDate = condition.get("startDate"); //起始日期
         Object endDate = condition.get("endDate"); //结束日期
+        String userId = pageData.getString("userId");
+        String dimensionFlag = String.valueOf(condition.get("dimensionFlag"));
+        if (StringUtils.isBlank(userId)
+                || !userId.matches("[A-Za-z0-9_-]+")
+                || !("1".equals(dimensionFlag) || "2".equals(dimensionFlag))) {
+            return null;
+        }
         List<Map<String, Object>> keys = getExecutableMetadata(condition.get("columns"));
         if (keys == null) {
             return null;
@@ -231,6 +238,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
             }
 
             builder.append("AND INDEX_ID = '" + colId + "'");
+            appendUserDimensionPermission(builder, userId, dimensionFlag);
             if (oConvertUtils.isNotEmpty(startDate) && oConvertUtils.isNotEmpty(endDate)) {
                 if (startDate.toString().contains("Q") || endDate.toString().contains("Q")) {
                     if (startDate.toString().equals(endDate.toString())) {
@@ -351,6 +359,19 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         mapRes.put("builder",builder.toString().endsWith(",") ? builder.substring(0, builder.lastIndexOf(",")) : builder.toString());
         mapRes.put("builderOderBy",builderOderBy.toString().endsWith(",") ? builderOderBy.substring(0, builderOderBy.lastIndexOf(",")) : builderOderBy.toString());
         return mapRes;
+    }
+
+    private void appendUserDimensionPermission(StringBuilder builder, String userId, String dimensionFlag) {
+        String authorizedColumn = "1".equals(dimensionFlag) ? "guoku_id" : "area_no_id";
+        builder.append(" AND INDEX_DIM_CODE IN (")
+                .append("WITH RECURSIVE authorized_guoku AS (")
+                .append("SELECT d.guoku_id,d.area_no_id FROM dmcode.cm_guoku_dimnsn d ")
+                .append("JOIN \"jeecg-boot-os\".sys_user u ON u.guoku_id=d.guoku_id ")
+                .append("WHERE u.ID = '").append(userId).append("' ")
+                .append("UNION ALL ")
+                .append("SELECT child.guoku_id,child.area_no_id FROM dmcode.cm_guoku_dimnsn child ")
+                .append("JOIN authorized_guoku parent ON child.guoku_pid=parent.guoku_id")
+                .append(") SELECT ").append(authorizedColumn).append(" FROM authorized_guoku)");
     }
 
     private String getRequiredMetadataValue(Map<String, Object> metadata, String expectedKey) {

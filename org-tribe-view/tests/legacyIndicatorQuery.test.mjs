@@ -22,6 +22,11 @@ assert.match(indexLibrary, /<v-table/)
 assert.match(schemeIndex, /path:\s*'\/statistics\/indexLibrary'/)
 assert.doesNotMatch(indexLibrary, /\/vis\/index-library|vis\/IndexLibraryList/)
 assert.doesNotMatch(schemeIndex, /\/vis\/index-library|vis\/IndexLibraryList/)
+assert.match(
+  indexLibrary,
+  /let params = \{[\s\S]*?mainCondition: this\.obj,[\s\S]*?userId: userId,[\s\S]*?titles: newObj/,
+  'indicator export must pass the current user id so backend data permission remains enforced'
+)
 
 const convergeSql = await readFile(
   resolve(projectRoot, '../document/implementation_plans/2026042615-vis-production-menu-converge.sql'),
