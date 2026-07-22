@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -23,12 +24,15 @@ public class IndexSchemeServiceImpl implements IndexSchemeService {
 
     @Override
     public void pushIndexToVS(PageData pageData) {
-         indexSchemeMapper.pushIndexToVS(pageData);
+        String schemeSql = indexSchemeMapper.selectSchemeSQL(pageData.getString("ID"));
+        validateVastbaseSchemeSql(schemeSql, true);
+        indexSchemeMapper.pushIndexToVS(pageData);
     }
 
     @Override
     @Transactional(rollbackFor = RuntimeException.class)
     public void saveIndexScheme(Map<String, Object> scheme) {
+        validateVastbaseSchemeSql(scheme.get("schemeSql"), true);
         indexSchemeMapper.saveIndexScheme(scheme);
     }
 
@@ -81,7 +85,33 @@ public class IndexSchemeServiceImpl implements IndexSchemeService {
 
     @Override
     public void updateSchemeData(Map<String, Object> params) {
+        validateVastbaseSchemeSql(params.get("schemeSql"), false);
         indexSchemeMapper.updateSchemeData(params);
+    }
+
+    private void validateVastbaseSchemeSql(Object schemeSqlValue, boolean required) {
+        String schemeSql = schemeSqlValue == null ? null : schemeSqlValue.toString();
+        if (StringUtils.isBlank(schemeSql)) {
+            if (required) {
+                throw new IllegalArgumentException("指标方案SQL不能为空");
+            }
+            return;
+        }
+
+        String uppercaseSql = schemeSql.toUpperCase(Locale.ROOT);
+        String compactSql = uppercaseSql.replaceAll("\\s+", "");
+        if (schemeSql.indexOf('`') >= 0
+                || compactSql.contains("IFNULL(")
+                || compactSql.contains("SUM(IF(")
+                || compactSql.contains("AA.COLID,")) {
+            throw new IllegalArgumentException("指标方案SQL包含MySQL语法，禁止保存或推送");
+        }
+
+        for (String alias : new String[]{"ACCOUNT_DATE", "ACCOUNT_PERIOD", "CODE", "GK"}) {
+            if (!schemeSql.contains("AS \"" + alias + "\"")) {
+                throw new IllegalArgumentException("指标方案SQL缺少双引号大写别名: " + alias);
+            }
+        }
     }
 
     /**
