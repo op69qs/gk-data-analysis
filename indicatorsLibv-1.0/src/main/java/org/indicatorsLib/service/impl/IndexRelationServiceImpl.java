@@ -52,7 +52,7 @@ public class IndexRelationServiceImpl implements IndexRelationService {
 
     @Override
     public List<Map<String, Object>> getIndicatorsTable(String schemeSql) {
-        return normalizeIndicatorRows(indexRelationMapper.getIndicatorsTable(schemeSql));
+        return indexRelationMapper.getIndicatorsTable(schemeSql);
     }
 
     @Override
@@ -68,27 +68,27 @@ public class IndexRelationServiceImpl implements IndexRelationService {
             builder.append("SELECT  ");
             //direction：【X：横向，Y：纵向】
             if ("X".equals(map.get("direction").toString())) { //横向
-                builder.append("C." + map.get("indexName").toString());
+                builder.append("C.\"" + map.get("indexName").toString() + "\" AS \"" + map.get("indexName").toString() + "\"");
             } else {
-                builder.append("C.GK,C." + map.get("indexName").toString());
+                builder.append("C.\"GK\" AS \"GK\",C.\"" + map.get("indexName").toString() + "\" AS \"" + map.get("indexName").toString() + "\"");
             }
             builder.append(" FROM(" + schemeSql + ") C WHERE ");
             if ("X".equals(map.get("direction").toString())) { //横向
-                builder.append("C.ACCOUNT_PERIOD='" + map.get("eChartsDate").toString() + "' AND C.CODE='" + map.get("GK").toString() + "'");
+                builder.append("C.\"ACCOUNT_PERIOD\"='" + map.get("eChartsDate").toString() + "' AND C.\"CODE\"='" + map.get("GK").toString() + "'");
             } else {
-                builder.append("C.ACCOUNT_PERIOD='" + map.get("eChartsDate").toString() + "'");
+                builder.append("C.\"ACCOUNT_PERIOD\"='" + map.get("eChartsDate").toString() + "'");
             }
             schemeSql = builder.toString();
         } else if ("columnar,lineChart".contains(map.get("eChartsFlag").toString())) { //柱状图、折线图
             builder.append("SELECT  C.*" + " FROM(" + schemeSql + ") C WHERE ");
             if (oConvertUtils.isNotEmpty(map.get("direction"))) { //横向坐标显示账期，维度参数必传
-                builder.append("C.CODE IN('" + map.get("direction").toString().replaceAll(",", "','") + "')");
+                builder.append("C.\"CODE\" IN('" + map.get("direction").toString().replaceAll(",", "','") + "')");
             } else if (oConvertUtils.isNotEmpty(map.get("eChartsDate"))) { //横向坐标显示维度(国库、地区、核算主体)，账期参数必传
-                builder.append("C.ACCOUNT_PERIOD='" + map.get("eChartsDate").toString() + "'");
+                builder.append("C.\"ACCOUNT_PERIOD\"='" + map.get("eChartsDate").toString() + "'");
             }
             schemeSql = builder.toString();
         }
-        List<Map<String, Object>> dataList = normalizeIndicatorRows(indexRelationMapper.getIndicatorsECharts(schemeSql));
+        List<Map<String, Object>> dataList = indexRelationMapper.getIndicatorsECharts(schemeSql);
         if ("cake".equals(map.get("eChartsFlag").toString())) { //饼图
             array = new Object[dataList.size()];
             for (int i = 0; i < dataList.size(); i++) {
@@ -127,13 +127,13 @@ public class IndexRelationServiceImpl implements IndexRelationService {
         StringBuilder builder = new StringBuilder();
         builder.append("SELECT  C.*" + " FROM(" + schemeSql + ") C ");
         if (oConvertUtils.isNotEmpty(map.get("direction"))) { //横向坐标显示账期，维度参数必传
-            builder.append(" WHERE C.CODE='" + map.get("direction").toString() + "'");
+            builder.append(" WHERE C.\"CODE\"='" + map.get("direction").toString() + "'");
         } else if (oConvertUtils.isNotEmpty(map.get("eChartsDate"))) { //横向坐标显示维度(国库、地区、核算主体)，账期参数必传
-            builder.append(" WHERE C.ACCOUNT_PERIOD='" + map.get("eChartsDate").toString() + "'");
+            builder.append(" WHERE C.\"ACCOUNT_PERIOD\"='" + map.get("eChartsDate").toString() + "'");
         }
         schemeSql = builder.toString();
 
-        List<Map<String, Object>> dataList = normalizeIndicatorRows(indexRelationMapper.getIndicatorsECharts(schemeSql));
+        List<Map<String, Object>> dataList = indexRelationMapper.getIndicatorsECharts(schemeSql);
         String column = list.get(list.size() - 1);
         list.remove(column); //移除最后一位的字段
 
@@ -180,25 +180,6 @@ public class IndexRelationServiceImpl implements IndexRelationService {
     @Override
     public List<Map<String, String>> getDimensionSelectById(String[] codeArry) {
         return indexRelationMapper.getDimensionSelectById(codeArry);
-    }
-
-    private List<Map<String, Object>> normalizeIndicatorRows(List<Map<String, Object>> rows) {
-        if (rows == null) {
-            return null;
-        }
-        for (Map<String, Object> row : rows) {
-            renameColumn(row, "account_date", "ACCOUNT_DATE");
-            renameColumn(row, "account_period", "ACCOUNT_PERIOD");
-            renameColumn(row, "code", "CODE");
-            renameColumn(row, "gk", "GK");
-        }
-        return rows;
-    }
-
-    private void renameColumn(Map<String, Object> row, String databaseName, String responseName) {
-        if (row.containsKey(databaseName)) {
-            row.put(responseName, row.remove(databaseName));
-        }
     }
 
     /**

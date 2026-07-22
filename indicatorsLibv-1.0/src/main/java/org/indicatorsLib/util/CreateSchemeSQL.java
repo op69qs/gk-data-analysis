@@ -37,11 +37,11 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         if (keys == null || keys.size() == 0) {
             return null;
         }
-        builder.append("SELECT MIN(START_DATE) AS \"START_DATE\",MAX(END_DATE) AS \"END_DATE\" FROM(");
+        builder.append("SELECT MIN(V1.\"START_DATE\") AS \"START_DATE\",MAX(V1.\"END_DATE\") AS \"END_DATE\" FROM(");
         AtomicInteger count = new AtomicInteger(1);
         keys.forEach(map -> {
-            builder.append(" SELECT MIN(ACCOUNT_PERIOD) AS START_DATE,MAX(ACCOUNT_PERIOD) AS END_DATE ");
-            builder.append(" FROM indicators_lib." + map.get("tableName") + " ");
+            builder.append(" SELECT MIN(ACCOUNT_PERIOD) AS \"START_DATE\",MAX(ACCOUNT_PERIOD) AS \"END_DATE\" ");
+            builder.append(" FROM indicators_lib." + map.get("TABLENAME") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("direction"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + eChartsCondition.get("direction").toString().replaceAll(",", "','") + "') ");
@@ -69,11 +69,11 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         if (keys == null || keys.size() == 0) {
             return null;
         }
-        builder.append("SELECT * FROM(");
+        builder.append("SELECT V1.\"DIMCODE\" AS \"DIMCODE\",V1.\"DIMDESCR\" AS \"DIMDESCR\" FROM(");
         AtomicInteger count = new AtomicInteger(1);
         keys.forEach(map -> {
-            builder.append(" SELECT INDEX_DIM_CODE AS \"dimCode\",INDEX_DIM_DESCR AS \"dimDescr\" ");
-            builder.append(" FROM indicators_lib." + map.get("tableName") + " ");
+            builder.append(" SELECT INDEX_DIM_CODE AS \"DIMCODE\",INDEX_DIM_DESCR AS \"DIMDESCR\" ");
+            builder.append(" FROM indicators_lib." + map.get("TABLENAME") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("direction"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + eChartsCondition.get("direction").toString().replaceAll(",", "','") + "') ");
@@ -84,7 +84,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                 count.getAndIncrement();
             }
         });
-        builder.append(") V1 GROUP BY V1.\"dimCode\",V1.\"dimDescr\" ORDER BY V1.\"dimCode\"");
+        builder.append(") V1 GROUP BY V1.\"DIMCODE\",V1.\"DIMDESCR\" ORDER BY V1.\"DIMCODE\"");
         return builder.toString();
     }
 
@@ -186,20 +186,20 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         // 主查询
         builder.append("SELECT ");
         Arrays.asList(condition.get("columns").toString().split(",")).forEach(key -> {
-            builder.append(" COALESCE(CAST(ROUND(SUM(CASE WHEN aa.COLID = '" + key + "' THEN VALUE END),2) AS TEXT),'') AS \"" + key + "\",");
+            builder.append(" COALESCE(CAST(ROUND(SUM(CASE WHEN aa.\"COLID\" = '" + key + "' THEN aa.\"VALUE\" END),2) AS TEXT),'') AS \"" + key + "\",");
         });
-        builder.append(" aa.ACCOUNT_DATE,\n" +
-                "aa.ACCOUNT_PERIOD,\n" +
-                "aa.CODE,\n" +
-                "aa.GK\n" +
+        builder.append(" aa.\"ACCOUNT_DATE\" AS \"ACCOUNT_DATE\",\n" +
+                "aa.\"ACCOUNT_PERIOD\" AS \"ACCOUNT_PERIOD\",\n" +
+                "aa.\"CODE\" AS \"CODE\",\n" +
+                "aa.\"GK\" AS \"GK\"\n" +
                 "FROM " +
                 "(  ");
         AtomicInteger count = new AtomicInteger(1);
         keys.forEach(map -> {
             // 拼接子查询
             builder.append(" SELECT\n" +
-                    "'" + map.get("colId") + "' AS COLID,\n" +
-                    "       ACCOUNT_PERIOD AS ACCOUNT_DATE,\n" +
+                    "'" + map.get("COLID") + "' AS \"COLID\",\n" +
+                    "       ACCOUNT_PERIOD AS \"ACCOUNT_DATE\",\n" +
                     "       REPLACE(REPLACE(REPLACE(REPLACE(\n" +
                     "       ACCOUNT_PERIOD,\n" +
                     "        'Q1',\n" +
@@ -213,22 +213,22 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                     "      ),\n" +
                     "        'Q4',\n" +
                     "        '年第四季度'\n" +
-                    "      ) AS ACCOUNT_PERIOD,\n" +
-                    "      INDEX_DIM_CODE AS CODE,\n" +
-                    "      INDEX_DIM_DESCR AS GK,\n");
-            if ("1".equals(map.get("type").toString())) {
-                builder.append("ROUND((INDEX_VALUE*100),2) AS VALUE "); //根据指标类型(0数值/1比率)处理指标值
+                    "      ) AS \"ACCOUNT_PERIOD\",\n" +
+                    "      INDEX_DIM_CODE AS \"CODE\",\n" +
+                    "      INDEX_DIM_DESCR AS \"GK\",\n");
+            if ("1".equals(map.get("TYPE").toString())) {
+                builder.append("ROUND((INDEX_VALUE*100),2) AS \"VALUE\" "); //根据指标类型(0数值/1比率)处理指标值
             }
-            if ("0".equals(map.get("type").toString())) {
-                builder.append("ROUND(INDEX_VALUE/" + Integer.parseInt(condition.get("price").toString()) + ",2) AS VALUE "); //根据指标类型(0数值/1比率)处理指标值
+            if ("0".equals(map.get("TYPE").toString())) {
+                builder.append("ROUND(INDEX_VALUE/" + Integer.parseInt(condition.get("price").toString()) + ",2) AS \"VALUE\" "); //根据指标类型(0数值/1比率)处理指标值
             }
-            builder.append(" FROM indicators_lib." + map.get("tableName") + " ");
+            builder.append(" FROM indicators_lib." + map.get("TABLENAME") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("dimCode"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + condition.get("dimCode").toString().replaceAll(",", "','") + "') ");
             }
 
-            builder.append("AND INDEX_ID = '" + map.get("colId") + "'");
+            builder.append("AND INDEX_ID = '" + map.get("COLID") + "'");
             if (oConvertUtils.isNotEmpty(startDate) && oConvertUtils.isNotEmpty(endDate)) {
                 if (startDate.toString().contains("Q") || endDate.toString().contains("Q")) {
                     if (startDate.toString().equals(endDate.toString())) {
@@ -267,13 +267,17 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                         if ("GK,ACCOUNT_PERIOD".contains(filterName)) {
                             if ("ACCOUNT_PERIOD".equals(filterName)) { //账期的季指标过滤条件需要特殊处理
                                 if (!"3".equals(mainCondition.get("periodFlag"))) {
-                                    filterName = "CAST(REPLACE(aa." + filterName + ",'-','') AS NUMERIC)";
+                                    filterName = "CAST(REPLACE(aa.\"" + filterName + "\",'-','') AS NUMERIC)";
                                     filternumber = whereMap.get("filternumber").toString().replace("-", "");
+                                } else {
+                                    filterName = "aa.\"ACCOUNT_PERIOD\"";
                                 }
+                            } else {
+                                filterName = "aa.\"GK\"";
                             }
                         } else {
                             //千分位分隔符、监测值标注
-                            filterName = "CASE WHEN aa.COLID = '" + filterName + "' THEN aa.value ";
+                            filterName = "CASE WHEN aa.\"COLID\" = '" + filterName + "' THEN aa.\"VALUE\" ";
                         }
 
                         if ("like".equals(filterlogic)) { //包含
@@ -288,10 +292,10 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                             if ("GK".contains(filterName)) { //包含中文
                                 builder.append(" AND " + filterName + filterlogic + "'" + filternumber + "'");
                             } else { //数字
-                                if ((filternumber.contains(",") || filternumber.contains("，")) && filterName.contains("aa.COLID")) { //含有千分位的数字
+                                if ((filternumber.contains(",") || filternumber.contains("，")) && filterName.contains("aa.\"COLID\"")) { //含有千分位的数字
                                     builder.append(" AND " + filterName + filterlogic + "CAST(REPLACE('" + filternumber + "',',','') AS DECIMAL)" + " ELSE FALSE END");
                                 } else {
-                                    if (filterName.contains("aa.COLID")) {
+                                    if (filterName.contains("aa.\"COLID\"")) {
                                         builder.append(" AND " + filterName + filterlogic + filternumber + " ELSE FALSE END");
                                     } else {
                                         builder.append(" AND " + filterName + filterlogic + filternumber);
@@ -305,42 +309,42 @@ public class CreateSchemeSQL implements ApplicationContextAware {
             // 分组
             builder.append("\n" +
                     "GROUP BY \n" +
-                    "aa.ACCOUNT_DATE,\n" +
-                    "aa.ACCOUNT_PERIOD,\n" +
-                    "aa.CODE,\n" +
-                    "aa.GK\n");
+                    "aa.\"ACCOUNT_DATE\",\n" +
+                    "aa.\"ACCOUNT_PERIOD\",\n" +
+                    "aa.\"CODE\",\n" +
+                    "aa.\"GK\"\n");
             if (oConvertUtils.isNotEmpty(sucreenCondition.get("order"))) { //添加结果集排序条件
                 builderOderBy.append(" ORDER BY ");
                 JSONArray orderArray = (JSONArray) sucreenCondition.get("order");
                 orderArray.forEach(order -> {
                     Map<String, Object> orderMap = (Map<String, Object>) order;
                     if ("ACCOUNT_PERIOD".equals(orderMap.get("sortname").toString())) {  //账期排序
-                        builderOderBy.append("V.ACCOUNT_PERIOD "  +"  " + orderMap.get("sortrule") + ",");
+                        builderOderBy.append("V.\"ACCOUNT_PERIOD\" "  +"  " + orderMap.get("sortrule") + ",");
                     } else if ("CODE".equals(orderMap.get("sortname").toString())) {  //国库拍
-                        builderOderBy.append("V.CODE "  +"  " + orderMap.get("sortrule") + ",");
+                        builderOderBy.append("V.\"CODE\" "  +"  " + orderMap.get("sortrule") + ",");
                     }  else {
                         builderOderBy.append("\n" +
-                                "CAST(REPLACE( V." + orderMap.get("sortname") +" ,',','') AS DECIMAL(28,2))  " + orderMap.get("sortrule") + ",");
+                                "CAST(REPLACE(V.\"" + orderMap.get("sortname") +"\",',','') AS DECIMAL(28,2))  " + orderMap.get("sortrule") + ",");
                         //builder.append("CAST(" + orderMap.get("sortname") + " AS DECIMAL(28,2)) " + orderMap.get("sortrule") + ",");
                     }
                 });
             } else {
                 builderOderBy.append("\n" +
                         "ORDER BY " +
-                        "V.ACCOUNT_PERIOD,\n" +
-                        "V.GK");
+                        "V.\"ACCOUNT_PERIOD\",\n" +
+                        "V.\"GK\"");
             }
         } else {
             builder.append("\n" +
                     "GROUP BY \n" +
-                    "aa.ACCOUNT_DATE,\n" +
-                    "aa.ACCOUNT_PERIOD,\n" +
-                    "aa.CODE,\n" +
-                    "aa.GK");
+                    "aa.\"ACCOUNT_DATE\",\n" +
+                    "aa.\"ACCOUNT_PERIOD\",\n" +
+                    "aa.\"CODE\",\n" +
+                    "aa.\"GK\"");
             builderOderBy.append("\n" +
                     "ORDER BY " +
-                    "V.ACCOUNT_PERIOD,\n" +
-                    "V.GK");
+                    "V.\"ACCOUNT_PERIOD\",\n" +
+                    "V.\"GK\"");
         }
         mapRes.put("builder",builder.toString().endsWith(",") ? builder.substring(0, builder.lastIndexOf(",")) : builder.toString());
         mapRes.put("builderOderBy",builderOderBy.toString().endsWith(",") ? builderOderBy.substring(0, builderOderBy.lastIndexOf(",")) : builderOderBy.toString());

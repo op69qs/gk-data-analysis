@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 public class IndexRelationServiceImplTest {
 
     @Test
-    public void getIndicatorsTableNormalizesFixedColumnsButPreservesIndicatorIds() throws Exception {
+    public void getIndicatorsTableDoesNotRewriteDatabaseColumnNames() throws Exception {
         IndexRelationMapper mapper = mock(IndexRelationMapper.class);
         IndexRelationServiceImpl service = new IndexRelationServiceImpl();
         java.lang.reflect.Field mapperField = IndexRelationServiceImpl.class.getDeclaredField("indexRelationMapper");
@@ -37,11 +37,11 @@ public class IndexRelationServiceImplTest {
         Map<String, Object> row = rows.get(0);
 
         assertEquals("54719364.27", row.get(indicatorId));
-        assertEquals("2016-01", row.get("ACCOUNT_DATE"));
-        assertEquals("2016-01", row.get("ACCOUNT_PERIOD"));
-        assertEquals("2234000000", row.get("CODE"));
-        assertEquals("国家金库万州区中心支库", row.get("GK"));
-        assertFalse(row.containsKey("account_period"));
+        assertEquals("2016-01", row.get("account_date"));
+        assertEquals("2016-01", row.get("account_period"));
+        assertEquals("2234000000", row.get("code"));
+        assertEquals("国家金库万州区中心支库", row.get("gk"));
+        assertFalse(row.containsKey("ACCOUNT_PERIOD"));
         assertTrue(row.containsKey(indicatorId));
     }
 }

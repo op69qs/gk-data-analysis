@@ -332,14 +332,14 @@ public class IndexRelationController extends BaseController {
                     });
                     for (int i = 0; i < columns.length; i++) {
                         if (valueMap.get(columns[i]) != null) {
-                            columnBuilder.append(" CASE WHEN " + valueMap.get(columns[i]).toString().replace("@VALUE", "V." + columns[i]).replace("@UNIT", price));
-                            columnBuilder.append(" THEN CONCAT('RGB_', CAST(ROUND(CAST(V." + columns[i] + " AS NUMERIC),2) AS TEXT))");
-                            columnBuilder.append(" ELSE CASE WHEN COALESCE(CAST(V." + columns[i] + " AS TEXT),'')='' THEN '' ELSE CAST(ROUND(CAST(V." + columns[i] + " AS NUMERIC),2) AS TEXT) END END AS '" + columns[i] + "',");
+                            columnBuilder.append(" CASE WHEN " + valueMap.get(columns[i]).toString().replace("@VALUE", "V.\"" + columns[i] + "\"").replace("@UNIT", price));
+                            columnBuilder.append(" THEN CONCAT('RGB_', CAST(ROUND(CAST(V.\"" + columns[i] + "\" AS NUMERIC),2) AS TEXT))");
+                            columnBuilder.append(" ELSE CASE WHEN COALESCE(CAST(V.\"" + columns[i] + "\" AS TEXT),'')='' THEN '' ELSE CAST(ROUND(CAST(V.\"" + columns[i] + "\" AS NUMERIC),2) AS TEXT) END END AS \"" + columns[i] + "\",");
                         } else {
-                            columnBuilder.append("CASE WHEN COALESCE(CAST(V." + columns[i] + " AS TEXT),'')='' THEN '' ELSE CAST(ROUND(CAST(V." + columns[i] + " AS NUMERIC),2) AS TEXT) END AS '" + columns[i] + "',");
+                            columnBuilder.append("CASE WHEN COALESCE(CAST(V.\"" + columns[i] + "\" AS TEXT),'')='' THEN '' ELSE CAST(ROUND(CAST(V.\"" + columns[i] + "\" AS NUMERIC),2) AS TEXT) END AS \"" + columns[i] + "\",");
                         }
                     }
-                    columnBuilder.append("V.ACCOUNT_DATE,V.ACCOUNT_PERIOD,V.CODE,V.GK");
+                    columnBuilder.append("V.\"ACCOUNT_DATE\" AS \"ACCOUNT_DATE\",V.\"ACCOUNT_PERIOD\" AS \"ACCOUNT_PERIOD\",V.\"CODE\" AS \"CODE\",V.\"GK\" AS \"GK\"");
                     schemeSql = schemeSql.replace("V.*", columnBuilder.toString());
                 }
                 schemeSql += " LIMIT " + pageSize + " OFFSET " + pageNo;
@@ -410,7 +410,7 @@ public class IndexRelationController extends BaseController {
                         if (oConvertUtils.isEmpty(condition.get("dimCode"))) { //维度不传代表全部维度
                             dimensionData = indexRelationService.getDimensionData(createSchemeSQL.getDimensionSQL(condition, eChartsCondition));
                             for (Map<String, Object> map : dimensionData) {
-                                scaleList.add(map.get("dimCode").toString());
+                                scaleList.add(map.get("DIMCODE").toString());
                             }
                         } else {
                             String[] dimCodes = condition.get("dimCode").toString().split(",");
