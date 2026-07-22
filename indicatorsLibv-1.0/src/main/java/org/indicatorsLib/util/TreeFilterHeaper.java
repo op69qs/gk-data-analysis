@@ -39,6 +39,10 @@ public class TreeFilterHeaper {
             tempNode.setLabel(String.valueOf(data.get(i).get(textFiled)));
             tempNode.setLabel(String.valueOf(data.get(i).get(textFiled)));
             tempNode.setParentId(String.valueOf(data.get(i).get(parentField)));
+            Object disabled = data.get(i).get("disabled");
+            tempNode.setDisabled(Boolean.TRUE.equals(disabled)
+                    || "1".equals(String.valueOf(disabled))
+                    || Boolean.parseBoolean(String.valueOf(disabled)));
             tmpMap.put(String.valueOf(data.get(i).get(idFiled)), tempNode);
         }
 

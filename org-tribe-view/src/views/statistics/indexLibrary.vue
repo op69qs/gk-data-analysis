@@ -1104,7 +1104,8 @@
                 treeDatas: [],
                 defaultProps: {
                     children: 'children',
-                    label: 'label'
+                    label: 'label',
+                    disabled: 'disabled'
                 },
                 tableData: [],
                 tableDatas: [],
@@ -1687,6 +1688,9 @@
       }) */
             },
             handleNode(data, node, event) {
+                if (data.disabled) {
+                    return;
+                }
                 if (this.queryParam.dimensionFlag === undefined || this.queryParam.periodFlag === undefined) {
                     if (data.children.length === 0) {
                         this.$message.error("请先选择周期和维度")
@@ -1702,6 +1706,9 @@
                 this.handleCheck(data,node)
             },
             handleNode1(data, node, event) {
+                if (data.disabled) {
+                    return;
+                }
                 if (this.queryParam.dimensionFlag === undefined || this.queryParam.periodFlag === undefined) {
                     if (data.children.length === 0) {
                         this.$message.error("请先选择周期和维度")
@@ -1717,6 +1724,9 @@
                 this.handleCheck1(data,node)
             },
             handleCheck(data,node){
+              if(data.disabled){
+                return;
+              }
               this.nodeLive = this.$refs.tree.getCheckedKeys();
                 if(node.checked === true){
                   if(data.children.length===0){
@@ -1725,6 +1735,10 @@
                 }
             },
             handleCheck1(data,node){
+
+              if(data.disabled){
+                return;
+              }
 
               this.nodeLive = this.$refs.tree1.getCheckedKeys();
                 if(node.checked === true){

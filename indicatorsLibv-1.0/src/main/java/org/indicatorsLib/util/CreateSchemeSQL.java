@@ -12,8 +12,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -32,16 +34,15 @@ public class CreateSchemeSQL implements ApplicationContextAware {
      */
     public String getAccountPeriodSql(Map<String, Object> condition, Map<String, Object> eChartsCondition) {
         StringBuilder builder = new StringBuilder();
-        IndexRelationService indexRelationService = applicationContext.getBean(IndexRelationService.class);
-        List<Map<String, Object>> keys = indexRelationService.getIndicatorsTableName(condition.get("columns").toString().split(","));
-        if (keys == null || keys.size() == 0) {
+        List<Map<String, Object>> keys = getExecutableMetadata(condition.get("columns"));
+        if (keys == null) {
             return null;
         }
         builder.append("SELECT MIN(V1.\"START_DATE\") AS \"START_DATE\",MAX(V1.\"END_DATE\") AS \"END_DATE\" FROM(");
         AtomicInteger count = new AtomicInteger(1);
         keys.forEach(map -> {
             builder.append(" SELECT MIN(ACCOUNT_PERIOD) AS \"START_DATE\",MAX(ACCOUNT_PERIOD) AS \"END_DATE\" ");
-            builder.append(" FROM indicators_lib." + map.get("TABLENAME") + " ");
+            builder.append(" FROM indicators_lib." + getRequiredMetadataValue(map, "TABLENAME") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("direction"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + eChartsCondition.get("direction").toString().replaceAll(",", "','") + "') ");
@@ -64,16 +65,15 @@ public class CreateSchemeSQL implements ApplicationContextAware {
      */
     public String getDimensionSQL(Map<String, Object> condition, Map<String, Object> eChartsCondition) {
         StringBuilder builder = new StringBuilder();
-        IndexRelationService indexRelationService = applicationContext.getBean(IndexRelationService.class);
-        List<Map<String, Object>> keys = indexRelationService.getIndicatorsTableName(condition.get("columns").toString().split(","));
-        if (keys == null || keys.size() == 0) {
+        List<Map<String, Object>> keys = getExecutableMetadata(condition.get("columns"));
+        if (keys == null) {
             return null;
         }
         builder.append("SELECT V1.\"DIMCODE\" AS \"DIMCODE\",V1.\"DIMDESCR\" AS \"DIMDESCR\" FROM(");
         AtomicInteger count = new AtomicInteger(1);
         keys.forEach(map -> {
             builder.append(" SELECT INDEX_DIM_CODE AS \"DIMCODE\",INDEX_DIM_DESCR AS \"DIMDESCR\" ");
-            builder.append(" FROM indicators_lib." + map.get("TABLENAME") + " ");
+            builder.append(" FROM indicators_lib." + getRequiredMetadataValue(map, "TABLENAME") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("direction"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + eChartsCondition.get("direction").toString().replaceAll(",", "','") + "') ");
@@ -178,9 +178,8 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         StringBuilder builderOderBy = new StringBuilder();
         Object startDate = condition.get("startDate"); //起始日期
         Object endDate = condition.get("endDate"); //结束日期
-        IndexRelationService indexRelationService = applicationContext.getBean(IndexRelationService.class);
-        List<Map<String, Object>> keys = indexRelationService.getIndicatorsTableName(condition.get("columns").toString().split(","));
-        if (keys == null || keys.size() == 0) {
+        List<Map<String, Object>> keys = getExecutableMetadata(condition.get("columns"));
+        if (keys == null) {
             return null;
         }
         // 主查询
@@ -355,19 +354,51 @@ public class CreateSchemeSQL implements ApplicationContextAware {
     }
 
     private String getRequiredMetadataValue(Map<String, Object> metadata, String expectedKey) {
-        Object value = metadata.get(expectedKey);
-        if (value == null) {
-            for (Map.Entry<String, Object> entry : metadata.entrySet()) {
-                if (expectedKey.equalsIgnoreCase(entry.getKey())) {
-                    value = entry.getValue();
-                    break;
-                }
-            }
-        }
+        Object value = getMetadataValue(metadata, expectedKey);
         if (value == null || StringUtils.isBlank(value.toString())) {
             throw new IllegalArgumentException("指标元数据缺少字段: " + expectedKey);
         }
         return value.toString();
+    }
+
+    private List<Map<String, Object>> getExecutableMetadata(Object columns) {
+        if (columns == null || StringUtils.isBlank(columns.toString())) {
+            return null;
+        }
+        String[] requestedColumns = columns.toString().split(",");
+        IndexRelationService indexRelationService = applicationContext.getBean(IndexRelationService.class);
+        List<Map<String, Object>> metadataList = indexRelationService.getIndicatorsTableName(requestedColumns);
+        if (metadataList == null || metadataList.isEmpty()) {
+            return null;
+        }
+
+        Set<String> requestedIds = new HashSet<>(Arrays.asList(requestedColumns));
+        Set<String> metadataIds = new HashSet<>();
+        for (Map<String, Object> metadata : metadataList) {
+            Object colId = getMetadataValue(metadata, "COLID");
+            Object tableName = getMetadataValue(metadata, "TABLENAME");
+            Object type = getMetadataValue(metadata, "TYPE");
+            if (colId == null || tableName == null || type == null
+                    || StringUtils.isBlank(colId.toString())
+                    || StringUtils.isBlank(tableName.toString())
+                    || !("0".equals(type.toString()) || "1".equals(type.toString()))) {
+                return null;
+            }
+            metadataIds.add(colId.toString());
+        }
+        return requestedIds.equals(metadataIds) ? metadataList : null;
+    }
+
+    private Object getMetadataValue(Map<String, Object> metadata, String expectedKey) {
+        Object value = metadata.get(expectedKey);
+        if (value == null) {
+            for (Map.Entry<String, Object> entry : metadata.entrySet()) {
+                if (expectedKey.equalsIgnoreCase(entry.getKey())) {
+                    return entry.getValue();
+                }
+            }
+        }
+        return value;
     }
 
 
@@ -384,6 +415,9 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         // String mainSQL = this.getSchemeSql(mainCondition); //方案的查询主SQL
 
         Map  mainSQL = this.getSchemeSql_2(mainCondition, pageData, mainCondition);
+        if (mainSQL == null) {
+            return null;
+        }
         builder.append("SELECT V.* FROM (" + mainSQL.get("builder") + ") V"  + mainSQL.get("builderOderBy"));
         return builder.toString();
         /*if (oConvertUtils.isEmpty(pageData.get("screenConditon"))) { //不对方案结果集进行过滤查询

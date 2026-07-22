@@ -86,7 +86,13 @@ public class IndexSchemeController extends BaseController {
                 result.put("result", "false");
                 result.put("msg", "方案描述重复");
             } else {
-                pageData.put("schemeSql", createSchemeSQL.getSchemeSQL(pageData)); //自定义指标方案执行SQL
+                String schemeSql = createSchemeSQL.getSchemeSQL(pageData);
+                if (StringUtils.isBlank(schemeSql)) {
+                    result.put("result", "false");
+                    result.put("msg", "指标组装方案失败");
+                    return result;
+                }
+                pageData.put("schemeSql", schemeSql); //自定义指标方案执行SQL
                 if (oConvertUtils.isEmpty(pageData.get("schemeId"))) {
                     pageData.put("schemeId", get32UUID());
                     pageData.put("isPublicScheme", "1");

@@ -70,7 +70,8 @@
         ELSE '' END as flag,
         COALESCE(r.PARENT_ID,'') as "pId",
         r.PARENT_ID AS "PARENT_ID",
-        r.IDENTITY_PROPERTY AS "IDENTITY_PROPERTY"
+        r.IDENTITY_PROPERTY AS "IDENTITY_PROPERTY",
+        CASE WHEN r.INDEX_CORRE_TABLE IS NULL OR r.INDEX_TYPE IS NULL THEN TRUE ELSE FALSE END AS "disabled"
         FROM indicators_lib.lib_index_relation r
         WHERE INDEX_STATUS='0'
         <if test="params.personalFlag != null and params.personalFlag != ''">
@@ -128,7 +129,8 @@
             END AS flag,
             COALESCE(a.PARENT_ID, '') AS "pId",
             a.PARENT_ID,
-            a.IDENTITY_PROPERTY
+            a.IDENTITY_PROPERTY,
+            TRUE AS "disabled"
             FROM
             indicators_lib.lib_index_relation a
             WHERE
@@ -147,7 +149,10 @@
     <select id="getIndicatorsTableName" resultType="hashmap">
         SELECT r.INDEX_ID AS "COLID",r.INDEX_CORRE_TABLE AS "TABLENAME",r.INDEX_TYPE AS "TYPE"
         FROM indicators_lib.lib_index_relation r
-        where r.INDEX_STATUS='0' AND r.INDEX_ID in
+        where r.INDEX_STATUS='0'
+        AND r.INDEX_CORRE_TABLE IS NOT NULL
+        AND r.INDEX_TYPE IN ('0', '1')
+        AND r.INDEX_ID in
         <foreach collection="array" item="indexId" index="index" open="(" separator="," close=")">
             #{indexId}
         </foreach>

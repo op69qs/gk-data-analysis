@@ -50,6 +50,9 @@ public class TreeNode implements Serializable {
     private String parentId;
 
     @Getter@Setter
+    private boolean disabled;
+
+    @Getter@Setter
     private List<TreeNode> children = new ArrayList();
 
     public TreeNode() {

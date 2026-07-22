@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -91,5 +92,26 @@ public class CreateSchemeSQLTest {
         assertTrue(sql.contains("FROM indicators_lib.lib_indicators_000189"));
         assertTrue(sql.contains("AS \"COLID\""));
         assertTrue(sql.contains("AS \"VALUE\""));
+    }
+
+    @Test
+    public void invalidCategoryWithoutExecutableMetadataDoesNotBuildSql() {
+        when(relationService.getIndicatorsTableName(any(String[].class)))
+                .thenReturn(Collections.emptyList());
+
+        PageData pageData = new PageData();
+        pageData.put("columns", "category-id");
+        pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"3\",\"price\":\"1\"}");
+
+        assertNull(sqlBuilder.getSchemeSQL(pageData));
+    }
+
+    @Test
+    public void mixedCategoryAndIndicatorSelectionDoesNotBuildPartialSql() {
+        PageData pageData = new PageData();
+        pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404,category-id");
+        pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"3\",\"price\":\"1\"}");
+
+        assertNull(sqlBuilder.getSchemeSQL(pageData));
     }
 }
