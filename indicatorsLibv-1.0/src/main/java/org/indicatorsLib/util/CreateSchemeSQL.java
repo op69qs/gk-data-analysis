@@ -37,11 +37,11 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         if (keys == null || keys.size() == 0) {
             return null;
         }
-        builder.append("SELECT MIN(START_DATE) AS START_DATE,MAX(END_DATE) AS END_DATE FROM(");
+        builder.append("SELECT MIN(START_DATE) AS \"START_DATE\",MAX(END_DATE) AS \"END_DATE\" FROM(");
         AtomicInteger count = new AtomicInteger(1);
         keys.forEach(map -> {
             builder.append(" SELECT MIN(ACCOUNT_PERIOD) AS START_DATE,MAX(ACCOUNT_PERIOD) AS END_DATE ");
-            builder.append(" FROM indicators_lib.`" + map.get("tableName") + "` ");
+            builder.append(" FROM indicators_lib." + map.get("tableName") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("direction"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + eChartsCondition.get("direction").toString().replaceAll(",", "','") + "') ");
@@ -72,8 +72,8 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         builder.append("SELECT * FROM(");
         AtomicInteger count = new AtomicInteger(1);
         keys.forEach(map -> {
-            builder.append(" SELECT INDEX_DIM_CODE AS dimCode,INDEX_DIM_DESCR AS dimDescr ");
-            builder.append(" FROM indicators_lib.`" + map.get("tableName") + "` ");
+            builder.append(" SELECT INDEX_DIM_CODE AS \"dimCode\",INDEX_DIM_DESCR AS \"dimDescr\" ");
+            builder.append(" FROM indicators_lib." + map.get("tableName") + " ");
             builder.append(" WHERE DIMENSION_FLAG='" + condition.get("dimensionFlag").toString() + "' AND PERIOD_FLAG='" + condition.get("periodFlag").toString() + "' ");
             if (oConvertUtils.isNotEmpty(condition.get("direction"))) { //国库/地区/核算主体 条件查询
                 builder.append(" AND INDEX_DIM_CODE IN('" + eChartsCondition.get("direction").toString().replaceAll(",", "','") + "') ");
@@ -84,7 +84,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
                 count.getAndIncrement();
             }
         });
-        builder.append(") V1 GROUP BY V1.dimCode ORDER BY V1.dimCode");
+        builder.append(") V1 GROUP BY V1.\"dimCode\",V1.\"dimDescr\" ORDER BY V1.\"dimCode\"");
         return builder.toString();
     }
 
@@ -188,8 +188,7 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         Arrays.asList(condition.get("columns").toString().split(",")).forEach(key -> {
             builder.append(" COALESCE(CAST(ROUND(SUM(CASE WHEN aa.COLID = '" + key + "' THEN VALUE END),2) AS TEXT),'') AS \"" + key + "\",");
         });
-        builder.append(" aa.COLID,\n" +
-                "aa.ACCOUNT_DATE,\n" +
+        builder.append(" aa.ACCOUNT_DATE,\n" +
                 "aa.ACCOUNT_PERIOD,\n" +
                 "aa.CODE,\n" +
                 "aa.GK\n" +
@@ -306,7 +305,9 @@ public class CreateSchemeSQL implements ApplicationContextAware {
             // 分组
             builder.append("\n" +
                     "GROUP BY \n" +
+                    "aa.ACCOUNT_DATE,\n" +
                     "aa.ACCOUNT_PERIOD,\n" +
+                    "aa.CODE,\n" +
                     "aa.GK\n");
             if (oConvertUtils.isNotEmpty(sucreenCondition.get("order"))) { //添加结果集排序条件
                 builderOderBy.append(" ORDER BY ");
@@ -332,7 +333,9 @@ public class CreateSchemeSQL implements ApplicationContextAware {
         } else {
             builder.append("\n" +
                     "GROUP BY \n" +
+                    "aa.ACCOUNT_DATE,\n" +
                     "aa.ACCOUNT_PERIOD,\n" +
+                    "aa.CODE,\n" +
                     "aa.GK");
             builderOderBy.append("\n" +
                     "ORDER BY " +

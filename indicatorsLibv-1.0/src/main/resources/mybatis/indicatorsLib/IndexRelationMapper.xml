@@ -145,7 +145,7 @@
 
     <!--    获取自定义指标方案表-->
     <select id="getIndicatorsTableName" resultType="hashmap">
-        SELECT r.INDEX_ID as colId,r.INDEX_CORRE_TABLE as tableName,r.INDEX_TYPE as type
+        SELECT r.INDEX_ID AS "colId",r.INDEX_CORRE_TABLE AS "tableName",r.INDEX_TYPE AS "type"
         FROM indicators_lib.lib_index_relation r
         where r.INDEX_STATUS='0' AND r.INDEX_ID in
         <foreach collection="array" item="indexId" index="index" open="(" separator="," close=")">

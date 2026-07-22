@@ -52,7 +52,7 @@ public class IndexRelationServiceImpl implements IndexRelationService {
 
     @Override
     public List<Map<String, Object>> getIndicatorsTable(String schemeSql) {
-        return indexRelationMapper.getIndicatorsTable(schemeSql);
+        return normalizeIndicatorRows(indexRelationMapper.getIndicatorsTable(schemeSql));
     }
 
     @Override
@@ -88,7 +88,7 @@ public class IndexRelationServiceImpl implements IndexRelationService {
             }
             schemeSql = builder.toString();
         }
-        List<Map<String, Object>> dataList = indexRelationMapper.getIndicatorsECharts(schemeSql);
+        List<Map<String, Object>> dataList = normalizeIndicatorRows(indexRelationMapper.getIndicatorsECharts(schemeSql));
         if ("cake".equals(map.get("eChartsFlag").toString())) { //饼图
             array = new Object[dataList.size()];
             for (int i = 0; i < dataList.size(); i++) {
@@ -133,7 +133,7 @@ public class IndexRelationServiceImpl implements IndexRelationService {
         }
         schemeSql = builder.toString();
 
-        List<Map<String, Object>> dataList = indexRelationMapper.getIndicatorsECharts(schemeSql);
+        List<Map<String, Object>> dataList = normalizeIndicatorRows(indexRelationMapper.getIndicatorsECharts(schemeSql));
         String column = list.get(list.size() - 1);
         list.remove(column); //移除最后一位的字段
 
@@ -180,6 +180,25 @@ public class IndexRelationServiceImpl implements IndexRelationService {
     @Override
     public List<Map<String, String>> getDimensionSelectById(String[] codeArry) {
         return indexRelationMapper.getDimensionSelectById(codeArry);
+    }
+
+    private List<Map<String, Object>> normalizeIndicatorRows(List<Map<String, Object>> rows) {
+        if (rows == null) {
+            return null;
+        }
+        for (Map<String, Object> row : rows) {
+            renameColumn(row, "account_date", "ACCOUNT_DATE");
+            renameColumn(row, "account_period", "ACCOUNT_PERIOD");
+            renameColumn(row, "code", "CODE");
+            renameColumn(row, "gk", "GK");
+        }
+        return rows;
+    }
+
+    private void renameColumn(Map<String, Object> row, String databaseName, String responseName) {
+        if (row.containsKey(databaseName)) {
+            row.put(responseName, row.remove(databaseName));
+        }
     }
 
     /**
