@@ -89,19 +89,24 @@ const clickoutside = {
     },
     directives: {clickoutside},
     mounted(){
-        document.addEventListener('click', (e) => {
-        if (!this.$refs.li.contains(e.target)&&!this.$refs.p1.contains(e.target)) {
-             this.showTime1a = false        
-        }
-        if (!this.$refs.lis.contains(e.target)&&!this.$refs.p2.contains(e.target)) {
-             this.showTime1a1 = false        
-        }        
-      })
+        document.addEventListener('click', this.handleDocumentClick)
+    },
+    beforeDestroy(){
+        document.removeEventListener('click', this.handleDocumentClick)
     },
     computed: {
      
    },
     methods: {
+        handleDocumentClick(e){
+            const {li, lis, p1, p2} = this.$refs
+            if (li && p1 && !li.contains(e.target) && !p1.contains(e.target)) {
+                this.showTime1a = false
+            }
+            if (lis && p2 && !lis.contains(e.target) && !p2.contains(e.target)) {
+                this.showTime1a1 = false
+            }
+        },
         showDoubleMonth(){
             this.showTime1a=true;
         },
