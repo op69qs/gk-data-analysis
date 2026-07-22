@@ -11,6 +11,7 @@ BEGIN
 
     IF converted_sql NOT ILIKE '%IFNULL(%'
        AND converted_sql NOT ILIKE '%SUM(IF(%'
+       AND converted_sql NOT ILIKE '%edw.cm_guoku_dimnsn%'
        AND position(chr(96) IN converted_sql) = 0 THEN
         RETURN converted_sql;
     END IF;
@@ -76,8 +77,16 @@ BEGIN
         'gi'
     );
 
+    converted_sql := regexp_replace(
+        converted_sql,
+        $pattern$AND\s+INDEX_DIM_CODE\s+IN\s*\(\s*SELECT\s+b\.(GUOKU_ID|AREA_NO_ID)\s+FROM\s+edw\.cm_guoku_dimnsn\s+a\s+LEFT\s+JOIN\s+edw\.cm_guoku_dimnsn\s+b\s+ON\s*\(\s*a\.GUOKU_ID\s*=\s*b\.GUOKU_LVL_ID_1\s+OR\s+a\.GUOKU_ID\s*=\s*b\.GUOKU_LVL_ID_2\s+OR\s+a\.GUOKU_ID\s*=\s*b\.GUOKU_LVL_ID_3\s*\)\s+JOIN\s+"jeecg-boot-os"\.sys_user\s+ur\s+ON\s+a\.GUOKU_ID\s*=\s*ur\.guoku_id\s+WHERE\s+ur\.id\s*=\s*'([^']+)'\s*\)$pattern$,
+        $replacement$AND INDEX_DIM_CODE IN (WITH RECURSIVE authorized_guoku AS (SELECT d.guoku_id,d.area_no_id FROM dmcode.cm_guoku_dimnsn d JOIN "jeecg-boot-os".sys_user u ON u.guoku_id=d.guoku_id WHERE u.id = '\2' UNION ALL SELECT child.guoku_id,child.area_no_id FROM dmcode.cm_guoku_dimnsn child JOIN authorized_guoku parent ON child.guoku_pid=parent.guoku_id) SELECT \1 FROM authorized_guoku)$replacement$,
+        'gi'
+    );
+
     IF converted_sql ILIKE '%IFNULL(%'
        OR converted_sql ILIKE '%SUM(IF(%'
+       OR converted_sql ILIKE '%edw.cm_guoku_dimnsn%'
        OR position(chr(96) IN converted_sql) > 0
        OR converted_sql LIKE '%aa.COLID,%' THEN
         RAISE EXCEPTION 'legacy SQL token remains after conversion';
