@@ -242,6 +242,14 @@ JAR 的 `DATABASE=stg` 配置与反编译逻辑已唯一确定 TIMS 自动任务
 
 ## 9. Vastbase 脚本交付边界
 
+### 9.1 开发环境模拟 DDL
+
+在开发环境缺少原数仓对象时，可使用 [`2026-07-25-agent-key-file-handler-vastbase-simulation.sql`](2026-07-25-agent-key-file-handler-vastbase-simulation.sql) 创建可运行的最小模拟对象。该脚本依据 JAR 的 Mapper、配置和反编译结果反推，不是原库 DDL，也不能替代内网核对。
+
+模拟脚本已覆盖 JAR 明确的 `agent_key_file` 十张表、`stg` 三张 TIMS 目标表、`edw` 四个查询对象、`etl.guoku_lib_report_all_log` 和 `adm.P_GUOKU_LIB_REPORT_ALL` 的可调用空实现。它刻意将所有无法从 JAR 确认的字段长度、金额精度、主键、索引、分区和过程逻辑视为假设；内网验证后必须用真实 DDL 及过程定义替换。
+
+模拟过程只输出调用通知，不执行真实数据加工。它的目的仅是验证本次迁移的任务状态、调用路径和页面结果展示。
+
 脚本均在文件头写明目标 Schema、对象、执行前提、是否 DDL、是否允许重复执行和回滚方式。脚本分为：
 
 ```text
