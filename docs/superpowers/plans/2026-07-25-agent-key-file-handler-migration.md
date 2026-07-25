@@ -71,14 +71,14 @@
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/parser/{KeyFileParser,KeyFileType}.java`
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/service/KeyReportProcessingService.java`
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/mapper/KeyReportMapper.java`
-- Create: `org-tribe-system/src/main/resources/mapper/reporting/KeyReportMapper.xml`
+- Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/mapper/xml/KeyReportMapper.xml`
 - Test: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/parser/KeyFileParserTest.java`
 
-- [ ] 写失败测试：`sr/zc/kc/tk` 文件名分别映射收入、支出、库存、退库；字段不足时生成含文件和行号的错误。
-- [ ] 运行 `cd org-tribe-system && mvn -Dtest=KeyFileParserTest test`，确认失败。
-- [ ] 实现 JAR 定义的四类字段映射，分别写入 `agent_key_file.agent_file_income`、`agent_file_payout`、`agent_file_stock`、`agent_file_back`；同 ZIP 重跑先替换旧明细，分别记录 SR/ZC/KC/TK 行数与异常。
+- [x] 写失败测试：`sr/zc/kc/tk` 文件名分别映射收入、支出、库存、退库；字段不足时生成含文件和行号的错误。
+- [x] 运行 `cd org-tribe-system && mvn -Dtest=KeyFileParserTest test`，确认失败。
+- [x] 实现 JAR 定义的四类字段映射，分别写入 `agent_key_file.agent_file_income`、`agent_file_payout`、`agent_file_stock`、`agent_file_back`；同 ZIP 重跑先替换旧明细，分别记录 SR/ZC/KC/TK 行数与异常。
 - [ ] 实现 `agent_key_file.agent_keyfile_pending` 的待处理、已处理、异常、逻辑删除和文件关联。
-- [ ] 运行解析测试及 Mapper 集成测试，确认通过；提交 `feat: add key report parser`。
+- [x] 运行解析测试及 Mapper 固定 SQL 测试，确认通过；已提交 `f07011f feat: migrate KEY report parsing`。
 
 ## Task 4: TIMS Excel 处理器与 STG 写入
 
@@ -86,15 +86,15 @@
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/parser/{TimsExcelParser,TimsBusinessType}.java`
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/service/TimsReportProcessingService.java`
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/mapper/TimsReportMapper.java`
-- Create: `org-tribe-system/src/main/resources/mapper/reporting/TimsReportMapper.xml`
+- Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/mapper/xml/TimsReportMapper.xml`
 - Test: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/parser/TimsExcelParserTest.java`
 - Test: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/mapper/TimsReportMapperVastbaseIT.java`
 
-- [ ] 写失败测试：收入多层 ZIP 中的 XLS 解析出收入行；库存解析出账户、借方、贷方、余额；Excel 表头/日期/金额不合格时产生行错误。
-- [ ] 执行 `cd org-tribe-system && mvn -Dtest=TimsExcelParserTest test`，确认失败。
-- [ ] 实现收入/支出字段 `D_ACCT,TRECODE,TERNAME,LEVEL,SUBJECT_CODE,SUBJECT_NAME,F_AMT,YEAR_AMT` 与库存字段 `D_ACCT,TRECODE,TERNAME,LEVEL,ACCOUNT,DEBIT_AMOUNT,CREDIT_AMOUNT,BALANCE` 解析。
-- [ ] 以类型、账期、国库范围替换 `agent_key_file.tims_file_*` 中间明细，并以白名单方式替换 `stg.trs_tmis_budget_income`、`stg.trs_tmis_budget_payout`、`stg.trs_tmis_stock`；禁止动态表名拼接。
-- [ ] 运行单元与 Vastbase 集成测试；缺失真实对象时，集成测试必须明确跳过并提示先执行核对脚本。提交 `feat: add tims report processing`。
+- [x] 写失败测试：收入多层 ZIP 中的 XLS 解析出收入行；库存解析出账户、借方、贷方、余额；Excel 表头/日期/金额不合格时产生行错误。
+- [x] 执行 `cd org-tribe-system && mvn -Dtest=TimsExcelParserTest test`，确认失败。
+- [x] 实现收入/支出字段 `D_ACCT,TRECODE,TERNAME,LEVEL,SUBJECT_CODE,SUBJECT_NAME,F_AMT,YEAR_AMT` 与库存字段 `D_ACCT,TRECODE,TERNAME,LEVEL,ACCOUNT,DEBIT_AMOUNT,CREDIT_AMOUNT,BALANCE` 解析，并兼容自动 STG 任务的收入 9 列和库存 7 列。
+- [x] 以类型、账期、国库范围替换 `agent_key_file.tims_file_*` 中间明细，并以白名单方式替换 `stg.trs_tmis_budget_income`、`stg.trs_tmis_budget_payout`、`stg.trs_tmis_stock`；禁止动态表名拼接。
+- [x] 运行单元与 Mapper SQL 测试；Vastbase 真实对象缺失时，集成测试明确跳过并提示内网连接参数。提交 `feat: add tims report processing`。
 
 ## Task 5: 异步编排、自动加工、监控与重试
 

@@ -82,18 +82,20 @@ create index if not exists idx_tims_payout_scope on agent_key_file.tims_file_pay
 create index if not exists idx_tims_stock_scope on agent_key_file.tims_file_stock(d_acct, trecode);
 
 -- JAR 配置 DATABASE=stg 且反编译代码唯一拼接出这三张表。
+-- JAR 实际写入 BATCH_DATE=yyyyMMdd、DATA_DATE=yyyyMM，脱敏收入样例的 D_ACCT 也是 yyyyMM，
+-- 因此模拟环境按 varchar(8) 保证原值可执行；真实数仓字段类型仍须用 03_stg_structure_check.sql 核实。
 create table if not exists stg.trs_tmis_budget_income (
-  batch_date timestamp, data_date date, d_acct date, trecode varchar(64), tredscr varchar(255),
+  batch_date varchar(8), data_date varchar(8), d_acct varchar(8), trecode varchar(64), tredscr varchar(255),
   tax_org_code varchar(128), level varchar(32), subject_code varchar(128), subject_dscr varchar(512),
   this_amt numeric(20,2), year_amt numeric(20,2)
 );
 create table if not exists stg.trs_tmis_budget_payout (
-  batch_date timestamp, data_date date, d_acct date, trecode varchar(64), tredscr varchar(255),
+  batch_date varchar(8), data_date varchar(8), d_acct varchar(8), trecode varchar(64), tredscr varchar(255),
   level varchar(32), subject_code varchar(128), subject_dscr varchar(512),
   this_amt numeric(20,2), year_amt numeric(20,2)
 );
 create table if not exists stg.trs_tmis_stock (
-  batch_date timestamp, data_date timestamp, d_acct date, trecode varchar(64), tredscr varchar(255),
+  batch_date varchar(8), data_date varchar(8), d_acct varchar(8), trecode varchar(64), tredscr varchar(255),
   level varchar(32), f_debitamt numeric(20,2), f_loanamt numeric(20,2), f_balance numeric(20,2)
 );
 

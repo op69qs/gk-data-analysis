@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.reporting.mapper.TimsReportMapper">
+
+    <delete id="deleteTimsIncome">
+        delete from agent_key_file.tims_file_income
+         where d_acct in <foreach collection="dates" item="date" open="(" separator="," close=")">#{date}</foreach>
+           and trecode in <foreach collection="treCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+    </delete>
+    <insert id="insertTimsIncome">
+        insert into agent_key_file.tims_file_income
+        (d_acct, trecode, tername, subject_code, subject_name, level,
+         f_amt, year_amt, tims_file_name, add_time)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{row.databaseDate}, #{row.treCode}, #{row.treasuryName}, #{row.subjectCode},
+             #{row.subjectName}, #{row.level}, #{row.currentAmount}, #{row.yearAmount},
+             #{row.fileName}, current_timestamp)
+        </foreach>
+    </insert>
+
+    <delete id="deleteTimsPayout">
+        delete from agent_key_file.tims_file_payout
+         where d_acct in <foreach collection="dates" item="date" open="(" separator="," close=")">#{date}</foreach>
+           and trecode in <foreach collection="treCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+    </delete>
+    <insert id="insertTimsPayout">
+        insert into agent_key_file.tims_file_payout
+        (d_acct, trecode, tername, subject_code, subject_name, level,
+         f_amt, year_amt, tims_file_name, add_time)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{row.databaseDate}, #{row.treCode}, #{row.treasuryName}, #{row.subjectCode},
+             #{row.subjectName}, #{row.level}, #{row.currentAmount}, #{row.yearAmount},
+             #{row.fileName}, current_timestamp)
+        </foreach>
+    </insert>
+
+    <delete id="deleteTimsStock">
+        delete from agent_key_file.tims_file_stock
+         where d_acct in <foreach collection="dates" item="date" open="(" separator="," close=")">#{date}</foreach>
+           and trecode in <foreach collection="treCodes" item="code" open="(" separator="," close=")">#{code}</foreach>
+    </delete>
+    <insert id="insertTimsStock">
+        insert into agent_key_file.tims_file_stock
+        (d_acct, trecode, tername, level, account, debit_amount, credit_amount,
+         balance, tims_file_name, add_time)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{row.databaseDate}, #{row.treCode}, #{row.treasuryName}, #{row.level},
+             #{row.account}, #{row.debitAmount}, #{row.creditAmount}, #{row.balance},
+             #{row.fileName}, current_timestamp)
+        </foreach>
+    </insert>
+
+    <delete id="deleteStgIncome">
+        delete from stg.trs_tmis_budget_income where data_date = #{periodKey}
+    </delete>
+    <insert id="insertStgIncome">
+        insert into stg.trs_tmis_budget_income
+        (batch_date, data_date, d_acct, trecode, tredscr, tax_org_code, level,
+         subject_code, subject_dscr, this_amt, year_amt)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{batchDate}, #{periodKey}, #{row.periodKey}, #{row.treCode}, #{row.treasuryName},
+             #{row.taxOrgCode}, #{row.level}, #{row.subjectCode}, #{row.subjectName},
+             #{row.currentAmount}, #{row.yearAmount})
+        </foreach>
+    </insert>
+
+    <delete id="deleteStgPayout">
+        delete from stg.trs_tmis_budget_payout where data_date = #{periodKey}
+    </delete>
+    <insert id="insertStgPayout">
+        insert into stg.trs_tmis_budget_payout
+        (batch_date, data_date, d_acct, trecode, tredscr, level,
+         subject_code, subject_dscr, this_amt, year_amt)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{batchDate}, #{periodKey}, #{row.periodKey}, #{row.treCode}, #{row.treasuryName},
+             #{row.level}, #{row.subjectCode}, #{row.subjectName},
+             #{row.currentAmount}, #{row.yearAmount})
+        </foreach>
+    </insert>
+
+    <delete id="deleteStgStock">
+        delete from stg.trs_tmis_stock where data_date like concat(#{periodKey}, '%')
+    </delete>
+    <insert id="insertStgStock">
+        insert into stg.trs_tmis_stock
+        (batch_date, data_date, d_acct, trecode, tredscr, level,
+         f_debitamt, f_loanamt, f_balance)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{batchDate}, #{periodKey}, #{row.periodKey}, #{row.treCode}, #{row.treasuryName},
+             #{row.level}, #{row.debitAmount}, #{row.creditAmount}, #{row.balance})
+        </foreach>
+    </insert>
+</mapper>
