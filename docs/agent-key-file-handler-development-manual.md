@@ -17,8 +17,8 @@
 | 1 | 状态模型、跟踪实体、对象核验和跟踪表脚本 | 已提交：`c05b05c` | 不写 JAR 既有数仓对象 |
 | 2 | ZIP 上传、归档、安全解压 | 已提交：`5244e25` | 已按脱敏收入 ZIP 核验多层目录和 macOS 附属文件 |
 | 3 | KEY 收入/支出/库存/退库解析 | 已提交：`f07011f` | 已按 JAR 字节码复写；仍等待四类样例做日期格式和数据值最终对照 |
-| 4 | TIMS 收入/支出/库存解析和 STG 写入 | 已实现，待提交 | 脱敏收入两份 XLS 已通过真实解析验证；支出、库存待补样例 |
-| 5 | 异步任务链、自动加工、监控和重试 | 未开始 | 真实过程和日志表须内网核对 |
+| 4 | TIMS 收入/支出/库存解析和 STG 写入 | 已提交：`7d22e10` | 脱敏收入两份 XLS 已通过真实解析验证；支出、库存待补样例 |
+| 5 | 异步任务链、自动加工、详情、下载和重试 | 核心链路已实现，待提交 | 代理国库、监控和变更记录接口继续开发；真实过程和日志表须内网核对 |
 | 6 | Vue 2 页面、菜单权限和端到端验收 | 未开始 | 页面显示全过程详细状态 |
 
 ## 3. 第 1 批文件与功能对应
@@ -130,6 +130,20 @@ JAR 不是只有一套 TIMS 解析：
 
 ## 7. 状态与页面展示规范
 
+### 7.1 第 5 批当前文件与功能对应
+
+| 新文件 | 功能 | 业务逻辑 |
+|---|---|---|
+| `.../config/ReportingAsyncConfig.java`、`.../job/ReportTaskJob.java` | 后台执行 | 上传事务提交后才投递；使用独立有界线程池，页面关闭不影响处理 |
+| `.../service/ReportWorkflowService.java` | 任务编排 | 串联解析、业务表/暂存表入库和 TIMS 自动加工；错误批次在解析阶段停止，不调用过程 |
+| `.../service/ReportTaskService.java` | 分阶段重试 | 仅允许 `PARSE/LOAD/PROCESS`；新建尝试并关联原任务，账期和范围只从原批次读取 |
+| `.../service/ReportProcessCallService.java`、`.../mapper/xml/ReportWorkflowMapper.xml` | 原加工调用 | 检查 `etl.guoku_lib_report_all_log.STATE='1'` 和本模块运行记录，写原日志并调用 `adm.p_guoku_lib_report_all(月末)` |
+| `.../service/ReportBatchQueryService.java`、`.../controller/ReportBatchQueryController.java` | 列表与完整详情 | 一次返回批次、文件、任务、时间线、行错误和过程调用；普通删除仅逻辑删除 |
+| `.../service/ReportFileAccessService.java`、`.../controller/ReportFileController.java` | 留存文件下载 | 只按数据库文件 ID 下载，并再次校验真实路径位于专用归档根目录，阻止越权路径读取 |
+| `.../service/LegacyPendingService.java`、`.../mapper/xml/LegacyPendingMapper.xml` | 原十表兼容 | 同步维护 JAR 的 `agent_keyfile_pending` 和 `tims_file_pending`，保留旧监控查询依赖的状态、文件名、数量和异常字段 |
+
+生产配置默认自动调用下游过程，严格符合已确认要求；仅允许运维在故障隔离时通过 `REPORTING_AUTO_PROCESS_ENABLED=false` 临时停用。开发、测试环境仍默认关闭真实过程调用，避免误触内网加工。自动调用是否可用不会被隐瞒：过程失败或依赖缺失时，批次与 `PROCESS` 任务均显示失败，可由授权人员在同批次再次加工。
+
 统一执行状态为：`QUEUED`（等待）、`PROCESSING`（执行中）、`SUCCEEDED`（成功）、`PARTIALLY_SUCCEEDED`（部分成功）、`FAILED`（失败）、`CANCELLED`（取消）、`LOGICALLY_DELETED`（逻辑删除）。
 
 页面当前阶段由任务类型单独表达：上传归档、解压、解析、入库、下游加工。每一阶段必须展示等待、开始、进行中、成功或失败，并提供开始时间、结束时间、耗时、当前文件、文件数、处理行数、异常行数和错误摘要。页面关闭不影响后台执行。
@@ -146,7 +160,7 @@ JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`
 2. 执行 `02`、`03`、`04`，导出真实字段、约束和过程参数。
 3. 将结果与模拟 DDL 和本手册对照；不一致项以真实 DDL 为准并修改 Mapper。
 4. 仅在确认 `agent_key_file` 可创建新表后执行 `05`、`06`。
-5. 未确认 `etl.guoku_lib_report_all_log` 和 `adm.P_GUOKU_LIB_REPORT_ALL` 前，自动加工开关必须关闭。
+5. 开发/测试环境在未确认 `etl.guoku_lib_report_all_log` 和 `adm.P_GUOKU_LIB_REPORT_ALL` 前保持自动加工关闭；生产配置按业务要求默认自动，部署前必须执行依赖核验，失败会在页面明确显示而不会伪装完成。
 
 ## 9. 已确定与待内网确认
 
@@ -173,3 +187,5 @@ JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`
 第 3 批当前执行 4 个定向用例：四类文件名识别、四类字段顺序、坏行不丢弃正确行、任意目录深度扫描及按 ZIP 覆盖四表；全部通过。Vastbase 真实表结构与 KEY 样例对照仍属于内网验收项。
 
 第 4 批当前执行 6 个仓库用例：脱敏收入同结构 9 列解析、两套库存列布局、表头/金额错误定位、多层目录下中间表与 STG 双写、错误批次不删除旧数据、Mapper 固定表与绑定参数检查；全部通过。另对用户提供的两份原始脱敏收入 XLS 执行 1 次只读核验，两份均为 1 行成功、0 行异常。内网 Vastbase 集成检查已验证为“未配置时明确跳过”，待配置连接后执行真实六对象检查。
+
+第 5 批核心链路当前执行 10 个新增定向用例，连同前四批共 33 个本模块测试全部通过：月末计算、原批次重试、加工互斥、自动任务链、解析失败阻断过程、完整详情、逻辑删除、安全下载、原待处理表 SQL 白名单、过程 SQL 白名单。真实 ADM 过程结果和 ETL 日志状态回写仍以内网核验为准。

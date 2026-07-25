@@ -154,4 +154,5 @@ reporting:
   max-total-uncompressed-bytes: ${REPORTING_MAX_UNCOMPRESSED_BYTES:524288000}
   max-single-entry-bytes: ${REPORTING_MAX_ENTRY_BYTES:104857600}
   retention-days: ${REPORTING_RETENTION_DAYS:0}
-  auto-process-enabled: ${REPORTING_AUTO_PROCESS_ENABLED:false}
+  # 严格保持原程序自动调用逻辑；仅故障隔离时通过环境变量临时关闭。
+  auto-process-enabled: ${REPORTING_AUTO_PROCESS_ENABLED:true}

@@ -19,6 +19,6 @@ public class ReportingProperties {
     /** Physical cleanup is disabled until the business confirms a retention period. */
     private int retentionDays = 0;
 
-    /** Must remain false until ADM procedure and ETL log DDL pass the dependency gate. */
-    private boolean autoProcessEnabled = false;
+    /** Production follows the original program and automatically starts downstream processing. */
+    private boolean autoProcessEnabled = true;
 }

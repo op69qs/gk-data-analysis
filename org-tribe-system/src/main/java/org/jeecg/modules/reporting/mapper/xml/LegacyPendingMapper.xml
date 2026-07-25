@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.reporting.mapper.LegacyPendingMapper">
+    <insert id="insertKeyPending">
+        insert into agent_key_file.agent_keyfile_pending
+        (id, tre_code, biz_date, zip_name,
+         sr_name, sr_name_state, zc_name, zc_name_state,
+         kc_name, kc_name_state, tk_name, tk_name_state,
+         zip_path, unzip_dir, state, add_userid, add_time)
+        values
+        (#{record.id}, #{record.treCode}, #{record.bizDate}, #{record.zipName},
+         #{record.srName}, #{record.srNameState}, #{record.zcName}, #{record.zcNameState},
+         #{record.kcName}, #{record.kcNameState}, #{record.tkName}, #{record.tkNameState},
+         #{record.zipPath}, #{record.unzipDir}, #{record.state}, #{record.addUserId}, #{record.addTime})
+    </insert>
+
+    <update id="updateKeyPending">
+        update agent_key_file.agent_keyfile_pending
+           set sr_count = #{record.srCount}, sr_exception = #{record.srException},
+               zc_count = #{record.zcCount}, zc_exception = #{record.zcException},
+               kc_count = #{record.kcCount}, kc_exception = #{record.kcException},
+               tk_count = #{record.tkCount}, tk_exception = #{record.tkException},
+               state = #{record.state}, mod_userid = #{record.modUserId}, mod_time = #{record.modTime}
+         where zip_name = #{record.zipName}
+    </update>
+
+    <insert id="insertTimsPending">
+        insert into agent_key_file.tims_file_pending
+        (id, tre_code, biz_type, biz_date, file_name, file_path,
+         data_count, file_exception, state, add_userid, add_time, zip_file_path)
+        values
+        (#{record.id}, #{record.treCode}, #{record.bizType}, #{record.bizDate},
+         #{record.fileName}, #{record.filePath}, #{record.dataCount}, #{record.fileException},
+         #{record.state}, #{record.addUserId}, #{record.addTime}, #{record.zipFilePath})
+    </insert>
+
+    <update id="updateTimsPending">
+        update agent_key_file.tims_file_pending
+           set biz_date = #{record.bizDate}, data_count = #{record.dataCount},
+               file_exception = #{record.fileException}, state = #{record.state},
+               mod_userid = #{record.modUserId}, mod_time = #{record.modTime}
+         where id = #{record.id}
+    </update>
+</mapper>

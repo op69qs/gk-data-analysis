@@ -105,9 +105,9 @@
 - Create: `org-tribe-system/src/main/resources/mapper/reporting/{ReportProcessMapper,ReportingMonitoringMapper}.xml`
 - Test: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/service/ReportTaskServiceTest.java`
 
-- [ ] 写失败测试：`2026-07` 转为 `2026-07-31`；同账期范围已运行时再次调用抛出业务繁忙；重试生成新任务但沿用原批次账期和范围。
-- [ ] 执行 `cd org-tribe-system && mvn -Dtest=ReportTaskServiceTest test`，确认失败。
-- [ ] 实现“归档→解压→解析→中间表/STG→自动加工”的依赖任务链，过程调用为 `adm.P_GUOKU_LIB_REPORT_ALL(月末账期)`；读写 `etl.guoku_lib_report_all_log` 以保持原 JAR 的运行中互斥语义。
+- [x] 写失败测试：`2026-07` 转为 `2026-07-31`；同账期范围已运行时再次调用抛出业务繁忙；重试生成新任务但沿用原批次账期和范围。
+- [x] 执行 `cd org-tribe-system && mvn -Dtest=ReportTaskServiceTest test`，确认失败。
+- [x] 实现“归档→解压→解析→中间表/STG→自动加工”的依赖任务链，过程调用为 `adm.P_GUOKU_LIB_REPORT_ALL(月末账期)`；读写 `etl.guoku_lib_report_all_log` 以保持原 JAR 的运行中互斥语义。
 - [ ] 实现批次详情、时间线、文件下载、行错误、重试、再次加工、代理国库配置、KEY/TIMS 监控、收入/支出变更记录接口；所有接口使用 JEECG `Result`、当前用户和 `@AutoLog`。
 - [ ] 将 MySQL `IFNULL`、`DATE_FORMAT`、`LIMIT offset,size`、`GROUP_CONCAT/FIND_IN_SET` 改为 Vastbase SQL；所有查询参数绑定，禁止 `${}`。
 - [ ] 运行服务和 Mapper 测试，确认通过；提交 `feat: add reporting workflow and monitoring`。

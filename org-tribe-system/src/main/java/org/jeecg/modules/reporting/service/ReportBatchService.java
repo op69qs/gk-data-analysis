@@ -15,6 +15,7 @@ import org.jeecg.modules.reporting.vo.ReportBatchUploadResult;
 import org.jeecg.modules.reporting.vo.ReportUploadCommand;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -30,6 +31,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -47,6 +49,8 @@ public class ReportBatchService {
     private final ReportTaskMapper taskMapper;
     private final ReportTaskLogMapper taskLogMapper;
     private final ReportArchiveService archiveService;
+    private ReportTaskService reportTaskService;
+    private LegacyPendingService legacyPendingService;
 
     public ReportBatchService(ReportBatchMapper batchMapper,
                               ReportFileMapper fileMapper,
@@ -58,6 +62,16 @@ public class ReportBatchService {
         this.taskMapper = taskMapper;
         this.taskLogMapper = taskLogMapper;
         this.archiveService = archiveService;
+    }
+
+    @Autowired(required = false)
+    public void setReportTaskService(ReportTaskService reportTaskService) {
+        this.reportTaskService = reportTaskService;
+    }
+
+    @Autowired(required = false)
+    public void setLegacyPendingService(LegacyPendingService legacyPendingService) {
+        this.legacyPendingService = legacyPendingService;
     }
 
     @Transactional(noRollbackFor = ReportUploadException.class)
@@ -93,7 +107,8 @@ public class ReportBatchService {
         try {
             ArchiveResult archive = archiveService.archiveAndExtract(
                     file, validated.sourceDomain, validated.archivePeriod, batchId);
-            String archiveFileId = persistFiles(batch, archive, username, now);
+            PersistedFiles persistedFiles = persistFiles(batch, archive, username, now);
+            String archiveFileId = persistedFiles.archiveFileId;
             persistCompletedTask(batchId, "ARCHIVE", 10, 1, archive.getOriginalFileName(),
                     userId, username, now);
             persistCompletedTask(batchId, "EXTRACT", 30, 2,
@@ -110,6 +125,12 @@ public class ReportBatchService {
             batch.setUpdateBy(username);
             batch.setUpdateTime(new Date());
             batchMapper.updateById(batch);
+            if (legacyPendingService != null) {
+                legacyPendingService.create(batch, persistedFiles.files, userId);
+            }
+            if (reportTaskService != null) {
+                reportTaskService.publishInitial(batchId, userId, username);
+            }
             return toResult(batch);
         } catch (ReportFileHandlingException exception) {
             persistFailedFileHandling(batch, exception.getStage(), userId, username, exception);
@@ -120,8 +141,9 @@ public class ReportBatchService {
         }
     }
 
-    private String persistFiles(ReportBatch batch, ArchiveResult archive, String username, Date now)
+    private PersistedFiles persistFiles(ReportBatch batch, ArchiveResult archive, String username, Date now)
             throws IOException {
+        List<ReportFile> persisted = new ArrayList<>();
         ReportFile zipFile = new ReportFile();
         zipFile.setId(uuid());
         zipFile.setBatchId(batch.getId());
@@ -144,6 +166,7 @@ public class ReportBatchService {
         zipFile.setCreateBy(username);
         zipFile.setCreateTime(now);
         fileMapper.insert(zipFile);
+        persisted.add(zipFile);
 
         for (Path extracted : archive.getExtractedFiles()) {
             ReportFile child = new ReportFile();
@@ -167,8 +190,9 @@ public class ReportBatchService {
             child.setCreateBy(username);
             child.setCreateTime(now);
             fileMapper.insert(child);
+            persisted.add(child);
         }
-        return zipFile.getId();
+        return new PersistedFiles(zipFile.getId(), persisted);
     }
 
     private void initializeFileCounts(ReportFile file) {
@@ -398,6 +422,16 @@ public class ReportBatchService {
             this.businessType = businessType;
             this.archivePeriod = archivePeriod;
             this.accountingPeriodDate = accountingPeriodDate;
+        }
+    }
+
+    private static final class PersistedFiles {
+        private final String archiveFileId;
+        private final List<ReportFile> files;
+
+        private PersistedFiles(String archiveFileId, List<ReportFile> files) {
+            this.archiveFileId = archiveFileId;
+            this.files = files;
         }
     }
 }
