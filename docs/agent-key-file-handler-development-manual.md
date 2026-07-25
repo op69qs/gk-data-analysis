@@ -15,8 +15,8 @@
 | 批次 | 范围 | 状态 | 说明 |
 |---|---|---|---|
 | 1 | 状态模型、跟踪实体、对象核验和跟踪表脚本 | 已提交：`c05b05c` | 不写 JAR 既有数仓对象 |
-| 2 | ZIP 上传、归档、安全解压 | 已实现，待提交 | 已按脱敏收入 ZIP 核验多层目录和 macOS 附属文件 |
-| 3 | KEY 收入/支出/库存/退库解析 | 未开始 | 等待四类样例做最终对照 |
+| 2 | ZIP 上传、归档、安全解压 | 已提交：`5244e25` | 已按脱敏收入 ZIP 核验多层目录和 macOS 附属文件 |
+| 3 | KEY 收入/支出/库存/退库解析 | 已实现，待提交 | 已按 JAR 字节码复写；仍等待四类样例做日期格式和数据值最终对照 |
 | 4 | TIMS 收入/支出/库存解析和 STG 写入 | 未开始 | 当前仅有脱敏收入样例 |
 | 5 | 异步任务链、自动加工、监控和重试 | 未开始 | 真实过程和日志表须内网核对 |
 | 6 | Vue 2 页面、菜单权限和端到端验收 | 未开始 | 页面显示全过程详细状态 |
@@ -64,7 +64,38 @@
 
 上传接口当前随“数据上报”菜单授权访问。按钮权限编码已固定为 `reporting:batch:upload`，但未启用按钮拦截，确保现有系统只有菜单权限时仍可使用；后续区分上报人员与审核/运维人员时，只启用该权限点并调整角色授权，不改变接口路径和业务流程。
 
-## 5. 状态与页面展示规范
+## 5. 第 3 批文件与功能对应
+
+| 新文件 | 功能 | 业务逻辑 |
+|---|---|---|
+| `.../parser/KeyFileType.java` | KEY 文件分类 | 严格保留 JAR 的大小写规则：只识别小写 `.txt`，名称包含 `sr`、`zc`、`kc`、`tk` 时依次对应收入、支出、库存、退库 |
+| `.../parser/KeyFileParser.java` | KEY 文本解析 | UTF-8 逐行读取，TAB 分隔，不跳过首行；分别按 8、8、6、9 个字段解析，金额使用十进制类型 |
+| `.../parser/KeyReportRecord.java` | 四类记录模型 | 保留 JAR 字段顺序及 `ACOUNT_CODE`、`BCKREASON` 等原字段含义，不自行更名数据库列 |
+| `.../parser/KeyFileParseResult.java`、`KeyFileParseError.java` | 解析结果和行级异常 | 正确行继续处理；异常精确记录文件名、行号、原文和原因，供页面详细跟踪 |
+| `.../service/KeyReportProcessingService.java` | 递归处理和覆盖入库 | 查找任意目录深度的 KEY 文本；每类数据按 `KEY_ZIP_NAME` 先删除旧数据，再批量写入本次正确记录 |
+| `.../service/KeyReportProcessingResult.java` | 四类统计 | 分别返回 SR/ZC/KC/TK 文件数、成功行数、异常行数，并给出批次合计 |
+| `.../mapper/KeyReportMapper.java`、`.../mapper/xml/KeyReportMapper.xml` | Vastbase 持久化 | 固定写入 `agent_key_file` 下四张 JAR 原表；全程绑定参数，不使用动态 Schema 或 `${}`；日期用 Vastbase 可执行的 `cast(... as date)` |
+
+### 5.1 从 JAR 已核实的 KEY 原始规则
+
+原 JAR 的 `FileUtil.importFileContent` 明确使用 UTF-8，逐行读取所有内容；`parseKeyFileData` 使用 TAB 分隔且没有表头跳过逻辑。`KeyFileParseConfig` 只查找小写 `.txt`，并用文件名是否包含小写 `sr`、`zc`、`kc`、`tk` 判断类型。
+
+四类字段顺序如下，迁移代码逐位保持：
+
+| 类型 | JAR 字段顺序 |
+|---|---|
+| 收入 SR | `D_ACCT,TRECODE,SUBJECT_CODE,TAXORGCODE,BUDGET_TYPE,LEVEL,F_AMT,YEAR_AMT` |
+| 支出 ZC | `D_ACCT,TRECODE,SUBJECT_CODE,TAXORGCODE,CODE_TYPE,LEVEL,F_AMT,YEAR_AMT` |
+| 库存 KC | `D_ACCT,TRECODE,LEVEL,ACOUNT_CODE,F_BAL,YEAR_INIT_BAL` |
+| 退库 TK | `D_ACCT,TRECODE,SUBJECT_CODE,BUDGET_TYPE,LEVEL,TAXORGCODE,BCKREASON,F_AMT,YEAR_AMT` |
+
+JAR 对每一类执行“按 `KEY_ZIP_NAME` 删除旧明细，再插入新明细”，并将 ZIP 名和添加时间补入每行。新实现保留该覆盖语义；若同一 ZIP 内出现多个同类型文本，新实现先合并这些文本再覆盖一次，避免 JAR 在罕见多文件情况下只保留最后一个文件。此项属于可追踪的数据丢失缺陷修正，不改变单文件正常结果。
+
+### 5.2 KEY 尚待样例确认项
+
+JAR 把第一列原值交给数据库的日期函数，字节码不能证明生产文件实际使用 `yyyy-MM-dd`、`yyyyMMdd` 或其他形式。目前 Vastbase Mapper 按标准日期文本转换；在收到 KEY 脱敏样例后，必须逐类确认 `D_ACCT` 原始格式并补充明确的格式校验。未收到样例前，不宣称这一项已完成生产数据验收。
+
+## 6. 状态与页面展示规范
 
 统一执行状态为：`QUEUED`（等待）、`PROCESSING`（执行中）、`SUCCEEDED`（成功）、`PARTIALLY_SUCCEEDED`（部分成功）、`FAILED`（失败）、`CANCELLED`（取消）、`LOGICALLY_DELETED`（逻辑删除）。
 
@@ -72,7 +103,7 @@
 
 完成任务不原地改回等待状态。授权人员执行“重新解析、重新入库、再次加工”时，新建任务并通过 `retry_of_task_id` 关联原任务；调用账期和国库范围从原批次读取，不能由页面改成其他周期。
 
-## 6. 数据库归属与执行顺序
+## 7. 数据库归属与执行顺序
 
 JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`etl`、`adm`。本模块新建六张跟踪表也放在 `agent_key_file`，与业务归属一致。当前没有任何对象归属到 `ods`、`dmcode`、`comm_sys` 或 `dps`；若主系统菜单、用户范围接口间接依赖这些 Schema，后续作为“主系统集成依赖”单列，不能说成 JAR 依赖。
 
@@ -84,13 +115,13 @@ JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`
 4. 仅在确认 `agent_key_file` 可创建新表后执行 `05`、`06`。
 5. 未确认 `etl.guoku_lib_report_all_log` 和 `adm.P_GUOKU_LIB_REPORT_ALL` 前，自动加工开关必须关闭。
 
-## 7. 已确定与待内网确认
+## 8. 已确定与待内网确认
 
 已确定：JAR 直接引用的 Schema、19 个对象名称、KEY 四类文件、TIMS 三类文件、TIMS 三张 STG 目标表、月末账期调用规则、运行中互斥语义、自动调用和按原批次重试要求。
 
 仍待确认：19 个对象在内网 Vastbase 的真实 DDL/类型/授权，ADM 过程完整定义及依赖，ETL 日志表列定义，EDW 对象表或视图类型，国库树与当前用户范围接口，文件保留期和容量规则，KEY/支出/库存/退库完整脱敏样例。未确认项不会以猜测 SQL 接入生产对象。
 
-## 8. 验证基线与已知问题
+## 9. 验证基线与已知问题
 
 2026-07-25 在隔离分支执行基线验证：
 
@@ -105,3 +136,5 @@ JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`
 本模块测试在当前旧版 Surefire 2.21.0 环境使用 `-DforkCount=0` 执行，避免该运行器的子进程误判 Maven 父进程退出。该参数只影响测试进程，不影响生产代码和打包产物。
 
 第 2 批共执行 9 个定向用例：根目录 Excel、多层目录 Excel、macOS 附属文件忽略、附属文件仍纳入解压容量限制、ZIP 路径穿越拒绝、解压阶段失败识别、归档与 SHA-256、非 ZIP 拒绝、上传接口和批次/文件/任务持久化；全部通过。
+
+第 3 批当前执行 4 个定向用例：四类文件名识别、四类字段顺序、坏行不丢弃正确行、任意目录深度扫描及按 ZIP 覆盖四表；全部通过。Vastbase 真实表结构与 KEY 样例对照仍属于内网验收项。
