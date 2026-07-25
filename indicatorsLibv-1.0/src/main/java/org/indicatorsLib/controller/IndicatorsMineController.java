@@ -47,7 +47,7 @@ public class IndicatorsMineController extends BaseController {
     public Map<String, Object> getIndexParentInfo(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             List<Map<String, Object>> dataList = indicatorsMineService.getIndexParentInfo(pageData);
             List<TreeNode> treeNodeList = TreeFilterHeaper.definedTreeFilter(dataList);
             result.put("rows", treeNodeList);
@@ -66,7 +66,7 @@ public class IndicatorsMineController extends BaseController {
     public Map<String, Object> getIndexDimnsn(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             List<Map<String, Object>> data = new ArrayList<>();
             List<Map<String, Object>> dataList = indicatorsMineService.getIndexDimnsn(pageData.getString("INDEX_ID").split(","));
             for (Map<String, Object> map : dataList) {
@@ -91,7 +91,7 @@ public class IndicatorsMineController extends BaseController {
     public Map<String, Object> getIndexPeriod(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             List<Map<String, Object>> data = new ArrayList<>();
             List<Map<String, Object>> dataList = indicatorsMineService.getIndexPeriod(pageData.getString("INDEX_ID").split(","));
             for (Map<String, Object> map : dataList) {
@@ -122,7 +122,7 @@ public class IndicatorsMineController extends BaseController {
             @RequestBody(required = false) JSONObject param
     ) {
         Map<String, Object> result = new HashMap<>();
-        PageData pd = this.getPageData(param);
+        PageData pd = applyCurrentUser(this.getPageData(param));
         pd.put("PERSONAL_FLAG", "0");
         Integer pageNo = (Integer.parseInt(pd.getString("pageNo")) - 1) * Integer.parseInt(pd.getString("pageSize"));
         pd.put("page", pageNo);
@@ -153,7 +153,7 @@ public class IndicatorsMineController extends BaseController {
             @RequestBody(required = false) JSONObject param
     ) {
         Map<String, Object> result = new HashMap<>();
-        PageData pd = this.getPageData(param);
+        PageData pd = applyCurrentUser(this.getPageData(param));
         pd.put("PERSONAL_FLAG", "1");
         if (pd.get("C_BDGLEVEL") != null) {
             pd.put("C_BDGLEVEL", pd.getString("C_BDGLEVEL").split(","));
@@ -207,7 +207,7 @@ public class IndicatorsMineController extends BaseController {
             @RequestBody(required = false) JSONObject param
     ) {
         Map<String, Object> res = new HashMap<>();
-        PageData pd = this.getPageData(param);
+        PageData pd = applyCurrentUser(this.getPageData(param));
         pd.put("INDEX_ID", this.get32UUID());
         String dateNow = DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS);
         String exeDate = DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD);
@@ -305,7 +305,7 @@ public class IndicatorsMineController extends BaseController {
             "ORIGINAL_DSCR_ARRY:原始表达式数组/SQL字段\n" +
                     "INDEX_DSCR_ARRY: 指标表达式数组/SQL条件\n") @RequestBody JSONObject param) {
         Map<String, Object> res = new HashMap<>();
-        PageData pd = this.getPageData(param);
+        PageData pd = applyCurrentUser(this.getPageData(param));
 
         try {
             String dateNow = DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS);
@@ -371,7 +371,7 @@ public class IndicatorsMineController extends BaseController {
         Map<String, Object> res = new HashMap<>();
 
         try {
-            PageData pd = this.getPageData(param);
+            PageData pd = applyCurrentUser(this.getPageData(param));
             pd.put("MODIFY_USERID", pd.get("ADD_USERID"));
             pd.put("MODIFY_DATE", DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS));
 
@@ -416,7 +416,7 @@ public class IndicatorsMineController extends BaseController {
         Map<String, Object> res = new HashMap<>();
 
         try {
-            PageData pd = this.getPageData(param);
+            PageData pd = applyCurrentUser(this.getPageData(param));
             pd.put("MODIFY_USERID", pd.get("ADD_USERID"));
             pd.put("MODIFY_DATE", DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS));
             /*修改指标对应数据表*/
@@ -442,7 +442,7 @@ public class IndicatorsMineController extends BaseController {
     public Map<String, Object> submitIndexData(@RequestBody JSONObject param) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pd = this.getPageData(param);
+            PageData pd = applyCurrentUser(this.getPageData(param));
             pd.put("PERSONAL_FLAG", "1"); //个人指标标识(0是，1否)
             pd.put("MODIFY_DATE", DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS));
             /*删除指标对应数据表*/
@@ -466,7 +466,7 @@ public class IndicatorsMineController extends BaseController {
     @ApiOperation(value = "指标历史跑批")
     public Map<String, Object> historyRunBatch(@RequestBody JSONObject param) {
         Map<String, Object> result = new HashMap<>();
-        PageData pd = this.getPageData(param);
+        PageData pd = applyCurrentUser(this.getPageData(param));
         try {
             pd.put("returnVal", ""); //接收存储过程返回结果
             pd.put("RUN_BATCH_STATUS", "1");
@@ -501,7 +501,7 @@ public class IndicatorsMineController extends BaseController {
         Map<String, Object> res = new HashMap<>();
 
         try {
-            PageData pd = this.getPageData(param);
+            PageData pd = applyCurrentUser(this.getPageData(param));
             pd.put("MODIFY_DATE", DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS));
             /*删除指标对应数据表*/
             boolean detele1 = indicatorsMineService.deteleMineRelation(pd);
@@ -543,7 +543,7 @@ public class IndicatorsMineController extends BaseController {
         Map<String, Object> res = new HashMap<>();
 
         try {
-            PageData pd = this.getPageData(param);
+            PageData pd = applyCurrentUser(this.getPageData(param));
             pd.put("MODIFY_DATE", DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS));
             /*逻辑删除公共指标对应数据表*/
             indicatorsMineService.detelePublicRelation(pd);

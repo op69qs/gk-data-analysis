@@ -427,9 +427,23 @@ public class ComprehensiveQueryController extends BaseController {
         Map<String, Object> jsonMap = new HashMap<>();
         try {
             PageData pd = this.getPageData();
+            Map<String, Object> indicatorScheme = comprehensiveQueryService.getIndicatorScheme(pd.getString("ID"));
+            if (indicatorScheme != null && !indicatorScheme.isEmpty()) {
+                String schemeCondition = String.valueOf(indicatorScheme.get("SCHEME_CONDITON"));
+                Map<String, Object> condition = JSONObject.parseObject(schemeCondition, Map.class);
+                String scopedSql = IndicatorDataScopeSql.apply(
+                        String.valueOf(indicatorScheme.get("SCHEME_SQL")),
+                        String.valueOf(condition.get("dimensionFlag")),
+                        getRequest().getHeader("X-Analysis-Subject-Code"),
+                        getRequest().getHeader("X-Analysis-Guoku-Id"));
+                pd.put("sql", scopedSql);
+                pd.put("countSql", "SELECT COUNT(1) FROM (" + scopedSql + ") indicator_scope_count");
+                jsonMap.put("total", comprehensiveQueryService.countSql(pd, pd.getString("TABLE_ID")));
+            } else {
+                jsonMap.put("total", pd.getString("SCHEME_COUNT"));
+            }
             List<Map<String, Object>> temp = comprehensiveQueryService.executeSql(pd, pd.getString("TABLE_ID"));
             jsonMap.put("rows", temp);
-            jsonMap.put("total", pd.getString("SCHEME_COUNT"));
             jsonMap.put("result", "success");
         } catch (Exception e) {
             e.printStackTrace();

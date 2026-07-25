@@ -15,6 +15,12 @@ public class ComprehensiveQueryServiceImpl implements ComprehensiveQueryService 
 
     @Autowired
     private ComprehensiveQueryMapper comprehensiveQueryMapper;
+
+    @Override
+    public Map<String, Object> getIndicatorScheme(String schemeId) {
+        DataSourceContextHolder.setDBType("default");
+        return comprehensiveQueryMapper.getIndicatorScheme(schemeId);
+    }
     @Override
     public List<Map<String, Object>> getTableName(PageData pd) {
         DataSourceContextHolder.setDBType("default");

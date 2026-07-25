@@ -75,7 +75,7 @@
                 IS_PUSH = #{params.IS_PUSH}
             </if>
         </set>
-        WHERE id = #{params.schemeId}
+        WHERE id = #{params.schemeId} AND ADD_USERID = #{params.userId}
     </update>
 
     <!--    保存指标方案之前校验方案描述的唯一性-->
@@ -158,7 +158,7 @@
         FROM indicators_lib.lib_index_scheme s
         <!--  个人常用的公共指标方案,需要关联方案关系表 -->
         <if test='params.isPublicScheme == "0"'>
-            RIGHT JOIN indicators_lib.lib_public_scheme p ON s.ID=p.SCHEME_ID AND s.ADD_USERID=p.ADD_USERID
+            RIGHT JOIN indicators_lib.lib_public_scheme p ON s.ID=p.SCHEME_ID
         </if>
         WHERE S.IS_DELETE='1'
         <!--  个人指标方案 -->
@@ -167,7 +167,7 @@
         </if>
         <!--  公共指标方案 -->
         <if test='params.isPublicScheme == "0"'>
-            AND IS_PUBLIC_SCHEME = '0'
+            AND p.ADD_USERID=#{params.userId} AND IS_PUBLIC_SCHEME = '0'
         </if>
         <if test="params.schemeDescr != null and params.schemeDescr != ''">
             AND s.SCHEME_DESCR LIKE CONCAT('%', #{params.schemeDescr}, '%')
@@ -187,10 +187,14 @@
         SELECT s.SCHEME_SQL FROM indicators_lib.lib_index_scheme s WHERE s.id=#{schemeId}
     </select>
 
+    <select id="selectSchemeCondition" resultType="string">
+        SELECT s.SCHEME_CONDITON FROM indicators_lib.lib_index_scheme s WHERE s.id=#{schemeId}
+    </select>
+
     <!--    删除指标方案-->
     <update id="deleteSchemeById">
         DELETE FROM indicators_lib.lib_index_scheme
-        WHERE id=#{params.schemeId}
+        WHERE id=#{params.schemeId} AND ADD_USERID=#{params.userId}
     </update>
 
     <!--    删除指标方案旧逻辑已废弃，保留当前物理删除实现-->
@@ -208,12 +212,12 @@
                 FROM indicators_lib.lib_index_relation o
                 WHERE POSITION(CONCAT(',', o.INDEX_ID, ',') IN CONCAT(',', COALESCE(s.SCHEME_COLUMS, ''), ',')) > 0
             ) AS INDEX_NAME,
-            CASE WHEN  (SELECT COUNT(1) FROM indicators_lib.lib_public_scheme p WHERE p.ADD_USERID = '${params.userId}' AND p.SCHEME_ID = s.ID) > 0 THEN
+            CASE WHEN  (SELECT COUNT(1) FROM indicators_lib.lib_public_scheme p WHERE p.ADD_USERID = #{params.userId} AND p.SCHEME_ID = s.ID) > 0 THEN
             '1' ELSE '0' END AS STATE
         FROM indicators_lib.lib_index_scheme s
         WHERE S.IS_DELETE='1' AND IS_PUBLIC_SCHEME = '0'
-        <if test="params.schemeDescr != null or params.schemeDescr != ''">
-            AND s.SCHEME_DESCR LIKE '%${params.schemeDescr}%'
+        <if test="params.schemeDescr != null and params.schemeDescr != ''">
+            AND s.SCHEME_DESCR LIKE CONCAT('%', #{params.schemeDescr}, '%')
         </if>
         ORDER BY MODIFY_DATE DESC
         LIMIT ${params.pageSize} OFFSET ${params.page}
@@ -240,7 +244,8 @@
 
     <!--    删除指标个人常用公共方案-->
     <delete id="deletePublicScheme">
-        DELETE FROM indicators_lib.lib_public_scheme WHERE SCHEME_ID=#{params.schemeId}
+        DELETE FROM indicators_lib.lib_public_scheme
+        WHERE SCHEME_ID=#{params.schemeId} AND ADD_USERID=#{params.userId}
     </delete>
 
 </mapper>

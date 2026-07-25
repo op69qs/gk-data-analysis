@@ -44,6 +44,7 @@ public class NexusOAuthController {
     private static final String NEXUS_PORTAL_USER_ID_PREFIX = "PREFIX_NEXUS_PORTAL_USER_ID_";
     private static final String NEXUS_PORTAL_ACCESS_TOKEN_PREFIX = "PREFIX_NEXUS_PORTAL_ACCESS_TOKEN_";
     private static final String NEXUS_PORTAL_LOGIN_USER_PREFIX = "PREFIX_NEXUS_PORTAL_LOGIN_USER_";
+    private static final String NEXUS_PORTAL_SUBJECT_CODE_PREFIX = "PREFIX_NEXUS_PORTAL_SUBJECT_CODE_";
 
     @Autowired
     private ISysUserService sysUserService;
@@ -112,6 +113,7 @@ public class NexusOAuthController {
             // 3. Prefer a local user when it exists; otherwise keep the portal identity in Redis only.
             SysUser sysUser = sysUserService.getUserByName(username);
             portalUserId = decoded.getSubject();
+            String subjectCode = decoded.getClaim("subject_code").asString();
             boolean portalOnlyUser = sysUser == null;
             if (!portalOnlyUser) {
                 result = sysUserService.checkUserIsEffective(sysUser);
@@ -136,6 +138,10 @@ public class NexusOAuthController {
             }
             redisUtil.set(NEXUS_PORTAL_ACCESS_TOKEN_PREFIX + token, accessToken);
             redisUtil.expire(NEXUS_PORTAL_ACCESS_TOKEN_PREFIX + token, JwtUtil.EXPIRE_TIME / 1000);
+            if (StringUtils.isNotEmpty(subjectCode)) {
+                redisUtil.set(NEXUS_PORTAL_SUBJECT_CODE_PREFIX + token, subjectCode);
+                redisUtil.expire(NEXUS_PORTAL_SUBJECT_CODE_PREFIX + token, JwtUtil.EXPIRE_TIME / 1000);
+            }
             if (portalOnlyUser) {
                 redisUtil.set(NEXUS_PORTAL_LOGIN_USER_PREFIX + token, sysUser);
                 redisUtil.expire(NEXUS_PORTAL_LOGIN_USER_PREFIX + token, JwtUtil.EXPIRE_TIME / 1000);

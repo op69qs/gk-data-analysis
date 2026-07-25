@@ -47,6 +47,11 @@ public class IndexSchemeServiceImpl implements IndexSchemeService {
     }
 
     @Override
+    public String selectSchemeCondition(String schemeId) {
+        return indexSchemeMapper.selectSchemeCondition(schemeId);
+    }
+
+    @Override
     @Transactional(rollbackFor = RuntimeException.class)
     public void deleteSchemeById(Map<String, Object> params) {
         indexSchemeMapper.deleteSchemeById(params);

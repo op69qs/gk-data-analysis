@@ -13,14 +13,45 @@ import static org.junit.Assert.assertTrue;
 public class TreeFilterHeaperTest {
 
     @Test
-    public void preservesWhetherAnIndicatorTreeNodeIsDisabled() {
+    public void categoryWithSelectableChildrenRemainsCheckable() {
         Map<String, Object> category = treeRow("category", "", "分类", true);
         Map<String, Object> indicator = treeRow("indicator", "category", "指标", false);
 
         List<TreeNode> tree = TreeFilterHeaper.definedTreeFilter(Arrays.asList(category, indicator));
 
-        assertTrue(tree.get(0).isDisabled());
+        assertFalse(tree.get(0).isDisabled());
         assertFalse(tree.get(0).getChildren().get(0).isDisabled());
+    }
+
+    @Test
+    public void leafWithoutExecutableMetadataRemainsDisabled() {
+        Map<String, Object> invalidIndicator = treeRow("indicator", "", "无效指标", true);
+
+        List<TreeNode> tree = TreeFilterHeaper.definedTreeFilter(Arrays.asList(invalidIndicator));
+
+        assertTrue(tree.get(0).isDisabled());
+    }
+
+    @Test
+    public void nestedCategoriesLeadingToSelectableIndicatorRemainCheckable() {
+        Map<String, Object> root = treeRow("root", "", "根分类", true);
+        Map<String, Object> category = treeRow("category", "root", "子分类", true);
+        Map<String, Object> indicator = treeRow("indicator", "category", "指标", false);
+
+        List<TreeNode> tree = TreeFilterHeaper.definedTreeFilter(Arrays.asList(root, category, indicator));
+
+        assertFalse(tree.get(0).isDisabled());
+        assertFalse(tree.get(0).getChildren().get(0).isDisabled());
+    }
+
+    @Test
+    public void categoryWithOnlyInvalidLeavesRemainsDisabled() {
+        Map<String, Object> category = treeRow("category", "", "分类", true);
+        Map<String, Object> invalidIndicator = treeRow("indicator", "category", "无效指标", true);
+
+        List<TreeNode> tree = TreeFilterHeaper.definedTreeFilter(Arrays.asList(category, invalidIndicator));
+
+        assertTrue(tree.get(0).isDisabled());
     }
 
     private Map<String, Object> treeRow(String id, String parentId, String text, boolean disabled) {

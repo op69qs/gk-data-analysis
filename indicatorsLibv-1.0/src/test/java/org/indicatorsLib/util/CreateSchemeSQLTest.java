@@ -66,8 +66,9 @@ public class CreateSchemeSQLTest {
         Map<String, Object> chartCondition = new HashMap<>();
         chartCondition.put("direction", "");
 
-        String periodSql = sqlBuilder.getAccountPeriodSql(condition, chartCondition);
-        String dimensionSql = sqlBuilder.getDimensionSQL(condition, chartCondition);
+        IndicatorRequestContext requestContext = IndicatorRequestContext.local("user-1", "GK-001");
+        String periodSql = sqlBuilder.getAccountPeriodSql(condition, chartCondition, requestContext);
+        String dimensionSql = sqlBuilder.getDimensionSQL(condition, chartCondition, requestContext);
 
         assertTrue(periodSql.contains("AS \"START_DATE\""));
         assertTrue(periodSql.contains("AS \"END_DATE\""));
@@ -120,7 +121,7 @@ public class CreateSchemeSQLTest {
     }
 
     @Test
-    public void generatedSchemeSqlRestrictsGuokuRowsToCurrentUsersHierarchy() {
+    public void generatedSchemeSqlDoesNotPersistCurrentUsersDataScope() {
         PageData pageData = new PageData();
         pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404");
         pageData.put("userId", "user-1");
@@ -128,19 +129,17 @@ public class CreateSchemeSQLTest {
 
         String sql = sqlBuilder.getSchemeSQL(pageData);
 
-        assertTrue(sql.contains("WITH RECURSIVE authorized_guoku"));
-        assertTrue(sql.contains("FROM dmcode.cm_guoku_dimnsn"));
-        assertTrue(sql.contains("JOIN \"jeecg-boot-os\".sys_user"));
-        assertTrue(sql.contains("u.ID = 'user-1'"));
-        assertTrue(sql.contains("SELECT guoku_id FROM authorized_guoku"));
+        assertFalse(sql.contains("authorized_guoku"));
+        assertFalse(sql.contains("sys_user"));
+        assertFalse(sql.contains("user-1"));
     }
 
     @Test
-    public void generatedSchemeSqlFailsClosedWithoutUserId() {
+    public void generatedSchemeSqlDoesNotRequireUserId() {
         PageData pageData = new PageData();
         pageData.put("columns", "18dbf0d2b0a211ea8bc1000c29587404");
         pageData.put("mainCondition", "{\"dimensionFlag\":\"1\",\"periodFlag\":\"2\",\"price\":\"1\"}");
 
-        assertNull(sqlBuilder.getSchemeSQL(pageData));
+        assertTrue(sqlBuilder.getSchemeSQL(pageData).contains("FROM indicators_lib.lib_indicators_000189"));
     }
 }

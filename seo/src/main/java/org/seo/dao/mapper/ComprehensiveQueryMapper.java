@@ -75,4 +75,6 @@ public interface ComprehensiveQueryMapper {
     List<Map<String,Object>> executeSql(@Param("params") PageData pd);
 
     Integer countSql(@Param("params") PageData pd);
+
+    Map<String, Object> getIndicatorScheme(@Param("schemeId") String schemeId);
 }

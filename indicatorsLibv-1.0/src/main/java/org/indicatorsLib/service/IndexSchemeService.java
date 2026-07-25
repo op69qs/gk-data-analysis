@@ -62,6 +62,8 @@ public interface IndexSchemeService {
      */
     String selectSchemeSQL(String schemeId);
 
+    String selectSchemeCondition(String schemeId);
+
     /**
      * 根据方案id删除方案
      *

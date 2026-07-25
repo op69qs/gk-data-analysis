@@ -58,7 +58,22 @@ public class TreeFilterHeaper {
                 treeData.add(tmpMap.get(String.valueOf(data.get(i).get(idFiled))));
             }
         }
+        for (TreeNode root : treeData) {
+            enableBranchesWithSelectableIndicators(root);
+        }
         return treeData;
+    }
+
+    private static boolean enableBranchesWithSelectableIndicators(TreeNode node) {
+        boolean hasSelectableDescendant = false;
+        for (TreeNode child : node.getChildren()) {
+            boolean childIsSelectable = enableBranchesWithSelectableIndicators(child);
+            hasSelectableDescendant = childIsSelectable || hasSelectableDescendant;
+        }
+        if (hasSelectableDescendant) {
+            node.setDisabled(false);
+        }
+        return !node.isDisabled();
     }
 
 }

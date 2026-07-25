@@ -72,6 +72,8 @@ public interface IndexSchemeMapper {
      */
     String selectSchemeSQL(@Param("schemeId") String schemeId);
 
+    String selectSchemeCondition(@Param("schemeId") String schemeId);
+
     /**
      * 根据方案id删除方案
      *

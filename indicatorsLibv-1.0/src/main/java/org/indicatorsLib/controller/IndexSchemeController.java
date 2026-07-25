@@ -53,7 +53,7 @@ public class IndexSchemeController extends BaseController {
     @PostMapping(value = "/pushIndexToVS")
     public Map<String, Object> pushIndexToVS(@RequestBody JSONObject jsonObject){
         Map<String, Object> result = new HashMap<>();
-        PageData pageData = this.getPageData(jsonObject);
+        PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
         PageData pd_2 = new PageData();
         indexSchemeService.pushIndexToVS(pageData);
 
@@ -80,7 +80,7 @@ public class IndexSchemeController extends BaseController {
     public Map<String, Object> saveIndexScheme(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             //保存方案之前先做【方案描述】字段校验
             if (indexSchemeService.validatySchemeDescr(pageData) > 0) {
                 result.put("result", "false");
@@ -128,7 +128,7 @@ public class IndexSchemeController extends BaseController {
     public Map<String, Object> schemeRename(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             //保存方案之前先做【方案描述】字段校验
             if (indexSchemeService.validatySchemeDescr(pageData) > 0) {
                 result.put("result", "false");
@@ -158,8 +158,7 @@ public class IndexSchemeController extends BaseController {
     public Map<String, Object> deleteScheme(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
-            pageData.put("userId", pageData.get("userId").toString());
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             pageData.put("date", DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS));
             indexSchemeService.deleteSchemeById(pageData);
             result.put("result", "success");
@@ -183,8 +182,7 @@ public class IndexSchemeController extends BaseController {
     public Map<String, Object> deletePublicScheme(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
-            pageData.put("userId", pageData.get("userId").toString());
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             pageData.put("date", DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS));
             indexSchemeService.deletePublicScheme(pageData);
             result.put("result", "success");
@@ -210,7 +208,7 @@ public class IndexSchemeController extends BaseController {
         Map<String, Object> result = new HashMap<>();
         try {
 
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             if (indexSchemeService.isUsedPublicScheme(pageData)) { //个人已添加公共方案到首页
                 result.put("result", "false");
                 result.put("msg", "已添加过该方案");
@@ -241,9 +239,8 @@ public class IndexSchemeController extends BaseController {
     public Map<String, Object> submitScheme(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             pageData.put("isPublicScheme", "0"); //变为公共方案
-            pageData.put("userId", pageData.get("userId").toString());
             pageData.put("date", DateUtil.getCurrentDateStr(DateUtil.Pattern.YYYY_MM_DD_HH_MM_SS));
             //提交个人方案变为公共方案
             indexSchemeService.updateSchemeData(pageData);
@@ -268,7 +265,7 @@ public class IndexSchemeController extends BaseController {
     public Map<String, Object> selectPublicScheme(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             Integer pageSize = Integer.parseInt(pageData.getString("pageSize"));
             Integer pageNo = (Integer.parseInt(pageData.getString("pageNo")) - 1) * pageSize;
             pageData.put("page", pageNo);
@@ -298,15 +295,13 @@ public class IndexSchemeController extends BaseController {
     @PostMapping(value = "/selectSchemeTable")
     public Map<String, Object> selectSchemeTable(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
-        PageData pageData = this.getPageData(jsonObject);
+        PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
         try {
             Integer pageSize = Integer.parseInt(pageData.getString("pageSize"));
             Integer pageNo = (Integer.parseInt(pageData.getString("pageNo")) - 1) * pageSize;
             pageData.put("page", pageNo);
             pageData.put("rows", pageSize);
             String isPublicScheme = pageData.getString("isPublicScheme"); //是否为个人指标方案或个人常用公共指标方案
-            //根据userId的参数是否为空判断sql方案的count是条件查询还是全查询
-            String userId = oConvertUtils.isEmpty(pageData.get("userId")) ? null : pageData.getString("userId");
             Integer count = "1".equals(isPublicScheme) ? indexSchemeService.getSchemeCount(pageData) : indexSchemeService.getUsedPublicSchemeCount(pageData);
             List<Map<String, Object>> dataList = indexSchemeService.selectSchemeTable(pageData);
             result.put("result", "success");
@@ -333,7 +328,7 @@ public class IndexSchemeController extends BaseController {
     public Map<String, Object> selectSchemeData(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pageData = this.getPageData(jsonObject);
+            PageData pageData = applyCurrentUser(this.getPageData(jsonObject));
             String schemeId = pageData.getString("schemeId");
             this.selectSchemeColumns(result, schemeId); //指标方案的表头字段
             Integer pageNo = 1;
@@ -346,6 +341,10 @@ public class IndexSchemeController extends BaseController {
             }
             String schemeSql = indexSchemeService.selectSchemeSQL(schemeId);
             if (StringUtils.isNotBlank(schemeSql)) {
+                String schemeCondition = indexSchemeService.selectSchemeCondition(schemeId);
+                Map<String, Object> condition = JSON.parseObject(schemeCondition, Map.class);
+                schemeSql = applyIndicatorDataScope(
+                        schemeSql, String.valueOf(condition.get("dimensionFlag")));
                 Integer count = indexRelationService.getIndicatorsCount(schemeSql);
                 schemeSql = schemeSql + " LIMIT " + pageSize + " OFFSET " + ((pageNo - 1) * pageSize);
                 List<Map<String, Object>> dataList = indexRelationService.getIndicatorsTable(schemeSql);
@@ -386,8 +385,10 @@ public class IndexSchemeController extends BaseController {
     public void downLoadIssueList(@RequestParam("params") String params, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Map<String, Object> map = JSON.parseObject(params, new TypeReference<Map<String, Object>>() {
         }, Feature.OrderedField); //传递的json串按照顺序转换
-        PageData pageData = this.getPageData(JSONObject.parseObject(params));
+        PageData pageData = applyCurrentUser(this.getPageData(JSONObject.parseObject(params)));
         String schemeSQL = createSchemeSQL.getSchemeSQL(pageData);
+        Map<String, Object> condition = (Map<String, Object>) JSON.parse(pageData.get("mainCondition").toString());
+        schemeSQL = applyIndicatorDataScope(schemeSQL, String.valueOf(condition.get("dimensionFlag")));
         List<Map<String, Object>> dataList = indexRelationService.getIndicatorsTable(schemeSQL);
         LinkedHashMap<String, Object> titleMap = JSON.parseObject(map.get("titles").toString(), LinkedHashMap.class);
         String[] titleArray = new String[titleMap.size()];

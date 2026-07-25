@@ -71,4 +71,6 @@ public interface ComprehensiveQueryService {
     List<Map<String,Object>> executeSql(PageData pd,String dataSource_id);
 
     Integer countSql(PageData pd,String dataSource_id);
+
+    Map<String, Object> getIndicatorScheme(String schemeId);
 }

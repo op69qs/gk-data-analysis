@@ -61,6 +61,7 @@ UPDATE indicators_lib.lib_index_scheme
  WHERE scheme_sql ILIKE '%IFNULL(%'
     OR scheme_sql ILIKE '%SUM(IF(%'
     OR scheme_sql ILIKE '%edw.cm_guoku_dimnsn%'
+    OR scheme_sql ILIKE '%authorized_guoku%'
     OR scheme_sql LIKE '%' || chr(96) || '%'
     OR scheme_sql LIKE '%aa.COLID,%';
 
@@ -74,6 +75,7 @@ UPDATE visual_screen.vs_lib_index_scheme
  WHERE scheme_sql ILIKE '%IFNULL(%'
     OR scheme_sql ILIKE '%SUM(IF(%'
     OR scheme_sql ILIKE '%edw.cm_guoku_dimnsn%'
+    OR scheme_sql ILIKE '%authorized_guoku%'
     OR scheme_sql LIKE '%' || chr(96) || '%'
     OR scheme_sql LIKE '%aa.COLID,%';
 
@@ -94,6 +96,8 @@ BEGIN
      WHERE scheme_sql ILIKE '%IFNULL(%'
         OR scheme_sql ILIKE '%SUM(IF(%'
         OR scheme_sql ILIKE '%edw.cm_guoku_dimnsn%'
+        OR scheme_sql ILIKE '%authorized_guoku%'
+        OR scheme_sql ILIKE '%"jeecg-boot-os".sys_user%'
         OR scheme_sql LIKE '%' || chr(96) || '%'
         OR scheme_sql LIKE '%aa.COLID,%';
     IF legacy_count <> 0 THEN

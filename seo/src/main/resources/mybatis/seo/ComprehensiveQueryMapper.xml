@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.seo.dao.mapper.ComprehensiveQueryMapper">
+    <select id="getIndicatorScheme" resultType="hashmap">
+        SELECT SCHEME_SQL AS "SCHEME_SQL", SCHEME_CONDITON AS "SCHEME_CONDITON"
+          FROM visual_screen.vs_lib_index_scheme
+         WHERE ID = #{schemeId}
+    </select>
 
     <select id="getTableName" resultType="java.util.Map">
         SELECT

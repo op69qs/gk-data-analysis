@@ -168,7 +168,7 @@ public class IndexRelationController extends BaseController {
     @PostMapping(value = "/selectIndexRelationTree")
     public Map<String, Object> selectIndexRelationTree(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
-        PageData pageData = this.getPageData(jsonObject);
+        PageData pageData = getIndicatorTreePageData(jsonObject);
         try {
             if (oConvertUtils.isNotEmpty(pageData.get("name"))) { //若指标关键字查询不为空
                 pageData.put("name", pageData.getString("name").split(",")); //按逗号截取字符串
@@ -243,7 +243,7 @@ public class IndexRelationController extends BaseController {
     @PostMapping(value = "/selectIndexEchartsTree")
     public Map<String, Object> selectIndexEchartsTree(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
-        PageData pageData = this.getPageData(jsonObject);
+        PageData pageData = getIndicatorTreePageData(jsonObject);
         try {
             List<Map<String, Object>> dataList = indexRelationService.selectIndexRelationTree(pageData);
             List<IndexTreeNode> treeNodeList = new ArrayList<>();
@@ -295,6 +295,16 @@ public class IndexRelationController extends BaseController {
             }
         }
     }
+
+    private PageData getIndicatorTreePageData(JSONObject jsonObject) {
+        PageData pageData = this.getPageData(jsonObject);
+        if ("0".equals(pageData.getString("personalFlag"))) {
+            return applyCurrentUser(pageData);
+        }
+        // Public indicators are shared; creator identity must never filter this tree.
+        pageData.remove("userId");
+        return pageData;
+    }
 /**
      * 查询指标方案table
      *
@@ -310,7 +320,7 @@ public class IndexRelationController extends BaseController {
             Integer pageSize = Integer.parseInt(pageData.getString("pageSize"));
             Integer pageNo = (Integer.parseInt(pageData.getString("pageNo")) - 1) * pageSize;
 
-            String schemeSql = createSchemeSQL.getSchemeSQL(pageData);
+            String schemeSql = createScopedSchemeSql(pageData);
             if (StringUtils.isBlank(schemeSql)) {
                 result.put("result", "false");
                 result.put("msg", "指标组装方案失败");
@@ -396,7 +406,7 @@ public class IndexRelationController extends BaseController {
         Map<String, Object> result = new HashMap<>();
         try {
             PageData pageData = this.getPageData(jsonObject);
-            String schemeSql = createSchemeSQL.getSchemeSQL(pageData);
+            String schemeSql = createScopedSchemeSql(pageData);
             if (StringUtils.isBlank(schemeSql)) {
                 result.put("result", "false");
                 result.put("msg", "查询指标ECharts数据失败");
@@ -408,7 +418,8 @@ public class IndexRelationController extends BaseController {
                 if (!"cake".equals(eChartsCondition.get("eChartsFlag").toString())) {
                     if (oConvertUtils.isNotEmpty(eChartsCondition.get("eChartsDate"))) { //以维度作为X轴刻度
                         if (oConvertUtils.isEmpty(condition.get("dimCode"))) { //维度不传代表全部维度
-                            dimensionData = indexRelationService.getDimensionData(createSchemeSQL.getDimensionSQL(condition, eChartsCondition));
+                            dimensionData = indexRelationService.getDimensionData(
+                                    createSchemeSQL.getDimensionSQL(condition, eChartsCondition, getIndicatorRequestContext()));
                             for (Map<String, Object> map : dimensionData) {
                                 scaleList.add(map.get("DIMCODE").toString());
                             }
@@ -447,7 +458,7 @@ public class IndexRelationController extends BaseController {
         try {
             PageData pageData = this.getPageData(jsonObject);
 
-            String schemeSql = createSchemeSQL.getSchemeSQL(pageData);
+            String schemeSql = createScopedSchemeSql(pageData);
             if (StringUtils.isBlank(schemeSql)) {
                 result.put("result", "false");
                 result.put("msg", "查询指标ECharts数据失败");
@@ -531,6 +542,16 @@ public class IndexRelationController extends BaseController {
      * @param map
      * @return
      */
+    private String createScopedSchemeSql(PageData pageData) {
+        String sourceSql = createSchemeSQL.getSchemeSQL(pageData);
+        if (org.apache.commons.lang.StringUtils.isBlank(sourceSql)) {
+            return sourceSql;
+        }
+        Map<String, Object> condition = (Map<String, Object>) JSON.parse(
+                pageData.get("mainCondition").toString());
+        return applyIndicatorDataScope(sourceSql, String.valueOf(condition.get("dimensionFlag")));
+    }
+
     private List<String> setEChartsScale(Map<String, Object> map, Map<String, Object> eChartsCondition) {
         List<String> list = new ArrayList<>();
         String periodFlag = map.get("periodFlag").toString();
@@ -541,7 +562,8 @@ public class IndexRelationController extends BaseController {
                 eChartsCondition = new HashMap<>();
                 eChartsCondition.put("direction", "");
             }
-            Map<String, Object> dateMap = indexRelationService.getMinDateAndMaxDate(createSchemeSQL.getAccountPeriodSql(map, eChartsCondition));
+            Map<String, Object> dateMap = indexRelationService.getMinDateAndMaxDate(
+                    createSchemeSQL.getAccountPeriodSql(map, eChartsCondition, getIndicatorRequestContext()));
             if (dateMap != null && dateMap.size() > 0) {
                 startDate = dateMap.get("START_DATE").toString();
                 endDate = dateMap.get("END_DATE").toString();
