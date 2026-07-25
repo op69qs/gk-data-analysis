@@ -47,4 +47,24 @@
                mod_userid = #{record.modUserId}, mod_time = #{record.modTime}
          where id = #{record.id}
     </update>
+
+    <select id="findTimsPendingById" resultType="org.jeecg.modules.reporting.legacy.LegacyTimsPending">
+        select * from agent_key_file.tims_file_pending where id = #{id}
+    </select>
+
+    <delete id="deleteTimsPendingScope">
+        delete from agent_key_file.tims_file_pending
+         where id = #{id}
+            or (biz_type = #{bizType} and biz_date = #{bizDate} and tre_code = #{treCode})
+    </delete>
+
+    <delete id="deleteKeyPending">
+        delete from agent_key_file.agent_keyfile_pending
+         where id = #{id} or zip_name = #{zipName}
+    </delete>
+
+    <delete id="deleteTimsPending">
+        delete from agent_key_file.tims_file_pending
+         where id = #{id} or id like concat(#{id}, '-%')
+    </delete>
 </mapper>

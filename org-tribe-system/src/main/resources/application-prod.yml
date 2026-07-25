@@ -154,5 +154,10 @@ reporting:
   max-total-uncompressed-bytes: ${REPORTING_MAX_UNCOMPRESSED_BYTES:524288000}
   max-single-entry-bytes: ${REPORTING_MAX_ENTRY_BYTES:104857600}
   retention-days: ${REPORTING_RETENTION_DAYS:0}
-  # 严格保持原程序自动调用逻辑；仅故障隔离时通过环境变量临时关闭。
-  auto-process-enabled: ${REPORTING_AUTO_PROCESS_ENABLED:true}
+  # 执行 10_process_dependency_check.sql 并确认真实 DDL/过程后，必须同时开启两项才会自动加工。
+  auto-process-enabled: ${REPORTING_AUTO_PROCESS_ENABLED:false}
+  process-dependencies-verified: ${REPORTING_PROCESS_DEPENDENCIES_VERIFIED:false}
+  task-scan-delay-ms: ${REPORTING_TASK_SCAN_DELAY_MS:10000}
+  task-stale-timeout-minutes: ${REPORTING_TASK_STALE_TIMEOUT_MINUTES:30}
+  process-stale-timeout-minutes: ${REPORTING_PROCESS_STALE_TIMEOUT_MINUTES:360}
+  task-scan-batch-size: ${REPORTING_TASK_SCAN_BATCH_SIZE:20}

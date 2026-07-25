@@ -93,6 +93,24 @@ public class ReportBatchUploadServiceTest {
         assertEquals("tester", logCaptor.getAllValues().get(2).getOperatorName());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void keyMetadataCannotBypassLegacyFileNameContract() throws Exception {
+        ReportingProperties properties = new ReportingProperties();
+        properties.setArchiveRoot(temporaryFolder.getRoot().toPath().resolve("reporting-key").toString());
+        ReportBatchService service = new ReportBatchService(
+                mock(ReportBatchMapper.class), mock(ReportFileMapper.class), mock(ReportTaskMapper.class),
+                mock(ReportTaskLogMapper.class), new ReportArchiveService(properties));
+        ReportUploadCommand command = new ReportUploadCommand();
+        command.setSourceDomain("KEY");
+        command.setBusinessType("ALL");
+        command.setAccountingPeriod("2026-07");
+        command.setTreasuryCode("2200000000");
+
+        service.createUploadBatch(new MockMultipartFile(
+                "file", "arbitrary.zip", "application/zip", zipBytes("data.txt", "row")),
+                command, "u-1", "tester");
+    }
+
     private byte[] zipBytes(String name, String value) throws Exception {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         try (ZipOutputStream zip = new ZipOutputStream(output, StandardCharsets.UTF_8)) {

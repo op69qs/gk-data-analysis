@@ -29,7 +29,7 @@ public class ReportChangeServiceTest {
         command.setDifferenceAmount(new BigDecimal("999999"));
         command.setNewAmount(new BigDecimal("125.30"));
 
-        new ReportChangeService(mapper).add(command, "operator");
+        new ReportChangeService(mapper).add(command, "operator", "5000000000");
 
         ArgumentCaptor<ReportChangeCommand> saved = ArgumentCaptor.forClass(ReportChangeCommand.class);
         verify(mapper).insertChange(saved.capture());

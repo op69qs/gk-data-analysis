@@ -7,6 +7,7 @@ import org.jeecg.modules.reporting.legacy.LegacyTimsPending;
 import org.jeecg.modules.reporting.mapper.LegacyPendingMapper;
 import org.jeecg.modules.reporting.parser.KeyFileParseError;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -56,18 +57,43 @@ public class LegacyPendingService {
         mapper.updateKeyPending(record);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     public void completeTims(ReportBatch batch, TimsReportProcessingResult result, String userId) {
-        LegacyTimsPending record = new LegacyTimsPending();
-        record.setId(batch.getId());
-        record.setBizDate(batch.getAccountingPeriod());
-        record.setDataCount(result.getSuccessCount());
-        record.setFileException(result.getErrors().stream()
-                .map(error -> error.getFileName() + ":" + error.getRowNumber() + " " + error.getMessage())
-                .collect(Collectors.joining("\n")));
-        record.setState("0");
-        record.setModUserId(userId);
-        record.setModTime(new Date());
-        mapper.updateTimsPending(record);
+        if (!result.getErrors().isEmpty() || result.getTreasuryCounts().isEmpty()) {
+            LegacyTimsPending record = new LegacyTimsPending();
+            record.setId(batch.getId());
+            record.setBizDate(batch.getAccountingPeriod());
+            record.setDataCount(result.getSuccessCount());
+            record.setFileException(result.getErrors().stream()
+                    .map(error -> error.getFileName() + ":" + error.getRowNumber() + " " + error.getMessage())
+                    .collect(Collectors.joining("\n")));
+            record.setState("0");
+            record.setModUserId(userId);
+            record.setModTime(new Date());
+            mapper.updateTimsPending(record);
+            return;
+        }
+
+        LegacyTimsPending uploaded = mapper.findTimsPendingById(batch.getId());
+        String bizType = timsType(batch.getBusinessType());
+        int sequence = 0;
+        for (TimsReportProcessingResult.TreasuryCount count : result.getTreasuryCounts()) {
+            mapper.deleteTimsPendingScope(batch.getId(), bizType, count.getBusinessDate(), count.getTreasuryCode());
+            LegacyTimsPending record = new LegacyTimsPending();
+            record.setId(batch.getId() + "-" + (++sequence));
+            record.setTreCode(count.getTreasuryCode());
+            record.setBizType(bizType);
+            record.setBizDate(count.getBusinessDate());
+            record.setFileName(batch.getOriginalFileName());
+            record.setFilePath(uploaded == null ? null : uploaded.getFilePath());
+            record.setZipFilePath(uploaded == null ? null : uploaded.getZipFilePath());
+            record.setDataCount(count.getRowCount());
+            record.setFileException("");
+            record.setState("0");
+            record.setAddUserId(userId);
+            record.setAddTime(new Date());
+            mapper.insertTimsPending(record);
+        }
     }
 
     public void fail(ReportBatch batch, String message, String userId) {
@@ -81,6 +107,15 @@ public class LegacyPendingService {
             record.setModUserId(userId);
             record.setModTime(new Date());
             mapper.updateTimsPending(record);
+        }
+    }
+
+    /** Remove the JAR-era monitoring row while retaining the new audit/archive records. */
+    public void delete(ReportBatch batch) {
+        if ("KEY".equalsIgnoreCase(batch.getSourceDomain())) {
+            mapper.deleteKeyPending(batch.getId(), batch.getOriginalFileName());
+        } else if ("TIMS".equalsIgnoreCase(batch.getSourceDomain())) {
+            mapper.deleteTimsPending(batch.getId());
         }
     }
 

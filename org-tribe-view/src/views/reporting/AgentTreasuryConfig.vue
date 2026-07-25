@@ -4,6 +4,7 @@
     <a-form layout="inline" class="search-form">
       <a-form-item label="国库代码"><a-input v-model.trim="query.treCode" allowClear /></a-form-item>
       <a-form-item label="国库名称"><a-input v-model.trim="query.treName" allowClear /></a-form-item>
+      <a-form-item label="有效期"><a-range-picker v-model="queryDateRange" format="YYYY-MM-DD" /></a-form-item>
       <a-form-item label="状态"><a-select v-model="query.state" allowClear style="width: 110px"><a-select-option value="0">启用</a-select-option><a-select-option value="1">停用</a-select-option></a-select></a-form-item>
       <a-form-item><a-button type="primary" @click="search">查询</a-button><a-button class="reset-button" @click="reset">重置</a-button></a-form-item>
     </a-form>
@@ -31,7 +32,7 @@ export default {
   name: 'AgentTreasuryConfig',
   data() {
     return {
-      loading: false, saving: false, modalVisible: false, editing: false, rows: [], dateRange: [],
+      loading: false, saving: false, modalVisible: false, editing: false, rows: [], dateRange: [], queryDateRange: [],
       query: { treCode: '', treName: '', state: undefined },
       form: { treCode: '', treName: '', state: '0' },
       pagination: { current: 1, pageSize: 10, total: 0, showSizeChanger: true },
@@ -49,14 +50,22 @@ export default {
     async load() {
       this.loading = true
       try {
-        const response = await queryAgentTreasuries(Object.assign({}, this.query, { pageNo: this.pagination.current, pageSize: this.pagination.pageSize }))
+        const user = this.$sessionStorage.ls.get('Login_Userinfo') || {}
+        const params = Object.assign({}, this.query, {
+          startDate: this.queryDateRange.length === 2 ? this.queryDateRange[0].format('YYYY-MM-DD') : undefined,
+          endDate: this.queryDateRange.length === 2 ? this.queryDateRange[1].format('YYYY-MM-DD') : undefined,
+          guokuId: user.guokuId || undefined,
+          pageNo: this.pagination.current,
+          pageSize: this.pagination.pageSize
+        })
+        const response = await queryAgentTreasuries(params)
         if (!response.success) throw new Error(response.message)
         this.rows = response.result.records || []; this.pagination.total = Number(response.result.total || 0)
       } catch (error) { this.$message.error(error.message || '配置加载失败') }
       finally { this.loading = false }
     },
     search() { this.pagination.current = 1; this.load() },
-    reset() { this.query = { treCode: '', treName: '', state: undefined }; this.search() },
+    reset() { this.query = { treCode: '', treName: '', state: undefined }; this.queryDateRange = []; this.search() },
     tableChanged(page) { this.pagination.current = page.current; this.pagination.pageSize = page.pageSize; this.load() },
     openAdd() { this.editing = false; this.form = { treCode: '', treName: '', state: '0' }; this.dateRange = []; this.modalVisible = true },
     openEdit(row) {

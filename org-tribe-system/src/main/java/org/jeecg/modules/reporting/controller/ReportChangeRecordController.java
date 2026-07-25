@@ -5,6 +5,7 @@ import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.aspect.annotation.AutoLog;
 import org.jeecg.modules.reporting.service.ReportChangeService;
+import org.jeecg.modules.reporting.service.ReportingUserScopeService;
 import org.jeecg.modules.reporting.vo.ReportChangeCommand;
 import org.jeecg.modules.reporting.vo.ReportingBusinessQuery;
 import org.jeecg.modules.reporting.vo.ReportingPageResult;
@@ -24,7 +25,11 @@ public class ReportChangeRecordController extends ReportingWebSupport {
     public static final String ADD_PERMISSION = "reporting:change:add";
 
     private final ReportChangeService service;
-    public ReportChangeRecordController(ReportChangeService service) { this.service = service; }
+    private final ReportingUserScopeService userScopeService;
+    public ReportChangeRecordController(ReportChangeService service, ReportingUserScopeService userScopeService) {
+        this.service = service;
+        this.userScopeService = userScopeService;
+    }
 
     @ApiOperation("查询收入或支出报送基线并叠加最新调整")
     @GetMapping("/source")
@@ -32,6 +37,7 @@ public class ReportChangeRecordController extends ReportingWebSupport {
             ReportingBusinessQuery query,
             @RequestParam(defaultValue = "1") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize) {
+        query.setGuokuId(userScopeService.requireGuokuId(currentUser().username));
         return success(service.source(query, pageNo, pageSize), "查询成功");
     }
 
@@ -41,6 +47,7 @@ public class ReportChangeRecordController extends ReportingWebSupport {
             ReportingBusinessQuery query,
             @RequestParam(defaultValue = "1") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize) {
+        query.setGuokuId(userScopeService.requireGuokuId(currentUser().username));
         return success(service.history(query, pageNo, pageSize), "查询成功");
     }
 
@@ -49,7 +56,7 @@ public class ReportChangeRecordController extends ReportingWebSupport {
     @PostMapping
     public Result<String> add(@RequestBody ReportChangeCommand command) {
         CurrentUser user = currentUser();
-        service.add(command, user.username);
+        service.add(command, user.username, userScopeService.requireGuokuId(user.username));
         return success("OK", "调整记录已保存");
     }
 }

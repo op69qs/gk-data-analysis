@@ -40,7 +40,7 @@ public class ReportChangeService {
     }
 
     @Transactional
-    public void add(ReportChangeCommand command, String username) {
+    public void add(ReportChangeCommand command, String username, String guokuId) {
         validate(command);
         ReportingBusinessQuery query = new ReportingBusinessQuery();
         query.setType(command.getType());
@@ -48,6 +48,7 @@ public class ReportChangeService {
         query.setTreCode(command.getTreasuryCode());
         query.setStatisticsCode(command.getStatisticsCode());
         query.setBudgetLevel(command.getBudgetLevel());
+        query.setGuokuId(guokuId);
         BigDecimal original = "income".equals(command.getType())
                 ? mapper.findIncomeAmount(query) : mapper.findPayoutAmount(query);
         if (original == null) {

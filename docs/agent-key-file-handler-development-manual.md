@@ -18,8 +18,9 @@
 | 2 | ZIP 上传、归档、安全解压 | 已提交：`5244e25` | 已按脱敏收入 ZIP 核验多层目录和 macOS 附属文件 |
 | 3 | KEY 收入/支出/库存/退库解析 | 已提交：`f07011f` | 已按 JAR 字节码复写；仍等待四类样例做日期格式和数据值最终对照 |
 | 4 | TIMS 收入/支出/库存解析和 STG 写入 | 已提交：`7d22e10` | 脱敏收入两份 XLS 已通过真实解析验证；支出、库存待补样例 |
-| 5 | 异步任务链、自动加工、详情、下载和重试 | 核心链路已实现，待提交 | 代理国库、监控和变更记录接口继续开发；真实过程和日志表须内网核对 |
-| 6 | Vue 2 页面、菜单权限和端到端验收 | 未开始 | 页面显示全过程详细状态 |
+| 5 | 异步任务链、自动加工、详情、下载和重试 | 已提交：`95d7df0` | 真实过程和日志表须内网核对 |
+| 6 | 代理国库、监控、变更、Vastbase 运维脚本 | 已提交：`d629bd5` | 保留原 JAR 待处理表兼容及菜单/按钮权限扩展点 |
+| 7 | Vue 2 页面与详细进度展示 | 已提交：`a6e76b0` | 新增 4 个菜单页、1 个详情抽屉和 3 个复用组件 |
 
 ## 3. 第 1 批文件与功能对应
 
@@ -134,25 +135,79 @@ JAR 不是只有一套 TIMS 解析：
 
 | 新文件 | 功能 | 业务逻辑 |
 |---|---|---|
-| `.../config/ReportingAsyncConfig.java`、`.../job/ReportTaskJob.java` | 后台执行 | 上传事务提交后才投递；使用独立有界线程池，页面关闭不影响处理 |
+| `.../config/ReportingAsyncConfig.java`、`.../job/ReportTaskJob.java` | 后台执行 | 上传事务提交后低延迟投递；数据库定时扫描排队任务；每次领取生成唯一执行令牌，业务事务持有任务行锁并在提交终态时再次核验令牌；解析/入库进程中断后重新排队，加工中断则明确失败并等待人工核查 |
 | `.../service/ReportWorkflowService.java` | 任务编排 | 串联解析、业务表/暂存表入库和 TIMS 自动加工；错误批次在解析阶段停止，不调用过程 |
-| `.../service/ReportTaskService.java` | 分阶段重试 | 仅允许 `PARSE/LOAD/PROCESS`；新建尝试并关联原任务，账期和范围只从原批次读取 |
+| `.../service/ReportTaskService.java` | 分阶段重试 | 仅允许 `PARSE/LOAD/PROCESS`；在批次行锁内新建尝试，同阶段已排队/执行时拒绝重复提交，账期和范围只从原批次读取 |
 | `.../service/ReportProcessCallService.java`、`.../mapper/xml/ReportWorkflowMapper.xml` | 原加工调用 | 检查 `etl.guoku_lib_report_all_log.STATE='1'` 和本模块运行记录，写原日志并调用 `adm.p_guoku_lib_report_all(月末)` |
-| `.../service/ReportBatchQueryService.java`、`.../controller/ReportBatchQueryController.java` | 列表与完整详情 | 一次返回批次、文件、任务、时间线、行错误和过程调用；普通删除仅逻辑删除 |
-| `.../service/ReportFileAccessService.java`、`.../controller/ReportFileController.java` | 留存文件下载 | 只按数据库文件 ID 下载，并再次校验真实路径位于专用归档根目录，阻止越权路径读取 |
+| `.../service/ReportBatchQueryService.java`、`.../controller/ReportBatchQueryController.java` | 列表与完整详情 | 一次返回批次、文件、任务、时间线、行错误和过程调用；执行中禁止删除，删除时移除 JAR 旧监控记录，新批次及原件仍逻辑留存 |
+| `.../service/ReportingAccessService.java`、`.../controller/ReportFileController.java` | 数据范围与留存文件下载 | 所有批次、详情、重试、删除、文件下载均按当前登录人国库范围校验；文件只按数据库 ID 下载，并再次校验真实路径位于专用归档根目录 |
 | `.../service/LegacyPendingService.java`、`.../mapper/xml/LegacyPendingMapper.xml` | 原十表兼容 | 同步维护 JAR 的 `agent_keyfile_pending` 和 `tims_file_pending`，保留旧监控查询依赖的状态、文件名、数量和异常字段 |
+| `.../service/LegacyKeyFileName.java` | KEY 原命名规则 | 始终从 `k<业务日期>t<国库>.zip` 派生关键元数据；页面传值仅作交叉校验，不能绕过命名规则；按 ZIP 基名拒绝重复上传 |
+| `.../service/ReportingUserScopeService.java` | 用户国库范围 | 从服务端 `sys_user.guoku_id` 读取当前登录人范围；监控、国库配置和收支调整不信任前端传入的 `guokuId` |
+| `.../service/AgentTreasuryService.java`、`AgentTreasuryController.java` | 代理国库 | 保留代码/名称/起止日期/状态查询、当前用户国库范围、新增、修改、启停和有效期校验；不新增 JAR 未提供的删除功能 |
+| `.../service/ReportMonitoringService.java`、`ReportMonitoringController.java` | KEY/TIMS 监控 | 以代理国库为基线，展示四类 KEY 和三类 TIMS 齐全性、处理状态、行数及异常 |
+| `.../service/ReportChangeService.java`、`ReportChangeRecordController.java` | 收入/支出调整 | 读取 EDW 基线明细，叠加最新调整展示；新增时由服务端重读原金额并重算差额 |
+| `.../mapper/xml/ReportingBusinessMapper.xml` | Vastbase 业务 SQL | 固定 `agent_key_file`/`edw` 对象；用 `coalesce`、窗口函数、`offset/limit` 替代 MySQL 专有语法，全部条件绑定参数 |
+| `.../service/ReportArchiveCleanupService.java`、`.../job/ReportArchiveCleanupJob.java` | 留存清理 | 仅当保留天数大于 0 时，删除已逻辑删除且超期的本模块归档；再次校验归档根目录 |
 
-生产配置默认自动调用下游过程，严格符合已确认要求；仅允许运维在故障隔离时通过 `REPORTING_AUTO_PROCESS_ENABLED=false` 临时停用。开发、测试环境仍默认关闭真实过程调用，避免误触内网加工。自动调用是否可用不会被隐瞒：过程失败或依赖缺失时，批次与 `PROCESS` 任务均显示失败，可由授权人员在同批次再次加工。
+### 7.2 原待处理表的严格兼容点
+
+- KEY 待处理记录保留四类文件名、文件名状态、行数、异常、ZIP 路径和解压目录；重复 ZIP 检查沿用 JAR 的“ZIP 基名包含匹配”。
+- JAR 上传 TIMS 时先新增一条 `TRE_CODE=2200000000` 的 ZIP 汇总待处理记录；解析成功后，再按 Excel 中的“业务日期 + 真实国库 + 业务类型”删除并重建明细待处理记录，使旧监控页的每个国库都得到正确已报结果。新明细主键使用“批次 ID + 序号”，删除/重试只清理本批次派生记录，不再按可重复文件名跨批次删除。
+- JAR 的 TIMS 列名含义与字面相反：`FILE_PATH` 存 ZIP 文件路径，`ZIP_FILE_PATH` 存解压目录；兼容表写入继续按该含义执行。
+- 迁移后额外保留六张跟踪表，用于表达归档、解压、解析、入库、加工、行错误和每次重试；不改变原十表字段。
+
+### 7.3 自动执行、状态和同批次重试
+
+代码实现了“入库成功后自动调用原过程”的严格业务链，但生产默认处于安全门禁：必须先执行 `10_process_dependency_check.sql`、确认真实 ETL 日志表列顺序/类型及 ADM 过程契约，再同时设置 `REPORTING_AUTO_PROCESS_ENABLED=true` 和 `REPORTING_PROCESS_DEPENDENCIES_VERIFIED=true`。门禁未通过时，TIMS 批次页面显示“部分完成/等待加工”及 `WAITING_CONFIGURATION`，不会将未调过过程的批次误报为整体成功。
+
+任务事件携带唯一 `taskId`，每次领取生成“实例 + 随机值”的唯一执行令牌并写入租约。解析、业务表/STG、原 pending、文件状态、任务终态和批次状态处于同一事务；事务先凭令牌更新并锁住任务行，提交终态时再次凭令牌更新。租约转移后，旧执行者不能提交业务写入、覆盖状态或清除新执行者租约。应用重启后的排队任务会继续执行；解析/入库进程中断并释放数据库事务后可重新排队，加工任务超时只置为失败，不能自动重复调用外部过程。同阶段重试与删除共用批次行锁，避免并发竞态。同一过程的加工任务由 Vastbase 全局活动状态部分唯一索引互斥，并保留 JAR 的 ETL `STATE='1'` 检查。
+
+原 JAR 对 `etl.guoku_lib_report_all_log` 使用不带列名的插入，现有材料无法证明其字段顺序、运行记录超时字段及安全接管规则。迁移实现因此不猜测外部锁，也不自动清理 `STATE='1'`：内部加工租约超时后页面明确失败，运维须先核查 ADM/ETL 实际执行结果和日志，再按同一上报周期人工重试。取得真实 DDL 后，应将插入改为显式列名，并由数据库负责人确认外部陈旧状态恢复规则。
 
 统一执行状态为：`QUEUED`（等待）、`PROCESSING`（执行中）、`SUCCEEDED`（成功）、`PARTIALLY_SUCCEEDED`（部分成功）、`FAILED`（失败）、`CANCELLED`（取消）、`LOGICALLY_DELETED`（逻辑删除）。
 
-页面当前阶段由任务类型单独表达：上传归档、解压、解析、入库、下游加工。每一阶段必须展示等待、开始、进行中、成功或失败，并提供开始时间、结束时间、耗时、当前文件、文件数、处理行数、异常行数和错误摘要。页面关闭不影响后台执行。
+页面当前阶段由任务类型单独表达：上传归档、解压、解析、入库、下游加工。每一阶段展示等待、开始、进行中、成功或失败，并提供开始/结束时间、耗时、文件、处理/成功/异常行数、错误摘要和存储过程调用结果。列表和详情对未完成批次每 3 秒异步轮询；页面关闭不影响后台执行。
 
 完成任务不原地改回等待状态。授权人员执行“重新解析、重新入库、再次加工”时，新建任务并通过 `retry_of_task_id` 关联原任务；调用账期和国库范围从原批次读取，不能由页面改成其他周期。
+
+### 7.4 前端文件与业务对应
+
+| 文件 | 页面/组件 | 对应能力 |
+|---|---|---|
+| `org-tribe-view/src/api/reporting.js` | API 封装 | 批次、文件、重试、监控、代理国库和调整接口 |
+| `.../ReportBatchList.vue` | 上报批次 | 上传入口、筛选、总进度、成功/异常行、3 秒轮询、逻辑删除 |
+| `.../ReportBatchDetail.vue` | 执行详情 | 任务阶段、状态事件、文件/行数、行异常、过程调用、下载和按原批次重试 |
+| `.../ReportMonitoring.vue` | 上报监控 | KEY 四类和 TIMS 三类齐全性、执行异常及文件状态 |
+| `.../AgentTreasuryConfig.vue` | 代理国库 | 查询、新增、编辑、有效期、启用/停用 |
+| `.../ReportChangeRecord.vue` | 收入/支出调整 | EDW 基线+最新调整查询、调整历史、新增调整 |
+| `.../components/ReportUploadModal.vue` | 上传弹窗 | KEY/TIMS、类型、账期、国库、ZIP；提交后自动执行 |
+| `.../components/ReportTaskTimeline.vue` | 详细时间线 | 每次尝试、状态事件、操作人、文件和行数 |
+| `.../components/ReportFileTable.vue` | 文件明细 | 原 ZIP/解压文件、SHA-256、解析状态、行数和下载 |
+
+### 7.5 菜单与未来按钮权限
+
+`09_menu_permission_seed.sql` 创建“数据上报”根菜单及上报批次、上报监控、代理国库配置、报送调整记录 4 个页面菜单。当前只需给角色分配 `menu_type=0/1` 的菜单行，不分配 `menu_type=2` 按钮行，接口也暂不启用 Shiro 按钮拦截。
+
+已预留 `reporting:batch:upload`、`reporting:file:download`、`reporting:batch:retry`、`reporting:batch:process`、`reporting:batch:delete`、`reporting:batch:audit`、`reporting:treasury:add`、`reporting:treasury:edit`、`reporting:change:add`、`reporting:archive:cleanup`。`audit` 目前仅为后续审核流程预留权限码，不伪装成已实现的 JAR 功能。后续区分上报人员、审核/运维人员和管理员时，只需启用控制器权限注解、页面按钮指令并分配已预留编码，无需改接口和任务模型。
 
 ## 8. 数据库归属与执行顺序
 
 JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`etl`、`adm`。本模块新建六张跟踪表也放在 `agent_key_file`，与业务归属一致。当前没有任何对象归属到 `ods`、`dmcode`、`comm_sys` 或 `dps`；若主系统菜单、用户范围接口间接依赖这些 Schema，后续作为“主系统集成依赖”单列，不能说成 JAR 依赖。
+
+| 脚本 | 目标库/Schema | 用途 | 是否写数据 |
+|---|---|---|---|
+| `01_schema_object_inventory.sql` | 当前数据库 | 19 个 JAR 对象存在性盘点 | 否 |
+| `02_agent_key_file_structure_check.sql` | `agent_key_file` | 原十表字段、约束和索引 | 否 |
+| `03_stg_structure_check.sql` | `stg` | TIMS 三张 STG 表结构 | 否 |
+| `04_edw_etl_adm_dependency_check.sql` | `edw`/`etl`/`adm` | EDW 对象、日志表、过程及参数 | 否 |
+| `05_report_tracking_tables.sql` | `agent_key_file` | 创建六张新跟踪表 | DDL |
+| `06_report_indexes_constraints.sql` | `agent_key_file` | 新跟踪表索引和唯一约束 | DDL |
+| `07_mysql_vastbase_sql_compatibility_check.sql` | 当前数据库/`adm` | Vastbase 函数、窗口和过程元数据检查 | 否 |
+| `08_data_reconciliation_check.sql` | `agent_key_file`/`stg`/`edw`/`etl` | 上线前后行数、金额和异常对账 | 否 |
+| `09_menu_permission_seed.sql` | `"jeecg-boot-os"` | 菜单和未来按钮权限编码 | 是，可重复 |
+| `10_process_dependency_check.sql` | `stg`/`etl`/`adm` | 生产自动加工前置检查 | 否 |
+| `11_rollback.sql` | `"jeecg-boot-os"`/`agent_key_file` | 受控回滚菜单与六张新表 | 是，破坏性 |
 
 建议逐一执行和核对：
 
@@ -160,13 +215,17 @@ JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`
 2. 执行 `02`、`03`、`04`，导出真实字段、约束和过程参数。
 3. 将结果与模拟 DDL 和本手册对照；不一致项以真实 DDL 为准并修改 Mapper。
 4. 仅在确认 `agent_key_file` 可创建新表后执行 `05`、`06`。
-5. 开发/测试环境在未确认 `etl.guoku_lib_report_all_log` 和 `adm.P_GUOKU_LIB_REPORT_ALL` 前保持自动加工关闭；生产配置按业务要求默认自动，部署前必须执行依赖核验，失败会在页面明确显示而不会伪装完成。
+5. 执行 `07_mysql_vastbase_sql_compatibility_check.sql`，确认函数、窗口函数和过程元数据可读。
+6. 执行 `08_data_reconciliation_check.sql`，记录各类待处理数、明细数、金额、STG 数和调整数，作为新旧对照基线。
+7. 在主系统 Schema 为 `"jeecg-boot-os"` 且 `sys_permission` 字段与脚本一致时执行 `09_menu_permission_seed.sql`；当前只授权菜单行。
+8. 生产启用自动加工前执行 `10_process_dependency_check.sql`；开发/测试环境在未确认 `etl.guoku_lib_report_all_log` 和 `adm.P_GUOKU_LIB_REPORT_ALL` 前保持自动加工关闭。
+9. `11_rollback.sql` 只在停服、备份和人工审批后执行；它只回滚本模块菜单和六张跟踪表，不删原 JAR 十表、STG、EDW、ETL、ADM 对象或 ZIP 原件。
 
 ## 9. 已确定与待内网确认
 
-已确定：JAR 直接引用的 Schema、19 个对象名称、KEY 四类文件、TIMS 三类文件、TIMS 三张 STG 目标表、月末账期调用规则、运行中互斥语义、自动调用和按原批次重试要求。
+已确定：JAR 直接引用的 Schema、19 个对象名称、KEY 四类文件、TIMS 三类文件、TIMS 三张 STG 目标表、月末账期调用规则、运行中互斥语义、自动调用和按原批次重试要求。主系统已有 `Login_Userinfo.guokuId`，页面传入该值，后端按 JAR 原规则从 `edw.cm_guoku_dimnsn` 计算层级前缀并限定代理国库和监控数据范围。
 
-仍待确认：19 个对象在内网 Vastbase 的真实 DDL/类型/授权，ADM 过程完整定义及依赖，ETL 日志表列定义，EDW 对象表或视图类型，国库树与当前用户范围接口，文件保留期和容量规则，KEY/支出/库存/退库完整脱敏样例。未确认项不会以猜测 SQL 接入生产对象。
+仍待确认：19 个对象在内网 Vastbase 的真实 DDL/类型/授权，ADM 过程完整定义及依赖，ETL 日志表列定义，EDW 对象是表还是视图，文件保留期和容量规则，KEY 收入/支出/库存/退库、TIMS 支出/库存脱敏样例。脱敏 TIMS 收入样例已确认，但未连接内网库，因此只完成解压和真实 XLS 解析对照，未声称完成生产入库/过程验收。未确认项不会以猜测 SQL 接入生产对象。
 
 ## 10. 验证基线与已知问题
 
@@ -175,6 +234,7 @@ JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`
 - 后端可以编译并启动 Spring 测试上下文。
 - 原有 `SampleTest` 存在 3 个与本迁移无关的失败：固定期望 5 行但环境返回 22 行、测试字符串 `hello` 转数字失败、日志测试出现空对象。
 - 测试环境尝试连接 `192.168.160.244:8761` 注册中心，当前不可达并导致等待；这不是本次改动引入。
+- 2026-07-26 最后一次全模块测试还在 Spring `dev` 上下文启动阶段因 `100.71.11.54:25432` 开发库不可达而停止；因此全库门禁未过，与已独立通过的 61 个上报测试分开记录。
 - 前端构建引用的 13 个图片资源在原工作区和隔离工作区均不存在，因此基线构建失败；本功能不会隐式修改这些历史页面。
 - 原有 `application-test.yml` 从第 1 行起存在历史缩进错误，标准 YAML 解析失败；本次新增 `reporting` 配置块缩进独立且正确，但没有扩大范围修复原配置。
 
@@ -188,4 +248,8 @@ JAR 明确依赖对象仍使用原 Schema：`agent_key_file`、`stg`、`edw`、`
 
 第 4 批当前执行 6 个仓库用例：脱敏收入同结构 9 列解析、两套库存列布局、表头/金额错误定位、多层目录下中间表与 STG 双写、错误批次不删除旧数据、Mapper 固定表与绑定参数检查；全部通过。另对用户提供的两份原始脱敏收入 XLS 执行 1 次只读核验，两份均为 1 行成功、0 行异常。内网 Vastbase 集成检查已验证为“未配置时明确跳过”，待配置连接后执行真实六对象检查。
 
-第 5 批核心链路当前执行 10 个新增定向用例，连同前四批共 33 个本模块测试全部通过：月末计算、原批次重试、加工互斥、自动任务链、解析失败阻断过程、完整详情、逻辑删除、安全下载、原待处理表 SQL 白名单、过程 SQL 白名单。真实 ADM 过程结果和 ETL 日志状态回写仍以内网核验为准。
+最终定向回归共执行 61 个上报模块测试，全部通过：覆盖空 KEY/TIMS 包、无 Excel/只有表头阻断、分国库 pending 重建、KEY 命名及行内国库不可绕过、批次派生记录隔离、唯一领取令牌与事务 fencing、旧执行者失权后禁止写入、活动重试/删除互斥、加工全局互斥，以及批次、文件、监控、配置和调整接口的服务端国库范围验证。后端 `compile` 成功。
+
+前端新增 8 个 Vue 文件和 1 个 API 文件已用本项目 `vue-template-compiler` 与 Babel 全部解析通过，并按 Ant Design Vue 1.4.9 修正了月份值与组件兼容。`npm run build` 仍只因仓库历史页面缺失 13 个图片资源失败，错误清单与改造前基线一致，未出现上报页面编译错误。项目未配置 ESLint 文件，因此不声称 `npm run lint` 成功。
+
+真实 ADM 过程结果、ETL 日志状态回写、Vastbase 真实 DDL 适配和缺失样例仍属内网/业务验收门禁。

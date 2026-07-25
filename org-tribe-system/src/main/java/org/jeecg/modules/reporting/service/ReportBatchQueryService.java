@@ -15,8 +15,10 @@ import org.jeecg.modules.reporting.mapper.ReportParseErrorMapper;
 import org.jeecg.modules.reporting.mapper.ReportProcessCallMapper;
 import org.jeecg.modules.reporting.mapper.ReportTaskLogMapper;
 import org.jeecg.modules.reporting.mapper.ReportTaskMapper;
+import org.jeecg.modules.reporting.mapper.ReportWorkflowMapper;
 import org.jeecg.modules.reporting.vo.ReportBatchDetail;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -29,6 +31,8 @@ public class ReportBatchQueryService {
     private final ReportTaskLogMapper logMapper;
     private final ReportParseErrorMapper errorMapper;
     private final ReportProcessCallMapper callMapper;
+    private LegacyPendingService legacyPendingService;
+    private ReportWorkflowMapper workflowMapper;
 
     public ReportBatchQueryService(ReportBatchMapper batchMapper, ReportFileMapper fileMapper,
                                    ReportTaskMapper taskMapper, ReportTaskLogMapper logMapper,
@@ -41,12 +45,30 @@ public class ReportBatchQueryService {
         this.callMapper = callMapper;
     }
 
+    @Autowired(required = false)
+    public void setLegacyPendingService(LegacyPendingService legacyPendingService) {
+        this.legacyPendingService = legacyPendingService;
+    }
+
+    @Autowired(required = false)
+    public void setWorkflowMapper(ReportWorkflowMapper workflowMapper) {
+        this.workflowMapper = workflowMapper;
+    }
+
     public IPage<ReportBatch> page(int pageNo, int pageSize, String sourceDomain,
                                    String businessType, String status, String accountingPeriod,
                                    String treasuryCode, String fileName) {
+        return page(pageNo, pageSize, sourceDomain, businessType, status, accountingPeriod,
+                treasuryCode, fileName, null);
+    }
+
+    public IPage<ReportBatch> page(int pageNo, int pageSize, String sourceDomain,
+                                   String businessType, String status, String accountingPeriod,
+                                   String treasuryCode, String fileName, String allowedTreasuryPrefix) {
         QueryWrapper<ReportBatch> query = new QueryWrapper<ReportBatch>()
                 .eq("del_flag", 0)
                 .orderByDesc("create_time");
+        if (hasText(allowedTreasuryPrefix)) query.likeRight("treasury_code", allowedTreasuryPrefix.trim());
         if (hasText(sourceDomain)) query.eq("source_domain", sourceDomain.toUpperCase());
         if (hasText(businessType)) query.eq("business_type", businessType.toUpperCase());
         if (hasText(status)) query.eq("status", status.toUpperCase());
@@ -77,7 +99,18 @@ public class ReportBatchQueryService {
 
     @Transactional
     public void logicalDelete(String batchId, String username) {
-        ReportBatch batch = requireBatch(batchId, true);
+        ReportBatch batch = workflowMapper == null ? requireBatch(batchId, true)
+                : workflowMapper.findBatchForUpdate(batchId);
+        if (batch == null || Integer.valueOf(1).equals(batch.getDelFlag())) {
+            throw new IllegalArgumentException("上报批次不存在或已删除");
+        }
+        Integer activeTasks = taskMapper.selectCount(new QueryWrapper<ReportTask>()
+                .eq("batch_id", batchId).in("status", "QUEUED", "PROCESSING"));
+        if ("PROCESSING".equals(batch.getStatus()) || "QUEUED".equals(batch.getStatus())
+                || (activeTasks != null && activeTasks > 0)) {
+            throw new IllegalStateException("正在执行的上报批次不能删除，请等待完成后再操作");
+        }
+        if (legacyPendingService != null) legacyPendingService.delete(batch);
         batch.setDelFlag(1);
         batch.setStatus("LOGICALLY_DELETED");
         batch.setUpdateBy(username);

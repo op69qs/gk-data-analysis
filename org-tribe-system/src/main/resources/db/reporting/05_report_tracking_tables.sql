@@ -76,6 +76,8 @@ create table if not exists agent_key_file.report_task (
     status varchar(32) not null,
     progress_percent integer not null default 0,
     executor_key varchar(128),
+    lease_owner varchar(128),
+    lease_until timestamp,
     request_params text,
     result_summary text,
     error_message text,

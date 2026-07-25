@@ -1,7 +1,7 @@
 <template>
   <a-table rowKey="id" size="small" bordered :pagination="false" :columns="columns" :dataSource="files">
     <template slot="status" slot-scope="value">
-      <a-tag :color="value === 'SUCCEEDED' ? 'green' : value === 'FAILED' ? 'red' : 'orange'">{{ value || '—' }}</a-tag>
+      <a-tag :color="value === 'SUCCEEDED' ? 'green' : value === 'FAILED' ? 'red' : 'orange'">{{ statusLabel(value) }}</a-tag>
     </template>
     <template slot="counts" slot-scope="text, record">
       {{ record.successRowCount || 0 }} / {{ record.errorRowCount || 0 }}
@@ -16,6 +16,11 @@
 export default {
   name: 'ReportFileTable',
   props: { files: { type: Array, default: () => [] } },
+  methods: {
+    statusLabel(value) {
+      return { QUEUED: '等待', PROCESSING: '执行中', SUCCEEDED: '成功', PARTIALLY_SUCCEEDED: '部分成功', FAILED: '失败', NOT_STARTED: '未开始' }[value] || value || '—'
+    }
+  },
   data() {
     return {
       columns: [

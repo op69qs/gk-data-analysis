@@ -40,6 +40,12 @@ public class KeyReportProcessingService {
      */
     @Transactional(rollbackFor = Exception.class)
     public KeyReportProcessingResult process(Path extractRoot, String keyZipName) throws IOException {
+        return process(extractRoot, keyZipName, null);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public KeyReportProcessingResult process(Path extractRoot, String keyZipName,
+                                             String expectedTreasuryCode) throws IOException {
         Map<KeyFileType, List<Path>> filesByType = findTypedFiles(extractRoot);
         Map<String, KeyReportProcessingResult.TypeResult> typeResults = new LinkedHashMap<>();
         List<KeyFileParseError> allErrors = new ArrayList<>();
@@ -54,10 +60,29 @@ public class KeyReportProcessingService {
                     rows.addAll(result.getRecords());
                     allErrors.addAll(result.getErrors());
                 }
-                replace(type, keyZipName, rows);
+                if (expectedTreasuryCode != null) {
+                    java.util.Iterator<KeyReportRecord> iterator = rows.iterator();
+                    while (iterator.hasNext()) {
+                        KeyReportRecord row = iterator.next();
+                        if (!expectedTreasuryCode.equals(row.getTreCode())) {
+                            allErrors.add(new KeyFileParseError(files.get(0).getFileName().toString(), 0, null,
+                                    "行内国库代码与 KEY 文件名不一致"));
+                            iterator.remove();
+                        }
+                    }
+                }
+                if (rows.isEmpty() && allErrors.size() == errorsBefore) {
+                    allErrors.add(new KeyFileParseError(files.get(0).getFileName().toString(), 0, null,
+                            "KEY 文件中没有有效数据行"));
+                }
+                if (!rows.isEmpty()) replace(type, keyZipName, rows);
             }
             typeResults.put(type.getFileCode(), new KeyReportProcessingResult.TypeResult(
                     files == null ? 0 : files.size(), rows.size(), allErrors.size() - errorsBefore));
+        }
+        if (filesByType.isEmpty()) {
+            allErrors.add(new KeyFileParseError("<ZIP>", 0, null,
+                    "压缩包中没有可识别的 sr/zc/kc/tk KEY 文件"));
         }
         return new KeyReportProcessingResult(typeResults, allErrors);
     }

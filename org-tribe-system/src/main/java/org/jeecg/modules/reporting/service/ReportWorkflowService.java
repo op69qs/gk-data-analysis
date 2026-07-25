@@ -18,6 +18,8 @@ import org.jeecg.modules.reporting.parser.TimsBusinessType;
 import org.jeecg.modules.reporting.parser.TimsExcelParseError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,6 +43,7 @@ public class ReportWorkflowService {
     private final TimsReportProcessingService timsService;
     private final ReportProcessCallService processService;
     private final ReportingProperties properties;
+    private final TransactionTemplate transactionTemplate;
     private LegacyPendingService legacyPendingService;
 
     public ReportWorkflowService(ReportBatchMapper batchMapper, ReportFileMapper fileMapper,
@@ -50,6 +53,19 @@ public class ReportWorkflowService {
                                  TimsReportProcessingService timsService,
                                  ReportProcessCallService processService,
                                  ReportingProperties properties) {
+        this(batchMapper, fileMapper, taskMapper, logMapper, errorMapper, workflowMapper,
+                keyService, timsService, processService, properties, null);
+    }
+
+    @Autowired
+    public ReportWorkflowService(ReportBatchMapper batchMapper, ReportFileMapper fileMapper,
+                                 ReportTaskMapper taskMapper, ReportTaskLogMapper logMapper,
+                                 ReportParseErrorMapper errorMapper, ReportWorkflowMapper workflowMapper,
+                                 KeyReportProcessingService keyService,
+                                 TimsReportProcessingService timsService,
+                                 ReportProcessCallService processService,
+                                 ReportingProperties properties,
+                                 PlatformTransactionManager transactionManager) {
         this.batchMapper = batchMapper;
         this.fileMapper = fileMapper;
         this.taskMapper = taskMapper;
@@ -60,6 +76,7 @@ public class ReportWorkflowService {
         this.timsService = timsService;
         this.processService = processService;
         this.properties = properties;
+        this.transactionTemplate = transactionManager == null ? null : new TransactionTemplate(transactionManager);
     }
 
     @Autowired(required = false)
@@ -73,72 +90,102 @@ public class ReportWorkflowService {
             return;
         }
         String requested = normalizeStage(event.getRequestedTaskType());
-        ReportTask task = workflowMapper.findLatestTask(batch.getId(), requested);
-        if (task == null || !"QUEUED".equals(task.getStatus())) {
+        ReportTask task = taskMapper.selectById(event.getTaskId());
+        String leaseToken = properties.getTaskInstanceId() + ":" + uuid();
+        if (task == null || !batch.getId().equals(task.getBatchId())
+                || !requested.equals(task.getTaskType())
+                || workflowMapper.claimTask(task.getId(), new Date(), event.getUsername(),
+                leaseToken, leaseUntil()) != 1) {
             return;
         }
+        task.setStatus("PROCESSING");
+        task.setLeaseOwner(leaseToken);
         if ("PROCESS".equals(requested)) {
-            executeProcess(batch, task, event);
+            executeFenced(batch, task, event, leaseToken, true);
             return;
         }
-        executeParseAndLoad(batch, task, event);
+        executeFenced(batch, task, event, leaseToken, false);
+    }
+
+    private void executeFenced(ReportBatch batch, ReportTask task,
+                               ReportBatchExecutionRequested event, String leaseToken,
+                               boolean process) {
+        try {
+            inTransaction(() -> {
+                requireOwnedLease(task.getId(), leaseToken);
+                if (process) executeProcess(batch, task, event, leaseToken);
+                else executeParseAndLoad(batch, task, event, leaseToken);
+            });
+        } catch (TaskLeaseLostException ignored) {
+            // A recovery worker owns this task now. The old execution must not write terminal state.
+        } catch (Exception exception) {
+            recordExecutionFailure(batch, task, event, leaseToken, exception);
+        }
     }
 
     private void executeParseAndLoad(ReportBatch batch, ReportTask requestedTask,
-                                     ReportBatchExecutionRequested event) {
+                                     ReportBatchExecutionRequested event,
+                                     String leaseToken) throws Exception {
         Date started = new Date();
         startTask(batch, requestedTask, event, started);
         List<ReportFile> files = workflowMapper.findBatchFiles(batch.getId());
-        try {
-            Path extractRoot = extractRoot(files);
-            ProcessingSummary summary;
-            if ("KEY".equalsIgnoreCase(batch.getSourceDomain())) {
-                summary = processKey(batch, requestedTask, files, extractRoot);
-            } else if ("TIMS".equalsIgnoreCase(batch.getSourceDomain())) {
-                summary = processTims(batch, requestedTask, files, extractRoot);
-            } else {
-                throw new IllegalArgumentException("不支持的上报来源：" + batch.getSourceDomain());
-            }
-            if (summary.errorCount > 0) {
-                failTaskAndBatch(batch, requestedTask, event, started,
-                        "解析发现 " + summary.errorCount + " 条错误，未触发后续加工",
+        Path extractRoot = extractRoot(files);
+        ProcessingSummary summary;
+        if ("KEY".equalsIgnoreCase(batch.getSourceDomain())) {
+            summary = processKey(batch, requestedTask, files, extractRoot);
+        } else if ("TIMS".equalsIgnoreCase(batch.getSourceDomain())) {
+            summary = processTims(batch, requestedTask, files, extractRoot);
+        } else {
+            throw new IllegalArgumentException("不支持的上报来源：" + batch.getSourceDomain());
+        }
+        if (summary.errorCount > 0) {
+            if ("KEY".equalsIgnoreCase(batch.getSourceDomain()) && summary.successCount > 0) {
+                partialTaskAndBatch(batch, requestedTask, event, started, leaseToken,
                         summary.successCount, summary.errorCount);
-                updateFileStatuses(files, "FAILED", summary.successCount, summary.errorCount,
-                        "存在行级解析错误");
+                updateFileStatuses(files, "PARTIALLY_SUCCEEDED", summary.successCount, summary.errorCount,
+                        "部分行已入库，请查看行级错误");
                 return;
             }
-
-            finishTask(requestedTask, event, started, "解析完成，共 " + summary.successCount + " 条",
-                    summary.successCount, 0L);
-            ReportTask loadTask = "LOAD".equals(requestedTask.getTaskType())
-                    ? requestedTask : createCompletedLoadTask(batch, requestedTask, event, summary.successCount);
-            updateFileStatuses(files, "SUCCEEDED", summary.successCount, 0L, null);
-            batch.setSuccessRowCount(summary.successCount);
-            batch.setErrorRowCount(0L);
-            batch.setCurrentStage("LOAD");
-            batch.setProgressPercent(85);
-            batch.setResultSummary("解析及入库完成，共 " + summary.successCount + " 条");
-
-            if (shouldAutomaticallyProcess(batch)) {
-                executeProcess(batch, createQueuedProcessTask(batch, loadTask, event), event);
-            } else {
-                batch.setStatus("SUCCEEDED");
-                batch.setProgressPercent(100);
-                batch.setProcessCallStatus("NOT_REQUIRED");
-                touchBatch(batch, event.getUsername());
-            }
-        } catch (Exception exception) {
             failTaskAndBatch(batch, requestedTask, event, started,
-                    safeMessage(exception), 0L, 1L);
-            if (legacyPendingService != null) {
-                legacyPendingService.fail(batch, safeMessage(exception), event.getUserId());
+                    "解析发现 " + summary.errorCount + " 条错误，未触发后续加工",
+                    leaseToken, summary.successCount, summary.errorCount);
+            updateFileStatuses(files, "FAILED", summary.successCount, summary.errorCount,
+                    "存在行级解析错误");
+            return;
+        }
+
+        finishTask(requestedTask, event, started, "解析完成，共 " + summary.successCount + " 条",
+                leaseToken, summary.successCount, 0L);
+        ReportTask loadTask = "LOAD".equals(requestedTask.getTaskType())
+                ? requestedTask : createCompletedLoadTask(batch, requestedTask, event, summary.successCount);
+        updateFileStatuses(files, "SUCCEEDED", summary.successCount, 0L, null);
+        batch.setSuccessRowCount(summary.successCount);
+        batch.setErrorRowCount(0L);
+        batch.setCurrentStage("LOAD");
+        batch.setProgressPercent(85);
+        batch.setResultSummary("解析及入库完成，共 " + summary.successCount + " 条");
+
+        if (shouldAutomaticallyProcess(batch)) {
+            ReportTask processTask = createQueuedProcessTask(batch, loadTask, event);
+            execute(new ReportBatchExecutionRequested(processTask.getId(), batch.getId(), "PROCESS",
+                    event.getUserId(), event.getUsername()));
+        } else {
+            boolean waitingForGate = "TIMS".equalsIgnoreCase(batch.getSourceDomain())
+                    && Integer.valueOf(1).equals(batch.getAutoProcessRequired());
+            batch.setStatus(waitingForGate ? "PARTIALLY_SUCCEEDED" : "SUCCEEDED");
+            batch.setProgressPercent(waitingForGate ? 85 : 100);
+            batch.setProcessCallStatus(waitingForGate ? "WAITING_CONFIGURATION" : "NOT_REQUIRED");
+            if (waitingForGate) {
+                batch.setResultSummary("解析及入库完成；自动加工等待 ETL/存储过程依赖核验门禁");
             }
+            touchBatch(batch, event.getUsername());
         }
     }
 
     private ProcessingSummary processKey(ReportBatch batch, ReportTask task,
                                          List<ReportFile> files, Path extractRoot) throws Exception {
-        KeyReportProcessingResult result = keyService.process(extractRoot, batch.getOriginalFileName());
+        KeyReportProcessingResult result = keyService.process(
+                extractRoot, batch.getOriginalFileName(), batch.getTreasuryCode());
         for (KeyFileParseError error : result.getErrors()) {
             persistError(batch, task, findFileId(files, error.getFileName()), null,
                     error.getLineNumber(), null, error.getRawContent(), error.getMessage());
@@ -154,7 +201,8 @@ public class ReportWorkflowService {
         YearMonth period = YearMonth.from(batch.getAccountingPeriod().toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalDate());
         TimsBusinessType type = TimsBusinessType.valueOf(batch.getBusinessType().toUpperCase(Locale.ROOT));
-        TimsReportProcessingResult result = timsService.process(extractRoot, type, period);
+        TimsReportProcessingResult result = timsService.process(
+                extractRoot, type, period, batch.getTreasuryCode());
         for (TimsExcelParseError error : result.getErrors()) {
             persistError(batch, task, findFileId(files, error.getFileName()), error.getSheetName(),
                     error.getRowNumber(), error.getColumnName(), error.getRawValue(), error.getMessage());
@@ -165,14 +213,18 @@ public class ReportWorkflowService {
         return new ProcessingSummary(result.getSuccessCount(), result.getErrorCount());
     }
 
-    private void executeProcess(ReportBatch batch, ReportTask task, ReportBatchExecutionRequested event) {
+    private void executeProcess(ReportBatch batch, ReportTask task,
+                                ReportBatchExecutionRequested event, String leaseToken) {
         Date started = new Date();
         startTask(batch, task, event, started);
-        batch.setProcessCallStatus("PROCESSING");
-        touchBatch(batch, event.getUsername());
         try {
+            if (!properties.isProcessDependenciesVerified()) {
+                throw new IllegalStateException("自动加工尚未通过 ETL/ADM 依赖核验门禁");
+            }
+            batch.setProcessCallStatus("PROCESSING");
+            touchBatch(batch, event.getUsername());
             processService.callForBatch(batch, task.getId(), event.getUserId(), event.getUsername());
-            finishTask(task, event, started, "原报送数据加工过程调用完成", 0L, 0L);
+            finishTask(task, event, started, "原报送数据加工过程调用完成", leaseToken, 0L, 0L);
             batch.setCurrentStage("PROCESS");
             batch.setStatus("SUCCEEDED");
             batch.setProgressPercent(100);
@@ -181,7 +233,7 @@ public class ReportWorkflowService {
             batch.setErrorSummary(null);
             touchBatch(batch, event.getUsername());
         } catch (RuntimeException exception) {
-            failTaskAndBatch(batch, task, event, started, safeMessage(exception), 0L, 1L);
+            failTaskAndBatch(batch, task, event, started, safeMessage(exception), leaseToken, 0L, 1L);
             batch.setProcessCallStatus("FAILED");
             touchBatch(batch, event.getUsername());
         }
@@ -193,7 +245,6 @@ public class ReportWorkflowService {
         task.setStartedTime(now);
         task.setUpdateBy(event.getUsername());
         task.setUpdateTime(now);
-        taskMapper.updateById(task);
         log(task, "QUEUED", "PROCESSING", "后台任务开始执行", event, 0L, 0L);
         batch.setStatus("PROCESSING");
         batch.setCurrentStage(task.getTaskType());
@@ -201,7 +252,7 @@ public class ReportWorkflowService {
     }
 
     private void finishTask(ReportTask task, ReportBatchExecutionRequested event, Date started,
-                            String message, long successCount, long errorCount) {
+                            String message, String leaseToken, long successCount, long errorCount) {
         Date ended = new Date();
         task.setStatus("SUCCEEDED");
         task.setProgressPercent(100);
@@ -210,12 +261,13 @@ public class ReportWorkflowService {
         task.setDurationMs(ended.getTime() - started.getTime());
         task.setUpdateBy(event.getUsername());
         task.setUpdateTime(ended);
-        taskMapper.updateById(task);
+        requireOwnedCompletion(task, leaseToken);
         log(task, "PROCESSING", "SUCCEEDED", message, event, successCount, errorCount);
     }
 
     private void failTaskAndBatch(ReportBatch batch, ReportTask task, ReportBatchExecutionRequested event,
-                                  Date started, String message, long successCount, long errorCount) {
+                                  Date started, String message, String leaseToken,
+                                  long successCount, long errorCount) {
         Date ended = new Date();
         task.setStatus("FAILED");
         task.setErrorMessage(message);
@@ -223,13 +275,37 @@ public class ReportWorkflowService {
         task.setDurationMs(ended.getTime() - started.getTime());
         task.setUpdateBy(event.getUsername());
         task.setUpdateTime(ended);
-        taskMapper.updateById(task);
+        requireOwnedCompletion(task, leaseToken);
         log(task, "PROCESSING", "FAILED", message, event, successCount, errorCount);
         batch.setStatus("FAILED");
         batch.setCurrentStage(task.getTaskType());
         batch.setErrorSummary(message);
         batch.setSuccessRowCount(successCount);
         batch.setErrorRowCount(errorCount);
+        touchBatch(batch, event.getUsername());
+    }
+
+    private void partialTaskAndBatch(ReportBatch batch, ReportTask task,
+                                     ReportBatchExecutionRequested event, Date started,
+                                     String leaseToken, long successCount, long errorCount) {
+        Date ended = new Date();
+        String message = "成功 " + successCount + " 条，失败 " + errorCount + " 条";
+        task.setStatus("PARTIALLY_SUCCEEDED");
+        task.setProgressPercent(100);
+        task.setResultSummary(message);
+        task.setEndedTime(ended);
+        task.setDurationMs(ended.getTime() - started.getTime());
+        task.setUpdateBy(event.getUsername());
+        task.setUpdateTime(ended);
+        requireOwnedCompletion(task, leaseToken);
+        log(task, "PROCESSING", "PARTIALLY_SUCCEEDED", message, event, successCount, errorCount);
+        batch.setStatus("PARTIALLY_SUCCEEDED");
+        batch.setCurrentStage(task.getTaskType());
+        batch.setProgressPercent(100);
+        batch.setSuccessRowCount(successCount);
+        batch.setErrorRowCount(errorCount);
+        batch.setResultSummary(message);
+        batch.setErrorSummary("存在行级错误，请查看批次详情");
         touchBatch(batch, event.getUsername());
     }
 
@@ -350,16 +426,73 @@ public class ReportWorkflowService {
         return fallback;
     }
 
+    private void requireOwnedLease(String taskId, String leaseToken) {
+        Date now = new Date();
+        if (workflowMapper.renewAndLockOwnedTask(taskId, leaseToken, leaseUntil(), now) != 1) {
+            throw new TaskLeaseLostException();
+        }
+    }
+
+    private void requireOwnedCompletion(ReportTask task, String leaseToken) {
+        if (workflowMapper.completeOwnedTask(task, leaseToken) != 1) {
+            throw new TaskLeaseLostException();
+        }
+    }
+
+    private void recordExecutionFailure(ReportBatch batch, ReportTask task,
+                                        ReportBatchExecutionRequested event, String leaseToken,
+                                        Exception exception) {
+        try {
+            inTransaction(() -> {
+                if (workflowMapper.lockOwnedTask(task.getId(), leaseToken) != 1) {
+                    throw new TaskLeaseLostException();
+                }
+                Date started = task.getStartedTime() == null ? new Date() : task.getStartedTime();
+                String message = safeMessage(exception);
+                failTaskAndBatch(batch, task, event, started, message, leaseToken, 0L, 1L);
+                if (legacyPendingService != null) {
+                    legacyPendingService.fail(batch, message, event.getUserId());
+                }
+            });
+        } catch (TaskLeaseLostException ignored) {
+            // Recovery already transferred ownership; the stale worker is fenced out.
+        } catch (Exception ignored) {
+            // The scheduled recovery will expose an expired task if even failure recording cannot commit.
+        }
+    }
+
+    private void inTransaction(CheckedAction action) throws Exception {
+        if (transactionTemplate == null) {
+            action.run();
+            return;
+        }
+        try {
+            transactionTemplate.execute(status -> {
+                try {
+                    action.run();
+                    return null;
+                } catch (RuntimeException exception) {
+                    throw exception;
+                } catch (Exception exception) {
+                    throw new TransactionExecutionException(exception);
+                }
+            });
+        } catch (TransactionExecutionException exception) {
+            throw (Exception) exception.getCause();
+        }
+    }
+
     private boolean shouldAutomaticallyProcess(ReportBatch batch) {
         return "TIMS".equalsIgnoreCase(batch.getSourceDomain())
                 && Integer.valueOf(1).equals(batch.getAutoProcessRequired())
-                && properties.isAutoProcessEnabled();
+                && properties.isAutoProcessEnabled()
+                && properties.isProcessDependenciesVerified();
     }
 
     private void touchBatch(ReportBatch batch, String username) {
         batch.setUpdateBy(username);
         batch.setUpdateTime(new Date());
-        batchMapper.updateById(batch);
+        workflowMapper.updateBatchState(batch);
     }
 
     private String normalizeStage(String value) {
@@ -376,6 +509,27 @@ public class ReportWorkflowService {
 
     private String uuid() {
         return UUID.randomUUID().toString().replace("-", "");
+    }
+
+    private Date leaseUntil() {
+        return new Date(System.currentTimeMillis() + properties.getTaskStaleTimeoutMinutes() * 60_000L);
+    }
+
+    @FunctionalInterface
+    private interface CheckedAction {
+        void run() throws Exception;
+    }
+
+    private static final class TaskLeaseLostException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+    }
+
+    private static final class TransactionExecutionException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        private TransactionExecutionException(Exception cause) {
+            super(cause.getMessage(), cause);
+        }
     }
 
     private static final class ProcessingSummary {

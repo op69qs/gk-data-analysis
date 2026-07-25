@@ -9,4 +9,6 @@ public class ReportUploadCommand {
     private String accountingPeriod;
     private String treasuryCode;
     private String treasuryName;
+    /** Server-derived prefix; never bound from a request parameter. */
+    private String allowedTreasuryPrefix;
 }

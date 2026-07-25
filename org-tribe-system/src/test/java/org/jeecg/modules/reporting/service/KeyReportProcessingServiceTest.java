@@ -17,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class KeyReportProcessingServiceTest {
 
@@ -55,6 +56,32 @@ public class KeyReportProcessingServiceTest {
         assertEquals(1, result.getTypeResult("sr").getErrorCount());
         assertEquals("5000_sr.txt", result.getErrors().get(0).getFileName());
         assertEquals(2L, result.getErrors().get(0).getLineNumber());
+    }
+
+    @Test
+    public void noRecognizedKeyFileIsAnErrorAndDoesNotDeleteOldData() throws Exception {
+        Path root = temporaryFolder.newFolder("empty-key").toPath();
+        write(root.resolve("readme.txt"), "ignored");
+        KeyReportMapper mapper = mock(KeyReportMapper.class);
+
+        KeyReportProcessingResult result = new KeyReportProcessingService(mapper).process(root, "key.zip");
+
+        assertEquals(1, result.getErrorCount());
+        verifyZeroInteractions(mapper);
+    }
+
+    @Test
+    public void rowTreasuryMustMatchTreasuryDerivedFromKeyFileName() throws Exception {
+        Path root = temporaryFolder.newFolder("key-scope").toPath();
+        write(root.resolve("2200_sr.txt"),
+                "2026-07-31\t5000\t101\tTAX\tB\t1\t12.30\t100.00");
+        KeyReportMapper mapper = mock(KeyReportMapper.class);
+
+        KeyReportProcessingResult result = new KeyReportProcessingService(mapper)
+                .process(root, "k2026-07-31t2200.zip", "2200");
+
+        assertEquals(1, result.getErrorCount());
+        verifyZeroInteractions(mapper);
     }
 
     private void write(Path path, String... lines) throws Exception {

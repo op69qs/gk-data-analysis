@@ -3,6 +3,7 @@ package org.jeecg.modules.reporting.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import java.util.UUID;
 
 @Data
 @Component
@@ -19,6 +20,11 @@ public class ReportingProperties {
     /** Physical cleanup is disabled until the business confirms a retention period. */
     private int retentionDays = 0;
 
-    /** Production follows the original program and automatically starts downstream processing. */
-    private boolean autoProcessEnabled = true;
+    /** Must be enabled explicitly only after the real ETL table/procedure contract is verified. */
+    private boolean autoProcessEnabled = false;
+    private boolean processDependenciesVerified = false;
+    private int taskStaleTimeoutMinutes = 30;
+    private int processStaleTimeoutMinutes = 360;
+    private int taskScanBatchSize = 20;
+    private String taskInstanceId = UUID.randomUUID().toString();
 }

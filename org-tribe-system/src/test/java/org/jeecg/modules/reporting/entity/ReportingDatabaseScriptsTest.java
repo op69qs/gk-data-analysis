@@ -56,6 +56,26 @@ public class ReportingDatabaseScriptsTest {
         }
     }
 
+    @Test
+    public void menuScriptReservesUploaderReviewerOperatorAndAdministratorButtons() throws IOException {
+        String sql = readResource("db/reporting/09_menu_permission_seed.sql").toLowerCase();
+        for (String permission : Arrays.asList(
+                "reporting:batch:upload", "reporting:file:download", "reporting:batch:retry",
+                "reporting:batch:process", "reporting:batch:delete", "reporting:batch:audit",
+                "reporting:treasury:add", "reporting:treasury:edit", "reporting:change:add",
+                "reporting:archive:cleanup")) {
+            assertTrue("Menu script is missing reserved permission " + permission, sql.contains(permission));
+        }
+    }
+
+    @Test
+    public void processCallsHaveDatabaseLevelActiveScopeMutex() throws IOException {
+        String sql = readResource("db/reporting/06_report_indexes_constraints.sql").toLowerCase();
+        assertTrue(sql.contains("unique index"));
+        assertTrue(sql.contains("uk_report_process_call_active"));
+        assertTrue(sql.contains("where status in ('queued', 'processing')"));
+    }
+
     private String readResource(String path) throws IOException {
         InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
         assertNotNull("Missing resource " + path, input);

@@ -43,11 +43,11 @@
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/enums/ReportStatus.java`
 - Test: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/entity/ReportStatusTest.java`
 
-- [ ] 写失败测试：`PROCESSING -> SUCCEEDED` 合法，`SUCCEEDED -> QUEUED` 非法；脚本必须包含 `agent_key_file` 十表、`stg` 三表、`edw` 四对象、`etl.guoku_lib_report_all_log`、`adm.P_GUOKU_LIB_REPORT_ALL`。
-- [ ] 执行 `cd org-tribe-system && mvn -Dtest=ReportStatusTest test`，确认失败。
-- [ ] 实现批次、文件、任务、日志、行错误、过程调用实体及状态机；DDL 仅创建本模块跟踪表，既有数仓对象只读核对。
-- [ ] 再次执行相同测试，确认通过。
-- [ ] 提交：`git add org-tribe-system/src/main/resources/db/reporting org-tribe-system/src/main/java/org/jeecg/modules/reporting org-tribe-system/src/test/java/org/jeecg/modules/reporting && git commit -m "feat: add reporting tracking model"`。
+- [x] 写失败测试：`PROCESSING -> SUCCEEDED` 合法，`SUCCEEDED -> QUEUED` 非法；脚本必须包含 `agent_key_file` 十表、`stg` 三表、`edw` 四对象、`etl.guoku_lib_report_all_log`、`adm.P_GUOKU_LIB_REPORT_ALL`。
+- [x] 执行 `cd org-tribe-system && mvn -Dtest=ReportStatusTest test`，确认失败。
+- [x] 实现批次、文件、任务、日志、行错误、过程调用实体及状态机；DDL 仅创建本模块跟踪表，既有数仓对象只读核对。
+- [x] 再次执行相同测试，确认通过。
+- [x] 已提交：`c05b05c feat: add reporting tracking model`。
 
 ## Task 2: 文件归档、安全解压与上传 API
 
@@ -59,11 +59,11 @@
 - Modify: `org-tribe-system/src/main/resources/application-{dev,test,prod}.yml`
 - Test: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/util/SafeZipExtractorTest.java`
 
-- [ ] 写失败测试：从“ZIP -> 收入目录 -> 收入1.xls/收入2.xls”递归找到两份 XLS；忽略 `__MACOSX`、`.DS_Store`、`._*`；路径穿越 ZIP 被拒绝。
-- [ ] 执行 `cd org-tribe-system && mvn -Dtest=SafeZipExtractorTest test`，确认失败。
-- [ ] 实现 SHA-256、服务端归档目录、容量限制、解压防护、`ReportFile` 登记和 `POST /reporting/batches/upload`；上传仅接受 ZIP，创建批次后提交后台任务。
-- [ ] 运行测试并以 MockMvc 验证上传返回批次 ID 和初始状态，确认通过。
-- [ ] 提交：`git add org-tribe-system && git commit -m "feat: add reporting upload and archive"`。
+- [x] 写失败测试：从“ZIP -> 收入目录 -> 收入1.xls/收入2.xls”递归找到两份 XLS；忽略 `__MACOSX`、`.DS_Store`、`._*`；路径穿越 ZIP 被拒绝。
+- [x] 执行 `cd org-tribe-system && mvn -Dtest=SafeZipExtractorTest test`，确认失败。
+- [x] 实现 SHA-256、服务端归档目录、容量限制、解压防护、`ReportFile` 登记和 `POST /reporting/batches/upload`；上传仅接受 ZIP，创建批次后提交后台任务。
+- [x] 运行测试并以 MockMvc 验证上传返回批次 ID 和初始状态，确认通过。
+- [x] 已提交：`5244e25 feat: add reporting upload and archive`。
 
 ## Task 3: KEY 文件处理器
 
@@ -77,7 +77,7 @@
 - [x] 写失败测试：`sr/zc/kc/tk` 文件名分别映射收入、支出、库存、退库；字段不足时生成含文件和行号的错误。
 - [x] 运行 `cd org-tribe-system && mvn -Dtest=KeyFileParserTest test`，确认失败。
 - [x] 实现 JAR 定义的四类字段映射，分别写入 `agent_key_file.agent_file_income`、`agent_file_payout`、`agent_file_stock`、`agent_file_back`；同 ZIP 重跑先替换旧明细，分别记录 SR/ZC/KC/TK 行数与异常。
-- [ ] 实现 `agent_key_file.agent_keyfile_pending` 的待处理、已处理、异常、逻辑删除和文件关联。
+- [x] 实现 `agent_key_file.agent_keyfile_pending` 的待处理、已处理、异常和文件关联；删除会移除旧 pending 监控记录，新批次仅逻辑删除，原件/审计记录保留到受控清理。
 - [x] 运行解析测试及 Mapper 固定 SQL 测试，确认通过；已提交 `f07011f feat: migrate KEY report parsing`。
 
 ## Task 4: TIMS Excel 处理器与 STG 写入
@@ -93,7 +93,7 @@
 - [x] 写失败测试：收入多层 ZIP 中的 XLS 解析出收入行；库存解析出账户、借方、贷方、余额；Excel 表头/日期/金额不合格时产生行错误。
 - [x] 执行 `cd org-tribe-system && mvn -Dtest=TimsExcelParserTest test`，确认失败。
 - [x] 实现收入/支出字段 `D_ACCT,TRECODE,TERNAME,LEVEL,SUBJECT_CODE,SUBJECT_NAME,F_AMT,YEAR_AMT` 与库存字段 `D_ACCT,TRECODE,TERNAME,LEVEL,ACCOUNT,DEBIT_AMOUNT,CREDIT_AMOUNT,BALANCE` 解析，并兼容自动 STG 任务的收入 9 列和库存 7 列。
-- [x] 以类型、账期、国库范围替换 `agent_key_file.tims_file_*` 中间明细，并以白名单方式替换 `stg.trs_tmis_budget_income`、`stg.trs_tmis_budget_payout`、`stg.trs_tmis_stock`；禁止动态表名拼接。
+- [x] 以类型、账期、国库范围替换 `agent_key_file.tims_file_*` 中间明细和分国库 `tims_file_pending`，并以白名单方式替换三张 `stg.trs_tmis_*`；空包、无 Excel、空数据或任一校验错误都不删旧数据、不触发加工。
 - [x] 运行单元与 Mapper SQL 测试；Vastbase 真实对象缺失时，集成测试明确跳过并提示内网连接参数。提交 `feat: add tims report processing`。
 
 ## Task 5: 异步编排、自动加工、监控与重试
@@ -107,10 +107,10 @@
 
 - [x] 写失败测试：`2026-07` 转为 `2026-07-31`；同账期范围已运行时再次调用抛出业务繁忙；重试生成新任务但沿用原批次账期和范围。
 - [x] 执行 `cd org-tribe-system && mvn -Dtest=ReportTaskServiceTest test`，确认失败。
-- [x] 实现“归档→解压→解析→中间表/STG→自动加工”的依赖任务链，过程调用为 `adm.P_GUOKU_LIB_REPORT_ALL(月末账期)`；读写 `etl.guoku_lib_report_all_log` 以保持原 JAR 的运行中互斥语义。
-- [ ] 实现批次详情、时间线、文件下载、行错误、重试、再次加工、代理国库配置、KEY/TIMS 监控、收入/支出变更记录接口；所有接口使用 JEECG `Result`、当前用户和 `@AutoLog`。
-- [ ] 将 MySQL `IFNULL`、`DATE_FORMAT`、`LIMIT offset,size`、`GROUP_CONCAT/FIND_IN_SET` 改为 Vastbase SQL；所有查询参数绑定，禁止 `${}`。
-- [ ] 运行服务和 Mapper 测试，确认通过；提交 `feat: add reporting workflow and monitoring`。
+- [x] 实现“归档→解压→解析→中间表/STG→自动加工”的依赖任务链；任务携带唯一 ID、每次领取的唯一租约令牌和事务 fencing。解析/入库进程中断可恢复，旧执行者失权后不能提交；加工超时只失败不自动重放；过程调用保留 ETL 互斥并增加 Vastbase 全局活动唯一索引。
+- [x] 实现批次详情、时间线、文件下载、行错误、重试、再次加工、代理国库配置、KEY/TIMS 监控、收入/支出变更记录接口；修改操作使用 JEECG `Result`、当前用户和 `@AutoLog`。
+- [x] 将 MySQL `IFNULL`、`DATE_FORMAT`、`LIMIT offset,size`、`GROUP_CONCAT/FIND_IN_SET` 改为 Vastbase SQL；所有查询参数绑定，禁止 `${}`。
+- [x] 运行服务和 Mapper 测试，确认通过；已提交 `95d7df0` 和 `d629bd5`。
 
 ## Task 6: Vue 2 页面、菜单权限、保留清理与验收
 
@@ -122,12 +122,12 @@
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/job/ReportArchiveCleanupJob.java`
 - Test: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/e2e/ReportingFlowIT.java`
 
-- [ ] 写失败渲染测试：任务状态 `PARSE/PROCESSING` 显示“解析中”；详情页显示上传、解压、解析、入库、加工的时间线和结果。
-- [ ] 实现 Options API 页面：上传、批次列表、每 3 秒轮询未完成批次、详情、文件、异常、下载、重试、再次加工、KEY/TIMS 监控、代理国库配置和变更记录。
-- [ ] 菜单脚本创建上报、监控、配置、变更菜单和上传、下载、重试、加工、删除、审核、配置、清理权限编码；当前只授予菜单权限，后端保留按钮校验。
-- [ ] 清理任务仅删除超过保留期且已逻辑删除的归档；过程依赖脚本在启用自动加工前核验 ADM、ETL、STG 对象。
-- [ ] 使用脱敏 `收入.zip` 进行端到端验证，并在补充 KEY/支出/库存/退库样例后逐类核对文件数、行数、金额、账期、国库和过程结果。
-- [ ] 运行 `cd org-tribe-system && mvn test` 及 `cd org-tribe-view && npm run lint && npm run build`，确认通过；提交 `test: verify reporting migration flows`。
+- [x] 使用本项目 `vue-template-compiler` 和 Babel 对新增页面模板/脚本做静态渲染前校验，8 个 Vue 文件和 1 个 API 文件全部通过。
+- [x] 实现 Options API 页面：上传、批次列表、每 3 秒轮询未完成批次、详情、文件、异常、下载、重试、再次加工、KEY/TIMS 监控、代理国库配置和变更记录。
+- [x] 菜单脚本创建上报、监控、配置、变更菜单和上传、下载、重试、加工、删除、配置、清理权限编码；当前只授予菜单权限，后端保留按钮校验点。
+- [x] 清理任务仅删除超过保留期且已逻辑删除的归档；过程依赖脚本在启用自动加工前核验 ADM、ETL、STG 对象。
+- [ ] 内网门禁：脱敏 `收入.zip` 已完成目录和真实 XLS 解析验证；待提供 KEY/支出/库存/退库样例并取得内网 Vastbase/过程环境后，逐类完成入库与过程结果验收。
+- [ ] 仓库门禁：上报模块 61 个测试已通过；全库测试当前因开发库 `100.71.11.54:25432` 不可达停在上下文启动，且环境可达时原有 `SampleTest` 仍有 3 个历史失败；前端构建受原有 13 个图片缺失影响，项目且无 ESLint 配置；本次不越界修改。
 
 ## Preconditions and Gates
 

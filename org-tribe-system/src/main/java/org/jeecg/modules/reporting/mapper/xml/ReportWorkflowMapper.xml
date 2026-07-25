@@ -10,6 +10,109 @@
          limit 1
     </select>
 
+    <select id="findBatchForUpdate" resultType="org.jeecg.modules.reporting.entity.ReportBatch">
+        select * from agent_key_file.report_batch where id = #{batchId} for update
+    </select>
+
+    <select id="countActiveTasks" resultType="int">
+        select count(1) from agent_key_file.report_task
+         where batch_id = #{batchId} and status in ('QUEUED', 'PROCESSING')
+    </select>
+
+    <update id="claimTask">
+        update agent_key_file.report_task
+           set status = 'PROCESSING', progress_percent = 10,
+               started_time = coalesce(started_time, #{startedTime}),
+               lease_owner = #{leaseOwner}, lease_until = #{leaseUntil},
+               update_by = #{username}, update_time = #{startedTime}
+         where id = #{taskId} and status = 'QUEUED'
+    </update>
+
+    <!--
+      Fencing rule: the unique lease token is checked and the task row remains locked for the
+      surrounding business transaction. Recovery cannot transfer ownership until that transaction
+      commits or rolls back.
+    -->
+    <update id="renewAndLockOwnedTask">
+        update agent_key_file.report_task
+           set lease_until = #{leaseUntil}, update_time = #{now}
+         where id = #{taskId} and status = 'PROCESSING'
+           and lease_owner = #{leaseOwner} and lease_until &gt;= #{now}
+    </update>
+
+    <update id="lockOwnedTask">
+        update agent_key_file.report_task set update_time = update_time
+         where id = #{taskId} and status = 'PROCESSING' and lease_owner = #{leaseOwner}
+    </update>
+
+    <update id="completeOwnedTask">
+        update agent_key_file.report_task
+           set status = #{record.status}, progress_percent = #{record.progressPercent},
+               result_summary = #{record.resultSummary}, error_message = #{record.errorMessage},
+               started_time = #{record.startedTime}, ended_time = #{record.endedTime},
+               duration_ms = #{record.durationMs}, update_by = #{record.updateBy},
+               update_time = #{record.updateTime}, lease_owner = null, lease_until = null
+         where id = #{record.id} and status = 'PROCESSING' and lease_owner = #{leaseOwner}
+    </update>
+
+    <update id="updateBatchState">
+        update agent_key_file.report_batch
+           set status = #{record.status}, current_stage = #{record.currentStage},
+               progress_percent = #{record.progressPercent},
+               success_row_count = #{record.successRowCount}, error_row_count = #{record.errorRowCount},
+               process_call_status = #{record.processCallStatus},
+               result_summary = #{record.resultSummary}, error_summary = #{record.errorSummary},
+               update_by = #{record.updateBy}, update_time = #{record.updateTime}
+         where id = #{record.id} and del_flag = 0
+    </update>
+
+    <update id="requeueExpiredTasks">
+        update agent_key_file.report_task t
+           set status = 'QUEUED', progress_percent = 0, started_time = null,
+               lease_owner = null, lease_until = null,
+               error_message = '执行实例租约失效，已自动恢复排队', update_time = current_timestamp
+         where t.status = 'PROCESSING' and t.task_type in ('PARSE', 'LOAD')
+           and t.lease_until &lt; #{now}
+           and exists (select 1 from agent_key_file.report_batch b
+                        where b.id = t.batch_id and b.del_flag = 0)
+    </update>
+
+    <update id="failExpiredProcessTasks">
+        update agent_key_file.report_task
+           set status = 'FAILED', progress_percent = 100,
+               lease_owner = null, lease_until = null,
+               error_message = '加工执行实例租约失效；为避免重复调用存储过程，需核对 ETL 状态后手工重试',
+               ended_time = current_timestamp, update_time = current_timestamp
+         where status = 'PROCESSING' and task_type = 'PROCESS' and lease_until &lt; #{now}
+    </update>
+
+    <update id="failBatchesWithExpiredProcessTasks">
+        update agent_key_file.report_batch b
+           set status = 'FAILED', current_stage = 'PROCESS', process_call_status = 'FAILED',
+               error_summary = 'PROCESS 租约失效；请先核对 ETL 日志状态再重试',
+               update_time = current_timestamp
+         where b.del_flag = 0 and b.status = 'PROCESSING'
+           and exists (select 1 from agent_key_file.report_task t
+                        where t.batch_id = b.id and t.task_type = 'PROCESS'
+                          and t.status = 'FAILED'
+                          and t.error_message like '加工执行实例租约失效%')
+    </update>
+
+    <update id="failStaleProcessCalls">
+        update agent_key_file.report_process_call
+           set status = 'FAILED', error_message = '进程中断或超时，已释放内部互斥状态',
+               ended_time = current_timestamp
+         where status in ('QUEUED', 'PROCESSING') and started_time &lt; #{cutoff}
+    </update>
+
+    <select id="findQueuedTasks" resultType="org.jeecg.modules.reporting.entity.ReportTask">
+        select t.* from agent_key_file.report_task t
+          join agent_key_file.report_batch b on b.id = t.batch_id and b.del_flag = 0
+         where t.status = 'QUEUED'
+         order by t.create_time
+         limit #{limit}
+    </select>
+
     <select id="findBatchFiles" resultType="org.jeecg.modules.reporting.entity.ReportFile">
         select *
           from agent_key_file.report_file
@@ -27,9 +130,12 @@
     <select id="countInternalRunningProcess" resultType="int">
         select count(1)
           from agent_key_file.report_process_call
-         where accounting_period = #{accountingPeriod}
-           and coalesce(treasury_scope, '') = coalesce(#{treasuryScope}, '')
-           and status in ('QUEUED', 'PROCESSING')
+         where status in ('QUEUED', 'PROCESSING')
+    </select>
+
+    <select id="nextProcessAttempt" resultType="int">
+        select coalesce(max(attempt_no), 0) + 1
+          from agent_key_file.report_process_call where batch_id = #{batchId}
     </select>
 
     <!-- 列顺序保持原 JAR；真实 ETL 表字段仍须以内网核验脚本确认。 -->

@@ -92,7 +92,8 @@ public class ReportBatchService {
         batch.setSourceDomain(validated.sourceDomain);
         batch.setBusinessType(validated.businessType);
         batch.setAccountingPeriod(validated.accountingPeriodDate);
-        batch.setTreasuryCode(trimToNull(command.getTreasuryCode()) == null
+        batch.setTreasuryCode("TIMS".equals(validated.sourceDomain) && trimToNull(command.getAllowedTreasuryPrefix()) != null
+                ? trimToNull(command.getAllowedTreasuryPrefix()) : trimToNull(command.getTreasuryCode()) == null
                 ? validated.derivedTreasuryCode : trimToNull(command.getTreasuryCode()));
         batch.setTreasuryName(trimToNull(command.getTreasuryName()));
         batch.setOriginalFileName(originalFileName);
@@ -119,7 +120,7 @@ public class ReportBatchService {
             persistCompletedTask(batchId, "EXTRACT", 30, 2,
                     "已解压 " + archive.getExtractedFiles().size() + " 个业务文件",
                     userId, username, now);
-            persistQueuedTask(batchId, "PARSE", 3, userId, username, now);
+            ReportTask parseTask = persistQueuedTask(batchId, "PARSE", 3, userId, username, now);
 
             batch.setOriginalFileName(archive.getOriginalFileName());
             batch.setCurrentStage("PARSE");
@@ -134,15 +135,47 @@ public class ReportBatchService {
                 legacyPendingService.create(batch, persistedFiles.files, userId);
             }
             if (reportTaskService != null) {
-                reportTaskService.publishInitial(batchId, userId, username);
+                reportTaskService.publishInitial(parseTask.getId(), batchId, userId, username);
             }
             return toResult(batch);
         } catch (ReportFileHandlingException exception) {
+            persistFailedArchive(batch, exception.getArchivePath(), username);
             persistFailedFileHandling(batch, exception.getStage(), userId, username, exception);
             throw new ReportUploadException(batchId, exception.getStage(), exception.getMessage(), exception);
         } catch (IllegalArgumentException | IOException exception) {
             persistFailedFileHandling(batch, "ARCHIVE", userId, username, exception);
             throw new ReportUploadException(batchId, "ARCHIVE", exception.getMessage(), exception);
+        }
+    }
+
+    private void persistFailedArchive(ReportBatch batch, Path archivePath, String username) {
+        if (archivePath == null || !Files.isRegularFile(archivePath)) return;
+        try {
+            ReportFile archive = new ReportFile();
+            archive.setId(uuid());
+            archive.setBatchId(batch.getId());
+            archive.setFileRole("ARCHIVE");
+            archive.setBusinessType(batch.getBusinessType());
+            archive.setOriginalName(batch.getOriginalFileName());
+            archive.setArchiveName(archivePath.getFileName().toString());
+            archive.setRelativePath("archive/" + archivePath.getFileName());
+            archive.setStoragePath(archivePath.toString());
+            archive.setContentType("application/zip");
+            archive.setFileExtension("zip");
+            archive.setFileSize(Files.size(archivePath));
+            archive.setSha256(sha256(archivePath));
+            archive.setArchiveStatus(STATUS_SUCCEEDED);
+            archive.setExtractStatus(STATUS_FAILED);
+            archive.setParseStatus("NOT_STARTED");
+            archive.setErrorSummary("解压失败，已保留归档以供追踪");
+            initializeFileCounts(archive);
+            archive.setRetained(1);
+            archive.setDelFlag(0);
+            archive.setCreateBy(username);
+            archive.setCreateTime(new Date());
+            fileMapper.insert(archive);
+        } catch (IOException ignored) {
+            // The batch/task failure remains visible even if damaged media metadata cannot be read.
         }
     }
 
@@ -223,7 +256,7 @@ public class ReportBatchService {
         persistLog(task, null, STATUS_SUCCEEDED, message, userId, username, now);
     }
 
-    private void persistQueuedTask(String batchId,
+    private ReportTask persistQueuedTask(String batchId,
                                    String taskType,
                                    int sequence,
                                    String userId,
@@ -232,6 +265,7 @@ public class ReportBatchService {
         ReportTask task = newTask(batchId, taskType, sequence, STATUS_QUEUED, 0, username, now);
         taskMapper.insert(task);
         persistLog(task, null, STATUS_QUEUED, "等待后台执行", userId, username, now);
+        return task;
     }
 
     private ReportTask newTask(String batchId,
@@ -331,17 +365,22 @@ public class ReportBatchService {
                 && !"BACK".equals(businessType)) {
             throw new IllegalArgumentException("KEY 类型不合法");
         }
-        String rawPeriod = trimToNull(command.getAccountingPeriod());
-        LegacyKeyFileName legacy = (rawPeriod == null || trimToNull(command.getTreasuryCode()) == null)
-                ? LegacyKeyFileName.parse(originalFileName) : null;
-        if (rawPeriod == null) {
-            YearMonth period = YearMonth.from(legacy.getBusinessDate());
-            return new ValidatedCommand(sourceDomain, businessType, period.toString(),
-                    toDate(legacy.getBusinessDate()), legacy.getTreasuryCode());
+        LegacyKeyFileName legacy = LegacyKeyFileName.parse(originalFileName);
+        String allowedPrefix = trimToNull(command.getAllowedTreasuryPrefix());
+        if (allowedPrefix != null && !legacy.getTreasuryCode().startsWith(allowedPrefix)) {
+            throw new IllegalArgumentException("KEY 文件名中的国库超出当前用户数据范围");
         }
-        YearMonth period = parsePeriod(rawPeriod);
+        String rawPeriod = trimToNull(command.getAccountingPeriod());
+        if (rawPeriod != null && !YearMonth.from(legacy.getBusinessDate()).equals(parsePeriod(rawPeriod))) {
+            throw new IllegalArgumentException("KEY 页面账期与文件名中的业务日期不一致");
+        }
+        String requestedTreasury = trimToNull(command.getTreasuryCode());
+        if (requestedTreasury != null && !requestedTreasury.equals(legacy.getTreasuryCode())) {
+            throw new IllegalArgumentException("KEY 页面国库代码与文件名中的国库代码不一致");
+        }
+        YearMonth period = YearMonth.from(legacy.getBusinessDate());
         return new ValidatedCommand(sourceDomain, businessType, period.toString(),
-                toDate(period.atEndOfMonth()), legacy == null ? null : legacy.getTreasuryCode());
+                toDate(legacy.getBusinessDate()), legacy.getTreasuryCode());
     }
 
     private YearMonth parsePeriod(String value) {

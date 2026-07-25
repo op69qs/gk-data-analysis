@@ -24,6 +24,8 @@ public class ReportTask implements Serializable {
     private String status;
     private Integer progressPercent;
     private String executorKey;
+    private String leaseOwner;
+    private Date leaseUntil;
     private String requestParams;
     private String resultSummary;
     private String errorMessage;

@@ -115,6 +115,10 @@
     </select>
 
     <sql id="ChangeFiltersIncome">
+        <if test="q.guokuId != null and q.guokuId != ''">
+            and a.s_tratrecode like concat((select substring(g.guoku_id, 1, (g.level - 1) * 2)
+              from edw.cm_guoku_dimnsn g where g.guoku_id = #{q.guokuId}), '%')
+        </if>
         <if test="q.treCode != null and q.treCode != ''">and a.s_tratrecode = #{q.treCode}</if>
         <if test="q.bizDate != null">and a.d_acct = #{q.bizDate}</if>
         <if test="q.statisticsCode != null and q.statisticsCode != ''">and a.statistics_code like concat(#{q.statisticsCode}, '%')</if>
@@ -122,6 +126,10 @@
     </sql>
 
     <sql id="ChangeFiltersPayout">
+        <if test="q.guokuId != null and q.guokuId != ''">
+            and a.s_trecode like concat((select substring(g.guoku_id, 1, (g.level - 1) * 2)
+              from edw.cm_guoku_dimnsn g where g.guoku_id = #{q.guokuId}), '%')
+        </if>
         <if test="q.treCode != null and q.treCode != ''">and a.s_trecode = #{q.treCode}</if>
         <if test="q.bizDate != null">and a.d_acct = #{q.bizDate}</if>
         <if test="q.statisticsCode != null and q.statisticsCode != ''">and a.statistics_code like concat(#{q.statisticsCode}, '%')</if>
@@ -155,8 +163,11 @@
     </select>
 
     <select id="findIncomeAmount" resultType="java.math.BigDecimal">
-        select a.month_f_amt from edw.income_report_detail_stat a where 1 = 1
-        <include refid="ChangeFiltersIncome"/> limit 1
+        select a.month_f_amt from edw.income_report_detail_stat a
+         where a.s_tratrecode = #{q.treCode} and a.d_acct = #{q.bizDate}
+           and a.statistics_code = #{q.statisticsCode} and a.c_bdglevel = #{q.budgetLevel}
+           and a.s_tratrecode like concat((select substring(g.guoku_id, 1, (g.level - 1) * 2)
+             from edw.cm_guoku_dimnsn g where g.guoku_id = #{q.guokuId}), '%')
     </select>
 
     <select id="queryPayout" resultType="java.util.LinkedHashMap">
@@ -186,8 +197,11 @@
     </select>
 
     <select id="findPayoutAmount" resultType="java.math.BigDecimal">
-        select a.month_f_amt from edw.payout_report_detail_stat a where 1 = 1
-        <include refid="ChangeFiltersPayout"/> limit 1
+        select a.month_f_amt from edw.payout_report_detail_stat a
+         where a.s_trecode = #{q.treCode} and a.d_acct = #{q.bizDate}
+           and a.statistics_code = #{q.statisticsCode} and a.guoku_lvl = #{q.budgetLevel}
+           and a.s_trecode like concat((select substring(g.guoku_id, 1, (g.level - 1) * 2)
+             from edw.cm_guoku_dimnsn g where g.guoku_id = #{q.guokuId}), '%')
     </select>
 
     <insert id="insertChange">
@@ -201,8 +215,15 @@
     </insert>
 
     <sql id="ChangeRecordFilters">
+        <if test="q.guokuId != null and q.guokuId != ''">
+            and a.s_trecode like concat((select substring(g.guoku_id, 1, (g.level - 1) * 2)
+              from edw.cm_guoku_dimnsn g where g.guoku_id = #{q.guokuId}), '%')
+        </if>
         <if test="q.treCode != null and q.treCode != ''">and a.s_trecode = #{q.treCode}</if>
-        <if test="q.bizDate != null">and a.d_acct = #{q.bizDate}</if>
+        <if test="q.bizDate != null">
+            and substring(cast(a.d_acct as varchar), 1, 7)
+                = substring(cast(#{q.bizDate} as varchar), 1, 7)
+        </if>
         <if test="q.statisticsCode != null and q.statisticsCode != ''">and a.statistics_code like concat(#{q.statisticsCode}, '%')</if>
         <if test="q.type != null and q.type != ''">and a.type = #{q.type}</if>
         <if test="q.budgetLevel != null and q.budgetLevel != ''">and a.c_bdglevel = #{q.budgetLevel}</if>
@@ -220,6 +241,10 @@
     </select>
 
     <select id="queryTreasuries" resultType="java.util.LinkedHashMap">
-        select guoku_id value, guoku_dscr label from edw.cm_guoku_dimnsn order by guoku_id
+        select guoku_id value, guoku_dscr label from edw.cm_guoku_dimnsn
+         where guoku_id like concat(
+             (select substring(g.guoku_id, 1, (g.level - 1) * 2)
+                from edw.cm_guoku_dimnsn g where g.guoku_id = #{guokuId}), '%')
+         order by guoku_id
     </select>
 </mapper>

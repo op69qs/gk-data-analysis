@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.jeecg.modules.reporting.service.ReportingUserScopeService;
 import org.springframework.web.multipart.MultipartFile;
 
 @Api(tags = "数据上报批次")
@@ -26,9 +28,15 @@ public class ReportBatchController {
     public static final String UPLOAD_PERMISSION = "reporting:batch:upload";
 
     private final ReportBatchService batchService;
+    private ReportingUserScopeService userScopeService;
 
     public ReportBatchController(ReportBatchService batchService) {
         this.batchService = batchService;
+    }
+
+    @Autowired(required = false)
+    public void setUserScopeService(ReportingUserScopeService userScopeService) {
+        this.userScopeService = userScopeService;
     }
 
     @AutoLog(value = "数据上报-上传ZIP")
@@ -48,6 +56,9 @@ public class ReportBatchController {
         command.setTreasuryCode(treasuryCode);
         command.setTreasuryName(treasuryName);
         CurrentUser currentUser = currentUser();
+        if (userScopeService != null) {
+            command.setAllowedTreasuryPrefix(userScopeService.requireTreasuryPrefix(currentUser.username));
+        }
 
         try {
             ReportBatchUploadResult result = batchService.createUploadBatch(

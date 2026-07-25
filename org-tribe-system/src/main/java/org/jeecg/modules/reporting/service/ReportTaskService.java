@@ -59,11 +59,17 @@ public class ReportTaskService {
         if (!RETRY_TYPES.contains(taskType)) {
             throw new IllegalArgumentException("只允许重新解析、重新入库或再次加工");
         }
-        ReportBatch batch = batchMapper.selectById(batchId);
+        ReportBatch batch = workflowMapper.findBatchForUpdate(batchId);
         if (batch == null || Integer.valueOf(1).equals(batch.getDelFlag())) {
             throw new IllegalArgumentException("上报批次不存在或已逻辑删除");
         }
+        if (workflowMapper.countActiveTasks(batchId) > 0) {
+            throw new IllegalStateException("该批次已有排队或执任务，请勿并发重试");
+        }
         ReportTask previous = workflowMapper.findLatestTask(batchId, taskType);
+        if (previous != null && ("QUEUED".equals(previous.getStatus()) || "PROCESSING".equals(previous.getStatus()))) {
+            throw new IllegalStateException("该阶段已在排队或执行，请勿重复提交");
+        }
         Date now = new Date();
         ReportTask task = new ReportTask();
         task.setId(uuid());
@@ -101,12 +107,12 @@ public class ReportTaskService {
         batch.setUpdateBy(username);
         batch.setUpdateTime(now);
         batchMapper.updateById(batch);
-        publishAfterCommit(new ReportBatchExecutionRequested(batchId, taskType, userId, username));
+        publishAfterCommit(new ReportBatchExecutionRequested(task.getId(), batchId, taskType, userId, username));
         return task;
     }
 
-    public void publishInitial(String batchId, String userId, String username) {
-        publishAfterCommit(new ReportBatchExecutionRequested(batchId, "PARSE", userId, username));
+    public void publishInitial(String taskId, String batchId, String userId, String username) {
+        publishAfterCommit(new ReportBatchExecutionRequested(taskId, batchId, "PARSE", userId, username));
     }
 
     private void publishAfterCommit(final ReportBatchExecutionRequested event) {

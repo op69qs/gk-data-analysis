@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.jeecg.common.api.vo.Result;
 import org.jeecg.modules.reporting.service.ReportMonitoringService;
+import org.jeecg.modules.reporting.service.ReportingUserScopeService;
 import org.jeecg.modules.reporting.vo.ReportingBusinessQuery;
 import org.jeecg.modules.reporting.vo.ReportingPageResult;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,8 +20,12 @@ import java.util.Map;
 @RequestMapping("/reporting/monitoring")
 public class ReportMonitoringController extends ReportingWebSupport {
     private final ReportMonitoringService service;
+    private final ReportingUserScopeService userScopeService;
 
-    public ReportMonitoringController(ReportMonitoringService service) { this.service = service; }
+    public ReportMonitoringController(ReportMonitoringService service, ReportingUserScopeService userScopeService) {
+        this.service = service;
+        this.userScopeService = userScopeService;
+    }
 
     @ApiOperation("KEY 代理国库上报与异常监控")
     @GetMapping("/key")
@@ -28,6 +33,7 @@ public class ReportMonitoringController extends ReportingWebSupport {
             ReportingBusinessQuery query,
             @RequestParam(defaultValue = "1") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize) {
+        query.setGuokuId(userScopeService.requireGuokuId(currentUser().username));
         return success(service.key(query, pageNo, pageSize), "查询成功");
     }
 
@@ -37,12 +43,13 @@ public class ReportMonitoringController extends ReportingWebSupport {
             ReportingBusinessQuery query,
             @RequestParam(defaultValue = "1") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize) {
+        query.setGuokuId(userScopeService.requireGuokuId(currentUser().username));
         return success(service.tims(query, pageNo, pageSize), "查询成功");
     }
 
     @ApiOperation("国库选择项")
     @GetMapping("/treasuries")
     public Result<List<Map<String, Object>>> treasuries() {
-        return success(service.treasuries(), "查询成功");
+        return success(service.treasuries(userScopeService.requireGuokuId(currentUser().username)), "查询成功");
     }
 }

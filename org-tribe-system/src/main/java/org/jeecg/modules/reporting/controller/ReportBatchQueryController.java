@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.jeecg.modules.reporting.service.ReportingAccessService;
 
 @Api(tags = "数据上报跟踪")
 @RestController
@@ -30,10 +32,16 @@ public class ReportBatchQueryController {
 
     private final ReportBatchQueryService queryService;
     private final ReportTaskService taskService;
+    private ReportingAccessService accessService;
 
     public ReportBatchQueryController(ReportBatchQueryService queryService, ReportTaskService taskService) {
         this.queryService = queryService;
         this.taskService = taskService;
+    }
+
+    @Autowired(required = false)
+    public void setAccessService(ReportingAccessService accessService) {
+        this.accessService = accessService;
     }
 
     @ApiOperation("分页查询上报批次")
@@ -47,13 +55,16 @@ public class ReportBatchQueryController {
             @RequestParam(required = false) String accountingPeriod,
             @RequestParam(required = false) String treasuryCode,
             @RequestParam(required = false) String fileName) {
+        CurrentUser user = currentUser();
+        String prefix = accessService == null ? null : accessService.requirePrefix(user.username);
         return success(queryService.page(pageNo, pageSize, sourceDomain, businessType, status,
-                accountingPeriod, treasuryCode, fileName), "查询成功");
+                accountingPeriod, treasuryCode, fileName, prefix), "查询成功");
     }
 
     @ApiOperation("查询批次完整执行详情")
     @GetMapping("/{batchId}")
     public Result<ReportBatchDetail> detail(@PathVariable String batchId) {
+        if (accessService != null) accessService.requireBatch(batchId, currentUser().username);
         return success(queryService.detail(batchId), "查询成功");
     }
 
@@ -62,6 +73,7 @@ public class ReportBatchQueryController {
     @PostMapping("/{batchId}/retry")
     public Result<ReportTask> retry(@PathVariable String batchId, @RequestParam String taskType) {
         CurrentUser user = currentUser();
+        if (accessService != null) accessService.requireBatch(batchId, user.username);
         return success(taskService.queueRetry(batchId, taskType, user.userId, user.username), "重试任务已排队");
     }
 
@@ -70,6 +82,7 @@ public class ReportBatchQueryController {
     @DeleteMapping("/{batchId}")
     public Result<String> delete(@PathVariable String batchId) {
         CurrentUser user = currentUser();
+        if (accessService != null) accessService.requireBatch(batchId, user.username);
         queryService.logicalDelete(batchId, user.username);
         return success(batchId, "已逻辑删除，原始文件和审计记录仍保留");
     }

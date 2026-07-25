@@ -133,8 +133,8 @@ export default {
       return file ? file.originalName : (fileId || '—')
     },
     stageLabel(value) { return { ARCHIVE: '归档', EXTRACT: '解压', PARSE: '解析', LOAD: '入库', PROCESS: '加工' }[value] || value },
-    statusLabel(value) { return { QUEUED: '等待', PROCESSING: '执行中', SUCCEEDED: '成功', FAILED: '失败', LOGICALLY_DELETED: '已删除' }[value] || value },
-    statusColor(value) { return { SUCCEEDED: 'green', FAILED: 'red', PROCESSING: 'blue', QUEUED: 'orange' }[value] || 'default' },
+    statusLabel(value) { return { QUEUED: '等待', PROCESSING: '执行中', SUCCEEDED: '成功', PARTIALLY_SUCCEEDED: '部分完成/等待加工', FAILED: '失败', LOGICALLY_DELETED: '已删除' }[value] || value },
+    statusColor(value) { return { SUCCEEDED: 'green', PARTIALLY_SUCCEEDED: 'orange', FAILED: 'red', PROCESSING: 'blue', QUEUED: 'orange' }[value] || 'default' },
     dateOnly(value) { return value ? String(value).slice(0, 10) : '—' }
   }
 }

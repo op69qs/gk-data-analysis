@@ -28,8 +28,8 @@ public class ReportMonitoringService {
         return new ReportingPageResult<>(mapper.countTimsMonitoring(query), mapper.queryTimsMonitoring(query));
     }
 
-    public List<Map<String, Object>> treasuries() {
-        return mapper.queryTreasuries();
+    public List<Map<String, Object>> treasuries(String guokuId) {
+        return mapper.queryTreasuries(guokuId);
     }
 
     void prepare(ReportingBusinessQuery query, int pageNo, int pageSize) {

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Service
 public class TimsReportProcessingService {
@@ -44,18 +46,40 @@ public class TimsReportProcessingService {
     @Transactional(rollbackFor = Exception.class)
     public TimsReportProcessingResult process(Path extractRoot, TimsBusinessType type,
                                               YearMonth accountingPeriod) throws IOException {
+        return process(extractRoot, type, accountingPeriod, null);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public TimsReportProcessingResult process(Path extractRoot, TimsBusinessType type,
+                                              YearMonth accountingPeriod,
+                                              String allowedTreasuryPrefix) throws IOException {
         List<Path> files = findExcelFiles(extractRoot);
         List<TimsReportRecord> rows = new ArrayList<>();
         List<TimsExcelParseError> errors = new ArrayList<>();
+        if (files.isEmpty()) {
+            errors.add(packageError("压缩包中没有 Excel 文件"));
+        }
         for (Path file : files) {
+            if (hasRecognizableTypeConflict(file, type)) {
+                errors.add(new TimsExcelParseError(file.getFileName().toString(), null, 0,
+                        "文件类型", file.getFileName().toString(), "文件名与选择的上报类型不一致"));
+                continue;
+            }
             TimsExcelParseResult parsed = parser.parse(file, type);
             rows.addAll(parsed.getRecords());
             errors.addAll(parsed.getErrors());
         }
 
+        if (!files.isEmpty() && rows.isEmpty() && errors.isEmpty()) {
+            errors.add(packageError("Excel 中没有有效数据行"));
+        }
+
         List<TimsReportRecord> accepted = new ArrayList<>();
         for (TimsReportRecord row : rows) {
-            if (!YearMonth.from(row.getDAcct()).equals(accountingPeriod)) {
+            if (allowedTreasuryPrefix != null && !row.getTreCode().startsWith(allowedTreasuryPrefix)) {
+                errors.add(new TimsExcelParseError(row.getFileName(), row.getSheetName(), row.getRowNumber(),
+                        "国库代码", row.getTreCode(), "国库超出当前用户数据范围"));
+            } else if (!YearMonth.from(row.getDAcct()).equals(accountingPeriod)) {
                 errors.add(new TimsExcelParseError(row.getFileName(), row.getSheetName(), row.getRowNumber(),
                         "日期", row.getDAcct().toString(), "文件账期与本次上报账期 " + accountingPeriod + " 不一致"));
             } else {
@@ -68,7 +92,30 @@ public class TimsReportProcessingService {
             replaceIntermediate(type, accepted);
             replaceStg(type, accepted, accountingPeriod.format(PERIOD_FORMAT), LocalDate.now().format(BATCH_FORMAT));
         }
-        return new TimsReportProcessingResult(files.size(), accepted.size(), errors);
+        return new TimsReportProcessingResult(files.size(), accepted.size(), errors, treasuryCounts(accepted));
+    }
+
+    private TimsExcelParseError packageError(String message) {
+        return new TimsExcelParseError("<ZIP>", null, 0, null, null, message);
+    }
+
+    private boolean hasRecognizableTypeConflict(Path file, TimsBusinessType expected) {
+        String name = file.getFileName().toString();
+        TimsBusinessType actual = name.contains("收入") ? TimsBusinessType.INCOME
+                : name.contains("支出") ? TimsBusinessType.PAYOUT
+                : name.contains("库存") ? TimsBusinessType.STOCK : null;
+        return actual != null && actual != expected;
+    }
+
+    private List<TimsReportProcessingResult.TreasuryCount> treasuryCounts(List<TimsReportRecord> rows) {
+        Map<String, TimsReportProcessingResult.TreasuryCount> counts = new LinkedHashMap<>();
+        for (TimsReportRecord row : rows) {
+            String key = row.getDatabaseDate() + "|" + row.getTreCode();
+            TimsReportProcessingResult.TreasuryCount previous = counts.get(key);
+            counts.put(key, new TimsReportProcessingResult.TreasuryCount(
+                    row.getDatabaseDate(), row.getTreCode(), previous == null ? 1 : previous.getRowCount() + 1));
+        }
+        return new ArrayList<>(counts.values());
     }
 
     private List<Path> findExcelFiles(Path root) throws IOException {

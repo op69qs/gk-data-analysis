@@ -54,7 +54,7 @@ export default {
       return 'gray'
     },
     tagColor(value) {
-      return { SUCCEEDED: 'green', FAILED: 'red', PROCESSING: 'blue', QUEUED: 'orange' }[value] || 'default'
+      return { SUCCEEDED: 'green', PARTIALLY_SUCCEEDED: 'orange', FAILED: 'red', PROCESSING: 'blue', QUEUED: 'orange' }[value] || 'default'
     },
     duration(task) {
       return task.durationMs == null ? '—' : `${task.durationMs} ms`

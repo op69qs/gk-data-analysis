@@ -6,6 +6,7 @@ import org.jeecg.modules.reporting.mapper.ReportProcessCallMapper;
 import org.jeecg.modules.reporting.mapper.ReportWorkflowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.sql.Date;
 import java.util.UUID;
@@ -46,13 +47,17 @@ public class ReportProcessCallService {
         call.setProcedureName(PROCEDURE_NAME);
         call.setProcedureArgument(accountingPeriod.toString());
         call.setStatus("PROCESSING");
-        call.setAttemptNo(1);
+        call.setAttemptNo(workflowMapper.nextProcessAttempt(batch.getId()));
         call.setExternalLogId(externalLogId);
         call.setRequestSummary("按批次账期调用 " + PROCEDURE_NAME);
         call.setStartedTime(now);
         call.setCreateBy(username);
         call.setCreateTime(now);
-        callMapper.insert(call);
+        try {
+            callMapper.insert(call);
+        } catch (DataIntegrityViolationException exception) {
+            throw new ReportProcessBusyException("同账期、同国库范围的数据加工已被其他实例领取");
+        }
 
         try {
             workflowMapper.insertExternalProcessLog(externalLogId, PROCEDURE_NAME,

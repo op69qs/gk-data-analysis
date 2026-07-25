@@ -44,6 +44,7 @@ from (values
   ('batches', '重新解析/入库', 'reporting:batch:retry', 3),
   ('batches', '再次加工', 'reporting:batch:process', 4),
   ('batches', '逻辑删除', 'reporting:batch:delete', 5),
+  ('batches', '上报审核', 'reporting:batch:audit', 6),
   ('agent-treasuries', '新增代理国库', 'reporting:treasury:add', 1),
   ('agent-treasuries', '编辑代理国库', 'reporting:treasury:edit', 2),
   ('changes', '新增调整记录', 'reporting:change:add', 1),
@@ -56,4 +57,3 @@ from sys_permission where id = md5('sys_permission:/reporting')
    or parent_id = md5('sys_permission:/reporting')
    or parent_id in (select id from sys_permission where parent_id = md5('sys_permission:/reporting'))
 order by menu_type, sort_no;
-

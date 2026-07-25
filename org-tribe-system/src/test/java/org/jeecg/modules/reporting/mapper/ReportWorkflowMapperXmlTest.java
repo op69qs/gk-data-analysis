@@ -1,6 +1,8 @@
 package org.jeecg.modules.reporting.mapper;
 
 import org.junit.Test;
+import org.apache.ibatis.builder.xml.XMLMapperBuilder;
+import org.apache.ibatis.session.Configuration;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -19,8 +21,26 @@ public class ReportWorkflowMapperXmlTest {
         assertTrue(xml.contains("adm.p_guoku_lib_report_all"));
         assertTrue(xml.contains("agent_key_file.report_process_call"));
         assertTrue(xml.contains("state = '1'"));
+        assertTrue(xml.contains("lease_owner"));
+        assertTrue(xml.contains("lease_until"));
+        assertTrue(xml.contains("lease_owner = #{leaseowner}"));
+        assertTrue(xml.contains("id=\"completeownedtask\""));
+        assertFalse(xml.contains("heartbeatownedtasks"));
         assertFalse(xml.contains("${"));
         assertFalse(xml.contains("`"));
+    }
+
+    @Test
+    public void workflowMapperParsesInProjectMybatisRuntime() throws IOException {
+        String path = "org/jeecg/modules/reporting/mapper/xml/ReportWorkflowMapper.xml";
+        InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
+        assertNotNull(input);
+        try (InputStream stream = input) {
+            Configuration configuration = new Configuration();
+            new XMLMapperBuilder(stream, configuration, path, configuration.getSqlFragments()).parse();
+            assertTrue(configuration.hasStatement(
+                    "org.jeecg.modules.reporting.mapper.ReportWorkflowMapper.claimTask"));
+        }
     }
 
     private String read(String path) throws IOException {

@@ -65,9 +65,11 @@ export default {
     async load() {
       this.loading = true
       try {
+        const user = this.$sessionStorage.ls.get('Login_Userinfo') || {}
         const params = {
           pageNo: this.pagination.current, pageSize: this.pagination.pageSize,
           bizDate: this.query.period ? this.query.period.clone().endOf('month').format('YYYY-MM-DD') : undefined,
+          guokuId: user.guokuId || undefined,
           treCode: this.query.treCode || undefined, treName: this.query.treName || undefined,
           exeState: this.query.exeState, reported: this.query.reported
         }

@@ -27,6 +27,7 @@ public class ReportingBusinessMapperXmlTest {
         }
         assertTrue(xml.contains("count(distinct tp.biz_type)"));
         assertTrue(xml.contains("row_number() over"));
+        assertTrue(xml.contains("substring(cast(a.d_acct as varchar), 1, 7)"));
         assertFalse(xml.contains("${"));
         assertFalse(xml.contains("ifnull"));
         assertFalse(xml.contains("group_concat"));
@@ -36,14 +37,19 @@ public class ReportingBusinessMapperXmlTest {
 
     @Test
     public void mapperCanBeParsedByTheProjectMybatisRuntime() throws IOException {
-        String path = "org/jeecg/modules/reporting/mapper/xml/ReportingBusinessMapper.xml";
+        parseAndAssert("org/jeecg/modules/reporting/mapper/xml/ReportingBusinessMapper.xml",
+                "org.jeecg.modules.reporting.mapper.ReportingBusinessMapper.queryTimsMonitoring");
+        parseAndAssert("org/jeecg/modules/reporting/mapper/xml/AgentTreasuryConfigMapper.xml",
+                "org.jeecg.modules.reporting.mapper.AgentTreasuryConfigMapper.findScopePrefix");
+    }
+
+    private void parseAndAssert(String path, String statement) throws IOException {
         InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
         assertNotNull("Missing resource " + path, input);
         try (InputStream stream = input) {
             Configuration configuration = new Configuration();
             new XMLMapperBuilder(stream, configuration, path, configuration.getSqlFragments()).parse();
-            assertTrue(configuration.hasStatement(
-                    "org.jeecg.modules.reporting.mapper.ReportingBusinessMapper.queryTimsMonitoring"));
+            assertTrue(configuration.hasStatement(statement));
         }
     }
 

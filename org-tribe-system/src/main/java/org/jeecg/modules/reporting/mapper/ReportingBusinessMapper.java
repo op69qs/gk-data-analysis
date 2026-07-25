@@ -22,5 +22,5 @@ public interface ReportingBusinessMapper {
     int insertChange(@Param("record") ReportChangeCommand record);
     List<Map<String, Object>> queryChanges(@Param("q") ReportingBusinessQuery query);
     long countChanges(@Param("q") ReportingBusinessQuery query);
-    List<Map<String, Object>> queryTreasuries();
+    List<Map<String, Object>> queryTreasuries(@Param("guokuId") String guokuId);
 }

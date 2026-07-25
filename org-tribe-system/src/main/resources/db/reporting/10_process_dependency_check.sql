@@ -12,6 +12,12 @@ left join information_schema.tables tables
   on lower(tables.table_schema) = required.schema_name
  and lower(tables.table_name) = required.object_name;
 
+-- JAR 对该表使用无列名 INSERT，必须将下列结果与内网原表 DDL 逐列核对后才能开启调用。
+select ordinal_position, column_name, data_type, character_maximum_length, is_nullable, column_default
+  from information_schema.columns
+ where lower(table_schema) = 'etl' and lower(table_name) = 'guoku_lib_report_all_log'
+ order by ordinal_position;
+
 select routine_schema, routine_name, routine_type, data_type
 from information_schema.routines
 where lower(routine_schema) = 'adm' and lower(routine_name) = 'p_guoku_lib_report_all';
@@ -24,3 +30,6 @@ order by ordinal_position;
 select count(1) running_count, min(add_time) oldest_running_time
 from etl.guoku_lib_report_all_log where state = '1';
 
+-- 上述结果和真实过程签名全部确认后，同时设置：
+-- REPORTING_AUTO_PROCESS_ENABLED=true
+-- REPORTING_PROCESS_DEPENDENCIES_VERIFIED=true

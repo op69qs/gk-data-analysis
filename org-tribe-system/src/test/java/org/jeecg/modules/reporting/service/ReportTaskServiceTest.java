@@ -45,7 +45,7 @@ public class ReportTaskServiceTest {
         previous.setId("task-old");
         previous.setAttemptNo(1);
         previous.setSequenceNo(5);
-        when(batchMapper.selectById("batch-1")).thenReturn(batch);
+        when(workflowMapper.findBatchForUpdate("batch-1")).thenReturn(batch);
         when(workflowMapper.findLatestTask("batch-1", "PROCESS")).thenReturn(previous);
 
         ReportTask created = new ReportTaskService(
@@ -61,6 +61,23 @@ public class ReportTaskServiceTest {
         verify(publisher).publishEvent(event.capture());
         assertEquals("batch-1", event.getValue().getBatchId());
         assertEquals("PROCESS", event.getValue().getRequestedTaskType());
+        assertEquals(created.getId(), event.getValue().getTaskId());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void retryRejectsAnotherActiveAttempt() {
+        ReportWorkflowMapper workflowMapper = mock(ReportWorkflowMapper.class);
+        ReportBatch batch = new ReportBatch();
+        batch.setId("batch-1");
+        ReportTask active = new ReportTask();
+        active.setStatus("PROCESSING");
+        when(workflowMapper.findBatchForUpdate("batch-1")).thenReturn(batch);
+        when(workflowMapper.countActiveTasks("batch-1")).thenReturn(1);
+        when(workflowMapper.findLatestTask("batch-1", "PARSE")).thenReturn(active);
+
+        new ReportTaskService(mock(ReportBatchMapper.class), mock(ReportTaskMapper.class),
+                mock(ReportTaskLogMapper.class), workflowMapper, mock(ApplicationEventPublisher.class))
+                .queueRetry("batch-1", "PARSE", "u1", "operator");
     }
 
     @Test(expected = ReportProcessBusyException.class)
