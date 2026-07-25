@@ -151,3 +151,12 @@ logging:
 #cas单点登录
 cas:
   prefixUrl: http://cas.example.org:8443/cas
+
+reporting:
+  archive-root: ${REPORTING_ARCHIVE_ROOT:./target/reporting-test}
+  max-upload-bytes: 10485760
+  max-zip-entries: 2000
+  max-total-uncompressed-bytes: 524288000
+  max-single-entry-bytes: 104857600
+  retention-days: 0
+  auto-process-enabled: false
