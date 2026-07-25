@@ -79,7 +79,11 @@ public class ReportBatchService {
                                                       ReportUploadCommand command,
                                                       String userId,
                                                       String username) {
-        ValidatedCommand validated = validate(command);
+        String originalFileName = originalBaseName(file);
+        ValidatedCommand validated = validate(command, originalFileName);
+        if ("KEY".equals(validated.sourceDomain) && legacyPendingService != null) {
+            legacyPendingService.assertKeyUploadAvailable(originalFileName);
+        }
         String batchId = uuid();
         Date now = new Date();
         ReportBatch batch = new ReportBatch();
@@ -88,9 +92,10 @@ public class ReportBatchService {
         batch.setSourceDomain(validated.sourceDomain);
         batch.setBusinessType(validated.businessType);
         batch.setAccountingPeriod(validated.accountingPeriodDate);
-        batch.setTreasuryCode(trimToNull(command.getTreasuryCode()));
+        batch.setTreasuryCode(trimToNull(command.getTreasuryCode()) == null
+                ? validated.derivedTreasuryCode : trimToNull(command.getTreasuryCode()));
         batch.setTreasuryName(trimToNull(command.getTreasuryName()));
-        batch.setOriginalFileName(originalBaseName(file));
+        batch.setOriginalFileName(originalFileName);
         batch.setCurrentStage("ARCHIVE");
         batch.setStatus(STATUS_PROCESSING);
         batch.setProgressPercent(0);
@@ -298,7 +303,7 @@ public class ReportBatchService {
         batchMapper.updateById(batch);
     }
 
-    private ValidatedCommand validate(ReportUploadCommand command) {
+    private ValidatedCommand validate(ReportUploadCommand command, String originalFileName) {
         if (command == null) {
             throw new IllegalArgumentException("上报参数不能为空");
         }
@@ -315,7 +320,7 @@ public class ReportBatchService {
             }
             YearMonth period = parsePeriod(command.getAccountingPeriod());
             return new ValidatedCommand(sourceDomain, businessType, period.toString(),
-                    toDate(period.atEndOfMonth()));
+                    toDate(period.atEndOfMonth()), null);
         }
 
         if (businessType == null) {
@@ -327,11 +332,16 @@ public class ReportBatchService {
             throw new IllegalArgumentException("KEY 类型不合法");
         }
         String rawPeriod = trimToNull(command.getAccountingPeriod());
+        LegacyKeyFileName legacy = (rawPeriod == null || trimToNull(command.getTreasuryCode()) == null)
+                ? LegacyKeyFileName.parse(originalFileName) : null;
         if (rawPeriod == null) {
-            return new ValidatedCommand(sourceDomain, businessType, "pending", null);
+            YearMonth period = YearMonth.from(legacy.getBusinessDate());
+            return new ValidatedCommand(sourceDomain, businessType, period.toString(),
+                    toDate(legacy.getBusinessDate()), legacy.getTreasuryCode());
         }
         YearMonth period = parsePeriod(rawPeriod);
-        return new ValidatedCommand(sourceDomain, businessType, period.toString(), toDate(period.atEndOfMonth()));
+        return new ValidatedCommand(sourceDomain, businessType, period.toString(),
+                toDate(period.atEndOfMonth()), legacy == null ? null : legacy.getTreasuryCode());
     }
 
     private YearMonth parsePeriod(String value) {
@@ -413,15 +423,18 @@ public class ReportBatchService {
         private final String businessType;
         private final String archivePeriod;
         private final Date accountingPeriodDate;
+        private final String derivedTreasuryCode;
 
         private ValidatedCommand(String sourceDomain,
                                  String businessType,
                                  String archivePeriod,
-                                 Date accountingPeriodDate) {
+                                 Date accountingPeriodDate,
+                                 String derivedTreasuryCode) {
             this.sourceDomain = sourceDomain;
             this.businessType = businessType;
             this.archivePeriod = archivePeriod;
             this.accountingPeriodDate = accountingPeriodDate;
+            this.derivedTreasuryCode = derivedTreasuryCode;
         }
     }
 

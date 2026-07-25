@@ -111,9 +111,17 @@ create table if not exists edw.income_report_detail_stat (
   flitting_flag varchar(32), statistics_code varchar(128), t_sub varchar(128), c_bdglevel varchar(32),
   s_vouno varchar(128), table_name varchar(255), jurisdiction varchar(128)
 );
-create table if not exists edw.payout_report_detail_stat (like edw.income_report_detail_stat including defaults);
+create table if not exists edw.payout_report_detail_stat (
+  s_bookorgcode varchar(128), d_acct date, s_biztype varchar(64), s_trasrlno varchar(128),
+  s_trecode varchar(64), guoku_lvl varchar(32), s_bdgorgcode varchar(128), s_funcsbtcode varchar(128),
+  sort_id varchar(64), type_id varchar(64), class_id varchar(64), flitting_flag varchar(32),
+  statistics_code varchar(128), t_sub varchar(128), month_f_amt numeric(20,2),
+  f_amt numeric(20,2), year_f_amt numeric(20,2), s_vouno varchar(128),
+  table_name varchar(255), jurisdiction varchar(128)
+);
 create table if not exists edw.reprot_update_record (
-  id varchar(64) primary key, type varchar(16) not null, s_trecode varchar(64), d_acct date,
+  -- 原 JAR INSERT 不写 ID；因此模拟列不能强制主键，真实主键/默认值仍待内网 DDL 确认。
+  id varchar(64), type varchar(16) not null, s_trecode varchar(64), d_acct date,
   statistics_code varchar(128), c_bdglevel varchar(32), old_f_amt numeric(20,2),
   new_f_amt numeric(20,2), diff_f_amt numeric(20,2), update_date timestamp, update_user varchar(64)
 );

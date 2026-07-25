@@ -44,6 +44,18 @@ public class ReportingDatabaseScriptsTest {
         }
     }
 
+    @Test
+    public void deliveryIncludesCompatibilityReconciliationMenuGateAndRollbackScripts() throws IOException {
+        for (String file : Arrays.asList(
+                "07_mysql_vastbase_sql_compatibility_check.sql",
+                "08_data_reconciliation_check.sql", "09_menu_permission_seed.sql",
+                "10_process_dependency_check.sql", "11_rollback.sql")) {
+            String sql = readResource("db/reporting/" + file).toLowerCase();
+            assertTrue(file + " must declare its target", sql.contains("目标"));
+            assertTrue(file + " must declare whether it is repeatable", sql.contains("可重复执行"));
+        }
+    }
+
     private String readResource(String path) throws IOException {
         InputStream input = Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
         assertNotNull("Missing resource " + path, input);

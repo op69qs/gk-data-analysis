@@ -23,8 +23,8 @@ public class ReportProcessCallService {
     }
 
     @Transactional(noRollbackFor = RuntimeException.class)
-    public ReportProcessCall callForBatch(ReportBatch batch, String taskId,
-                                          String userId, String username) {
+    public synchronized ReportProcessCall callForBatch(ReportBatch batch, String taskId,
+                                                       String userId, String username) {
         if (batch == null || batch.getAccountingPeriod() == null) {
             throw new IllegalArgumentException("批次账期不能为空");
         }

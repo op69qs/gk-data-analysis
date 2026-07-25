@@ -16,10 +16,19 @@ import java.util.stream.Collectors;
 /** Maintains the two original pending tables so the JAR-era monitoring contract remains available. */
 @Service
 public class LegacyPendingService {
+    private static final String ORIGINAL_TIMS_TREASURY_CODE = "2200000000";
     private final LegacyPendingMapper mapper;
 
     public LegacyPendingService(LegacyPendingMapper mapper) {
         this.mapper = mapper;
+    }
+
+    /** Original JAR rejects a KEY ZIP when its base name already occurs in pending records. */
+    public void assertKeyUploadAvailable(String originalFileName) {
+        String zipBase = baseName(originalFileName);
+        if (mapper.countKeyPendingByZipBase(zipBase) > 0) {
+            throw new IllegalArgumentException("文件【" + originalFileName + "】重复上传");
+        }
     }
 
     public void create(ReportBatch batch, List<ReportFile> files, String userId) {
@@ -103,13 +112,15 @@ public class LegacyPendingService {
     private LegacyTimsPending timsPending(ReportBatch batch, List<ReportFile> files, String userId) {
         LegacyTimsPending record = new LegacyTimsPending();
         record.setId(batch.getId());
-        record.setTreCode(batch.getTreasuryCode());
+        // The JAR writes this fixed aggregate treasury code for every TIMS upload.
+        record.setTreCode(ORIGINAL_TIMS_TREASURY_CODE);
         record.setBizType(timsType(batch.getBusinessType()));
         record.setBizDate(batch.getAccountingPeriod());
         record.setFileName(batch.getOriginalFileName());
         ReportFile archive = archive(files);
-        record.setFilePath(extractDirectory(archive));
-        record.setZipFilePath(archive == null ? null : archive.getStoragePath());
+        // Preserve the original JAR's counter-intuitive column meanings exactly.
+        record.setFilePath(archive == null ? null : archive.getStoragePath());
+        record.setZipFilePath(extractDirectory(archive));
         record.setDataCount(0);
         record.setFileException("");
         record.setState("1");

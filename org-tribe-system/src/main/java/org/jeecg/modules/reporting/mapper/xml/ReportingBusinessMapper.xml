@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.reporting.mapper.ReportingBusinessMapper">
+    <sql id="TreasuryScope">
+        <if test="q.guokuId != null and q.guokuId != ''">
+            and tc.tre_code like concat(
+                (select substring(g.guoku_id, 1, (g.level - 1) * 2)
+                   from edw.cm_guoku_dimnsn g where g.guoku_id = #{q.guokuId}), '%')
+        </if>
+    </sql>
+
+    <sql id="KeyFilters">
+        <if test="q.bizDate != null">and a.biz_date = #{q.bizDate}</if>
+        <if test="q.treCode != null and q.treCode != ''">and tc.tre_code like concat('%', #{q.treCode}, '%')</if>
+        <if test="q.treName != null and q.treName != ''">and tc.tre_name like concat('%', #{q.treName}, '%')</if>
+        <if test="q.zipName != null and q.zipName != ''">and a.zip_name like concat('%', #{q.zipName}, '%')</if>
+        <if test="q.exeState == '1'">
+            and (coalesce(a.sr_exception, '') &lt;&gt; '' or coalesce(a.zc_exception, '') &lt;&gt; ''
+              or coalesce(a.kc_exception, '') &lt;&gt; '' or coalesce(a.tk_exception, '') &lt;&gt; '')
+        </if>
+        <if test="q.exeState == '0'">
+            and coalesce(a.sr_exception, '') = '' and coalesce(a.zc_exception, '') = ''
+            and coalesce(a.kc_exception, '') = '' and coalesce(a.tk_exception, '') = ''
+            and coalesce(a.sr_name, '') &lt;&gt; '' and coalesce(a.zc_name, '') &lt;&gt; ''
+            and coalesce(a.kc_name, '') &lt;&gt; '' and coalesce(a.tk_name, '') &lt;&gt; ''
+        </if>
+    </sql>
+
+    <select id="queryKeyMonitoring" resultType="java.util.LinkedHashMap">
+        select a.biz_date, tc.tre_code, tc.tre_name, a.id, a.zip_name,
+               a.sr_name, coalesce(a.sr_count, 0) sr_count, coalesce(a.sr_exception, '') sr_exception,
+               coalesce(a.sr_name_state, '1') sr_name_state,
+               a.zc_name, coalesce(a.zc_count, 0) zc_count, coalesce(a.zc_exception, '') zc_exception,
+               coalesce(a.zc_name_state, '1') zc_name_state,
+               a.kc_name, coalesce(a.kc_count, 0) kc_count, coalesce(a.kc_exception, '') kc_exception,
+               coalesce(a.kc_name_state, '1') kc_name_state,
+               a.tk_name, coalesce(a.tk_count, 0) tk_count, coalesce(a.tk_exception, '') tk_exception,
+               coalesce(a.tk_name_state, '1') tk_name_state,
+               a.zip_path, a.unzip_dir, a.state,
+               case when a.state = '0' then '已处理' when a.state = '1' then '未处理' end state_dscr,
+               a.add_userid, a.add_time
+          from agent_key_file.agent_treatury_config tc
+          left join agent_key_file.agent_keyfile_pending a
+            on tc.tre_code = a.tre_code and a.biz_date between tc.start_date and tc.end_date
+         where 1 = 1
+        <include refid="TreasuryScope"/>
+        <include refid="KeyFilters"/>
+         order by a.add_time desc nulls last, tc.tre_code
+         offset #{q.offset} limit #{q.limit}
+    </select>
+
+    <select id="countKeyMonitoring" resultType="long">
+        select count(1)
+          from agent_key_file.agent_treatury_config tc
+          left join agent_key_file.agent_keyfile_pending a
+            on tc.tre_code = a.tre_code and a.biz_date between tc.start_date and tc.end_date
+         where 1 = 1
+        <include refid="TreasuryScope"/>
+        <include refid="KeyFilters"/>
+    </select>
+
+    <sql id="TimsPeriodScope">
+        <if test="q.bizDate != null">and tp.biz_date = #{q.bizDate}</if>
+    </sql>
+
+    <sql id="TimsFilters">
+        <if test="q.treCode != null and q.treCode != ''">and tc.tre_code like concat('%', #{q.treCode}, '%')</if>
+        <if test="q.treName != null and q.treName != ''">and tc.tre_name like concat('%', #{q.treName}, '%')</if>
+        <if test="q.fileName != null and q.fileName != ''">and a.file_name like concat('%', #{q.fileName}, '%')</if>
+        <if test="q.exeState == '1'">and coalesce(a.file_exception, '') &lt;&gt; ''</if>
+        <if test="q.exeState == '0'">and coalesce(a.file_exception, '') = '' and coalesce(a.file_name, '') &lt;&gt; ''</if>
+        <if test="q.reported == '1'">
+            and (select count(distinct tp.biz_type) from agent_key_file.tims_file_pending tp
+                  where tp.tre_code = tc.tre_code <include refid="TimsPeriodScope"/>) &lt; 3
+        </if>
+        <if test="q.reported == '0'">
+            and (select count(distinct tp.biz_type) from agent_key_file.tims_file_pending tp
+                  where tp.tre_code = tc.tre_code <include refid="TimsPeriodScope"/>) = 3
+        </if>
+    </sql>
+
+    <select id="queryTimsMonitoring" resultType="java.util.LinkedHashMap">
+        select a.biz_date, tc.tre_code, tc.tre_name, a.id, a.file_name, a.biz_type,
+               case when a.biz_type = '1' then '收入' when a.biz_type = '2' then '支出'
+                    when a.biz_type = '3' then '库存' end biz_type_desc,
+               coalesce(a.data_count, 0) data_count, coalesce(a.file_exception, '') file_exception,
+               a.file_path, a.state,
+               case when a.state = '0' then '已处理' when a.state = '1' then '未处理' end state_dscr,
+               a.add_userid, a.add_time,
+               case
+                 when exists (select 1 from agent_key_file.tims_file_pending te
+                              where te.tre_code = tc.tre_code and coalesce(te.file_exception, '') &lt;&gt; ''
+                              <if test="q.bizDate != null">and te.biz_date = #{q.bizDate}</if>) then 1
+                 when (select count(distinct tp.biz_type) from agent_key_file.tims_file_pending tp
+                       where tp.tre_code = tc.tre_code <include refid="TimsPeriodScope"/>) &lt; 3 then 0
+                 else 2 end sort
+          from agent_key_file.agent_treatury_config tc
+          left join agent_key_file.tims_file_pending a on tc.tre_code = a.tre_code
+            <if test="q.bizDate != null">and a.biz_date = #{q.bizDate}</if>
+         where tc.state = '0'
+        <include refid="TreasuryScope"/>
+        <include refid="TimsFilters"/>
+         order by sort, a.biz_date nulls first, tc.tre_code, a.biz_type, a.add_time desc nulls last
+         offset #{q.offset} limit #{q.limit}
+    </select>
+
+    <select id="countTimsMonitoring" resultType="long">
+        select count(1)
+          from agent_key_file.agent_treatury_config tc
+          left join agent_key_file.tims_file_pending a on tc.tre_code = a.tre_code
+            <if test="q.bizDate != null">and a.biz_date = #{q.bizDate}</if>
+         where tc.state = '0'
+        <include refid="TreasuryScope"/>
+        <include refid="TimsFilters"/>
+    </select>
+
+    <sql id="ChangeFiltersIncome">
+        <if test="q.treCode != null and q.treCode != ''">and a.s_tratrecode = #{q.treCode}</if>
+        <if test="q.bizDate != null">and a.d_acct = #{q.bizDate}</if>
+        <if test="q.statisticsCode != null and q.statisticsCode != ''">and a.statistics_code like concat(#{q.statisticsCode}, '%')</if>
+        <if test="q.budgetLevel != null and q.budgetLevel != ''">and a.c_bdglevel = #{q.budgetLevel}</if>
+    </sql>
+
+    <sql id="ChangeFiltersPayout">
+        <if test="q.treCode != null and q.treCode != ''">and a.s_trecode = #{q.treCode}</if>
+        <if test="q.bizDate != null">and a.d_acct = #{q.bizDate}</if>
+        <if test="q.statisticsCode != null and q.statisticsCode != ''">and a.statistics_code like concat(#{q.statisticsCode}, '%')</if>
+        <if test="q.budgetLevel != null and q.budgetLevel != ''">and a.guoku_lvl = #{q.budgetLevel}</if>
+    </sql>
+
+    <select id="queryIncome" resultType="java.util.LinkedHashMap">
+        with latest_update as (
+            select r.*, row_number() over (
+                partition by r.s_trecode, r.d_acct, r.statistics_code, r.c_bdglevel
+                order by r.update_date desc) rn
+              from edw.reprot_update_record r where r.type = 'income'
+        )
+        select a.s_bookorgcode, a.d_acct, a.s_biztype, a.s_trasrlno, a.s_tratrecode,
+               a.guoku_lvl, a.s_taxorgcode, coalesce(z.new_f_amt, a.month_f_amt) month_f_amt,
+               a.f_amt, a.year_f_amt, a.s_bdgsbtcode, a.sort_id, a.type_id, a.class_id,
+               a.flitting_flag, a.statistics_code, a.t_sub, a.c_bdglevel, a.s_vouno,
+               a.table_name, a.jurisdiction, 'income' type
+          from edw.income_report_detail_stat a
+          left join latest_update z on z.rn = 1 and a.s_tratrecode = z.s_trecode
+           and a.d_acct = z.d_acct and a.statistics_code = z.statistics_code
+           and a.c_bdglevel = z.c_bdglevel
+         where 1 = 1 <include refid="ChangeFiltersIncome"/>
+         order by a.s_tratrecode
+         offset #{q.offset} limit #{q.limit}
+    </select>
+
+    <select id="countIncome" resultType="long">
+        select count(1) from edw.income_report_detail_stat a where 1 = 1
+        <include refid="ChangeFiltersIncome"/>
+    </select>
+
+    <select id="findIncomeAmount" resultType="java.math.BigDecimal">
+        select a.month_f_amt from edw.income_report_detail_stat a where 1 = 1
+        <include refid="ChangeFiltersIncome"/> limit 1
+    </select>
+
+    <select id="queryPayout" resultType="java.util.LinkedHashMap">
+        with latest_update as (
+            select r.*, row_number() over (
+                partition by r.s_trecode, r.d_acct, r.statistics_code, r.c_bdglevel
+                order by r.update_date desc) rn
+              from edw.reprot_update_record r where r.type = 'payout'
+        )
+        select a.s_bookorgcode, a.d_acct, a.s_biztype, a.s_trasrlno, a.s_trecode,
+               a.guoku_lvl, a.s_bdgorgcode, a.s_funcsbtcode, a.sort_id, a.type_id,
+               a.class_id, a.flitting_flag, a.statistics_code, a.t_sub,
+               coalesce(z.new_f_amt, a.month_f_amt) month_f_amt, a.f_amt, a.year_f_amt,
+               a.s_vouno, a.table_name, a.jurisdiction, 'payout' type
+          from edw.payout_report_detail_stat a
+          left join latest_update z on z.rn = 1 and a.s_trecode = z.s_trecode
+           and a.d_acct = z.d_acct and a.statistics_code = z.statistics_code
+           and a.guoku_lvl = z.c_bdglevel
+         where 1 = 1 <include refid="ChangeFiltersPayout"/>
+         order by a.s_trecode
+         offset #{q.offset} limit #{q.limit}
+    </select>
+
+    <select id="countPayout" resultType="long">
+        select count(1) from edw.payout_report_detail_stat a where 1 = 1
+        <include refid="ChangeFiltersPayout"/>
+    </select>
+
+    <select id="findPayoutAmount" resultType="java.math.BigDecimal">
+        select a.month_f_amt from edw.payout_report_detail_stat a where 1 = 1
+        <include refid="ChangeFiltersPayout"/> limit 1
+    </select>
+
+    <insert id="insertChange">
+        insert into edw.reprot_update_record
+        (d_acct, s_trecode, statistics_code, c_bdglevel, type,
+         old_f_amt, new_f_amt, diff_f_amt, update_date, update_user)
+        values
+        (#{record.accountingDate}, #{record.treasuryCode}, #{record.statisticsCode},
+         #{record.budgetLevel}, #{record.type}, #{record.oldAmount}, #{record.newAmount},
+         #{record.differenceAmount}, #{record.updateDate}, #{record.updateUser})
+    </insert>
+
+    <sql id="ChangeRecordFilters">
+        <if test="q.treCode != null and q.treCode != ''">and a.s_trecode = #{q.treCode}</if>
+        <if test="q.bizDate != null">and a.d_acct = #{q.bizDate}</if>
+        <if test="q.statisticsCode != null and q.statisticsCode != ''">and a.statistics_code like concat(#{q.statisticsCode}, '%')</if>
+        <if test="q.type != null and q.type != ''">and a.type = #{q.type}</if>
+        <if test="q.budgetLevel != null and q.budgetLevel != ''">and a.c_bdglevel = #{q.budgetLevel}</if>
+    </sql>
+
+    <select id="queryChanges" resultType="java.util.LinkedHashMap">
+        select * from edw.reprot_update_record a where 1 = 1
+        <include refid="ChangeRecordFilters"/>
+        order by a.update_date desc offset #{q.offset} limit #{q.limit}
+    </select>
+
+    <select id="countChanges" resultType="long">
+        select count(1) from edw.reprot_update_record a where 1 = 1
+        <include refid="ChangeRecordFilters"/>
+    </select>
+
+    <select id="queryTreasuries" resultType="java.util.LinkedHashMap">
+        select guoku_id value, guoku_dscr label from edw.cm_guoku_dimnsn order by guoku_id
+    </select>
+</mapper>
