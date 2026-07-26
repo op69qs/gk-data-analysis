@@ -2370,10 +2370,10 @@ FROM
        THEN  concat(SUBSTR('${params.ACCOUNT_PERIOD}',7,1),'')
        ELSE  concat(SUBSTR('${params.ACCOUNT_PERIOD}',6,2),'')
        END AS MONTH
-      ,COALESCE((SELECT COALESCE(b.NUM,'')  FROM report.news_flash_month_text_number b WHERE b.ACCOUNT_PERIOD = a.ACCOUNT_PERIOD  AND b.INDEX_NAME='lib_000009'),'0')    AS num_000009
-      ,COALESCE((SELECT COALESCE(b.NUM,'')  FROM report.news_flash_month_text_number b WHERE b.ACCOUNT_PERIOD = a.ACCOUNT_PERIOD  AND b.INDEX_NAME='lib_000056'),'0')    AS num_000056
-      ,COALESCE((SELECT COALESCE(b.NUM,'')  FROM report.news_flash_month_text_number b WHERE b.ACCOUNT_PERIOD = a.ACCOUNT_PERIOD  AND b.INDEX_NAME='lib_000188'),'0')    AS num_000188
-      ,COALESCE((SELECT COALESCE(b.NUM,'')  FROM report.news_flash_month_text_number b WHERE b.ACCOUNT_PERIOD = a.ACCOUNT_PERIOD  AND b.INDEX_NAME='lib_000178'),'0')    AS num_000178
+      ,COALESCE((SELECT COALESCE(b.NUM::text,'') FROM report.news_flash_month_text_number b WHERE b.ACCOUNT_PERIOD = a.ACCOUNT_PERIOD  AND b.INDEX_NAME='lib_000009'),'0')    AS num_000009
+      ,COALESCE((SELECT COALESCE(b.NUM::text,'') FROM report.news_flash_month_text_number b WHERE b.ACCOUNT_PERIOD = a.ACCOUNT_PERIOD  AND b.INDEX_NAME='lib_000056'),'0')    AS num_000056
+      ,COALESCE((SELECT COALESCE(b.NUM::text,'') FROM report.news_flash_month_text_number b WHERE b.ACCOUNT_PERIOD = a.ACCOUNT_PERIOD  AND b.INDEX_NAME='lib_000188'),'0')    AS num_000188
+      ,COALESCE((SELECT COALESCE(b.NUM::text,'') FROM report.news_flash_month_text_number b WHERE b.ACCOUNT_PERIOD = a.ACCOUNT_PERIOD  AND b.INDEX_NAME='lib_000178'),'0')    AS num_000178
         ,concat(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000001/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' ') AS '000001'
        ,CASE WHEN a.lib_000184  &gt;  0
          THEN  CONCAT('增加',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.lib_000184/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|') ,' '))

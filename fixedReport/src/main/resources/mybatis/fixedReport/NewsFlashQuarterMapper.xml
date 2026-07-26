@@ -1468,26 +1468,26 @@
         ELSE SUBSTR(COALESCE(a.PROJECT,''),1,2)  END  AS bPROJECT,
         COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS bT010101_RATE,
         COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS bT010101_RANK,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS b101_TATE,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS b101_RANK,
+        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.c_101_tate*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS b101_TATE,
+        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.c_101_rank))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS b101_RANK,
         CASE WHEN COALESCE(b.PROJECT,'') = '内蒙古'  THEN  COALESCE(b.PROJECT,'')
            WHEN COALESCE(b.PROJECT,'') = '黑龙江'  THEN  COALESCE(b.PROJECT,'')
         ELSE SUBSTR(COALESCE(b.PROJECT,''),1,2)  END    AS aPROJECT_1,
         COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')  AS aT010101_RATE_1,
         COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS aT010101_RANK_1,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS a101_TATE_1,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')      AS a101_RANK_1
+        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.c_101_tate*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS a101_TATE_1,
+        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.c_101_rank))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')      AS a101_RANK_1
         FROM
         (
         SELECT  DATA_DATE,a.PROJECT,
         a.T010101_RATE,
         a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK, ROW_NUMBER() OVER (ORDER BY a.ROWS_ID) AS ROWS_ID FROM (SELECT   DATA_DATE,
+        a.c_101_tate,
+        a.c_101_rank, ROW_NUMBER() OVER (ORDER BY a.ROWS_ID) AS ROWS_ID FROM (SELECT   DATA_DATE,
         a.T010101_RATE,
         a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK,a.PROJECT,a.ROWS_ID  FROM
+        a.c_101_tate,
+        a.c_101_rank,a.PROJECT,a.ROWS_ID  FROM
         edw.TRS_BUDGET_INCOME_COMPARE a
         WHERE a.ROWS_ID  &lt;  34
         AND a.DATA_DATE =REPLACE('${params.ACCOUNT_PERIOD}','-','')
@@ -1498,12 +1498,12 @@
         SELECT  DATA_DATE,a.PROJECT,
         a.T010101_RATE,
         a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK, ROW_NUMBER() OVER (ORDER BY a.ROWS_ID) AS ROWS_ID FROM (SELECT   DATA_DATE,
+        a.c_101_tate,
+        a.c_101_rank, ROW_NUMBER() OVER (ORDER BY a.ROWS_ID) AS ROWS_ID FROM (SELECT   DATA_DATE,
         a.T010101_RATE,
         a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK,a.PROJECT,a.ROWS_ID  FROM
+        a.c_101_tate,
+        a.c_101_rank,a.PROJECT,a.ROWS_ID  FROM
         edw.TRS_BUDGET_INCOME_COMPARE a
         WHERE a.ROWS_ID &gt; 33
         AND a.DATA_DATE =replace('${params.ACCOUNT_PERIOD}','-','')
@@ -1520,26 +1520,26 @@
         ELSE SUBSTR(COALESCE(a.PROJECT,''),1,2)  END  AS bPROJECT,
         COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS bT010101_RATE,
         COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS bT010101_RANK,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS b101_TATE,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS b101_RANK,
+        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.c_101_tate*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS b101_TATE,
+        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((a.c_101_rank))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS b101_RANK,
         CASE WHEN COALESCE(b.PROJECT,'') = '内蒙古'  THEN  COALESCE(b.PROJECT,'')
            WHEN COALESCE(b.PROJECT,'') = '黑龙江'  THEN  COALESCE(b.PROJECT,'')
         ELSE SUBSTR(COALESCE(b.PROJECT,''),1,2)  END    AS aPROJECT_1,
         COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')  AS aT010101_RATE_1,
         COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.T010101_RANK))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')  AS aT010101_RANK_1,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS a101_TATE_1,
-        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.101_RANK))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS a101_RANK_1
+        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.c_101_tate*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS a101_TATE_1,
+        COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((b.c_101_rank))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS a101_RANK_1
         FROM
         (
         SELECT  DATA_DATE,a.PROJECT,
         a.T010101_RATE,
         a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK, ROW_NUMBER() OVER (ORDER BY a.ROWS_NO) AS ROWS_ID FROM (SELECT   DATA_DATE,
+        a.c_101_tate,
+        a.c_101_rank, ROW_NUMBER() OVER (ORDER BY a.ROWS_NO) AS ROWS_ID FROM (SELECT   DATA_DATE,
         a.T010101_RATE,
         a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK,b.PROJECT,b.ROWS_NO FROM  report.qut_area2  b LEFT JOIN (SELECT
+        a.c_101_tate,
+        a.c_101_rank,b.PROJECT,b.ROWS_NO FROM  report.qut_area2  b LEFT JOIN (SELECT
         *
         FROM
         edw.TRS_BUDGET_INCOME_COMPARE a
@@ -1551,12 +1551,12 @@
         SELECT  DATA_DATE,a.PROJECT,
         a.T010101_RATE,
         a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK, ROW_NUMBER() OVER (ORDER BY a.ROWS_NO) AS ROWS_ID FROM (SELECT   DATA_DATE,
+        a.c_101_tate,
+        a.c_101_rank, ROW_NUMBER() OVER (ORDER BY a.ROWS_NO) AS ROWS_ID FROM (SELECT   DATA_DATE,
         a.T010101_RATE,
         a.T010101_RANK,
-        a.101_TATE,
-        a.101_RANK,b.PROJECT,b.ROWS_NO FROM  report.qut_area3  b LEFT JOIN (SELECT
+        a.c_101_tate,
+        a.c_101_rank,b.PROJECT,b.ROWS_NO FROM  report.qut_area3  b LEFT JOIN (SELECT
         *
         FROM
         edw.TRS_BUDGET_INCOME_COMPARE a
@@ -2152,8 +2152,8 @@
                    (SELECT
             COALESCE(string_agg(ROUND(COALESCE(INDEX_VALUE,0)/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000218 a
@@ -2168,8 +2168,8 @@
                      (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000459 a
@@ -2185,8 +2185,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE *100,2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000219 a
@@ -2202,8 +2202,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE *100,2))::text,'') MIN_VAL,
             '4' as id
           FROM
             indicators_lib.lib_indicators_000461 a

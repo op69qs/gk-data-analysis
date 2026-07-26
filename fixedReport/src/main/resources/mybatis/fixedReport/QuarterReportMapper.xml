@@ -4,238 +4,238 @@
     <!-- 获取生成报告的报表参数信息 -->
     <select id="getTableParams" resultType="java.util.HashMap">
         select    COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000012 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000012'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000013 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000013'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000018 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000018'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000019 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000019'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000262 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000262'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000263 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000263'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000264 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000264'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000265 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000265'
 			,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000024 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000024'
 			,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000025 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000025'
 			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000037 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000037'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000038 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000038'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000043 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000043'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000044 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000044'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000266 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000266'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000267 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000267'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000268 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000268'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000269 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000269'
 			,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000049 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000049'
 			,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000050 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000050'
 			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000401 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000401'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000402 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000402'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000403 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000403'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000404 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000404'
 			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000444 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000407'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000445 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000408'
 			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000397 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000397'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000398 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000398'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000399 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000399'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000400 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000400'
 			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000446 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000405'
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000447 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000') *100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000406'
 			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000005 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000005'
 			,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000443 a
             WHERE a.DIMENSION_FLAG = '2'
@@ -249,14 +249,14 @@
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
         AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),' '),'/') AS '000441'
 			,  COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_00033001 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000031 '
 	        ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_00033002 a
             WHERE a.DIMENSION_FLAG = '2'
@@ -314,126 +314,126 @@
     <select id="getTableParams2" resultType="java.util.HashMap">
            select
             COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000389 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000389'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000390 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000390'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000391 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000391'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000378 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000378'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000379 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000379'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000380 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000380'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000386 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000386'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000387 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000387'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000388 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000388'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000384 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000384'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000385 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000385'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000333 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000333'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000368 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000368'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000369 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000369'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000370 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000370'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000381 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')/${params.AMT_UNIT}))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000381'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000382 a
             WHERE a.DIMENSION_FLAG = '2'
             AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD ='${params.ACCOUNT_PERIOD}'
             AND a.INDEX_DIM_CODE='500000')*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),'/')  AS '000382'
             ,COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000383 a
             WHERE a.DIMENSION_FLAG = '2'
@@ -489,7 +489,7 @@
         LEFT JOIN report.area_sort b
         ON c.INDEX_DIM_CODE = b.AREA_NO_ID
         where  b.area_dscr IS NOT  NULL
-        group by  c.INDEX_DIM_CODE
+        group by  c.INDEX_DIM_CODE, b.area_dscr
 
         ) v
         ON a.area_dscr=v.AREA_DSCR
@@ -545,7 +545,7 @@
         LEFT JOIN report.area_sort b
         ON c.INDEX_DIM_CODE = b.AREA_NO_ID
         where  b.area_dscr IS NOT  NULL
-        group by  c.INDEX_DIM_CODE
+        group by  c.INDEX_DIM_CODE, b.area_dscr
 
         ) v
         ON a.area_dscr=v.AREA_DSCR
@@ -557,8 +557,8 @@
                    (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000410 a
@@ -573,8 +573,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE *100,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000013 a
@@ -592,8 +592,8 @@
            (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000409 a
@@ -608,8 +608,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000398 a
@@ -624,8 +624,8 @@
 			 (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000008 a
@@ -640,8 +640,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE *100,2))::text,'') MIN_VAL,
             '4' as id
           FROM
             indicators_lib.lib_indicators_000013 a
@@ -659,8 +659,8 @@
            (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000342 a
@@ -675,8 +675,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000347 a
@@ -692,8 +692,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000345 a
@@ -711,8 +711,8 @@
            (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000250 a
@@ -727,8 +727,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000007 a
@@ -743,8 +743,8 @@
 			 (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE   *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE   *100,2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000245 a
@@ -762,8 +762,8 @@
              (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000293 a
@@ -778,8 +778,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000297 a
@@ -794,8 +794,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000291 a
@@ -813,8 +813,8 @@
       (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000351 a
@@ -829,8 +829,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000354 a
@@ -845,8 +845,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000305 a
@@ -864,8 +864,8 @@
          (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000365 a
@@ -880,8 +880,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000119 a
@@ -896,8 +896,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000241 a
@@ -915,8 +915,8 @@
          (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000365 a
@@ -931,8 +931,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000119 a
@@ -947,8 +947,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000241 a
@@ -966,8 +966,8 @@
          (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000365 a
@@ -983,8 +983,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ','),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ','),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000119 a
@@ -1000,8 +1000,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ','),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ','),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2)),'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2)),'') MIN_VAL,
+            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
+            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000241 a
@@ -1219,7 +1219,7 @@
          ELSE  CONCAT('低',CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((ABS(a.lib_000427) * 100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|')))
          END AS '000427'
 		 ,           COALESCE(replace(TO_CHAR(ROUND(CAST(NULLIF((((SELECT
-            COALESCE(a.INDEX_VALUE,'') as INDEX_VALUE
+            COALESCE(a.INDEX_VALUE,0) as INDEX_VALUE
             FROM
             indicators_lib.lib_indicators_000005 a
             WHERE a.DIMENSION_FLAG = '2'
