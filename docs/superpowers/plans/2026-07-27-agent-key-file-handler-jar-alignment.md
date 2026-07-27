@@ -273,28 +273,28 @@ Commit: `docs: deliver complete Vastbase reporting migration SQL`
 **Files:**
 - Modify only if verification exposes a defect; every defect first gets a failing regression test.
 
-- [ ] **Step 1: 后端全量测试和编译**
+- [x] **Step 1: 后端全量测试和编译**
 
 Run: `mvn test`
 
 Run: `mvn -DskipTests compile`
 
-- [ ] **Step 2: 脱敏 ZIP 样例回归**
+- [x] **Step 2: 脱敏 ZIP 样例回归**
 
 收入 4 个、支出 2 个、库存 3 个 Excel 全部解析；核对 `D_ACCT` 原文、文件数、行数和类型固定列序。测试不得连接或写生产数据库。
 
-- [ ] **Step 3: 前端检查**
+- [x] **Step 3: 前端检查**
 
 Run: `npm run lint`
 
 Run: `npm run build`
 
-- [ ] **Step 4: 最终差异与 SQL 安全检查**
+- [x] **Step 4: 最终差异与 SQL 安全检查**
 
 Run: `git diff --check`
 
 确认 SQL 没有修改三张 STG 的结构或索引、没有创建未确认 EDW/ETL/ADM 对象、没有写三张 TIMS 中间表。
 
-- [ ] **Step 5: 更新开发手册验证结果并提交**
+- [x] **Step 5: 更新开发手册验证结果并提交**
 
 Commit: `chore: verify JAR-aligned reporting migration`
