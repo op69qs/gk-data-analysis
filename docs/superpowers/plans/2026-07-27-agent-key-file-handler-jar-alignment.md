@@ -60,6 +60,7 @@ Commit: `fix: align TIMS column and date semantics with jar`
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/service/TimsSpool.java`
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/service/TimsSpoolCodec.java`
 - Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/service/TimsReportPreparationService.java`
+- Create: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/service/TimsPreparationResult.java`
 - Modify: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/parser/TimsExcelParser.java`
 - Create: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/service/TimsSpoolCodecTest.java`
 - Create: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/service/TimsReportPreparationServiceTest.java`
@@ -69,19 +70,19 @@ Commit: `fix: align TIMS column and date semantics with jar`
 - `TimsReportPreparationService#prepare(Path extractRoot, Path workRoot, TimsBusinessType type, YearMonth period): TimsPreparationResult`
 - `TimsSpool#readBatches(int batchSize, Consumer<List<TimsReportRecord>> consumer)`
 
-- [ ] **Step 1: 写 spool 往返和多文件顺序失败测试**
+- [x] **Step 1: 写 spool 往返和多文件顺序失败测试**
 
 测试包含制表符、换行、中文、负金额与空征收机关，要求二进制长度前缀编码往返不丢字段；三个工作簿解析时，回调观察到的最大内存记录列表不超过单批大小。
 
-- [ ] **Step 2: 运行测试确认类不存在**
+- [x] **Step 2: 运行测试确认类不存在**
 
 Run: `mvn -Dtest=TimsSpoolCodecTest,TimsReportPreparationServiceTest test`
 
-- [ ] **Step 3: 实现顺序解析和私有 work 文件**
+- [x] **Step 3: 实现顺序解析和私有 work 文件**
 
 临时文件路径固定为 `<batch>/work/tims-<uuid>.spool`，创建后校验位于批次目录；写完记录数量和 SHA-256。解析错误时关闭并删除临时文件，成功对象实现 `AutoCloseable` 并在关闭时删除。
 
-- [ ] **Step 4: 运行测试并提交**
+- [x] **Step 4: 运行测试并提交**
 
 Run: `mvn -Dtest=TimsSpoolCodecTest,TimsReportPreparationServiceTest,TimsExcelParserTest test`
 

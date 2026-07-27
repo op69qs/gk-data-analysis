@@ -11,6 +11,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.file.Files;
@@ -25,17 +26,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 /**
  * 读取 JAR 支持的旧 XLS 和 XLSX。首行为表头，数据从第二行开始。
  */
 public class TimsExcelParser {
     public TimsExcelParseResult parse(Path file, TimsBusinessType type) throws IOException {
+        List<TimsReportRecord> records = new ArrayList<>();
+        List<TimsExcelParseError> errors = parse(file, type, records::add).getErrors();
+        return new TimsExcelParseResult(records, errors);
+    }
+
+    public TimsExcelParseResult parse(Path file, TimsBusinessType type,
+                                      Consumer<TimsReportRecord> recordConsumer) throws IOException {
         String fileName = file.getFileName().toString();
         if (!fileName.endsWith(".xls") && !fileName.endsWith(".xlsx")) {
             throw new IllegalArgumentException("TIMS 文件必须是小写 .xls 或 .xlsx：" + fileName);
         }
-        List<TimsReportRecord> records = new ArrayList<>();
         List<TimsExcelParseError> errors = new ArrayList<>();
         DataFormatter formatter = new DataFormatter(Locale.CHINA);
 
@@ -43,19 +51,21 @@ public class TimsExcelParser {
             Workbook workbook = WorkbookFactory.create(input);
             FormulaEvaluator evaluator = workbook.getCreationHelper().createFormulaEvaluator();
             for (int sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
-                parseSheet(workbook.getSheetAt(sheetIndex), fileName, type, formatter, evaluator, records, errors);
+                parseSheet(workbook.getSheetAt(sheetIndex), fileName, type, formatter, evaluator,
+                        recordConsumer, errors);
             }
         } catch (Exception exception) {
+            if (exception instanceof UncheckedIOException) throw ((UncheckedIOException) exception).getCause();
             if (exception instanceof IOException) throw (IOException) exception;
             errors.add(new TimsExcelParseError(fileName, null, 0, null, null,
                     "Excel 文件无法读取：" + exception.getMessage()));
         }
-        return new TimsExcelParseResult(records, errors);
+        return new TimsExcelParseResult(java.util.Collections.emptyList(), errors);
     }
 
     private void parseSheet(Sheet sheet, String fileName, TimsBusinessType type,
                             DataFormatter formatter, FormulaEvaluator evaluator,
-                            List<TimsReportRecord> records,
+                            Consumer<TimsReportRecord> recordConsumer,
                             List<TimsExcelParseError> errors) {
         ColumnLayout layout = ColumnLayout.fixed(type);
 
@@ -63,7 +73,7 @@ public class TimsExcelParser {
             Row row = sheet.getRow(rowIndex);
             if (row == null || layout.isBlank(row, formatter, evaluator)) continue;
             try {
-                records.add(toRecord(row, layout, type, fileName, sheet.getSheetName(), formatter, evaluator));
+                recordConsumer.accept(toRecord(row, layout, type, fileName, sheet.getSheetName(), formatter, evaluator));
             } catch (RowValueException exception) {
                 errors.add(new TimsExcelParseError(fileName, sheet.getSheetName(), rowIndex + 1L,
                         exception.columnName, exception.rawValue, exception.getMessage()));
