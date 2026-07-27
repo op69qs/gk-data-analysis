@@ -55,7 +55,7 @@ public class ReportWorkflowServiceTest {
                 keyService, timsService, processService, new ReportingProperties());
         service.execute(new ReportBatchExecutionRequested("parse-1", "batch-1", "PARSE", "u1", "operator"));
 
-        verify(timsService, never()).process(any(), any(), any(), any(), any());
+        verify(timsService, never()).process(any(), any(), any(), any(), any(), any());
         verify(workflowMapper, never()).updateBatchState(any());
         verify(workflowMapper, never()).completeOwnedTask(any(), any());
     }
@@ -80,14 +80,17 @@ public class ReportWorkflowServiceTest {
         when(taskMapper.selectById("parse-1")).thenReturn(parseTask);
         when(workflowMapper.claimTask(any(), any(), eq("operator"), any(), any())).thenReturn(1);
         when(workflowMapper.renewAndLockOwnedTask(any(), any(), any(), any())).thenReturn(1);
+        when(workflowMapper.updateOwnedTaskProgress(any(), any(), any(Integer.class), any(), any(), any())).thenReturn(1);
         when(workflowMapper.completeOwnedTask(any(), any())).thenReturn(1);
         when(workflowMapper.findBatchFiles("batch-1")).thenReturn(Collections.singletonList(archiveFile()));
         doAnswer(invocation -> {
             TimsLoadCommitAction action = invocation.getArgument(4);
+            TimsPreparationAction preparation = invocation.getArgument(5);
+            preparation.afterPrepared(2, 8L);
             action.afterCommittedRowsLoaded(8L);
             return new TimsReportProcessingResult(2, 8, Collections.emptyList());
         }).when(timsService).process(any(), eq(TimsBusinessType.INCOME),
-                eq(java.time.YearMonth.of(2026, 7)), any(), any());
+                eq(java.time.YearMonth.of(2026, 7)), any(), any(), any());
 
         ReportWorkflowService service = new ReportWorkflowService(
                 batchMapper, fileMapper, taskMapper, logMapper, errorMapper, workflowMapper,
@@ -97,7 +100,8 @@ public class ReportWorkflowServiceTest {
         verify(timsService).process(eq(Paths.get("/tmp/reporting/batch-1/extracted")),
                 eq(TimsBusinessType.INCOME), eq(java.time.YearMonth.of(2026, 7)),
                 org.mockito.ArgumentMatchers.isNull(),
-                org.mockito.ArgumentMatchers.any(TimsLoadCommitAction.class));
+                org.mockito.ArgumentMatchers.any(TimsLoadCommitAction.class),
+                org.mockito.ArgumentMatchers.any(TimsPreparationAction.class));
         verify(processService, never()).callForBatch(any(), any(), any(), any());
         assertEquals("SUCCEEDED", batch.getStatus());
         assertEquals("WAITING_MANUAL", batch.getProcessCallStatus());
@@ -131,7 +135,7 @@ public class ReportWorkflowServiceTest {
         org.jeecg.modules.reporting.parser.TimsExcelParseError error =
                 new org.jeecg.modules.reporting.parser.TimsExcelParseError(
                         "收入1.xls", "收入数据", 2, "日期", "202513", "日期格式错误");
-        when(timsService.process(any(), any(), any(), any(), any()))
+        when(timsService.process(any(), any(), any(), any(), any(), any()))
                 .thenReturn(new TimsReportProcessingResult(1, 0, Collections.singletonList(error)));
 
         ReportWorkflowService service = new ReportWorkflowService(

@@ -63,6 +63,7 @@ public class ReportTaskService {
         if (batch == null || Integer.valueOf(1).equals(batch.getDelFlag())) {
             throw new IllegalArgumentException("上报批次不存在或已逻辑删除");
         }
+        validateManualProcess(batch, taskType);
         if (workflowMapper.countActiveTasks(batchId) > 0) {
             throw new IllegalStateException("该批次已有排队或执任务，请勿并发重试");
         }
@@ -104,6 +105,7 @@ public class ReportTaskService {
 
         batch.setStatus("PROCESSING");
         batch.setCurrentStage(taskType);
+        if ("PROCESS".equals(taskType)) batch.setProcessCallStatus("QUEUED");
         batch.setUpdateBy(username);
         batch.setUpdateTime(now);
         batchMapper.updateById(batch);
@@ -136,6 +138,20 @@ public class ReportTaskService {
         if ("PARSE".equals(taskType)) return 3;
         if ("LOAD".equals(taskType)) return 4;
         return 5;
+    }
+
+    private void validateManualProcess(ReportBatch batch, String taskType) {
+        if (!"PROCESS".equals(taskType)) return;
+        if (!"TIMS".equalsIgnoreCase(batch.getSourceDomain())) {
+            throw new IllegalArgumentException("仅 TIMS 批次可人工调用下游加工");
+        }
+        String status = batch.getProcessCallStatus();
+        if ("DEPENDENCY_UNVERIFIED".equals(status)) {
+            throw new IllegalStateException("ETL/ADM 依赖尚未核验，禁止调用");
+        }
+        if (!"WAITING_MANUAL".equals(status) && !"FAILED".equals(status) && !"SUCCEEDED".equals(status)) {
+            throw new IllegalStateException("当前批次尚未完成 STG 入库，不能调用下游加工");
+        }
     }
 
     private String uuid() {

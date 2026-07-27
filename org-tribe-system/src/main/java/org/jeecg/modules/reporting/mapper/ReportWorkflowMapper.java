@@ -18,6 +18,12 @@ public interface ReportWorkflowMapper {
     int renewAndLockOwnedTask(@Param("taskId") String taskId, @Param("leaseOwner") String leaseOwner,
                               @Param("leaseUntil") java.util.Date leaseUntil,
                               @Param("now") java.util.Date now);
+    int updateOwnedTaskProgress(@Param("taskId") String taskId,
+                                @Param("leaseOwner") String leaseOwner,
+                                @Param("progressPercent") int progressPercent,
+                                @Param("resultSummary") String resultSummary,
+                                @Param("leaseUntil") java.util.Date leaseUntil,
+                                @Param("now") java.util.Date now);
     int lockOwnedTask(@Param("taskId") String taskId, @Param("leaseOwner") String leaseOwner);
     int completeOwnedTask(@Param("record") ReportTask record,
                           @Param("leaseOwner") String leaseOwner);

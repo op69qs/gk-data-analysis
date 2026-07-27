@@ -20,6 +20,10 @@
       <template slot="period" slot-scope="value">{{ dateOnly(value) }}</template>
       <template slot="progress" slot-scope="text, record"><a-progress :percent="record.progressPercent || 0" size="small" :status="record.status === 'FAILED' ? 'exception' : 'active'" /></template>
       <template slot="status" slot-scope="text, record"><a-tag :color="statusColor(record.status)">{{ stageLabel(record.currentStage) }} · {{ statusLabel(record.status) }}</a-tag></template>
+      <template slot="processStatus" slot-scope="text, record">
+        <a-tag v-if="record.sourceDomain === 'TIMS'" :color="processStatusColor(record.processCallStatus)">{{ processStatusLabel(record.processCallStatus) }}</a-tag>
+        <span v-else>—</span>
+      </template>
       <template slot="counts" slot-scope="text, record"><span class="success-count">{{ record.successRowCount || 0 }}</span> / <span class="error-count">{{ record.errorRowCount || 0 }}</span></template>
       <template slot="action" slot-scope="text, record">
         <a @click="openDetail(record)">详情</a><a-divider type="vertical" />
@@ -61,6 +65,7 @@ export default {
         { title: '国库', dataIndex: 'treasuryCode', width: 130 },
         { title: '文件', dataIndex: 'originalFileName', ellipsis: true },
         { title: '阶段状态', width: 150, scopedSlots: { customRender: 'status' } },
+        { title: '下游加工', width: 130, scopedSlots: { customRender: 'processStatus' } },
         { title: '进度', width: 150, scopedSlots: { customRender: 'progress' } },
         { title: '成功 / 异常行', width: 120, scopedSlots: { customRender: 'counts' } },
         { title: '发起人', dataIndex: 'createBy', width: 100 },
@@ -104,7 +109,13 @@ export default {
     typeLabel(value) { return { ALL: '全部', INCOME: '收入', PAYOUT: '支出', STOCK: '库存', BACK: '退库' }[value] || value },
     stageLabel(value) { return { ARCHIVE: '归档', EXTRACT: '解压', PARSE: '解析', LOAD: '入库', PROCESS: '加工' }[value] || value },
     statusLabel(value) { return { QUEUED: '等待', PROCESSING: '执行中', SUCCEEDED: '成功', PARTIALLY_SUCCEEDED: '部分完成/等待加工', FAILED: '失败' }[value] || value },
-    statusColor(value) { return { QUEUED: 'orange', PROCESSING: 'blue', SUCCEEDED: 'green', PARTIALLY_SUCCEEDED: 'orange', FAILED: 'red' }[value] || 'default' }
+    statusColor(value) { return { QUEUED: 'orange', PROCESSING: 'blue', SUCCEEDED: 'green', PARTIALLY_SUCCEEDED: 'orange', FAILED: 'red' }[value] || 'default' },
+    processStatusLabel(value) {
+      return { NOT_REQUIRED: '无需加工', WAITING_MANUAL: '待人工加工', DEPENDENCY_UNVERIFIED: '依赖未核验', QUEUED: '已排队', PROCESSING: '加工中', SUCCEEDED: '加工成功', FAILED: '加工失败' }[value] || value || '未开始'
+    },
+    processStatusColor(value) {
+      return { WAITING_MANUAL: 'orange', DEPENDENCY_UNVERIFIED: 'red', QUEUED: 'blue', PROCESSING: 'blue', SUCCEEDED: 'green', FAILED: 'red' }[value] || 'default'
+    }
   }
 }
 </script>

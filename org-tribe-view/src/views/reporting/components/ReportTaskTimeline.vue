@@ -45,7 +45,7 @@ export default {
       return { ARCHIVE: '原件归档', EXTRACT: '安全解压', PARSE: '文件解析', LOAD: '数据入库', PROCESS: '下游加工' }[value] || value
     },
     statusLabel(value) {
-      return { QUEUED: '等待执行', PROCESSING: '执行中', SUCCEEDED: '执行成功', FAILED: '执行失败', PARTIALLY_SUCCEEDED: '部分成功', CANCELLED: '已取消' }[value] || value
+      return { QUEUED: '等待执行', PROCESSING: '执行中', PREPARED: '已解析待提交', COMMITTING: '入库中', SUCCEEDED: '已提交', FAILED: '执行失败', PARTIALLY_SUCCEEDED: '部分成功', CANCELLED: '已取消' }[value] || value
     },
     statusColor(value) {
       if (value === 'SUCCEEDED') return 'green'
@@ -54,7 +54,7 @@ export default {
       return 'gray'
     },
     tagColor(value) {
-      return { SUCCEEDED: 'green', PARTIALLY_SUCCEEDED: 'orange', FAILED: 'red', PROCESSING: 'blue', QUEUED: 'orange' }[value] || 'default'
+      return { SUCCEEDED: 'green', PARTIALLY_SUCCEEDED: 'orange', FAILED: 'red', PROCESSING: 'blue', PREPARED: 'cyan', COMMITTING: 'blue', QUEUED: 'orange' }[value] || 'default'
     },
     duration(task) {
       return task.durationMs == null ? '—' : `${task.durationMs} ms`

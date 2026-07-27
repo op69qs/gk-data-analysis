@@ -26,7 +26,3 @@ export const queryTreasuryOptions = () => getAction('/reporting/monitoring/treas
 export const queryAgentTreasuries = params => getAction('/reporting/agent-treasuries', params)
 export const addAgentTreasury = data => postAction('/reporting/agent-treasuries', data)
 export const updateAgentTreasury = (treasuryCode, data) => putAction(`/reporting/agent-treasuries/${treasuryCode}`, data)
-
-export const queryChangeSource = params => getAction('/reporting/changes/source', params)
-export const queryChangeHistory = params => getAction('/reporting/changes', params)
-export const addReportChange = data => postAction('/reporting/changes', data)

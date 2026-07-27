@@ -140,7 +140,9 @@ public class ReportWorkflowService {
         } else if ("TIMS".equalsIgnoreCase(batch.getSourceDomain())) {
             summary = processTims(batch, requestedTask, files, extractRoot, committedRows ->
                     completeSuccessfulLoad(batch, requestedTask, files, event, started,
-                            leaseToken, committedRows, true));
+                            leaseToken, committedRows, true),
+                    (fileCount, rowCount) -> markTimsPrepared(batch, requestedTask, event,
+                            leaseToken, fileCount, rowCount));
         } else {
             throw new IllegalArgumentException("不支持的上报来源：" + batch.getSourceDomain());
         }
@@ -181,7 +183,8 @@ public class ReportWorkflowService {
 
     private ProcessingSummary processTims(ReportBatch batch, ReportTask task,
                                           List<ReportFile> files, Path extractRoot,
-                                          TimsLoadCommitAction completion) throws Exception {
+                                          TimsLoadCommitAction completion,
+                                          TimsPreparationAction preparationAction) throws Exception {
         YearMonth period = YearMonth.from(batch.getAccountingPeriod().toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalDate());
         TimsBusinessType type = TimsBusinessType.valueOf(batch.getBusinessType().toUpperCase(Locale.ROOT));
@@ -191,12 +194,32 @@ public class ReportWorkflowService {
                         legacyPendingService.completeTims(batch, committedRows, task.getCreateBy());
                     }
                     completion.afterCommittedRowsLoaded(committedRows);
-                });
+                }, preparationAction);
         for (TimsExcelParseError error : result.getErrors()) {
             persistError(batch, task, findFileId(files, error.getFileName()), error.getSheetName(),
                     error.getRowNumber(), error.getColumnName(), error.getRawValue(), error.getMessage());
         }
         return new ProcessingSummary(result.getSuccessCount(), result.getErrorCount());
+    }
+
+    private void markTimsPrepared(ReportBatch batch, ReportTask task,
+                                  ReportBatchExecutionRequested event, String leaseToken,
+                                  int fileCount, long rowCount) {
+        Date now = new Date();
+        String message = "全包解析完成：" + fileCount + " 个 Excel，" + rowCount
+                + " 条数据；正在提交 STG 整周期替换";
+        if (workflowMapper.updateOwnedTaskProgress(task.getId(), leaseToken, 70,
+                message, leaseUntil(), now) != 1) {
+            throw new TaskLeaseLostException();
+        }
+        task.setProgressPercent(70);
+        task.setResultSummary(message);
+        log(task, "PROCESSING", "PREPARED", message, event, rowCount, 0L);
+        batch.setStatus("PROCESSING");
+        batch.setCurrentStage("LOAD");
+        batch.setProgressPercent(75);
+        batch.setResultSummary(message);
+        touchBatch(batch, event.getUsername());
     }
 
     private void completeSuccessfulLoad(ReportBatch batch, ReportTask requestedTask,
@@ -232,7 +255,7 @@ public class ReportWorkflowService {
         startTask(batch, task, event, started);
         try {
             if (!properties.isProcessDependenciesVerified()) {
-                throw new IllegalStateException("自动加工尚未通过 ETL/ADM 依赖核验门禁");
+                throw new IllegalStateException("下游加工尚未通过 ETL/ADM 依赖核验门禁");
             }
             batch.setProcessCallStatus("PROCESSING");
             touchBatch(batch, event.getUsername());

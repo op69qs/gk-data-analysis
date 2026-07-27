@@ -210,19 +210,19 @@ Commit: `fix: keep ADM processing manual by reporting period`
 - `ReportTaskTimeline.vue`: 只根据 props 渲染状态及进度，向上发出刷新事件。
 - `ReportUploadModal.vue`: 只收集来源、类型、账期和 ZIP；TIMS 不提交用户国库裁剪参数。
 
-- [ ] **Step 1: 写后端失败契约测试并列出前端可观察状态**
+- [x] **Step 1: 写后端失败契约测试并列出前端可观察状态**
 
 测试确认 `/reporting/change/**` 不再注册；详情接口仍提供 processCalls，人工按钮仅对 TIMS 且 STG 成功显示。
 
-- [ ] **Step 2: 运行失败测试**
+- [x] **Step 2: 运行失败测试**
 
 Run: `mvn -Dtest=ReportingWebContractTest test`
 
-- [ ] **Step 3: 调整 Vue 2 Options API 页面**
+- [x] **Step 3: 调整 Vue 2 Options API 页面**
 
 状态文案包含“排队、解析中、已解析待提交、入库中、已提交、待人工加工、依赖未核验、加工中/成功/失败”；移除变更页面菜单入口，不添加前端按钮级强依赖，保留 `reporting:batch:*` 编码。
 
-- [ ] **Step 4: 验证并提交**
+- [x] **Step 4: 验证并提交**
 
 Run: `npm run lint`
 

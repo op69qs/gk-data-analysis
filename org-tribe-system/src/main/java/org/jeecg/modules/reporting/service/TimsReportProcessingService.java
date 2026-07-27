@@ -57,6 +57,15 @@ public class TimsReportProcessingService {
                                               YearMonth accountingPeriod,
                                               String allowedTreasuryPrefix,
                                               TimsLoadCommitAction completion) throws IOException {
+        return process(extractRoot, type, accountingPeriod, allowedTreasuryPrefix,
+                completion, (fileCount, rowCount) -> { });
+    }
+
+    public TimsReportProcessingResult process(Path extractRoot, TimsBusinessType type,
+                                              YearMonth accountingPeriod,
+                                              String allowedTreasuryPrefix,
+                                              TimsLoadCommitAction completion,
+                                              TimsPreparationAction preparationAction) throws IOException {
         Path parent = extractRoot.toAbsolutePath().normalize().getParent();
         Path workRoot = (parent == null ? extractRoot.toAbsolutePath().normalize() : parent).resolve("work");
         String lockOwner = properties.getTaskInstanceId() + ":" + UUID.randomUUID().toString();
@@ -69,6 +78,7 @@ public class TimsReportProcessingService {
                 if (!prepared.getErrors().isEmpty()) {
                     return new TimsReportProcessingResult(prepared.getFileCount(), 0, prepared.getErrors());
                 }
+                preparationAction.afterPrepared(prepared.getFileCount(), prepared.getRowCount());
                 if (runtimeLockService != null && !runtimeLockService.acquireTims(lockOwner)) {
                     throw new IllegalStateException("TIMS 全局执行租约在解析后失效");
                 }

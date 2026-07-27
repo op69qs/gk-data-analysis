@@ -40,6 +40,14 @@
            and lease_owner = #{leaseOwner} and lease_until &gt;= #{now}
     </update>
 
+    <update id="updateOwnedTaskProgress">
+        update agent_key_file.report_task
+           set progress_percent = #{progressPercent}, result_summary = #{resultSummary},
+               lease_until = #{leaseUntil}, update_time = #{now}
+         where id = #{taskId} and status = 'PROCESSING'
+           and lease_owner = #{leaseOwner} and lease_until &gt;= #{now}
+    </update>
+
     <update id="lockOwnedTask">
         update agent_key_file.report_task set update_time = update_time
          where id = #{taskId} and status = 'PROCESSING' and lease_owner = #{leaseOwner}

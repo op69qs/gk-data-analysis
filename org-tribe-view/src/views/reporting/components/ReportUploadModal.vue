@@ -1,8 +1,8 @@
 <template>
   <a-modal title="新建数据上报" :visible="visible" :confirmLoading="submitting" :maskClosable="false"
-           okText="上传并自动执行" @ok="submit" @cancel="close">
+           okText="上传并开始处理" @ok="submit" @cancel="close">
     <a-alert class="upload-tip" type="info" showIcon
-             message="上传成功后由后台自动解析、入库并执行加工，关闭页面不会中断。" />
+             :message="uploadMessage" />
     <a-form layout="vertical">
       <a-form-item label="数据来源">
         <a-radio-group v-model="form.sourceDomain" @change="sourceChanged">
@@ -21,7 +21,7 @@
         <a-month-picker v-model="period" format="YYYY-MM" style="width: 100%"
                         :placeholder="form.sourceDomain === 'KEY' ? '可留空并从原 KEY 文件名识别' : '请选择账期'" />
       </a-form-item>
-      <a-form-item label="国库代码" help="KEY 可留空并按原程序从 k...t...zip 文件名识别">
+      <a-form-item v-if="form.sourceDomain === 'KEY'" label="国库代码" help="KEY 可留空并按原程序从 k...t...zip 文件名识别">
         <a-input v-model.trim="form.treasuryCode" placeholder="选填" />
       </a-form-item>
       <a-form-item label="ZIP 文件">
@@ -63,13 +63,19 @@ export default {
     },
     periodHelp() {
       return this.form.sourceDomain === 'TIMS'
-        ? '数据必须与所选月份一致，过程调用参数自动取该月最后一天。'
+        ? '数据必须与所选月份一致；如后续人工加工，调用参数严格取本批次月末日。'
         : '留空时严格兼容原 JAR：从 k<业务日期>t<国库代码>.zip 中识别。'
+    },
+    uploadMessage() {
+      return this.form.sourceDomain === 'TIMS'
+        ? '上传后自动完成安全解压、全包解析和 STG 原子入库；ADM 加工由授权人员按本批次账期手工调用。'
+        : '上传后自动完成安全解压、解析和入库，关闭页面不会中断。'
     }
   },
   methods: {
     sourceChanged() {
       this.form.businessType = this.form.sourceDomain === 'KEY' ? 'ALL' : 'INCOME'
+      this.form.treasuryCode = ''
       this.period = null
     },
     beforeUpload(file) {
@@ -90,12 +96,12 @@ export default {
       data.append('sourceDomain', this.form.sourceDomain)
       data.append('businessType', this.form.businessType)
       if (this.period) data.append('accountingPeriod', this.period.format('YYYY-MM'))
-      if (this.form.treasuryCode) data.append('treasuryCode', this.form.treasuryCode)
+      if (this.form.sourceDomain === 'KEY' && this.form.treasuryCode) data.append('treasuryCode', this.form.treasuryCode)
       this.submitting = true
       try {
         const response = await uploadReport(data)
         if (!response.success) throw new Error(response.message || '上传失败')
-        this.$message.success('文件已接收，后台任务正在自动执行')
+        this.$message.success('文件已接收，后台正在自动解析和入库')
         this.fileList = []
         this.$emit('submitted', response.result)
       } catch (error) {

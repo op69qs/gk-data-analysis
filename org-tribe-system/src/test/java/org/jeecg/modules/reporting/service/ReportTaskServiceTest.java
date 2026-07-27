@@ -39,6 +39,8 @@ public class ReportTaskServiceTest {
         ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
         ReportBatch batch = new ReportBatch();
         batch.setId("batch-1");
+        batch.setSourceDomain("TIMS");
+        batch.setProcessCallStatus("WAITING_MANUAL");
         batch.setAccountingPeriod(Date.from(LocalDate.of(2026, 7, 31)
                 .atStartOfDay(ZoneId.systemDefault()).toInstant()));
         ReportTask previous = new ReportTask();
@@ -55,6 +57,7 @@ public class ReportTaskServiceTest {
         assertEquals(Integer.valueOf(2), created.getAttemptNo());
         assertEquals("task-old", created.getRetryOfTaskId());
         assertTrue(created.getRequestParams().contains("2026-07-31"));
+        assertEquals("QUEUED", batch.getProcessCallStatus());
         verify(taskMapper).insert(created);
         ArgumentCaptor<ReportBatchExecutionRequested> event =
                 ArgumentCaptor.forClass(ReportBatchExecutionRequested.class);
@@ -62,6 +65,20 @@ public class ReportTaskServiceTest {
         assertEquals("batch-1", event.getValue().getBatchId());
         assertEquals("PROCESS", event.getValue().getRequestedTaskType());
         assertEquals(created.getId(), event.getValue().getTaskId());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void manualProcessRejectsUnverifiedDependencies() {
+        ReportWorkflowMapper workflowMapper = mock(ReportWorkflowMapper.class);
+        ReportBatch batch = new ReportBatch();
+        batch.setId("batch-1");
+        batch.setSourceDomain("TIMS");
+        batch.setProcessCallStatus("DEPENDENCY_UNVERIFIED");
+        when(workflowMapper.findBatchForUpdate("batch-1")).thenReturn(batch);
+
+        new ReportTaskService(mock(ReportBatchMapper.class), mock(ReportTaskMapper.class),
+                mock(ReportTaskLogMapper.class), workflowMapper, mock(ApplicationEventPublisher.class))
+                .queueRetry("batch-1", "PROCESS", "u1", "operator");
     }
 
     @Test(expected = IllegalStateException.class)
