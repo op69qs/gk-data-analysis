@@ -208,7 +208,7 @@ public class ReportWorkflowService {
                     error.getRowNumber(), error.getColumnName(), error.getRawValue(), error.getMessage());
         }
         if (legacyPendingService != null) {
-            legacyPendingService.completeTims(batch, result, task.getCreateBy());
+            legacyPendingService.completeTims(batch, result.getSuccessCount(), task.getCreateBy());
         }
         return new ProcessingSummary(result.getSuccessCount(), result.getErrorCount());
     }

@@ -134,6 +134,7 @@ Commit: `feat: atomically replace TIMS STG period in bounded batches`
 - Modify: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/mapper/LegacyPendingMapper.java`
 - Modify: `org-tribe-system/src/main/java/org/jeecg/modules/reporting/mapper/xml/LegacyPendingMapper.xml`
 - Create: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/service/ReportRuntimeLockServiceTest.java`
+- Create: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/mapper/ReportRuntimeLockMapperXmlTest.java`
 - Modify: `org-tribe-system/src/test/java/org/jeecg/modules/reporting/service/LegacyPendingServiceTest.java`
 
 **Interfaces:**
@@ -142,19 +143,19 @@ Commit: `feat: atomically replace TIMS STG period in bounded batches`
 - `ReportRuntimeLockService#releaseTims(String owner): void`
 - `LegacyPendingService#completeTims(ReportBatch, long committedRows, String userId)` 只更新 `id=batch.id`。
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 验证活动租约拒绝第二执行者、过期租约可领取、失权执行者不能进入写事务；验证 TIMS 成功只调用一次 `updateTimsPending`，不调用 delete/insert/rebuild。
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `mvn -Dtest=ReportRuntimeLockServiceTest,LegacyPendingServiceTest test`
 
-- [ ] **Step 3: 实现短租约与事务内 `FOR UPDATE` fencing**
+- [x] **Step 3: 实现短租约与事务内 `FOR UPDATE` fencing**
 
 领取使用带失效条件的原子 `UPDATE`；业务事务内执行 `SELECT lease_owner ... FOR UPDATE` 并核对令牌。finally 仅允许当前 owner 释放。
 
-- [ ] **Step 4: 运行测试并提交**
+- [x] **Step 4: 运行测试并提交**
 
 Run: `mvn -Dtest=ReportRuntimeLockServiceTest,LegacyPendingServiceTest test`
 

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.reporting.mapper.ReportRuntimeLockMapper">
+    <update id="acquire">
+        update agent_key_file.report_runtime_lock
+           set lease_owner = #{owner}, lease_until = #{leaseUntil}, update_time = #{now}
+         where lock_name = #{lockName}
+           and (lease_owner is null or lease_until is null
+                or lease_until &lt; #{now} or lease_owner = #{owner})
+    </update>
+
+    <select id="lockOwnerForUpdate" resultType="string">
+        select lease_owner
+          from agent_key_file.report_runtime_lock
+         where lock_name = #{lockName}
+         for update
+    </select>
+
+    <update id="release">
+        update agent_key_file.report_runtime_lock
+           set lease_owner = null, lease_until = null, update_time = current_timestamp
+         where lock_name = #{lockName} and lease_owner = #{owner}
+    </update>
+</mapper>

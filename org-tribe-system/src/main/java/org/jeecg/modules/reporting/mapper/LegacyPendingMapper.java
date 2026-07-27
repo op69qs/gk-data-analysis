@@ -10,10 +10,6 @@ public interface LegacyPendingMapper {
     int updateKeyPending(@Param("record") LegacyKeyPending record);
     int insertTimsPending(@Param("record") LegacyTimsPending record);
     int updateTimsPending(@Param("record") LegacyTimsPending record);
-    LegacyTimsPending findTimsPendingById(@Param("id") String id);
-    int deleteTimsPendingScope(@Param("id") String id, @Param("bizType") String bizType,
-                               @Param("bizDate") java.sql.Date bizDate,
-                               @Param("treCode") String treCode);
     int deleteKeyPending(@Param("id") String id, @Param("zipName") String zipName);
     int deleteTimsPending(@Param("id") String id);
 }

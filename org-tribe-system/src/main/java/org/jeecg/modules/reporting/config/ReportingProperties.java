@@ -27,5 +27,6 @@ public class ReportingProperties {
     private int processStaleTimeoutMinutes = 360;
     private int taskScanBatchSize = 20;
     private int timsBatchSize = 400;
+    private int timsLockLeaseMinutes = 60;
     private String taskInstanceId = UUID.randomUUID().toString();
 }

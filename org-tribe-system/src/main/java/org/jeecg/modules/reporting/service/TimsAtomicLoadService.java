@@ -5,6 +5,7 @@ import org.jeecg.modules.reporting.mapper.TimsReportMapper;
 import org.jeecg.modules.reporting.parser.TimsBusinessType;
 import org.jeecg.modules.reporting.parser.TimsReportRecord;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -17,25 +18,41 @@ public class TimsAtomicLoadService {
     private static final DateTimeFormatter PERIOD_FORMAT = DateTimeFormatter.ofPattern("yyyyMM");
     private final TimsReportMapper mapper;
     private final int batchSize;
+    private final ReportRuntimeLockService runtimeLockService;
 
-    public TimsAtomicLoadService(TimsReportMapper mapper, ReportingProperties properties) {
-        this(mapper, properties.getTimsBatchSize());
+    @Autowired
+    public TimsAtomicLoadService(TimsReportMapper mapper, ReportingProperties properties,
+                                 ReportRuntimeLockService runtimeLockService) {
+        this(mapper, properties.getTimsBatchSize(), runtimeLockService);
     }
 
     TimsAtomicLoadService(TimsReportMapper mapper, int batchSize) {
+        this(mapper, batchSize, null);
+    }
+
+    private TimsAtomicLoadService(TimsReportMapper mapper, int batchSize,
+                                  ReportRuntimeLockService runtimeLockService) {
         if (batchSize < 1 || batchSize > 1000) {
             throw new IllegalArgumentException("reporting.tims-batch-size 必须在 1 到 1000 之间");
         }
         this.mapper = mapper;
         this.batchSize = batchSize;
+        this.runtimeLockService = runtimeLockService;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public long load(TimsPreparationResult prepared, TimsBusinessType type,
                      YearMonth period, String batchDate) throws IOException {
+        return load(prepared, type, period, batchDate, null);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public long load(TimsPreparationResult prepared, TimsBusinessType type,
+                     YearMonth period, String batchDate, String lockOwner) throws IOException {
         if (prepared == null || prepared.getSpool() == null || !prepared.getErrors().isEmpty()) {
             throw new IllegalArgumentException("TIMS 全包解析成功后才能入库");
         }
+        if (runtimeLockService != null) runtimeLockService.assertOwnedForUpdate(lockOwner);
         String periodKey = period.format(PERIOD_FORMAT);
         deletePeriod(type, periodKey);
         long[] inserted = {0};
