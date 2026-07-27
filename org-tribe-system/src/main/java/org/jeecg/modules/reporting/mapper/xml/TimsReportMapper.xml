@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.reporting.mapper.TimsReportMapper">
+
+    <delete id="deleteStgIncome">
+        delete from stg.trs_tmis_budget_income where data_date = #{periodKey}
+    </delete>
+    <insert id="insertStgIncome">
+        insert into stg.trs_tmis_budget_income
+        (batch_date, data_date, d_acct, trecode, tredscr, tax_org_code, level,
+         subject_code, subject_dscr, this_amt, year_amt)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{batchDate}, #{periodKey}, #{row.dAcctText}, #{row.treCode}, #{row.treasuryName},
+             #{row.taxOrgCode}, #{row.level}, #{row.subjectCode}, #{row.subjectName},
+             #{row.currentAmount}, #{row.yearAmount})
+        </foreach>
+    </insert>
+    <select id="countStgIncome" resultType="long">
+        select count(1) from stg.trs_tmis_budget_income where data_date = #{periodKey}
+    </select>
+
+    <delete id="deleteStgPayout">
+        delete from stg.trs_tmis_budget_payout where data_date = #{periodKey}
+    </delete>
+    <insert id="insertStgPayout">
+        insert into stg.trs_tmis_budget_payout
+        (batch_date, data_date, d_acct, trecode, tredscr, level,
+         subject_code, subject_dscr, this_amt, year_amt)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{batchDate}, #{periodKey}, #{row.dAcctText}, #{row.treCode}, #{row.treasuryName},
+             #{row.level}, #{row.subjectCode}, #{row.subjectName},
+             #{row.currentAmount}, #{row.yearAmount})
+        </foreach>
+    </insert>
+    <select id="countStgPayout" resultType="long">
+        select count(1) from stg.trs_tmis_budget_payout where data_date = #{periodKey}
+    </select>
+
+    <delete id="deleteStgStock">
+        delete from stg.trs_tmis_stock where data_date like concat(#{periodKey}, '%')
+    </delete>
+    <insert id="insertStgStock">
+        insert into stg.trs_tmis_stock
+        (batch_date, data_date, d_acct, trecode, tredscr, level,
+         f_debitamt, f_loanamt, f_balance)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (#{batchDate}, #{periodKey}, #{row.dAcctText}, #{row.treCode}, #{row.treasuryName},
+             #{row.level}, #{row.debitAmount}, #{row.creditAmount}, #{row.balance})
+        </foreach>
+    </insert>
+    <select id="countStgStock" resultType="long">
+        select count(1) from stg.trs_tmis_stock where data_date like concat(#{periodKey}, '%')
+    </select>
+</mapper>

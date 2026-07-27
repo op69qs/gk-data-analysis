@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.reporting.mapper.KeyReportMapper">
+
+    <delete id="deleteIncomeByZipName">
+        delete from agent_key_file.agent_file_income where key_zip_name = #{zipName}
+    </delete>
+    <insert id="insertIncome">
+        insert into agent_key_file.agent_file_income
+        (d_acct, trecode, subject_code, taxorgcode, budget_type, level,
+         f_amt, year_amt, key_zip_name, add_time)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (cast(#{row.dAcct} as date), #{row.treCode}, #{row.subjectCode}, #{row.taxOrgCode},
+             #{row.budgetType}, #{row.level}, #{row.fAmount}, #{row.yearAmount},
+             #{row.keyZipName}, current_timestamp)
+        </foreach>
+    </insert>
+
+    <delete id="deletePayoutByZipName">
+        delete from agent_key_file.agent_file_payout where key_zip_name = #{zipName}
+    </delete>
+    <insert id="insertPayout">
+        insert into agent_key_file.agent_file_payout
+        (d_acct, trecode, subject_code, taxorgcode, code_type, level,
+         f_amt, year_amt, key_zip_name, add_time)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (cast(#{row.dAcct} as date), #{row.treCode}, #{row.subjectCode}, #{row.taxOrgCode},
+             #{row.codeType}, #{row.level}, #{row.fAmount}, #{row.yearAmount},
+             #{row.keyZipName}, current_timestamp)
+        </foreach>
+    </insert>
+
+    <delete id="deleteStockByZipName">
+        delete from agent_key_file.agent_file_stock where key_zip_name = #{zipName}
+    </delete>
+    <insert id="insertStock">
+        insert into agent_key_file.agent_file_stock
+        (d_acct, trecode, level, acount_code, f_bal, year_init_bal, key_zip_name, add_time)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (cast(#{row.dAcct} as date), #{row.treCode}, #{row.level}, #{row.accountCode},
+             #{row.fBalance}, #{row.yearInitialBalance}, #{row.keyZipName}, current_timestamp)
+        </foreach>
+    </insert>
+
+    <delete id="deleteBackByZipName">
+        delete from agent_key_file.agent_file_back where key_zip_name = #{zipName}
+    </delete>
+    <insert id="insertBack">
+        insert into agent_key_file.agent_file_back
+        (d_acct, trecode, subject_code, budget_type, level, taxorgcode, bckreason,
+         f_amt, year_amt, key_zip_name, add_time)
+        values
+        <foreach collection="rows" item="row" separator=",">
+            (cast(#{row.dAcct} as date), #{row.treCode}, #{row.subjectCode}, #{row.budgetType},
+             #{row.level}, #{row.taxOrgCode}, #{row.backReason}, #{row.fAmount},
+             #{row.yearAmount}, #{row.keyZipName}, current_timestamp)
+        </foreach>
+    </insert>
+</mapper>

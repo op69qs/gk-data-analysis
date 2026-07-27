@@ -145,3 +145,20 @@ jeecg :
 #cas单点登录
 cas:
   prefixUrl: http://cas.example.org:8443/cas
+
+# 上线前必须确认目录权限、保留期限以及 ADM/ETL 依赖核验结果。
+reporting:
+  archive-root: ${REPORTING_ARCHIVE_ROOT:/opt/gk-data-analysis/reporting}
+  max-upload-bytes: ${REPORTING_MAX_UPLOAD_BYTES:10485760}
+  max-zip-entries: ${REPORTING_MAX_ZIP_ENTRIES:2000}
+  max-total-uncompressed-bytes: ${REPORTING_MAX_UNCOMPRESSED_BYTES:524288000}
+  max-single-entry-bytes: ${REPORTING_MAX_ENTRY_BYTES:104857600}
+  retention-days: ${REPORTING_RETENTION_DAYS:0}
+  # 执行 10_process_dependency_check.sql 并确认真实 DDL/过程后，仅解锁页面手工加工。
+  process-dependencies-verified: ${REPORTING_PROCESS_DEPENDENCIES_VERIFIED:false}
+  task-scan-delay-ms: ${REPORTING_TASK_SCAN_DELAY_MS:10000}
+  task-stale-timeout-minutes: ${REPORTING_TASK_STALE_TIMEOUT_MINUTES:30}
+  process-stale-timeout-minutes: ${REPORTING_PROCESS_STALE_TIMEOUT_MINUTES:360}
+  task-scan-batch-size: ${REPORTING_TASK_SCAN_BATCH_SIZE:20}
+  tims-batch-size: ${REPORTING_TIMS_BATCH_SIZE:400}
+  tims-lock-lease-minutes: ${REPORTING_TIMS_LOCK_LEASE_MINUTES:60}

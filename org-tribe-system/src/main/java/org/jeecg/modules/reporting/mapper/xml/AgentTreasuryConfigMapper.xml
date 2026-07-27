@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.jeecg.modules.reporting.mapper.AgentTreasuryConfigMapper">
+    <select id="findScopePrefix" resultType="java.lang.String">
+        select substring(g.guoku_id, 1, (g.level - 1) * 2)
+          from edw.cm_guoku_dimnsn g
+         where g.guoku_id = #{guokuId}
+    </select>
+</mapper>
