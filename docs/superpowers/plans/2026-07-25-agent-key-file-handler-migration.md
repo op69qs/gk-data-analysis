@@ -1,5 +1,7 @@
 # Agent Key File Handler Migration Implementation Plan
 
+> **状态：已冻结，禁止继续按本文执行。** 本计划形成于 TIMS 自动路径、固定列序、时间转换、重复周期覆盖和 ADM 触发方式完成复核之前，部分任务描述与当前确认规则冲突。权威业务方案为 [`../specs/2026-07-25-agent-key-file-handler-migration-design.md`](../specs/2026-07-25-agent-key-file-handler-migration-design.md)。待用户确认该方案后，将以新计划替换本文；在此之前不得依据本文继续改代码或上线。
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** 在主系统完整复写 agentKeyFileHandler 的 KEY/TIMS 上报、解析、归档、监控、变更和自动加工能力，并适配 Vastbase。

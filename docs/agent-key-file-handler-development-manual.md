@@ -1,5 +1,7 @@
 # Agent Key File Handler 迁移开发手册
 
+> **当前定位：既有“部分迁移代码”的审计记录，不是最终上线手册。** 其中自动 ADM、TIMS 中间表、日期归一、pending 重建、用户国库裁剪和六张跟踪表等描述反映旧实现，已被最新 JAR 复核结论否定或需要调整。当前权威业务方案为 [`docs/superpowers/specs/2026-07-25-agent-key-file-handler-migration-design.md`](superpowers/specs/2026-07-25-agent-key-file-handler-migration-design.md)。用户确认方案并完成代码整改后，本文必须按最终文件、七张新增技术表、菜单路径和验证结果整体更新，届时方可作为生产配置与上线手册。
+
 ## 1. 文档用途
 
 本文记录原 JAR 功能、新代码文件、数据库对象、页面能力和业务规则之间的对应关系。开发过程中持续更新；未实现项不得因为出现在设计中而标记为已完成。
