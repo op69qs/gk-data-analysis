@@ -43,12 +43,19 @@ public class TimsAtomicLoadService {
     @Transactional(rollbackFor = Exception.class)
     public long load(TimsPreparationResult prepared, TimsBusinessType type,
                      YearMonth period, String batchDate) throws IOException {
-        return load(prepared, type, period, batchDate, null);
+        return load(prepared, type, period, batchDate, null, rows -> { });
     }
 
     @Transactional(rollbackFor = Exception.class)
     public long load(TimsPreparationResult prepared, TimsBusinessType type,
                      YearMonth period, String batchDate, String lockOwner) throws IOException {
+        return load(prepared, type, period, batchDate, lockOwner, rows -> { });
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public long load(TimsPreparationResult prepared, TimsBusinessType type,
+                     YearMonth period, String batchDate, String lockOwner,
+                     TimsLoadCommitAction completion) throws IOException {
         if (prepared == null || prepared.getSpool() == null || !prepared.getErrors().isEmpty()) {
             throw new IllegalArgumentException("TIMS 全包解析成功后才能入库");
         }
@@ -68,6 +75,7 @@ public class TimsAtomicLoadService {
             throw new IllegalStateException("TIMS 入库核对失败，解析 " + prepared.getRowCount()
                     + "，写入 " + inserted[0] + "，库内 " + stored);
         }
+        completion.afterCommittedRowsLoaded(stored);
         return stored;
     }
 

@@ -176,19 +176,19 @@ Commit: `feat: serialize TIMS loading and preserve original pending row`
 - 自动事件只接受 `PARSE`/`LOAD`；人工 API 可创建 `PROCESS` 任务。
 - 入库成功：批次 `SUCCEEDED/100`，加工状态 `WAITING_MANUAL` 或 `DEPENDENCY_UNVERIFIED`。
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 即使旧的两个 auto 开关为 true，TIMS 成功也不得创建或执行 PROCESS；人工 `queueRetry(batchId,"PROCESS",...)` 仍按批次月末日调用；异步执行器核心/最大线程均为 1。
 
-- [ ] **Step 2: 运行测试确认当前会自动调用而失败**
+- [x] **Step 2: 运行测试确认当前会自动调用而失败**
 
 Run: `mvn -Dtest=ReportWorkflowServiceTest,ReportTaskServiceTest,ReportTaskJobTest test`
 
-- [ ] **Step 3: 实现自动停止、人工门禁和原子成功终态**
+- [x] **Step 3: 实现自动停止、人工门禁和原子成功终态**
 
 删除 `autoProcessEnabled` 分支；解析日志先显示“已解析/待提交”，只有 STG 事务成功后写“已提交”。PROCESS 租约过期继续只失败不自动重放。
 
-- [ ] **Step 4: 运行测试并提交**
+- [x] **Step 4: 运行测试并提交**
 
 Run: `mvn -Dtest=ReportWorkflowServiceTest,ReportTaskServiceTest,ReportTaskJobTest test`
 

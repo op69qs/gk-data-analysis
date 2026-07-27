@@ -103,7 +103,7 @@ public class ReportBatchService {
         batch.setFileCount(0);
         batch.setSuccessRowCount(0L);
         batch.setErrorRowCount(0L);
-        batch.setAutoProcessRequired(1);
+        batch.setAutoProcessRequired(0);
         batch.setProcessCallStatus(STATUS_QUEUED);
         batch.setDelFlag(0);
         batch.setCreateBy(username);

@@ -20,8 +20,7 @@ public class ReportingProperties {
     /** Physical cleanup is disabled until the business confirms a retention period. */
     private int retentionDays = 0;
 
-    /** Must be enabled explicitly only after the real ETL table/procedure contract is verified. */
-    private boolean autoProcessEnabled = false;
+    /** Manual downstream processing remains disabled until the real ETL/procedure contract is verified. */
     private boolean processDependenciesVerified = false;
     private int taskStaleTimeoutMinutes = 30;
     private int processStaleTimeoutMinutes = 360;

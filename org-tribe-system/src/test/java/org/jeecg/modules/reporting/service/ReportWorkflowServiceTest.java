@@ -26,6 +26,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,13 +55,13 @@ public class ReportWorkflowServiceTest {
                 keyService, timsService, processService, new ReportingProperties());
         service.execute(new ReportBatchExecutionRequested("parse-1", "batch-1", "PARSE", "u1", "operator"));
 
-        verify(timsService, never()).process(any(), any(), any(), any());
+        verify(timsService, never()).process(any(), any(), any(), any(), any());
         verify(workflowMapper, never()).updateBatchState(any());
         verify(workflowMapper, never()).completeOwnedTask(any(), any());
     }
 
     @Test
-    public void successfulTimsParseLoadsDataAndAutomaticallyCallsOriginalProcedure() throws Exception {
+    public void successfulTimsParseStopsAfterStgAndWaitsForManualProcedureCall() throws Exception {
         ReportBatchMapper batchMapper = mock(ReportBatchMapper.class);
         ReportFileMapper fileMapper = mock(ReportFileMapper.class);
         ReportTaskMapper taskMapper = mock(ReportTaskMapper.class);
@@ -71,7 +72,6 @@ public class ReportWorkflowServiceTest {
         TimsReportProcessingService timsService = mock(TimsReportProcessingService.class);
         ReportProcessCallService processService = mock(ReportProcessCallService.class);
         ReportingProperties properties = new ReportingProperties();
-        properties.setAutoProcessEnabled(true);
         properties.setProcessDependenciesVerified(true);
 
         ReportBatch batch = batch("TIMS", "INCOME");
@@ -81,26 +81,26 @@ public class ReportWorkflowServiceTest {
         when(workflowMapper.claimTask(any(), any(), eq("operator"), any(), any())).thenReturn(1);
         when(workflowMapper.renewAndLockOwnedTask(any(), any(), any(), any())).thenReturn(1);
         when(workflowMapper.completeOwnedTask(any(), any())).thenReturn(1);
-        when(taskMapper.selectById(org.mockito.ArgumentMatchers.argThat(id -> !"parse-1".equals(id))))
-                .thenAnswer(invocation -> {
-                    ReportTask task = task((String) invocation.getArgument(0), "PROCESS");
-                    return task;
-                });
         when(workflowMapper.findBatchFiles("batch-1")).thenReturn(Collections.singletonList(archiveFile()));
-        when(timsService.process(any(), eq(TimsBusinessType.INCOME),
-                eq(java.time.YearMonth.of(2026, 7)), any()))
-                .thenReturn(new TimsReportProcessingResult(2, 8, Collections.emptyList()));
+        doAnswer(invocation -> {
+            TimsLoadCommitAction action = invocation.getArgument(4);
+            action.afterCommittedRowsLoaded(8L);
+            return new TimsReportProcessingResult(2, 8, Collections.emptyList());
+        }).when(timsService).process(any(), eq(TimsBusinessType.INCOME),
+                eq(java.time.YearMonth.of(2026, 7)), any(), any());
 
         ReportWorkflowService service = new ReportWorkflowService(
                 batchMapper, fileMapper, taskMapper, logMapper, errorMapper, workflowMapper,
                 keyService, timsService, processService, properties);
         service.execute(new ReportBatchExecutionRequested("parse-1", "batch-1", "PARSE", "u1", "operator"));
 
-        verify(timsService).process(Paths.get("/tmp/reporting/batch-1/extracted"),
-                TimsBusinessType.INCOME, java.time.YearMonth.of(2026, 7), null);
-        verify(processService).callForBatch(eq(batch), any(), eq("u1"), eq("operator"));
+        verify(timsService).process(eq(Paths.get("/tmp/reporting/batch-1/extracted")),
+                eq(TimsBusinessType.INCOME), eq(java.time.YearMonth.of(2026, 7)),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.any(TimsLoadCommitAction.class));
+        verify(processService, never()).callForBatch(any(), any(), any(), any());
         assertEquals("SUCCEEDED", batch.getStatus());
-        assertEquals("SUCCEEDED", batch.getProcessCallStatus());
+        assertEquals("WAITING_MANUAL", batch.getProcessCallStatus());
         assertEquals(Integer.valueOf(100), batch.getProgressPercent());
         assertEquals(Long.valueOf(8), batch.getSuccessRowCount());
         verify(workflowMapper, org.mockito.Mockito.atLeastOnce()).updateBatchState(batch);
@@ -118,7 +118,6 @@ public class ReportWorkflowServiceTest {
         TimsReportProcessingService timsService = mock(TimsReportProcessingService.class);
         ReportProcessCallService processService = mock(ReportProcessCallService.class);
         ReportingProperties properties = new ReportingProperties();
-        properties.setAutoProcessEnabled(true);
         properties.setProcessDependenciesVerified(true);
 
         ReportBatch batch = batch("TIMS", "INCOME");
@@ -132,7 +131,7 @@ public class ReportWorkflowServiceTest {
         org.jeecg.modules.reporting.parser.TimsExcelParseError error =
                 new org.jeecg.modules.reporting.parser.TimsExcelParseError(
                         "收入1.xls", "收入数据", 2, "日期", "202513", "日期格式错误");
-        when(timsService.process(any(), any(), any(), any()))
+        when(timsService.process(any(), any(), any(), any(), any()))
                 .thenReturn(new TimsReportProcessingResult(1, 0, Collections.singletonList(error)));
 
         ReportWorkflowService service = new ReportWorkflowService(

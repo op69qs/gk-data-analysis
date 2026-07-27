@@ -111,11 +111,15 @@ public class ReportWorkflowService {
                                ReportBatchExecutionRequested event, String leaseToken,
                                boolean process) {
         try {
-            inTransaction(() -> {
+            if (process) {
+                inTransaction(() -> {
+                    requireOwnedLease(task.getId(), leaseToken);
+                    executeProcess(batch, task, event, leaseToken);
+                });
+            } else {
                 requireOwnedLease(task.getId(), leaseToken);
-                if (process) executeProcess(batch, task, event, leaseToken);
-                else executeParseAndLoad(batch, task, event, leaseToken);
-            });
+                executeParseAndLoad(batch, task, event, leaseToken);
+            }
         } catch (TaskLeaseLostException ignored) {
             // A recovery worker owns this task now. The old execution must not write terminal state.
         } catch (Exception exception) {
@@ -134,7 +138,9 @@ public class ReportWorkflowService {
         if ("KEY".equalsIgnoreCase(batch.getSourceDomain())) {
             summary = processKey(batch, requestedTask, files, extractRoot);
         } else if ("TIMS".equalsIgnoreCase(batch.getSourceDomain())) {
-            summary = processTims(batch, requestedTask, files, extractRoot);
+            summary = processTims(batch, requestedTask, files, extractRoot, committedRows ->
+                    completeSuccessfulLoad(batch, requestedTask, files, event, started,
+                            leaseToken, committedRows, true));
         } else {
             throw new IllegalArgumentException("不支持的上报来源：" + batch.getSourceDomain());
         }
@@ -153,32 +159,9 @@ public class ReportWorkflowService {
                     "存在行级解析错误");
             return;
         }
-
-        finishTask(requestedTask, event, started, "解析完成，共 " + summary.successCount + " 条",
-                leaseToken, summary.successCount, 0L);
-        ReportTask loadTask = "LOAD".equals(requestedTask.getTaskType())
-                ? requestedTask : createCompletedLoadTask(batch, requestedTask, event, summary.successCount);
-        updateFileStatuses(files, "SUCCEEDED", summary.successCount, 0L, null);
-        batch.setSuccessRowCount(summary.successCount);
-        batch.setErrorRowCount(0L);
-        batch.setCurrentStage("LOAD");
-        batch.setProgressPercent(85);
-        batch.setResultSummary("解析及入库完成，共 " + summary.successCount + " 条");
-
-        if (shouldAutomaticallyProcess(batch)) {
-            ReportTask processTask = createQueuedProcessTask(batch, loadTask, event);
-            execute(new ReportBatchExecutionRequested(processTask.getId(), batch.getId(), "PROCESS",
-                    event.getUserId(), event.getUsername()));
-        } else {
-            boolean waitingForGate = "TIMS".equalsIgnoreCase(batch.getSourceDomain())
-                    && Integer.valueOf(1).equals(batch.getAutoProcessRequired());
-            batch.setStatus(waitingForGate ? "PARTIALLY_SUCCEEDED" : "SUCCEEDED");
-            batch.setProgressPercent(waitingForGate ? 85 : 100);
-            batch.setProcessCallStatus(waitingForGate ? "WAITING_CONFIGURATION" : "NOT_REQUIRED");
-            if (waitingForGate) {
-                batch.setResultSummary("解析及入库完成；自动加工等待 ETL/存储过程依赖核验门禁");
-            }
-            touchBatch(batch, event.getUsername());
+        if ("KEY".equalsIgnoreCase(batch.getSourceDomain())) {
+            inTransaction(() -> completeSuccessfulLoad(batch, requestedTask, files, event, started,
+                    leaseToken, summary.successCount, false));
         }
     }
 
@@ -197,20 +180,50 @@ public class ReportWorkflowService {
     }
 
     private ProcessingSummary processTims(ReportBatch batch, ReportTask task,
-                                          List<ReportFile> files, Path extractRoot) throws Exception {
+                                          List<ReportFile> files, Path extractRoot,
+                                          TimsLoadCommitAction completion) throws Exception {
         YearMonth period = YearMonth.from(batch.getAccountingPeriod().toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalDate());
         TimsBusinessType type = TimsBusinessType.valueOf(batch.getBusinessType().toUpperCase(Locale.ROOT));
         TimsReportProcessingResult result = timsService.process(
-                extractRoot, type, period, batch.getTreasuryCode());
+                extractRoot, type, period, null, committedRows -> {
+                    if (legacyPendingService != null) {
+                        legacyPendingService.completeTims(batch, committedRows, task.getCreateBy());
+                    }
+                    completion.afterCommittedRowsLoaded(committedRows);
+                });
         for (TimsExcelParseError error : result.getErrors()) {
             persistError(batch, task, findFileId(files, error.getFileName()), error.getSheetName(),
                     error.getRowNumber(), error.getColumnName(), error.getRawValue(), error.getMessage());
         }
-        if (legacyPendingService != null) {
-            legacyPendingService.completeTims(batch, result.getSuccessCount(), task.getCreateBy());
-        }
         return new ProcessingSummary(result.getSuccessCount(), result.getErrorCount());
+    }
+
+    private void completeSuccessfulLoad(ReportBatch batch, ReportTask requestedTask,
+                                        List<ReportFile> files, ReportBatchExecutionRequested event,
+                                        Date started, String leaseToken, long successCount,
+                                        boolean tims) {
+        finishTask(requestedTask, event, started, "解析完成并提交，共 " + successCount + " 条",
+                leaseToken, successCount, 0L);
+        if (!"LOAD".equals(requestedTask.getTaskType())) {
+            createCompletedLoadTask(batch, requestedTask, event, successCount);
+        }
+        updateFileStatuses(files, "SUCCEEDED", successCount, 0L, null);
+        batch.setSuccessRowCount(successCount);
+        batch.setErrorRowCount(0L);
+        batch.setCurrentStage("LOAD");
+        batch.setStatus("SUCCEEDED");
+        batch.setProgressPercent(100);
+        batch.setErrorSummary(null);
+        if (tims) {
+            batch.setProcessCallStatus(properties.isProcessDependenciesVerified()
+                    ? "WAITING_MANUAL" : "DEPENDENCY_UNVERIFIED");
+            batch.setResultSummary("解析及 STG 入库已提交，共 " + successCount + " 条；下游加工需人工调用");
+        } else {
+            batch.setProcessCallStatus("NOT_REQUIRED");
+            batch.setResultSummary("解析及入库完成，共 " + successCount + " 条");
+        }
+        touchBatch(batch, event.getUsername());
     }
 
     private void executeProcess(ReportBatch batch, ReportTask task,
@@ -321,17 +334,6 @@ public class ReportWorkflowService {
         task.setResultSummary("业务表及数仓暂存表入库完成，共 " + count + " 条");
         taskMapper.insert(task);
         log(task, null, "SUCCEEDED", task.getResultSummary(), event, count, 0L);
-        return task;
-    }
-
-    private ReportTask createQueuedProcessTask(ReportBatch batch, ReportTask parent,
-                                               ReportBatchExecutionRequested event) {
-        Date now = new Date();
-        ReportTask task = newTask(batch, parent, "PROCESS", 5, event.getUsername(), now);
-        task.setStatus("QUEUED");
-        task.setProgressPercent(0);
-        taskMapper.insert(task);
-        log(task, null, "QUEUED", "等待调用原报送数据加工过程", event, 0L, 0L);
         return task;
     }
 
@@ -480,13 +482,6 @@ public class ReportWorkflowService {
         } catch (TransactionExecutionException exception) {
             throw (Exception) exception.getCause();
         }
-    }
-
-    private boolean shouldAutomaticallyProcess(ReportBatch batch) {
-        return "TIMS".equalsIgnoreCase(batch.getSourceDomain())
-                && Integer.valueOf(1).equals(batch.getAutoProcessRequired())
-                && properties.isAutoProcessEnabled()
-                && properties.isProcessDependenciesVerified();
     }
 
     private void touchBatch(ReportBatch batch, String username) {

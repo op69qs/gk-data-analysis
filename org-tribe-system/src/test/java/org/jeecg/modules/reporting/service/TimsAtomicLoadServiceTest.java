@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -55,6 +56,22 @@ public class TimsAtomicLoadServiceTest {
 
         new TimsAtomicLoadService(mapper, 2)
                 .load(prepared(3), TimsBusinessType.INCOME, YearMonth.of(2025, 11), "20260727");
+    }
+
+    @Test
+    public void completionRunsOnlyAfterRowCountReconciliation() throws Exception {
+        TimsReportMapper mapper = mock(TimsReportMapper.class);
+        when(mapper.insertStgIncome(anyList(), eq("202511"), eq("20260727"))).thenReturn(1);
+        when(mapper.countStgIncome("202511")).thenReturn(1L);
+        AtomicBoolean completed = new AtomicBoolean();
+
+        new TimsAtomicLoadService(mapper, 2).load(prepared(1), TimsBusinessType.INCOME,
+                YearMonth.of(2025, 11), "20260727", null, rows -> {
+                    assertEquals(1L, rows);
+                    completed.set(true);
+                });
+
+        assertTrue(completed.get());
     }
 
     private TimsPreparationResult prepared(int count) throws Exception {
