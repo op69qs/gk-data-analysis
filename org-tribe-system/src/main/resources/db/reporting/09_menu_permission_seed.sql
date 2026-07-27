@@ -4,6 +4,20 @@
 
 set search_path to "jeecg-boot-os", public;
 
+-- 兼容已执行旧版脚本的环境：本期不暴露未核验的 EDW 调整页及按钮。
+delete from sys_role_permission
+ where permission_id in (
+     md5('sys_permission:button:reporting:change:add'),
+     md5('sys_permission:/reporting/changes')
+ );
+delete from sys_permission
+ where parent_id = md5('sys_permission:/reporting/changes');
+delete from sys_permission
+ where id in (
+     md5('sys_permission:button:reporting:change:add'),
+     md5('sys_permission:/reporting/changes')
+ );
+
 insert into sys_permission
 (id, parent_id, name, url, component, component_name, redirect, menu_type, perms, perms_type,
  sort_no, always_show, icon, is_route, is_leaf, keep_alive, hidden, description,
@@ -24,8 +38,7 @@ select md5('sys_permission:/reporting/' || item.path), md5('sys_permission:/repo
 from (values
   ('batches', '上报批次', 'reporting/ReportBatchList', 'ReportBatchList', 1, 'unordered-list', '上传、执行进度、详情和重试'),
   ('monitoring', '上报监控', 'reporting/ReportMonitoring', 'ReportMonitoring', 2, 'dashboard', 'KEY/TIMS 完整性和异常监控'),
-  ('agent-treasuries', '代理国库配置', 'reporting/AgentTreasuryConfig', 'AgentTreasuryConfig', 3, 'setting', '代理国库有效期和启停'),
-  ('changes', '报送调整记录', 'reporting/ReportChangeRecord', 'ReportChangeRecord', 4, 'edit', '收入支出查询与人工调整记录')
+  ('agent-treasuries', '代理国库配置', 'reporting/AgentTreasuryConfig', 'AgentTreasuryConfig', 3, 'setting', '代理国库有效期和启停')
 ) as item(path, name, component, component_name, sort_no, icon, description)
 where not exists (select 1 from sys_permission p where p.id = md5('sys_permission:/reporting/' || item.path));
 
@@ -47,7 +60,6 @@ from (values
   ('batches', '上报审核', 'reporting:batch:audit', 6),
   ('agent-treasuries', '新增代理国库', 'reporting:treasury:add', 1),
   ('agent-treasuries', '编辑代理国库', 'reporting:treasury:edit', 2),
-  ('changes', '新增调整记录', 'reporting:change:add', 1),
   ('batches', '物理清理归档', 'reporting:archive:cleanup', 9)
 ) as item(parent_path, name, perms, sort_no)
 where not exists (select 1 from sys_permission p where p.id = md5('sys_permission:button:' || item.perms));

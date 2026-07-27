@@ -1,5 +1,6 @@
 -- 目标：只读核对 TIMS 自动任务写入的三张 STG 表。
 -- JAR 证据：配置 DATABASE=stg，代码唯一指向以下 trs_tmis_* 对象。
+-- 结构确认后继续执行 12_stg_performance_check.sql；本项目不自动修改 STG 结构或索引。
 
 select table_schema,
        table_name,

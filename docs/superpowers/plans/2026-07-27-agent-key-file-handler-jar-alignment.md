@@ -250,19 +250,19 @@ Commit: `feat: expose committed TIMS progress and manual processing`
 - `11`: 按外键顺序删除七张新表和菜单，标注破坏性与审批要求。
 - `12`: 只读输出三张 STG 字段、索引、分区和三条周期删除 `EXPLAIN`；不自动建 STG 索引。
 
-- [ ] **Step 1: 写脚本行为失败测试**
+- [x] **Step 1: 写脚本行为失败测试**
 
 测试脚本编号齐全、`05/06/11` 包含 runtime lock、`09` 不创建 changes 菜单、`10` 不含自动加工开关、`12` 只有只读查询/EXPLAIN。
 
-- [ ] **Step 2: 运行测试确认失败**
+- [x] **Step 2: 运行测试确认失败**
 
 Run: `mvn -Dtest=ReportingDatabaseScriptsTest test`
 
-- [ ] **Step 3: 完成 SQL 和手册逐文件映射**
+- [x] **Step 3: 完成 SQL 和手册逐文件映射**
 
 手册列明所有新增/修改文件、七张新表、零个既有业务表 DDL 修改、STG 只读性能建议、菜单路径、权限编码、部署顺序、配置默认值、内网未确认项和回滚步骤。
 
-- [ ] **Step 4: 运行测试并提交**
+- [x] **Step 4: 运行测试并提交**
 
 Run: `mvn -Dtest=ReportingDatabaseScriptsTest test`
 

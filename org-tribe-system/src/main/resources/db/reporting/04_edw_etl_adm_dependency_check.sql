@@ -1,5 +1,5 @@
 -- 目标：只读核对 EDW 查询对象、ETL 运行日志和 ADM 过程。
--- 门禁：未取得以下查询结果和真实 DDL 前，不启用变更写入或自动加工。
+-- 门禁：未取得以下查询结果和真实 DDL 前，不启用 EDW 变更写入，不允许手工 ADM 调用。
 
 select table_schema,
        table_name,

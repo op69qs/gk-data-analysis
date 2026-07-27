@@ -16,18 +16,18 @@ import static org.junit.Assert.assertTrue;
 
 public class ReportingBusinessMapperXmlTest {
     @Test
-    public void monitoringAndChangeSqlUseJarSchemasAndVastbaseSyntax() throws IOException {
+    public void monitoringSqlUsesActiveJarSchemasAndDoesNotReferenceInactiveEdwChanges() throws IOException {
         String xml = read("org/jeecg/modules/reporting/mapper/xml/ReportingBusinessMapper.xml").toLowerCase();
         for (String object : Arrays.asList(
                 "agent_key_file.agent_treatury_config", "agent_key_file.agent_keyfile_pending",
-                "agent_key_file.tims_file_pending", "edw.cm_guoku_dimnsn",
-                "edw.income_report_detail_stat", "edw.payout_report_detail_stat",
-                "edw.reprot_update_record")) {
+                "agent_key_file.tims_file_pending", "edw.cm_guoku_dimnsn")) {
             assertTrue("缺少 JAR 对象：" + object, xml.contains(object));
         }
         assertTrue(xml.contains("count(distinct tp.biz_type)"));
-        assertTrue(xml.contains("row_number() over"));
-        assertTrue(xml.contains("substring(cast(a.d_acct as varchar), 1, 7)"));
+        assertFalse(xml.contains("edw.income_report_detail_stat"));
+        assertFalse(xml.contains("edw.payout_report_detail_stat"));
+        assertFalse(xml.contains("edw.reprot_update_record"));
+        assertFalse(xml.contains("insertchange"));
         assertFalse(xml.contains("${"));
         assertFalse(xml.contains("ifnull"));
         assertFalse(xml.contains("group_concat"));

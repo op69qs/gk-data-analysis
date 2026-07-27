@@ -1,9 +1,25 @@
--- 目标：为本模块六张跟踪表创建唯一性约束和常用查询索引。
+-- 目标：为本模块七张新表补齐兼容列、默认值和常用查询索引。
 -- 可重复执行：是。执行前先完成 05_report_tracking_tables.sql。
 
 -- 兼容已执行旧版 05 脚本的环境。
 alter table agent_key_file.report_task add column if not exists lease_owner varchar(128);
 alter table agent_key_file.report_task add column if not exists lease_until timestamp;
+alter table agent_key_file.report_batch alter column auto_process_required set default 0;
+
+create table if not exists agent_key_file.report_runtime_lock (
+    lock_name varchar(64) primary key,
+    lease_owner varchar(128),
+    lease_until timestamp,
+    update_time timestamp not null default current_timestamp
+);
+insert into agent_key_file.report_runtime_lock
+    (lock_name, lease_owner, lease_until, update_time)
+select 'TIMS_LOAD', null, null, current_timestamp
+where not exists (
+    select 1 from agent_key_file.report_runtime_lock where lock_name = 'TIMS_LOAD'
+);
+create index if not exists idx_report_runtime_lock_lease
+    on agent_key_file.report_runtime_lock(lease_until);
 
 create unique index if not exists uk_report_batch_no
     on agent_key_file.report_batch(batch_no);

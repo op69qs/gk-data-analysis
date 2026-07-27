@@ -1,4 +1,4 @@
--- 目标：启用生产自动加工前，只读核对 STG 三表、ETL 日志表、ADM 过程、参数和当前运行状态。
+-- 目标：授权人员手工调用前，只读核对 STG 三表、ETL 日志表、ADM 过程、参数和当前运行状态。
 -- 可重复执行：是；只读，不调用过程、不写日志。
 -- Schema：stg、etl、adm。任一对象缺失或无权限时，不应开始生产上报。
 
@@ -12,7 +12,7 @@ left join information_schema.tables tables
   on lower(tables.table_schema) = required.schema_name
  and lower(tables.table_name) = required.object_name;
 
--- JAR 对该表使用无列名 INSERT，必须将下列结果与内网原表 DDL 逐列核对后才能开启调用。
+-- JAR 对该表使用无列名 INSERT，必须将下列结果与内网原表 DDL 逐列核对后才能手工调用。
 select ordinal_position, column_name, data_type, character_maximum_length, is_nullable, column_default
   from information_schema.columns
  where lower(table_schema) = 'etl' and lower(table_name) = 'guoku_lib_report_all_log'
@@ -30,6 +30,6 @@ order by ordinal_position;
 select count(1) running_count, min(add_time) oldest_running_time
 from etl.guoku_lib_report_all_log where state = '1';
 
--- 上述结果和真实过程签名全部确认后，同时设置：
--- REPORTING_AUTO_PROCESS_ENABLED=true
+-- 上述结果和真实过程签名全部确认后，只开启人工调用门禁：
 -- REPORTING_PROCESS_DEPENDENCIES_VERIFIED=true
+-- 注意：该开关不会产生自动 PROCESS 任务；仍必须在页面按本批次账期手工调用。

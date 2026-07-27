@@ -1,8 +1,22 @@
 -- 目标 Schema：agent_key_file（与原 JAR 业务 Schema 一致）。
--- 作用：仅创建新模块自己的批次、文件、任务、时间线、行错误和过程调用跟踪表。
--- 可重复执行：是。回滚仅允许删除以下六张新表，禁止触碰 JAR 原十表和数仓对象。
+-- 作用：仅创建新模块自己的六张跟踪表和一张运行租约表，共七张。
+-- 可重复执行：是。回滚仅允许删除以下七张新表，禁止触碰 JAR 原表和数仓对象。
 
 create schema if not exists agent_key_file;
+
+create table if not exists agent_key_file.report_runtime_lock (
+    lock_name varchar(64) primary key,
+    lease_owner varchar(128),
+    lease_until timestamp,
+    update_time timestamp not null default current_timestamp
+);
+
+insert into agent_key_file.report_runtime_lock
+    (lock_name, lease_owner, lease_until, update_time)
+select 'TIMS_LOAD', null, null, current_timestamp
+where not exists (
+    select 1 from agent_key_file.report_runtime_lock where lock_name = 'TIMS_LOAD'
+);
 
 create table if not exists agent_key_file.report_batch (
     id varchar(64) primary key,
@@ -19,7 +33,7 @@ create table if not exists agent_key_file.report_batch (
     file_count integer not null default 0,
     success_row_count bigint not null default 0,
     error_row_count bigint not null default 0,
-    auto_process_required integer not null default 1,
+    auto_process_required integer not null default 0,
     process_call_status varchar(32),
     retry_of_batch_id varchar(64),
     result_summary text,
@@ -154,3 +168,11 @@ create table if not exists agent_key_file.report_process_call (
     constraint fk_report_call_task foreign key (task_id) references agent_key_file.report_task(id),
     constraint ck_report_call_attempt check (attempt_no > 0)
 );
+
+comment on table agent_key_file.report_runtime_lock is 'TIMS 多实例全局执行租约';
+comment on table agent_key_file.report_batch is '数据上报批次与总体状态';
+comment on table agent_key_file.report_file is '上报原件和解压文件跟踪';
+comment on table agent_key_file.report_task is '解析、入库和人工加工任务';
+comment on table agent_key_file.report_task_log is '上报任务状态变迁时间线';
+comment on table agent_key_file.report_parse_error is '文件解析行级异常';
+comment on table agent_key_file.report_process_call is '按批次账期手工调用 ADM 的记录';

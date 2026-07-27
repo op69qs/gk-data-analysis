@@ -240,4 +240,6 @@ reporting:
   max-total-uncompressed-bytes: 524288000
   max-single-entry-bytes: 104857600
   retention-days: ${REPORTING_RETENTION_DAYS:0}
-  auto-process-enabled: ${REPORTING_AUTO_PROCESS_ENABLED:false}
+  process-dependencies-verified: ${REPORTING_PROCESS_DEPENDENCIES_VERIFIED:false}
+  tims-batch-size: ${REPORTING_TIMS_BATCH_SIZE:400}
+  tims-lock-lease-minutes: ${REPORTING_TIMS_LOCK_LEASE_MINUTES:60}
