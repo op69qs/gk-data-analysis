@@ -17,14 +17,20 @@ public class TimsReportMapperXmlTest {
     public void mapperUsesOnlyWhitelistedJarTargetsAndBoundParameters() throws IOException {
         String xml = readResource("org/jeecg/modules/reporting/mapper/xml/TimsReportMapper.xml").toLowerCase();
         for (String table : Arrays.asList(
-                "agent_key_file.tims_file_income", "agent_key_file.tims_file_payout",
-                "agent_key_file.tims_file_stock", "stg.trs_tmis_budget_income",
+                "stg.trs_tmis_budget_income",
                 "stg.trs_tmis_budget_payout", "stg.trs_tmis_stock")) {
             assertTrue("缺少 JAR 目标表：" + table, xml.contains(table));
         }
+        assertFalse(xml.contains("agent_key_file.tims_file_income"));
+        assertFalse(xml.contains("agent_key_file.tims_file_payout"));
+        assertFalse(xml.contains("agent_key_file.tims_file_stock"));
         assertTrue(xml.contains("tax_org_code"));
         assertTrue(xml.contains("f_debitamt"));
         assertTrue(xml.contains("f_loanamt"));
+        assertTrue(xml.contains("#{row.daccttext}"));
+        assertTrue(xml.contains("countstgincome"));
+        assertTrue(xml.contains("countstgpayout"));
+        assertTrue(xml.contains("countstgstock"));
         assertFalse(xml.contains("${"));
         assertFalse(xml.contains("`"));
     }

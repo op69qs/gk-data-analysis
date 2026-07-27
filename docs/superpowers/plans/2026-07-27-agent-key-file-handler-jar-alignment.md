@@ -103,21 +103,21 @@ Commit: `feat: spool TIMS rows outside database transaction`
 - `TimsReportMapper#deleteStg*(String periodKey)`
 - `TimsReportMapper#insertStg*(List<TimsReportRecord>, String periodKey, String batchDate)`
 - `TimsReportMapper#countStg*(String periodKey)`
-- `TimsAtomicLoadService#load(TimsPreparationResult, TimsLoadContext): long`，标注 `@Transactional(rollbackFor=Exception.class)`。
+- `TimsAtomicLoadService#load(TimsPreparationResult, TimsBusinessType, YearMonth, String batchDate): long`，标注 `@Transactional(rollbackFor=Exception.class)`。
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 断言 Mapper XML 不再引用三张 TIMS 中间表，收入/支出 `d_acct=#{row.dAcctText}`，库存同样保留具体日期；服务每批最多读取配置数量、插入返回数和最终计数必须等于 spool 总数，否则抛异常。
 
-- [ ] **Step 2: 运行测试确认旧中间表 SQL 和整包 List 行为导致失败**
+- [x] **Step 2: 运行测试确认旧中间表 SQL 和整包 List 行为导致失败**
 
 Run: `mvn -Dtest=TimsReportMapperXmlTest,TimsReportProcessingServiceTest,TimsAtomicLoadServiceTest test`
 
-- [ ] **Step 3: 最小实现删除一次、分批插入、计数核对**
+- [x] **Step 3: 最小实现删除一次、分批插入、计数核对**
 
-收入/支出删除 `data_date = yyyyMM`，库存删除 `data_date like yyyyMM || '%'`；`BATCH_DATE` 使用事务执行日。批量默认 400，可通过 `reporting.tims-batch-size` 配置为 1～1000。
+收入/支出删除 `data_date = yyyyMM`，库存删除 `data_date like concat(yyyyMM, '%')`；`BATCH_DATE` 使用事务执行日。批量默认 400，可通过 `reporting.tims-batch-size` 配置为 1～1000。
 
-- [ ] **Step 4: 运行测试并提交**
+- [x] **Step 4: 运行测试并提交**
 
 Run: `mvn -Dtest=TimsReportMapperXmlTest,TimsReportProcessingServiceTest,TimsAtomicLoadServiceTest test`
 

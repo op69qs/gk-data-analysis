@@ -24,6 +24,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 public class TimsReportProcessingServiceTest {
 
@@ -31,7 +32,7 @@ public class TimsReportProcessingServiceTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Test
-    public void recursivelyWritesIncomeIntermediateAndStgUsingJarPeriodKey() throws Exception {
+    public void recursivelyWritesOnlyStgUsingJarPeriodKeyAndRawBusinessDate() throws Exception {
         Path root = temporaryFolder.newFolder("extract").toPath();
         Path nested = Files.createDirectories(root.resolve("收入/二级"));
         workbook(nested.resolve("收入1.xls"),
@@ -39,15 +40,17 @@ public class TimsReportProcessingServiceTest {
                 new String[]{"202511", "2200000000", "重庆市", "1111111111", "1", "110", "转移性收入", "-4509", "-6872"});
 
         TimsReportMapper mapper = mock(TimsReportMapper.class);
+        when(mapper.insertStgIncome(anyList(), org.mockito.ArgumentMatchers.eq("202511"), anyString()))
+                .thenReturn(1);
+        when(mapper.countStgIncome("202511")).thenReturn(1L);
         TimsReportProcessingResult result = new TimsReportProcessingService(mapper)
                 .process(root, TimsBusinessType.INCOME, YearMonth.of(2025, 11));
 
-        verify(mapper).deleteTimsIncome(anyList(), anyList());
         ArgumentCaptor<List<TimsReportRecord>> rows = ArgumentCaptor.forClass(List.class);
-        verify(mapper).insertTimsIncome(rows.capture());
         verify(mapper).deleteStgIncome("202511");
-        verify(mapper).insertStgIncome(anyList(), org.mockito.ArgumentMatchers.eq("202511"), anyString());
+        verify(mapper).insertStgIncome(rows.capture(), org.mockito.ArgumentMatchers.eq("202511"), anyString());
         assertEquals(1, rows.getValue().size());
+        assertEquals("202511", rows.getValue().get(0).getDAcctText());
         assertEquals(1, result.getFileCount());
         assertEquals(1, result.getSuccessCount());
         assertEquals(0, result.getErrorCount());
@@ -98,36 +101,22 @@ public class TimsReportProcessingServiceTest {
     }
 
     @Test
-    public void resultContainsCountsForEveryPeriodAndTreasury() throws Exception {
-        Path root = temporaryFolder.newFolder("treasury-counts").toPath();
-        workbook(root.resolve("收入1.xls"),
-                new String[]{"日期", "国库代码", "国库简称", "征收机关", "预算级次", "科目代码", "科目名称", "本期执行数", "年累计"},
-                new String[]{"202511", "2200000000", "重庆市", "1111111111", "1", "110", "转移性收入", "1", "2"});
-        workbook(root.resolve("收入2.xls"),
-                new String[]{"日期", "国库代码", "国库简称", "征收机关", "预算级次", "科目代码", "科目名称", "本期执行数", "年累计"},
-                new String[]{"202511", "2200100000", "市本级", "1111111111", "1", "110", "转移性收入", "3", "4"});
-
-        TimsReportProcessingResult result = new TimsReportProcessingService(mock(TimsReportMapper.class))
-                .process(root, TimsBusinessType.INCOME, YearMonth.of(2025, 11));
-
-        assertEquals(2, result.getTreasuryCounts().size());
-        assertEquals("2200000000", result.getTreasuryCounts().get(0).getTreasuryCode());
-        assertEquals(1, result.getTreasuryCounts().get(0).getRowCount());
-    }
-
-    @Test
-    public void rowOutsideAuthenticatedTreasuryPrefixCannotReplaceData() throws Exception {
+    public void authenticatedTreasuryPrefixDoesNotFilterAggregateJarFile() throws Exception {
         Path root = temporaryFolder.newFolder("outside-scope").toPath();
         workbook(root.resolve("收入1.xls"),
                 new String[]{"日期", "国库代码", "国库简称", "征收机关", "预算级次", "科目代码", "科目名称", "本期执行数", "年累计"},
                 new String[]{"202511", "5000000000", "其他国库", "111", "1", "110", "收入", "1", "2"});
         TimsReportMapper mapper = mock(TimsReportMapper.class);
+        when(mapper.insertStgIncome(anyList(), org.mockito.ArgumentMatchers.eq("202511"), anyString()))
+                .thenReturn(1);
+        when(mapper.countStgIncome("202511")).thenReturn(1L);
 
         TimsReportProcessingResult result = new TimsReportProcessingService(mapper)
                 .process(root, TimsBusinessType.INCOME, YearMonth.of(2025, 11), "2201");
 
-        assertEquals(1, result.getErrorCount());
-        verifyZeroInteractions(mapper);
+        assertEquals(0, result.getErrorCount());
+        assertEquals(1, result.getSuccessCount());
+        verify(mapper).deleteStgIncome("202511");
     }
 
     private void workbook(Path path, String[] headers, String[] values) throws Exception {
