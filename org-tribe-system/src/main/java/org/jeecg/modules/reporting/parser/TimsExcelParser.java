@@ -12,6 +12,7 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
@@ -22,10 +23,8 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 /**
  * 读取 JAR 支持的旧 XLS 和 XLSX。首行为表头，数据从第二行开始。
@@ -58,13 +57,7 @@ public class TimsExcelParser {
                             DataFormatter formatter, FormulaEvaluator evaluator,
                             List<TimsReportRecord> records,
                             List<TimsExcelParseError> errors) {
-        Row header = sheet.getRow(0);
-        ColumnLayout layout = ColumnLayout.detect(header, type, formatter, evaluator);
-        if (!layout.valid) {
-            errors.add(new TimsExcelParseError(fileName, sheet.getSheetName(), 1,
-                    "表头", layout.headerText, layout.errorMessage));
-            return;
-        }
+        ColumnLayout layout = ColumnLayout.fixed(type);
 
         for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
             Row row = sheet.getRow(rowIndex);
@@ -82,7 +75,9 @@ public class TimsExcelParser {
                                       String fileName, String sheetName, DataFormatter formatter,
                                       FormulaEvaluator evaluator) {
         TimsReportRecord record = new TimsReportRecord();
-        record.setDAcct(parseDate(row.getCell(layout.date), display(row, layout.date, formatter, evaluator)));
+        String dAcctText = required(display(row, layout.date, formatter, evaluator), "日期");
+        record.setDAcctText(dAcctText);
+        record.setDAcct(parseDate(row.getCell(layout.date), dAcctText));
         record.setTreCode(required(display(row, layout.treCode, formatter, evaluator), "国库代码"));
         record.setTreasuryName(required(display(row, layout.treasuryName, formatter, evaluator), "国库简称"));
         if (record.getTreasuryName().contains("N")) {
@@ -101,7 +96,6 @@ public class TimsExcelParser {
             record.setCurrentAmount(decimal(display(row, layout.currentAmount, formatter, evaluator), "本期执行数"));
             record.setYearAmount(decimal(display(row, layout.yearAmount, formatter, evaluator), "年累计"));
         } else {
-            if (layout.account >= 0) record.setAccount(display(row, layout.account, formatter, evaluator));
             record.setDebitAmount(decimal(display(row, layout.debit, formatter, evaluator), "借方"));
             record.setCreditAmount(decimal(display(row, layout.credit, formatter, evaluator), "贷方"));
             record.setBalance(decimal(display(row, layout.balance, formatter, evaluator), "余额"));
@@ -126,7 +120,7 @@ public class TimsExcelParser {
         if (value == null || value.trim().isEmpty()) return BigDecimal.ZERO;
         String normalized = value.replace(",", "").replace("￥", "").trim();
         try {
-            return new BigDecimal(normalized);
+            return new BigDecimal(normalized).setScale(2, RoundingMode.HALF_EVEN);
         } catch (NumberFormatException exception) {
             throw new RowValueException(field, value, field + "不是有效金额：" + value);
         }
@@ -148,17 +142,17 @@ public class TimsExcelParser {
         if (date.getYear() < 1970 || date.getYear() > 2038) {
             throw new RowValueException("日期", text, "日期超出 JAR 允许范围 1970-01-01 至 2038-01-19");
         }
-        return date.withDayOfMonth(date.lengthOfMonth());
+        return date;
     }
 
     private LocalDate parseDateText(String raw) {
         String value = required(raw, "日期").replace('/', '-');
         if (value.matches("\\d{6}")) {
-            return YearMonth.parse(value, DateTimeFormatter.ofPattern("yyyyMM")).atEndOfMonth();
+            return YearMonth.parse(value, DateTimeFormatter.ofPattern("yyyyMM")).atDay(1);
         }
         if (value.matches("\\d{4}-\\d{1,2}")) {
             String[] parts = value.split("-");
-            return YearMonth.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1])).atEndOfMonth();
+            return YearMonth.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1])).atDay(1);
         }
         if (value.matches("\\d{8}")) {
             return LocalDate.parse(value, DateTimeFormatter.BASIC_ISO_DATE);
@@ -187,9 +181,6 @@ public class TimsExcelParser {
     }
 
     private static class ColumnLayout {
-        private boolean valid;
-        private String headerText;
-        private String errorMessage;
         private int date = -1;
         private int treCode = -1;
         private int treasuryName = -1;
@@ -199,80 +190,48 @@ public class TimsExcelParser {
         private int subjectName = -1;
         private int currentAmount = -1;
         private int yearAmount = -1;
-        private int account = -1;
         private int debit = -1;
         private int credit = -1;
         private int balance = -1;
 
-        static ColumnLayout detect(Row header, TimsBusinessType type,
-                                   DataFormatter formatter, FormulaEvaluator evaluator) {
+        static ColumnLayout fixed(TimsBusinessType type) {
             ColumnLayout layout = new ColumnLayout();
-            if (header == null) {
-                layout.errorMessage = "第一个工作表缺少表头";
-                return layout;
-            }
-            Map<String, Integer> columns = new HashMap<>();
-            List<String> values = new ArrayList<>();
-            for (int i = 0; i < header.getLastCellNum(); i++) {
-                Cell cell = header.getCell(i);
-                String value = cell == null ? "" : formatter.formatCellValue(cell, evaluator).trim();
-                values.add(value);
-                columns.put(normalize(value), i);
-            }
-            layout.headerText = values.toString();
-            layout.date = find(columns, "日期", "账期", "d_acct");
-            layout.treCode = find(columns, "国库代码", "trecode");
-            layout.treasuryName = find(columns, "国库简称", "国库名称", "tername", "tredscr");
-            layout.level = find(columns, "预算级次", "级次", "level");
-
-            if (type == TimsBusinessType.INCOME || type == TimsBusinessType.PAYOUT) {
-                layout.taxOrg = find(columns, "征收机关", "征收机关代码", "tax_org_code", "taxorgcode");
-                layout.subjectCode = find(columns, "科目代码", "subject_code");
-                layout.subjectName = find(columns, "科目名称", "subject_name", "subject_dscr");
-                layout.currentAmount = find(columns, "本期执行数", "本期金额", "this_amt", "f_amt");
-                layout.yearAmount = find(columns, "年累计", "年累计金额", "year_amt");
-                layout.valid = allPresent(layout.date, layout.treCode, layout.treasuryName, layout.level,
-                        layout.subjectCode, layout.subjectName, layout.currentAmount, layout.yearAmount);
+            layout.date = 0;
+            layout.treCode = 1;
+            layout.treasuryName = 2;
+            if (type == TimsBusinessType.INCOME) {
+                layout.taxOrg = 3;
+                layout.level = 4;
+                layout.subjectCode = 5;
+                layout.subjectName = 6;
+                layout.currentAmount = 7;
+                layout.yearAmount = 8;
+            } else if (type == TimsBusinessType.PAYOUT) {
+                layout.level = 3;
+                layout.subjectCode = 4;
+                layout.subjectName = 5;
+                layout.currentAmount = 6;
+                layout.yearAmount = 7;
+            } else if (type == TimsBusinessType.STOCK) {
+                layout.level = 3;
+                layout.debit = 4;
+                layout.credit = 5;
+                layout.balance = 6;
             } else {
-                layout.account = find(columns, "账户", "account");
-                layout.debit = find(columns, "借方", "借方金额", "debit_amount", "f_debitamt");
-                layout.credit = find(columns, "贷方", "贷方金额", "credit_amount", "f_loanamt");
-                layout.balance = find(columns, "余额", "balance", "f_balance");
-                layout.valid = allPresent(layout.date, layout.treCode, layout.treasuryName, layout.level,
-                        layout.debit, layout.credit, layout.balance);
-            }
-            if (!layout.valid) {
-                layout.errorMessage = "表头不符合 " + type.getDescription() + " 文件要求：" + layout.headerText;
+                throw new IllegalArgumentException("不支持的 TIMS 业务类型：" + type);
             }
             return layout;
         }
 
         boolean isBlank(Row row, DataFormatter formatter, FormulaEvaluator evaluator) {
             for (int column : Arrays.asList(date, treCode, treasuryName, taxOrg, level, subjectCode,
-                    subjectName, currentAmount, yearAmount, account, debit, credit, balance)) {
+                    subjectName, currentAmount, yearAmount, debit, credit, balance)) {
                 if (column >= 0) {
                     Cell cell = row.getCell(column);
                     if (cell != null && !formatter.formatCellValue(cell, evaluator).trim().isEmpty()) return false;
                 }
             }
             return true;
-        }
-
-        private static int find(Map<String, Integer> columns, String... aliases) {
-            for (String alias : aliases) {
-                Integer index = columns.get(normalize(alias));
-                if (index != null) return index;
-            }
-            return -1;
-        }
-
-        private static boolean allPresent(int... indices) {
-            for (int index : indices) if (index < 0) return false;
-            return true;
-        }
-
-        private static String normalize(String value) {
-            return value == null ? "" : value.trim().replace(" ", "").toLowerCase(Locale.ROOT);
         }
     }
 }

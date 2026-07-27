@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 
 public class TimsReportRecord {
     private LocalDate dAcct;
+    private String dAcctText;
     private String treCode;
     private String treasuryName;
     private String taxOrgCode;
@@ -25,6 +26,8 @@ public class TimsReportRecord {
 
     public LocalDate getDAcct() { return dAcct; }
     public void setDAcct(LocalDate dAcct) { this.dAcct = dAcct; }
+    public String getDAcctText() { return dAcctText; }
+    public void setDAcctText(String dAcctText) { this.dAcctText = dAcctText; }
     public Date getDatabaseDate() { return dAcct == null ? null : Date.valueOf(dAcct); }
     public String getPeriodKey() { return dAcct == null ? null : dAcct.format(DateTimeFormatter.ofPattern("yyyyMM")); }
     public String getTreCode() { return treCode; }

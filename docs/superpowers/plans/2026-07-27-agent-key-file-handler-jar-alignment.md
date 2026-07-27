@@ -30,7 +30,7 @@
 **Interfaces:**
 - Produces: `TimsReportRecord#getDAcctText(): String` 与 `getPeriodKey(): String`；解析器按收入 9、支出 8、库存 7 个固定位置读取。
 
-- [ ] **Step 1: 写失败测试**
+- [x] **Step 1: 写失败测试**
 
 ```java
 assertEquals("202511", income.getDAcctText());
@@ -40,15 +40,15 @@ assertEquals(new BigDecimal("10.00"), income.getCurrentAmount());
 
 同时用“交换表头文字但数据位置不变”的工作簿证明解析器不按表头重排；用库存 7 列样例证明第 5～7 列固定映射借方、贷方、余额。
 
-- [ ] **Step 2: 运行测试确认因当前月末归一和表头探测而失败**
+- [x] **Step 2: 运行测试确认因当前月末归一和表头探测而失败**
 
 Run: `mvn -Dtest=TimsExcelParserTest test`
 
-- [ ] **Step 3: 最小实现固定列序和原始日期**
+- [x] **Step 3: 最小实现固定列序和原始日期**
 
 `TimsReportRecord` 保存 `String dAcctText`；解析器跳过首行、按类型定义固定索引，不调用 `ColumnLayout.detect`，金额按 JAR 两位小数语义归一。只校验字段可转换，不新增业务校验。
 
-- [ ] **Step 4: 运行解析测试并提交**
+- [x] **Step 4: 运行解析测试并提交**
 
 Run: `mvn -Dtest=TimsExcelParserTest test`
 
