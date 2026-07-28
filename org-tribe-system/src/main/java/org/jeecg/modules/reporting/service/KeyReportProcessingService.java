@@ -6,6 +6,7 @@ import org.jeecg.modules.reporting.parser.KeyFileParseResult;
 import org.jeecg.modules.reporting.parser.KeyFileParser;
 import org.jeecg.modules.reporting.parser.KeyFileType;
 import org.jeecg.modules.reporting.parser.KeyReportRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,7 @@ public class KeyReportProcessingService {
     private final KeyReportMapper mapper;
     private final KeyFileParser parser;
 
+    @Autowired
     public KeyReportProcessingService(KeyReportMapper mapper) {
         this(mapper, new KeyFileParser());
     }
