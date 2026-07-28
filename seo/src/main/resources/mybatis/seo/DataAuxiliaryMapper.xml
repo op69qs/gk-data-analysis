@@ -28,7 +28,10 @@
 
     <!--    根据数据源查询数据源下的数据库下拉选-->
     <select id="getDataBaseSelection" resultType="hashmap">
-        SELECT b.ID AS id,b.DBNAME AS name FROM seo.seo_datasource_database b
+        SELECT b.ID AS id,
+               CASE WHEN a.TYPE = 'Vastbase' THEN b.SCHEMA_NAME ELSE b.DBNAME END AS name
+        FROM seo.seo_datasource_database b
+        JOIN seo.seo_datasource a ON a.ID = b.SOURCE_ID
         WHERE b.SOURCE_ID = #{params.SOURCE_ID} AND b.STATE = '0'
     </select>
 
@@ -46,12 +49,19 @@
         <if test="params.BASE_TYPE == 'Clickhouse'">
             SELECT name AS id,name AS name FROM system.tables WHERE database = #{params.DATABASE}
         </if>
-        <!--  数据库类型为Vastbase/PostgreSQL，用兼容PostgreSQL的查询方法 -->
-        <if test="params.BASE_TYPE == 'Vastbase' or params.BASE_TYPE == 'PostgreSQL'">
+        <!--  Vastbase连接物理数据库后，按配置的Schema读取对象 -->
+        <if test="params.BASE_TYPE == 'Vastbase'">
+            SELECT table_name AS id,table_name AS name
+            FROM information_schema.tables
+            WHERE table_schema = #{params.SCHEMA_NAME}
+              AND table_type IN ('BASE TABLE', 'VIEW')
+        </if>
+        <!--  保留原PostgreSQL以DATABASE作为Schema的兼容逻辑 -->
+        <if test="params.BASE_TYPE == 'PostgreSQL'">
             SELECT table_name AS id,table_name AS name
             FROM information_schema.tables
             WHERE table_schema = #{params.DATABASE}
-              AND table_type = 'BASE TABLE'
+              AND table_type IN ('BASE TABLE', 'VIEW')
         </if>
     </select>
 
@@ -108,14 +118,32 @@
             FROM
             system.columns WHERE database = #{params.DATABASE} AND table = #{params.TABLE_SIGN}
         </if>
-                <!--  数据库类型为Vastbase/PostgreSQL，用兼容PostgreSQL的查询方法 -->
-                <if test="params.BASE_TYPE == 'Vastbase' or params.BASE_TYPE == 'PostgreSQL'">
+                <!--  Vastbase使用单独配置的Schema -->
+                <if test="params.BASE_TYPE == 'Vastbase'">
+                        SELECT c.relname AS "columnName",COALESCE(obj_description(c.oid), c.relname) AS "columnComment"
+                        FROM pg_class c
+                        JOIN pg_namespace n ON n.oid = c.relnamespace
+                        WHERE n.nspname = #{params.SCHEMA_NAME}
+                            AND c.relname = #{params.TABLE_SIGN}
+                            AND c.relkind IN ('r', 'v', 'm')
+                        UNION ALL
+                        SELECT a.attname AS "columnName",COALESCE(col_description(a.attrelid, a.attnum), a.attname) AS "columnComment"
+                        FROM pg_attribute a
+                        JOIN pg_class c ON a.attrelid = c.oid
+                        JOIN pg_namespace n ON c.relnamespace = n.oid
+                        WHERE n.nspname = #{params.SCHEMA_NAME}
+                            AND c.relname = #{params.TABLE_SIGN}
+                            AND a.attnum &gt; 0
+                            AND NOT a.attisdropped
+                </if>
+                <!--  保留原PostgreSQL以DATABASE作为Schema的兼容逻辑 -->
+                <if test="params.BASE_TYPE == 'PostgreSQL'">
                         SELECT c.relname AS "columnName",COALESCE(obj_description(c.oid), c.relname) AS "columnComment"
                         FROM pg_class c
                         JOIN pg_namespace n ON n.oid = c.relnamespace
                         WHERE n.nspname = #{params.DATABASE}
                             AND c.relname = #{params.TABLE_SIGN}
-                            AND c.relkind = 'r'
+                            AND c.relkind IN ('r', 'v', 'm')
                         UNION ALL
                         SELECT a.attname AS "columnName",COALESCE(col_description(a.attrelid, a.attnum), a.attname) AS "columnComment"
                         FROM pg_attribute a
@@ -130,7 +158,8 @@
 
     <!--    根据数据源主键查询数据源的信息-->
     <select id="getDataSourceInfo" resultType="hashmap">
-            SELECT a.ID AS "SOURE_ID",b.ID as "DATABASE_ID",a.TYPE,b.DBNAME
+            SELECT a.ID AS "SOURE_ID",b.ID as "DATABASE_ID",a.TYPE,b.DBNAME,b.SCHEMA_NAME,
+                   CASE WHEN a.TYPE = 'Vastbase' THEN b.SCHEMA_NAME ELSE b.DBNAME END AS "NAMESPACE"
             FROM seo.seo_datasource a
             LEFT JOIN seo.seo_datasource_database b ON a.ID = b.SOURCE_ID AND b.ID = #{params.DATABASE_ID}
             WHERE a.ID = #{params.SOURCE_ID}

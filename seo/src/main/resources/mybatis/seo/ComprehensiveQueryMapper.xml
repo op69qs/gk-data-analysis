@@ -71,7 +71,10 @@
 
     <select id="getType" resultType="java.util.Map">
         SELECT
-        a.DBNAME AS "DBNAME",b.TYPE AS "TYPE"
+        a.DBNAME AS "DATABASE_NAME",
+        a.SCHEMA_NAME AS "SCHEMA_NAME",
+        CASE WHEN b.TYPE = 'Vastbase' THEN a.SCHEMA_NAME ELSE a.DBNAME END AS "DBNAME",
+        b.TYPE AS "TYPE"
         FROM
         seo.seo_datasource_database a,
         seo.seo_datasource b

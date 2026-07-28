@@ -136,6 +136,7 @@ public class DataAuxiliaryController extends BaseController {
     public Map<String, Object> getDataTableSelection(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         PageData pageData = this.getPageData(jsonObject);
+        normalizeVastbaseSchema(pageData);
         try {
             List<Map<String, Object>> newDataList = new ArrayList<>();
             List<Map<String, Object>> dataList = dataAuxiliaryService.getDataTableSelection(pageData);
@@ -170,6 +171,7 @@ public class DataAuxiliaryController extends BaseController {
     public Map<String, Object> getDataTableComments(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         PageData pageData = this.getPageData(jsonObject);
+        normalizeVastbaseSchema(pageData);
         try {
             String tableName = ""; //表描述
             Map<String, Object> removeMap = new HashMap<>();
@@ -199,6 +201,19 @@ public class DataAuxiliaryController extends BaseController {
             log.error(e.getMessage(), result);
         }
         return result;
+    }
+
+    /**
+     * 兼容旧页面仍把第二级选择值放在DATABASE中的请求格式。
+     */
+    private void normalizeVastbaseSchema(PageData pageData) {
+        if (!"Vastbase".equals(pageData.getString("BASE_TYPE"))) {
+            return;
+        }
+        String schemaName = pageData.getString("SCHEMA_NAME");
+        if (schemaName == null || schemaName.trim().isEmpty()) {
+            pageData.put("SCHEMA_NAME", pageData.getString("DATABASE"));
+        }
     }
 
 }

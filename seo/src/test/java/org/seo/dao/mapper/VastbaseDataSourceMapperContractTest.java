@@ -46,9 +46,57 @@ public class VastbaseDataSourceMapperContractTest {
         assertTrue(sql.contains("a.SCHEMA_NAME = ?"));
     }
 
+    @Test
+    public void vastbaseMetadataLookupUsesSchemaParameter() throws Exception {
+        Map<String, Object> values = values();
+        values.put("BASE_TYPE", "Vastbase");
+        values.put("TABLE_SIGN", "fm_trs_guoku_base_table");
+
+        BoundSql boundSql = boundSql(
+                "mybatis/seo/DataAuxiliaryMapper.xml",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataTableSelection",
+                values);
+
+        String sql = normalize(boundSql.getSql());
+        List<String> properties = boundSql.getParameterMappings().stream()
+                .map(ParameterMapping::getProperty)
+                .collect(Collectors.toList());
+
+        assertTrue(sql.contains("table_schema = ?"));
+        assertTrue(sql.contains("table_type IN ('BASE TABLE', 'VIEW')"));
+        assertTrue(properties.contains("params.SCHEMA_NAME"));
+    }
+
+    @Test
+    public void mappersExposeSchemaAsEffectiveVastbaseNamespace() throws Exception {
+        String auxiliarySql = normalize(boundSql(
+                "mybatis/seo/DataAuxiliaryMapper.xml",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataSourceInfo",
+                values()).getSql());
+        String treeSql = normalize(boundSql(
+                "mybatis/seo/DataTableMapper.xml",
+                "org.seo.dao.mapper.DataTableMapper.getDataSourceTree",
+                values()).getSql());
+        String typeSql = normalize(boundSql(
+                "mybatis/seo/ComprehensiveQueryMapper.xml",
+                "org.seo.dao.mapper.ComprehensiveQueryMapper.getType",
+                values()).getSql());
+
+        assertTrue(auxiliarySql.contains("AS \"NAMESPACE\""));
+        assertTrue(auxiliarySql.contains("b.SCHEMA_NAME"));
+        assertTrue(treeSql.contains("a.TYPE = 'Vastbase'"));
+        assertTrue(treeSql.contains("b.SCHEMA_NAME"));
+        assertTrue(typeSql.contains("a.SCHEMA_NAME AS \"SCHEMA_NAME\""));
+        assertTrue(typeSql.contains("AS \"DATABASE_NAME\""));
+        assertTrue(typeSql.contains("AS \"DBNAME\""));
+    }
+
     private Configuration mapperConfiguration() throws Exception {
+        return mapperConfiguration("mybatis/seo/DataSourceMapper.xml");
+    }
+
+    private Configuration mapperConfiguration(String resource) throws Exception {
         Configuration configuration = new Configuration();
-        String resource = "mybatis/seo/DataSourceMapper.xml";
         try (InputStream input = getClass().getClassLoader().getResourceAsStream(resource)) {
             if (input == null) {
                 throw new IllegalStateException("Missing mapper resource: " + resource);
@@ -60,7 +108,20 @@ public class VastbaseDataSourceMapperContractTest {
         return configuration;
     }
 
+    private BoundSql boundSql(String resource, String statement, Map<String, Object> values)
+            throws Exception {
+        Map<String, Object> wrapped = new HashMap<>();
+        wrapped.put("params", values);
+        return mapperConfiguration(resource).getMappedStatement(statement).getBoundSql(wrapped);
+    }
+
     private Map<String, Object> parameters() {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("params", values());
+        return parameters;
+    }
+
+    private Map<String, Object> values() {
         Map<String, Object> values = new HashMap<>();
         values.put("ID", "database-id");
         values.put("SOURCE_ID", "source-id");
@@ -73,10 +134,9 @@ public class VastbaseDataSourceMapperContractTest {
         values.put("CREATE_USER", "test-user-id");
         values.put("DRIVERCLASS_NAME", "org.postgresql.Driver");
         values.put("DATASOURCE_URL", "jdbc:postgresql://127.0.0.1:5432/gk_data_analysis?currentSchema=edw");
-
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("params", values);
-        return parameters;
+        values.put("DATABASE_ID", "database-id");
+        values.put("TABLE_NAME", new String[0]);
+        return values;
     }
 
     private String normalize(String sql) {
