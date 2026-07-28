@@ -6,7 +6,7 @@
       <a-spin :spinning="confirmLoading">
         <a-form :form="form">
           <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label="数据库类型">
-            <a-select showSearch @blur="onBlur" placeholder="请选择数据库类型" :filterOption="filterOption"
+            <a-select showSearch @blur="onBlur" @change="handleTypeChange" placeholder="请选择数据库类型" :filterOption="filterOption"
                       v-decorator="['TYPE', {rules: [{ required: true, message: '请选择数据库类型'}]}]" :disabled="isEdit">
               <a-select-option :value="d.id" v-for="d in dataBaseType" :key="d.id">{{d.name}}</a-select-option>
             </a-select>
@@ -24,12 +24,19 @@
           </a-form-item>
 
           <div v-if="isEdit">
-            <a-table :columns="columns" :pagination="false" :dataSource="dataSource" bordered rowKey="ID">
+            <a-table :columns="displayColumns" :pagination="false" :dataSource="dataSource" bordered rowKey="ID">
               <div slot="DBNAME" slot-scope="text, record,index">
                 <a-input
                   style="margin: -5px 0"
                   v-model="text"
                   @change="e => handleChange(e.target.value, index, 'DBNAME')"
+                />
+              </div>
+              <div slot="SCHEMA_NAME" slot-scope="text, record,index">
+                <a-input
+                  style="margin: -5px 0"
+                  v-model="text"
+                  @change="e => handleChange(e.target.value, index, 'SCHEMA_NAME')"
                 />
               </div>
               <div slot="USERNAME" slot-scope="text, record,index">
@@ -71,6 +78,10 @@
               <a-input placeholder="请输入数据库名"
                        v-decorator="['DBNAME', {rules: [{ required: true, message: '请输入数据库名'}]}]"/>
             </a-form-item>
+            <a-form-item v-if="isVastbase" :labelCol="labelCol" :wrapperCol="wrapperCol" label="Schema">
+              <a-input placeholder="请输入Schema名称"
+                       v-decorator="['SCHEMA_NAME', {rules: [{ required: true, message: '请输入Schema名称'}]}]"/>
+            </a-form-item>
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label=" 状 态 ">
               <a-select
                 v-decorator="['STATE', {rules: [{ required: true, message: '请选择状态'}],initialValue: status[0].id}]">
@@ -101,6 +112,12 @@
     testConnection,
     getDataSourceName
   } from '@/api/integratedQueryApi'
+  import {
+    databaseKey,
+    duplicateLookup,
+    isVastbaseType,
+    schemaPayload
+  } from './dataSourceSchemaSupport.mjs'
 
   export default {
     name: 'DataSourceModal',
@@ -114,6 +131,7 @@
         isEdit: false,
         dataSource: [],
         model: {},
+        selectedType: '',
         labelCol: {
           xs: {span: 24},
           sm: {span: 6}
@@ -131,6 +149,14 @@
           width: '10%',
           dataIndex: 'DBNAME',
           scopedSlots: {customRender: 'DBNAME'}
+        }, {
+          title: 'Schema',
+          align: 'center',
+          key: 'schema',
+          width: '10%',
+          dataIndex: 'SCHEMA_NAME',
+          vastbaseOnly: true,
+          scopedSlots: {customRender: 'SCHEMA_NAME'}
         }, {
           title: '用户名',
           align: 'center',
@@ -181,7 +207,18 @@
         ]
       }
     },
+    computed: {
+      isVastbase() {
+        return isVastbaseType(this.selectedType)
+      },
+      displayColumns() {
+        return this.columns.filter(column => !column.vastbaseOnly || this.isVastbase)
+      }
+    },
     methods: {
+      handleTypeChange(type) {
+        this.selectedType = type
+      },
       filterOption(input, option) {
         return (
           option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
@@ -219,6 +256,7 @@
       edit(record) {
         this.form.resetFields();
         this.model = Object.assign({}, record);
+        this.selectedType = record ? record.TYPE : '';
         this.visible = true;
         this.disabled = false;
         if (record) {
@@ -302,7 +340,7 @@
             formData.CREATE_USER = createUser;
             if (formData.ID && values.DBNAME && !that.isEdit) {
               //新增校验数据库是否重复
-              getDataBase({SOURCE_ID: formData.ID, DBNAME: values.DBNAME}).then(res => {
+              getDataBase(duplicateLookup(formData.TYPE, formData.ID, values)).then(res => {
                 if (res.result === 'success' && res.rows.length > 0) {
                   that.$message.warning('数据库重复！');
                   that.confirmLoading = false;
@@ -335,9 +373,10 @@
         const that = this;
         let obj;
         if (this.isEdit) {
-          let params = {DBNAME: [], USERNAME: [], PASSWORD: [], STATE: []};
+          let params = {DBNAME: [], SCHEMA_NAME: [], USERNAME: [], PASSWORD: [], STATE: []};
           let isEmpty = this.dataSource.some((item, index) => {
-            return item.DBNAME === '' || item.USERNAME === '' || item.PASSWORD === '' || item.STATE === '';
+            return !item.DBNAME || !item.USERNAME || !item.PASSWORD || item.STATE === '' ||
+              (this.isVastbase && !schemaPayload(this.selectedType, item.SCHEMA_NAME));
           });
           if (isEmpty) {
             this.$message.warning('数据不能为空！');
@@ -348,7 +387,8 @@
           if (this.dataSource.length > 1) {
             let hash = {};
             let newData = this.dataSource.reduce((ss, item) => {
-              hash[item.DBNAME] ? '' : hash[item.DBNAME] = true && ss.push(item);
+              const key = databaseKey(this.selectedType, item);
+              hash[key] ? '' : hash[key] = true && ss.push(item);
               return ss;
             }, []);
             if (newData.length < this.dataSource.length) {
@@ -360,6 +400,7 @@
           if (this.dataSource.length > 0)
             this.dataSource.map((item, index) => {
               params.DBNAME.push(item.DBNAME);
+              params.SCHEMA_NAME.push(schemaPayload(this.selectedType, item.SCHEMA_NAME));
               params.USERNAME.push(item.USERNAME);
               params.PASSWORD.push(item.PASSWORD);
               params.STATE.push(item.STATE);
@@ -408,12 +449,12 @@
           }
         });
         if (this.isEdit) {
-          for (let key in record) {
-            if (!record[key] || record[key] === '') {
-              this.$message.warning('请完整填写信息！');
-              this.confirmLoading = false;
-              return
-            }
+          const missingRequired = !record.DBNAME || !record.USERNAME || !record.PASSWORD || record.STATE === '' ||
+            (this.isVastbase && !schemaPayload(this.selectedType, record.SCHEMA_NAME));
+          if (missingRequired) {
+            this.$message.warning('请完整填写信息！');
+            this.confirmLoading = false;
+            return
           }
           params = Object.assign(params, record)
         }
