@@ -231,3 +231,15 @@ ribbon:
   ConnectTimeout: 60000
   MaxAutoRetries: 0
   MaxAutoRetriesNextServer: 1
+
+# 数据上报归档。物理清理在保留期限确认前保持关闭（retention-days=0）。
+reporting:
+  archive-root: ${REPORTING_ARCHIVE_ROOT:./data/reporting}
+  max-upload-bytes: 10485760
+  max-zip-entries: 2000
+  max-total-uncompressed-bytes: 524288000
+  max-single-entry-bytes: 104857600
+  retention-days: ${REPORTING_RETENTION_DAYS:0}
+  process-dependencies-verified: ${REPORTING_PROCESS_DEPENDENCIES_VERIFIED:false}
+  tims-batch-size: ${REPORTING_TIMS_BATCH_SIZE:400}
+  tims-lock-lease-minutes: ${REPORTING_TIMS_LOCK_LEASE_MINUTES:60}
