@@ -4,6 +4,7 @@ import com.alibaba.druid.pool.DruidDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.seo.model.DataSourceInfoEntity;
 import org.seo.service.DataSourceInfoService;
+import org.seo.util.DataSourceConnectionSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -40,13 +41,8 @@ public class InitTargetDataSources {
             druidDataSource.setUrl(x.getDATASOURCE_URL());
             druidDataSource.setUsername(x.getDATASOURCE_USERNAME());
             druidDataSource.setPassword(x.getDATASOURCE_PASSWORD());
-            if (x.getDRIVERCLASS_NAME().contains("db2")) { //DB2数据库不存在DUAL表，切换数据源会出错
-                druidDataSource.setValidationQuery("SELECT 1 FROM SYSIBM.SYSDUMMY1");
-            } else if (x.getDRIVERCLASS_NAME().contains("clickhouse")) {
-                druidDataSource.setValidationQuery("SELECT 1");
-            } else {
-                druidDataSource.setValidationQuery("SELECT 1 FROM DUAL");
-            }
+            druidDataSource.setValidationQuery(
+                    DataSourceConnectionSupport.validationQuery(x.getDRIVERCLASS_NAME()));
             druidDataSource.setKeepAlive(true);
             return druidDataSource;
         }));
