@@ -17,6 +17,8 @@ public class IndexTreeNode implements Serializable {
     private String label;
     @Getter@Setter
     private String parentId;
+    @Getter@Setter
+    private String nodeType;
     private List<IndexTreeNode> children = new ArrayList();
 
     public IndexTreeNode() {

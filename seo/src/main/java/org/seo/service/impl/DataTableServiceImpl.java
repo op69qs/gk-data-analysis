@@ -66,6 +66,7 @@ public class DataTableServiceImpl implements DataTableService {
             tree.setId(map.get("id").toString());
             tree.setLabel(map.get("lable").toString());
             tree.setParentId(tempPid);
+            tree.setNodeType(map.get("nodeType").toString());
 
             if (oConvertUtils.isEmpty(tempPid)) {
                 if (temp == null) {

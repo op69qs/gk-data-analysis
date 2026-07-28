@@ -39,25 +39,25 @@ const getDataSourceEnumSelect = (params) => postAction('/seo/dataSourceControlle
  * @param params
  * @returns {*}
  */
-const getDataBase = (params) => postAction('/seo/dataSourceController/getDataBase ', params);
+const getDataBase = (params) => postAction('/seo/dataSourceController/getDataBase', params);
 /**
  * 数据源编辑
  * @param params
  * @returns {*}
  */
-const editDataSource = (params) => postAction('/seo/dataSourceController/editDataSource ', params);
+const editDataSource = (params) => postAction('/seo/dataSourceController/editDataSource', params);
 /**
  * 根据数据库，IP，端口号获取数据库名
  * @param params
  * @returns {*}
  */
-const getDataSource = (params) => postAction('/seo/dataSourceController/getDataSource ', params);
+const getDataSource = (params) => postAction('/seo/dataSourceController/getDataSource', params);
 /**
  * 新增数据源
  * @param params
  * @returns {*}
  */
-const addDataSource = (params) => postAction('/seo/dataSourceController/addDataSource ', params);
+const addDataSource = (params) => postAction('/seo/dataSourceController/addDataSource', params);
 /**
  * 测试链接
  * @param params

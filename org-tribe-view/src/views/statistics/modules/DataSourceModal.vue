@@ -73,7 +73,7 @@
             </a-form-item>
             <a-form-item :labelCol="labelCol" :wrapperCol="wrapperCol" label=" 状 态 ">
               <a-select
-                v-decorator="['STATE', {rules: [{ required: true, message: '请选择状态'}],initialValue: status[0].name}]">
+                v-decorator="['STATE', {rules: [{ required: true, message: '请选择状态'}],initialValue: status[0].id}]">
                 <a-select-option :value="d.id" v-for="d in status" :key="d.id">{{d.name}}</a-select-option>
               </a-select>
             </a-form-item>
@@ -371,7 +371,6 @@
           obj = editDataSource(formData);
         } else {
           formData = Object.assign(formData, {});
-          formData.STATE = formData.STATE == '启用' ? '0' : '1';
           obj = addDataSource(formData);
         }
         obj.then((res) => {

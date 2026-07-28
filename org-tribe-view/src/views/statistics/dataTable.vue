@@ -391,10 +391,17 @@
                 this.treeData = res;
             },
             handleNode(data = {}) {
+                if (data.nodeType !== 'table') {
+                    return;
+                }
                 if (data.parentId !== '' && data.children.length === 0) {
                     this.TABLE_ID = data.id;
                     getDataTableData({TABLE_ID: data.id}).then(res => {
                         if (res.result === 'success') {
+                            if (!res.rows || res.rows.length === 0) {
+                                this.$message.warning('未查询到数据表配置');
+                                return;
+                            }
                             this.isInfo = true;
                             this.queryParam = res.rows[0];
                             if(res.rows[0].FOR_SKIP){
@@ -455,12 +462,16 @@
                 this.status1 = false;
                 getDataTableData({TABLE_ID: this.TABLE_ID}).then(res => {
                     if (res.result === 'success') {
+                        if (!res.rows || res.rows.length === 0) {
+                            this.$message.warning('未查询到数据表配置');
+                            return;
+                        }
                         this.isInfo = true;
                         this.queryParam = res.rows[0]
                         if(this.queryParam.FOR_SKIP){
-                            this.isJump === '0'
+                            this.isJump = '0'
                         }else{
-                            this.isJump === '1' 
+                            this.isJump = '1'
                         }
                         this.queryParam.SOURCE_ID = {
                             value: res.rows[0].SOURCE_ID,

@@ -338,7 +338,9 @@
                 delete this.programParams.INDEX_NAME;
                 delete this.programParams.userId;
                 delete this.programParams.INDEX_VALUE;
-                delete this.programInfo.index;
+                if (this.programInfo) {
+                    delete this.programInfo.index;
+                }
                 this.indexShowList = {};
                 this.$refs.indicatorCalculationModal.listData = [];
                 this.$refs.indicatorCalculationModal.dataSource = [{
