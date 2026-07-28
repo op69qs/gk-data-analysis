@@ -63,12 +63,12 @@ export default {
     },
     periodHelp() {
       return this.form.sourceDomain === 'TIMS'
-        ? '数据必须与所选月份一致；如后续人工加工，调用参数严格取本批次月末日。'
+        ? '数据必须与所选月份一致。'
         : '留空时严格兼容原 JAR：从 k<业务日期>t<国库代码>.zip 中识别。'
     },
     uploadMessage() {
       return this.form.sourceDomain === 'TIMS'
-        ? '上传后自动完成安全解压、全包解析和 STG 原子入库；ADM 加工由授权人员按本批次账期手工调用。'
+        ? '上传后自动完成安全解压、全包解析和 STG 原子入库。'
         : '上传后自动完成安全解压、解析和入库，关闭页面不会中断。'
     }
   },

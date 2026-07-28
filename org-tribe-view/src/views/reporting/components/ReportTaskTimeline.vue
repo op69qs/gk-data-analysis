@@ -42,7 +42,7 @@ export default {
       return file ? file.originalName : fileId
     },
     stageLabel(value) {
-      return { ARCHIVE: '原件归档', EXTRACT: '安全解压', PARSE: '文件解析', LOAD: '数据入库', PROCESS: '下游加工' }[value] || value
+      return { ARCHIVE: '原件归档', EXTRACT: '安全解压', PARSE: '文件解析', LOAD: '数据入库', PROCESS: '加工' }[value] || value
     },
     statusLabel(value) {
       return { QUEUED: '等待执行', PROCESSING: '执行中', PREPARED: '已解析待提交', COMMITTING: '入库中', SUCCEEDED: '已提交', FAILED: '执行失败', PARTIALLY_SUCCEEDED: '部分成功', CANCELLED: '已取消' }[value] || value

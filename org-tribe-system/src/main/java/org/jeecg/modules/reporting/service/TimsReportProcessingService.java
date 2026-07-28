@@ -76,7 +76,8 @@ public class TimsReportProcessingService {
             try (TimsPreparationResult prepared = preparationService.prepare(
                     extractRoot, workRoot, type, accountingPeriod)) {
                 if (!prepared.getErrors().isEmpty()) {
-                    return new TimsReportProcessingResult(prepared.getFileCount(), 0, prepared.getErrors());
+                    return new TimsReportProcessingResult(prepared.getFileCount(), 0,
+                            prepared.getErrors(), prepared.getFileStats());
                 }
                 preparationAction.afterPrepared(prepared.getFileCount(), prepared.getRowCount());
                 if (runtimeLockService != null && !runtimeLockService.acquireTims(lockOwner)) {
@@ -88,7 +89,7 @@ public class TimsReportProcessingService {
                         : loadService.load(prepared, type, accountingPeriod,
                         LocalDate.now().format(BATCH_FORMAT), lockOwner, completion);
                 return new TimsReportProcessingResult(prepared.getFileCount(), Math.toIntExact(committed),
-                        java.util.Collections.emptyList());
+                        java.util.Collections.emptyList(), prepared.getFileStats());
             }
         } finally {
             if (runtimeLockService != null) runtimeLockService.releaseTims(lockOwner);
