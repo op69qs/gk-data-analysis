@@ -177,6 +177,10 @@ public class DataSourceController extends BaseController {
 
     private PageData getEnum(PageData pd){
         String url = "";
+        if ("Vastbase".equals(pd.getString("TYPE"))) {
+            pd.put("SCHEMA_NAME",
+                    DataSourceConnectionSupport.normalizeSchema(pd.getString("SCHEMA_NAME")));
+        }
         List<Map<String,Object>> dataSourceEnum = dataSourceService.getDataSourceEnum(pd);
         if (null != dataSourceEnum && dataSourceEnum.size()>0){
             url = DataSourceConnectionSupport.buildUrl(
@@ -261,6 +265,8 @@ public class DataSourceController extends BaseController {
                 conn = (Connection)temp.get("conn");
             }
             if (TYPE.equals("Vastbase") || TYPE.equals("PostgreSQL")){
+                String schemaName = DataSourceConnectionSupport.normalizeSchema(
+                        pd.getString("SCHEMA_NAME"));
                 String template = TYPE.equals("Vastbase")
                         ? "jdbc:postgresql://ip:port/DBNAME?currentSchema=SCHEMA_NAME"
                         : "jdbc:postgresql://ip:port/DBNAME";
@@ -269,11 +275,11 @@ public class DataSourceController extends BaseController {
                         pd.getString("IP"),
                         pd.getString("PORT"),
                         pd.getString("DBNAME"),
-                        pd.getString("SCHEMA_NAME"));
+                        schemaName);
                 temp = DBHelper.initPostgresql(url,pd.getString("USERNAME"),pd.getString("PASSWORD"),false);
                 conn = (Connection)temp.get("conn");
                 if (TYPE.equals("Vastbase") && conn != null
-                        && !schemaExists(conn, pd.getString("SCHEMA_NAME"))) {
+                        && !schemaExists(conn, schemaName)) {
                     result.put("msg", "Vastbase Schema不存在");
                     result.put("result", "false");
                 }

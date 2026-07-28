@@ -15,10 +15,11 @@ public final class DataSourceConnectionSupport {
         if (template.contains("SCHEMA_NAME") && isBlank(schema)) {
             throw new IllegalArgumentException("Vastbase Schema不能为空");
         }
+        String normalizedSchema = normalizeSchema(schema);
         return template.replace("ip", ip)
                 .replace("port", port)
                 .replace("DBNAME", database)
-                .replace("SCHEMA_NAME", schema == null ? "" : schema);
+                .replace("SCHEMA_NAME", normalizedSchema);
     }
 
     public static String validationQuery(String driverClassName) {
@@ -40,7 +41,14 @@ public final class DataSourceConnectionSupport {
         if (schemas.length != databaseCount) {
             throw new IllegalArgumentException("数据库与Schema配置数量不一致");
         }
+        for (int i = 0; i < schemas.length; i++) {
+            schemas[i] = normalizeSchema(schemas[i]);
+        }
         return schemas;
+    }
+
+    public static String normalizeSchema(String schema) {
+        return schema == null ? "" : schema.trim();
     }
 
     private static boolean isBlank(String value) {

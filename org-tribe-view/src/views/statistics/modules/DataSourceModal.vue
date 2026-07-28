@@ -337,6 +337,9 @@
             that.confirmLoading = true;
             let createUser = JSON.parse(window.localStorage.pro__Login_Userinfo).value.id;
             let formData = Object.assign(this.model, values);
+            if (isVastbaseType(formData.TYPE)) {
+              formData.SCHEMA_NAME = schemaPayload(formData.TYPE, formData.SCHEMA_NAME);
+            }
             formData.CREATE_USER = createUser;
             if (formData.ID && values.DBNAME && !that.isEdit) {
               //新增校验数据库是否重复

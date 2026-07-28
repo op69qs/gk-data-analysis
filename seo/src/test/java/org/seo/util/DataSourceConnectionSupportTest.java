@@ -14,7 +14,7 @@ public class DataSourceConnectionSupportTest {
                 "100.71.11.54",
                 "25432",
                 "gk_data_analysis",
-                "edw");
+                " edw ");
 
         assertEquals(
                 "jdbc:postgresql://100.71.11.54:25432/gk_data_analysis?currentSchema=edw",
@@ -65,7 +65,7 @@ public class DataSourceConnectionSupportTest {
     public void alignsEditedSchemasWithDatabaseRows() {
         assertArrayEquals(
                 new String[]{"edw", "ods"},
-                DataSourceConnectionSupport.schemaValues("edw,ods", 2));
+                DataSourceConnectionSupport.schemaValues(" edw , ods ", 2));
         assertArrayEquals(
                 new String[]{"", ""},
                 DataSourceConnectionSupport.schemaValues("", 2));
