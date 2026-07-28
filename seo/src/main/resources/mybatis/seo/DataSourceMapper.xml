@@ -11,6 +11,7 @@
         a.PORT AS "PORT",
         b.ID as "DATABASE_ID",
         b.DBNAME AS "DBNAME",
+        b.SCHEMA_NAME AS "SCHEMA_NAME",
         b.USERNAME AS "USERNAME",
         b.PASSWORD AS "PASSWORD",
         b.STATE AS "STATE",
@@ -123,11 +124,14 @@
 
     <insert id="addDataBase" >
         INSERT INTO seo.seo_datasource_database
+        (ID, SOURCE_ID, DBNAME, SCHEMA_NAME, USERNAME, PASSWORD, STATE,
+        CREATE_TIME, CREATE_USER, DRIVERCLASS_NAME, DATASOURCE_URL)
         VALUES
         (
         #{params.ID},
         #{params.SOURCE_ID},
         #{params.DBNAME},
+        #{params.SCHEMA_NAME},
         #{params.USERNAME},
         #{params.PASSWORD},
         #{params.STATE},
@@ -180,6 +184,7 @@
         a.PORT AS "PORT",
         b.ID AS "DATABASE_ID",
         b.DBNAME AS "DBNAME",
+        b.SCHEMA_NAME AS "SCHEMA_NAME",
         b.USERNAME AS "USERNAME",
         b.PASSWORD AS "PASSWORD",
         b.STATE AS "STATE",
@@ -250,6 +255,7 @@
             SELECT a.ID as "ID",
             a.SOURCE_ID as "SOURCE_ID",
             a.DBNAME as "DBNAME",
+            a.SCHEMA_NAME as "SCHEMA_NAME",
             a.USERNAME as "USERNAME",
             a.PASSWORD as "PASSWORD",
             a.STATE as "STATE",
@@ -265,6 +271,9 @@
         </if>
         <if test="params.DBNAME!=null and params.DBNAME != ''">
             AND a.DBNAME = #{params.DBNAME}
+        </if>
+        <if test="params.SCHEMA_NAME!=null and params.SCHEMA_NAME != ''">
+            AND a.SCHEMA_NAME = #{params.SCHEMA_NAME}
         </if>
     </select>
 
