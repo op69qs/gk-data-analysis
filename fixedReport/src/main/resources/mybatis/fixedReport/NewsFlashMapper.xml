@@ -2336,7 +2336,7 @@ FROM
           src.ROWS_ID  FROM
           edw.TRS_BUDGET_INCOME_COMPARE src
           WHERE src.ROWS_ID  &lt;  34
-          AND src.DATA_DATE =REPLACE('${params.ACCOUNT_PERIOD}','-','')
+          AND RTRIM(src.DATA_DATE) =REPLACE('${params.ACCOUNT_PERIOD}','-','')
           ) left_src
           ) left_rows
           LEFT JOIN
@@ -2355,7 +2355,7 @@ FROM
           src.ROWS_ID  FROM
           edw.TRS_BUDGET_INCOME_COMPARE src
           WHERE src.ROWS_ID &gt; 33
-          AND src.DATA_DATE =replace('${params.ACCOUNT_PERIOD}','-','')
+          AND RTRIM(src.DATA_DATE) =replace('${params.ACCOUNT_PERIOD}','-','')
           ) right_src
 
           ) right_rows

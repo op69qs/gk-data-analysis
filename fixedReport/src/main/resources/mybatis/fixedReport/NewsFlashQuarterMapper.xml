@@ -1490,7 +1490,7 @@
         a.c_101_rank,a.PROJECT,a.ROWS_ID  FROM
         edw.TRS_BUDGET_INCOME_COMPARE a
         WHERE a.ROWS_ID  &lt;  34
-        AND a.DATA_DATE =REPLACE('${params.ACCOUNT_PERIOD}','-','')
+        AND RTRIM(a.DATA_DATE) =REPLACE('${params.ACCOUNT_PERIOD}','-','')
         ) a
         ) a
         LEFT JOIN
@@ -1506,7 +1506,7 @@
         a.c_101_rank,a.PROJECT,a.ROWS_ID  FROM
         edw.TRS_BUDGET_INCOME_COMPARE a
         WHERE a.ROWS_ID &gt; 33
-        AND a.DATA_DATE =replace('${params.ACCOUNT_PERIOD}','-','')
+        AND RTRIM(a.DATA_DATE) =replace('${params.ACCOUNT_PERIOD}','-','')
         ) a
 
         ) b
@@ -1544,7 +1544,7 @@
         FROM
         edw.TRS_BUDGET_INCOME_COMPARE a
         WHERE a.ROWS_ID  &lt;  34
-        AND a.DATA_DATE =REPLACE('${params.ACCOUNT_PERIOD}','-',''))a ON b.PROJECT=a.PROJECT) a
+        AND RTRIM(a.DATA_DATE) =REPLACE('${params.ACCOUNT_PERIOD}','-',''))a ON b.PROJECT=a.PROJECT) a
         ) a
         LEFT JOIN
         (
@@ -1561,7 +1561,7 @@
         FROM
         edw.TRS_BUDGET_INCOME_COMPARE a
         WHERE a.ROWS_ID &gt; 33
-        AND a.DATA_DATE =replace('${params.ACCOUNT_PERIOD}','-',''))a ON b.PROJECT=a.PROJECT) a
+        AND RTRIM(a.DATA_DATE) =replace('${params.ACCOUNT_PERIOD}','-',''))a ON b.PROJECT=a.PROJECT) a
 
         ) b
         ON  a.rows_id =b.rows_id
