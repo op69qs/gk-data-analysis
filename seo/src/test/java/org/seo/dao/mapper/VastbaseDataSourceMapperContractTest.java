@@ -47,6 +47,18 @@ public class VastbaseDataSourceMapperContractTest {
     }
 
     @Test
+    public void datasourceEnumUsesStableMapKeysOnPostgresqlCompatibleDatabases() throws Exception {
+        BoundSql boundSql = mapperConfiguration()
+                .getMappedStatement("org.seo.dao.mapper.DataSourceMapper.getDataSourceEnum")
+                .getBoundSql(parameters());
+
+        String sql = normalize(boundSql.getSql());
+
+        assertTrue(sql.contains("a.URL AS \"URL\""));
+        assertTrue(sql.contains("a.DRIVERCLASS AS \"DRIVERCLASS\""));
+    }
+
+    @Test
     public void vastbaseMetadataLookupUsesSchemaParameter() throws Exception {
         Map<String, Object> values = values();
         values.put("BASE_TYPE", "Vastbase");

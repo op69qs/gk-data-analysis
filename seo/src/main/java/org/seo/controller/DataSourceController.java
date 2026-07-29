@@ -13,6 +13,8 @@ import org.seo.util.DateUtil;
 import org.seo.util.PageData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -103,6 +105,7 @@ public class DataSourceController extends BaseController {
 
     @RequestMapping(value={"/addDataSource"} , method = RequestMethod.POST)
     @ApiOperation("新增")
+    @Transactional(rollbackFor = Exception.class)
     public Map<String,Object>addDataSource(@RequestBody(required = false) JSONObject param){
         //设置数据源
         DataSourceContextHolder.setDBType("default");
@@ -122,7 +125,9 @@ public class DataSourceController extends BaseController {
             pd.put("SOURCE_ID",id);
             dataSourceService.addDataBase(getEnum(pd));
         } catch (Exception e) {
-            result.put("msg", e.getMessage());
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            log.error("新增数据源失败", e);
+            result.put("msg", "保存数据源失败，请查看后台日志");
             result.put("result", "false");
         }
         return result;

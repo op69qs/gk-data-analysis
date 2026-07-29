@@ -237,7 +237,11 @@
     </select>
 
     <select id="getDataSourceEnum" resultType="java.util.Map">
-        SELECT * FROM
+        SELECT a.ID AS "ID",
+               a.DATASOURCE AS "DATASOURCE",
+               a.URL AS "URL",
+               a.DRIVERCLASS AS "DRIVERCLASS"
+        FROM
         seo.seo_datasource_enum a
         where 1=1
         <if test="params.TYPE!=null and params.TYPE != ''">
