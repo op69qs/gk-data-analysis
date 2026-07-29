@@ -5,7 +5,7 @@ import com.netflix.zuul.context.RequestContext;
 import org.apache.commons.lang.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.system.vo.LoginUser;
-import org.jeecg.common.util.RedisUtil;
+import org.jeecg.modules.oauth.NexusPortalIdentitySupport;
 import org.jeecg.modules.shiro.vo.DefContants;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysUserService;
@@ -25,10 +25,9 @@ public class IndicatorIdentityZuulFilter extends ZuulFilter {
     public static final String USER_ID_HEADER = "X-Analysis-User-Id";
     public static final String SUBJECT_CODE_HEADER = "X-Analysis-Subject-Code";
     public static final String GUOKU_ID_HEADER = "X-Analysis-Guoku-Id";
-    private static final String SUBJECT_CODE_CACHE_PREFIX = "PREFIX_NEXUS_PORTAL_SUBJECT_CODE_";
 
     @Autowired
-    private RedisUtil redisUtil;
+    private NexusPortalIdentitySupport portalIdentitySupport;
 
     @Autowired
     private ISysUserService sysUserService;
@@ -71,7 +70,7 @@ public class IndicatorIdentityZuulFilter extends ZuulFilter {
         context.addZuulRequestHeader(USER_ID_HEADER, requireValue("当前用户ID", loginUser.getId()));
 
         String token = request.getHeader(DefContants.X_ACCESS_TOKEN);
-        String subjectCode = token == null ? null : valueOf(redisUtil.get(SUBJECT_CODE_CACHE_PREFIX + token));
+        String subjectCode = portalIdentitySupport.resolveSubjectCode(token);
         if (StringUtils.isNotBlank(subjectCode)) {
             context.addZuulRequestHeader(SUBJECT_CODE_HEADER, subjectCode);
             context.addZuulRequestHeader(GUOKU_ID_HEADER, "");
@@ -82,10 +81,6 @@ public class IndicatorIdentityZuulFilter extends ZuulFilter {
         String guokuId = localUser == null ? null : localUser.getGuokuId();
         context.addZuulRequestHeader(SUBJECT_CODE_HEADER, "");
         context.addZuulRequestHeader(GUOKU_ID_HEADER, requireValue("当前用户所属国库", guokuId));
-    }
-
-    private String valueOf(Object value) {
-        return value == null ? null : String.valueOf(value);
     }
 
     private String requireValue(String name, String value) {

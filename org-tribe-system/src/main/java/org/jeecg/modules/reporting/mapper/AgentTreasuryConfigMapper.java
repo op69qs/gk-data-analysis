@@ -6,4 +6,8 @@ import org.jeecg.modules.reporting.entity.AgentTreasuryConfig;
 
 public interface AgentTreasuryConfigMapper extends BaseMapper<AgentTreasuryConfig> {
     String findScopePrefix(@Param("guokuId") String guokuId);
+
+    String findGuokuIdByBookorgcode(@Param("bookorgcode") String bookorgcode);
+
+    String findScopePrefixByBookorgcode(@Param("bookorgcode") String bookorgcode);
 }
