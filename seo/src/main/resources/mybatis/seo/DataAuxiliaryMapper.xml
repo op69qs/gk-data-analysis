@@ -28,11 +28,16 @@
 
     <!--    根据数据源查询数据源下的数据库下拉选-->
     <select id="getDataBaseSelection" resultType="hashmap">
-        SELECT b.ID AS id,
-               CASE WHEN a.TYPE = 'Vastbase' THEN b.SCHEMA_NAME ELSE b.DBNAME END AS name
+        SELECT b.ID AS id,b.DBNAME AS name
         FROM seo.seo_datasource_database b
-        JOIN seo.seo_datasource a ON a.ID = b.SOURCE_ID
         WHERE b.SOURCE_ID = #{params.SOURCE_ID} AND b.STATE = '0'
+    </select>
+
+    <!-- Vastbase按数据库配置ID在服务端解析实际数据库与Schema，不依赖页面显示文本 -->
+    <select id="getDataBaseInfo" resultType="hashmap">
+        SELECT b.DBNAME AS "DBNAME",b.SCHEMA_NAME AS "SCHEMA_NAME"
+        FROM seo.seo_datasource_database b
+        WHERE b.ID = #{params.SOURCE_ID}
     </select>
 
     <!--    根据数据源和数据库查询数据库下的数据表下拉选-->

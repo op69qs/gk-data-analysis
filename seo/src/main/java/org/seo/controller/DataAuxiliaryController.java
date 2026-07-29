@@ -136,8 +136,8 @@ public class DataAuxiliaryController extends BaseController {
     public Map<String, Object> getDataTableSelection(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         PageData pageData = this.getPageData(jsonObject);
-        normalizeVastbaseSchema(pageData);
         try {
+            normalizeVastbaseSchema(pageData);
             List<Map<String, Object>> newDataList = new ArrayList<>();
             List<Map<String, Object>> dataList = dataAuxiliaryService.getDataTableSelection(pageData);
             //由于数据源不同，所以需要将大写字段转为小写
@@ -171,8 +171,8 @@ public class DataAuxiliaryController extends BaseController {
     public Map<String, Object> getDataTableComments(@RequestBody JSONObject jsonObject) {
         Map<String, Object> result = new HashMap<>();
         PageData pageData = this.getPageData(jsonObject);
-        normalizeVastbaseSchema(pageData);
         try {
+            normalizeVastbaseSchema(pageData);
             String tableName = ""; //表描述
             Map<String, Object> removeMap = new HashMap<>();
             List<Map<String, Object>> newDataList = new ArrayList<>();
@@ -210,10 +210,17 @@ public class DataAuxiliaryController extends BaseController {
         if (!"Vastbase".equals(pageData.getString("BASE_TYPE"))) {
             return;
         }
-        String schemaName = pageData.getString("SCHEMA_NAME");
-        if (schemaName == null || schemaName.trim().isEmpty()) {
-            pageData.put("SCHEMA_NAME", pageData.getString("DATABASE"));
+        List<Map<String, Object>> databaseList = dataAuxiliaryService.getDataBaseInfo(pageData);
+        if (databaseList == null || databaseList.isEmpty()) {
+            throw new IllegalArgumentException("未找到Vastbase数据库配置");
         }
+        Map<String, Object> database = databaseList.get(0);
+        Object schemaName = database.get("SCHEMA_NAME");
+        if (schemaName == null || schemaName.toString().trim().isEmpty()) {
+            throw new IllegalArgumentException("Vastbase数据库配置缺少Schema");
+        }
+        pageData.put("DATABASE", database.get("DBNAME"));
+        pageData.put("SCHEMA_NAME", schemaName.toString());
     }
 
 }

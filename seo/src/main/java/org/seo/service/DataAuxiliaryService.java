@@ -37,6 +37,11 @@ public interface DataAuxiliaryService {
     List<Map<String, Object>> getDataBaseSelection(PageData pageData);
 
     /**
+     * 根据数据库配置主键查询实际数据库和Schema。
+     */
+    List<Map<String, Object>> getDataBaseInfo(PageData pageData);
+
+    /**
      * 根据数据源和数据库查询数据库下的数据表下拉选
      *
      * @param pageData

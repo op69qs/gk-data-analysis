@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class VastbaseDataSourceMapperContractTest {
@@ -80,15 +81,57 @@ public class VastbaseDataSourceMapperContractTest {
     }
 
     @Test
-    public void mappersExposeSchemaAsEffectiveVastbaseNamespace() throws Exception {
-        String auxiliarySql = normalize(boundSql(
+    public void mysqlMetadataLookupKeepsOnsiteInformationSchemaSemantics() throws Exception {
+        Map<String, Object> values = values();
+        values.put("BASE_TYPE", "Mysql");
+        values.put("DATABASE", "edw");
+        values.put("TABLE_SIGN", "trs_kyd_industry_copy4");
+
+        BoundSql tableSql = boundSql(
                 "mybatis/seo/DataAuxiliaryMapper.xml",
-                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataSourceInfo",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataTableSelection",
+                values);
+        BoundSql commentSql = boundSql(
+                "mybatis/seo/DataAuxiliaryMapper.xml",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataTableComments",
+                values);
+
+        assertTrue(normalize(tableSql.getSql()).contains(
+                "SELECT TABLE_NAME AS id,TABLE_NAME AS name FROM information_schema.TABLES"));
+        assertTrue(normalize(tableSql.getSql()).contains("TABLE_SCHEMA = ?"));
+        assertTrue(normalize(commentSql.getSql()).contains("TABLE_COMMENT"));
+        assertTrue(normalize(commentSql.getSql()).contains("COLUMN_COMMENT"));
+        assertTrue(tableSql.getParameterMappings().stream()
+                .anyMatch(mapping -> "params.DATABASE".equals(mapping.getProperty())));
+    }
+
+    @Test
+    public void databaseLabelsMatchOnsiteDbNameSemantics() throws Exception {
+        String databaseSelectionSql = normalize(boundSql(
+                "mybatis/seo/DataAuxiliaryMapper.xml",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataBaseSelection",
                 values()).getSql());
         String treeSql = normalize(boundSql(
                 "mybatis/seo/DataTableMapper.xml",
                 "org.seo.dao.mapper.DataTableMapper.getDataSourceTree",
                 values()).getSql());
+
+        assertTrue(databaseSelectionSql.contains("b.DBNAME AS name"));
+        assertFalse(databaseSelectionSql.contains("THEN b.SCHEMA_NAME"));
+        assertTrue(treeSql.contains("b.DBNAME AS lable"));
+        assertFalse(treeSql.contains("THEN b.SCHEMA_NAME"));
+    }
+
+    @Test
+    public void mappersResolveVastbaseSchemaInternallyByDatabaseId() throws Exception {
+        String auxiliarySql = normalize(boundSql(
+                "mybatis/seo/DataAuxiliaryMapper.xml",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataSourceInfo",
+                values()).getSql());
+        BoundSql databaseInfo = boundSql(
+                "mybatis/seo/DataAuxiliaryMapper.xml",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataBaseInfo",
+                values());
         String typeSql = normalize(boundSql(
                 "mybatis/seo/ComprehensiveQueryMapper.xml",
                 "org.seo.dao.mapper.ComprehensiveQueryMapper.getType",
@@ -96,8 +139,10 @@ public class VastbaseDataSourceMapperContractTest {
 
         assertTrue(auxiliarySql.contains("AS \"NAMESPACE\""));
         assertTrue(auxiliarySql.contains("b.SCHEMA_NAME"));
-        assertTrue(treeSql.contains("a.TYPE = 'Vastbase'"));
-        assertTrue(treeSql.contains("b.SCHEMA_NAME"));
+        String databaseInfoSql = normalize(databaseInfo.getSql());
+        assertTrue(databaseInfoSql.contains("b.DBNAME AS \"DBNAME\""));
+        assertTrue(databaseInfoSql.contains("b.SCHEMA_NAME AS \"SCHEMA_NAME\""));
+        assertTrue(databaseInfoSql.contains("b.ID = ?"));
         assertTrue(typeSql.contains("a.SCHEMA_NAME AS \"SCHEMA_NAME\""));
         assertTrue(typeSql.contains("AS \"DATABASE_NAME\""));
         assertTrue(typeSql.contains("AS \"DBNAME\""));

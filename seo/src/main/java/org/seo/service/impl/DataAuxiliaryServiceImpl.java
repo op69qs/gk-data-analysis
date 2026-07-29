@@ -46,6 +46,12 @@ public class DataAuxiliaryServiceImpl implements DataAuxiliaryService {
     }
 
     @Override
+    public List<Map<String, Object>> getDataBaseInfo(PageData pageData) {
+        DataSourceContextHolder.setDBType("default");
+        return dataAuxiliaryMapper.getDataBaseInfo(pageData);
+    }
+
+    @Override
     public List<Map<String, Object>> getDataTableSelection(PageData pageData) {
         //动态切换数据源
         DataSourceContextHolder.setDBType(pageData.getString("SOURCE_ID"));

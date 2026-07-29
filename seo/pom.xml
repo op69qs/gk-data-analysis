@@ -131,6 +131,14 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- 与现场 seo-2.1.0.jar 保持一致 -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.47</version>
+			<scope>runtime</scope>
+		</dependency>
+
 		<!--DB2-->
 		<dependency>
 			<groupId>com.ibm.db2.jcc</groupId>

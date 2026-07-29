@@ -16,8 +16,7 @@
                 </if>
             </where>
             UNION
-            SELECT b.ID AS id,
-                   CASE WHEN a.TYPE = 'Vastbase' THEN b.SCHEMA_NAME ELSE b.DBNAME END AS lable,
+            SELECT b.ID AS id,b.DBNAME AS lable,
                    b.SOURCE_ID AS "pId",'database' AS "nodeType"
             FROM seo.seo_datasource_database b
             JOIN seo.seo_datasource a ON a.ID = b.SOURCE_ID
@@ -59,8 +58,7 @@
 
     <!--    查询数据源关系表数据-->
     <select id="getRelationData" resultType="hashmap">
-        SELECT r.*,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS "DATASOURCE_NAME",
-               CASE WHEN a.TYPE = 'Vastbase' THEN b.SCHEMA_NAME ELSE b.DBNAME END AS "DBNAME"
+        SELECT r.*,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS "DATASOURCE_NAME",b.DBNAME AS "DBNAME"
         FROM edw.fm_trs_guoku_base_table r
         LEFT JOIN seo.seo_datasource a ON a.ID = r.SOURCE_ID
         LEFT JOIN seo.seo_datasource_database b ON b.ID = r.DATABASE_ID
