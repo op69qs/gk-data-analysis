@@ -4,7 +4,6 @@ import org.jeecg.modules.reporting.parser.TimsBusinessType;
 import org.jeecg.modules.reporting.parser.TimsExcelParseError;
 import org.jeecg.modules.reporting.parser.TimsExcelParseResult;
 import org.jeecg.modules.reporting.parser.TimsExcelParser;
-import org.jeecg.modules.reporting.parser.TimsReportRecord;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -14,7 +13,9 @@ import java.nio.file.Path;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -34,21 +35,26 @@ public class TimsReportPreparationService {
                                          TimsBusinessType type, YearMonth period) throws IOException {
         List<Path> files = findExcelFiles(extractRoot);
         List<TimsExcelParseError> errors = new ArrayList<>();
+        Map<String, MutableFileStat> fileStats = new LinkedHashMap<>();
         if (files.isEmpty()) {
             errors.add(packageError("压缩包中没有 Excel 文件"));
-            return new TimsPreparationResult(0, 0, errors, null);
+            return new TimsPreparationResult(0, 0, errors, java.util.Collections.emptyMap(), null);
         }
 
         try (TimsSpool.Writer writer = TimsSpool.create(workRoot)) {
             long[] rows = {0};
             for (Path file : files) {
+                String fileName = file.getFileName().toString();
+                MutableFileStat stat = fileStats.computeIfAbsent(fileName, key -> new MutableFileStat());
                 if (hasRecognizableTypeConflict(file, type)) {
-                    errors.add(new TimsExcelParseError(file.getFileName().toString(), null, 0,
-                            "文件类型", file.getFileName().toString(), "文件名与选择的上报类型不一致"));
+                    stat.errorRowCount++;
+                    errors.add(new TimsExcelParseError(fileName, null, 0,
+                            "文件类型", fileName, "文件名与选择的上报类型不一致"));
                     continue;
                 }
                 TimsExcelParseResult parsed = parser.parse(file, type, row -> {
                     if (!YearMonth.from(row.getDAcct()).equals(period)) {
+                        stat.errorRowCount++;
                         errors.add(new TimsExcelParseError(row.getFileName(), row.getSheetName(), row.getRowNumber(),
                                 "日期", row.getDAcctText(), "文件账期与本次上报账期 " + period + " 不一致"));
                         return;
@@ -56,17 +62,33 @@ public class TimsReportPreparationService {
                     try {
                         writer.write(row);
                         rows[0]++;
+                        stat.successRowCount++;
                     } catch (IOException exception) {
                         throw new UncheckedIOException(exception);
                     }
                 });
-                errors.addAll(parsed.getErrors());
+                for (TimsExcelParseError error : parsed.getErrors()) {
+                    stat.errorRowCount++;
+                    errors.add(error);
+                }
             }
             if (rows[0] == 0 && errors.isEmpty()) errors.add(packageError("Excel 中没有有效数据行"));
-            if (!errors.isEmpty()) return new TimsPreparationResult(files.size(), rows[0], errors, null);
+            if (!errors.isEmpty()) {
+                return new TimsPreparationResult(files.size(), rows[0], errors, freeze(fileStats), null);
+            }
             TimsSpool spool = writer.finish();
-            return new TimsPreparationResult(files.size(), rows[0], errors, spool);
+            return new TimsPreparationResult(files.size(), rows[0], errors, freeze(fileStats), spool);
         }
+    }
+
+    private Map<String, TimsPreparationResult.FileStat> freeze(Map<String, MutableFileStat> fileStats) {
+        Map<String, TimsPreparationResult.FileStat> result = new LinkedHashMap<>();
+        for (Map.Entry<String, MutableFileStat> entry : fileStats.entrySet()) {
+            MutableFileStat value = entry.getValue();
+            result.put(entry.getKey(), new TimsPreparationResult.FileStat(
+                    value.successRowCount, value.errorRowCount));
+        }
+        return result;
     }
 
     private List<Path> findExcelFiles(Path root) throws IOException {
@@ -91,5 +113,10 @@ public class TimsReportPreparationService {
 
     private TimsExcelParseError packageError(String message) {
         return new TimsExcelParseError("<ZIP>", null, 0, null, null, message);
+    }
+
+    private static final class MutableFileStat {
+        private long successRowCount;
+        private long errorRowCount;
     }
 }

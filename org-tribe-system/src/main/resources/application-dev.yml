@@ -234,7 +234,7 @@ ribbon:
 
 # 数据上报归档。物理清理在保留期限确认前保持关闭（retention-days=0）。
 reporting:
-  archive-root: ${REPORTING_ARCHIVE_ROOT:./data/reporting}
+  archive-root: ${REPORTING_ARCHIVE_ROOT:/opt/app/guoku/gk-data-analysis/data/reporting}
   max-upload-bytes: 10485760
   max-zip-entries: 2000
   max-total-uncompressed-bytes: 524288000

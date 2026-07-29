@@ -3,6 +3,7 @@ package org.jeecg.modules.reporting.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -27,6 +28,10 @@ import java.util.zip.ZipInputStream;
 public class SafeZipExtractor {
 
     private static final int BUFFER_SIZE = 8192;
+    private static final List<Charset> ZIP_NAME_CHARSETS = Arrays.asList(
+            StandardCharsets.UTF_8,
+            Charset.forName("GBK"),
+            Charset.forName("CP437"));
 
     private final int maxEntries;
     private final long maxTotalUncompressedBytes;
@@ -54,12 +59,32 @@ public class SafeZipExtractor {
 
         Path safeRoot = destination.toAbsolutePath().normalize();
         Files.createDirectories(safeRoot);
+        IOException lastFailure = null;
+        for (Charset charset : ZIP_NAME_CHARSETS) {
+            clearDirectoryContents(safeRoot);
+            try {
+                return Collections.unmodifiableList(extractWithCharset(zipFile, safeRoot, charset));
+            } catch (IOException exception) {
+                lastFailure = exception;
+                if (!looksLikeZipNameEncodingProblem(exception) || charset.equals(ZIP_NAME_CHARSETS.get(ZIP_NAME_CHARSETS.size() - 1))) {
+                    break;
+                }
+            }
+        }
+        clearDirectoryContents(safeRoot);
+        if (lastFailure != null && looksLikeZipNameEncodingProblem(lastFailure)) {
+            throw new IOException("ZIP 文件名编码不兼容或压缩包已损坏", lastFailure);
+        }
+        throw lastFailure == null ? new IOException("ZIP 解压失败") : lastFailure;
+    }
+
+    private List<Path> extractWithCharset(Path zipFile, Path safeRoot, Charset charset) throws IOException {
         List<Path> extractedFiles = new ArrayList<>();
         long totalBytes = 0L;
         int entryCount = 0;
 
         try (InputStream input = Files.newInputStream(zipFile);
-             ZipInputStream zipInput = new ZipInputStream(input, StandardCharsets.UTF_8)) {
+             ZipInputStream zipInput = new ZipInputStream(input, charset)) {
             ZipEntry entry;
             while ((entry = zipInput.getNextEntry()) != null) {
                 entryCount++;
@@ -109,9 +134,10 @@ public class SafeZipExtractor {
                 extractedFiles.add(target);
                 zipInput.closeEntry();
             }
+        } catch (IllegalArgumentException exception) {
+            throw new IOException(exception.getMessage(), exception);
         }
-
-        return Collections.unmodifiableList(extractedFiles);
+        return extractedFiles;
     }
 
     private long drainIgnoredEntry(ZipInputStream zipInput, String entryName, long totalBytes)
@@ -197,5 +223,43 @@ public class SafeZipExtractor {
             return "";
         }
         return fileName.substring(separator + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private boolean looksLikeZipNameEncodingProblem(Throwable error) {
+        for (Throwable current = error; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message != null) {
+                String normalized = message.toLowerCase(Locale.ROOT);
+                if (normalized.contains("malformed")
+                        || normalized.contains("illegal byte sequence")
+                        || normalized.contains("input length = 1")
+                        || normalized.contains("unmappable character")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void clearDirectoryContents(Path root) throws IOException {
+        if (root == null || !Files.exists(root)) {
+            return;
+        }
+        try (Stream<Path> paths = Files.walk(root)) {
+            paths.sorted(Comparator.reverseOrder())
+                    .filter(path -> !path.equals(root))
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException exception) {
+                            throw new IllegalStateException(exception);
+                        }
+                    });
+        } catch (IllegalStateException exception) {
+            if (exception.getCause() instanceof IOException) {
+                throw (IOException) exception.getCause();
+            }
+            throw exception;
+        }
     }
 }

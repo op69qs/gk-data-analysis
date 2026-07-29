@@ -6,6 +6,7 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -61,6 +62,22 @@ public class SafeZipExtractorTest {
     }
 
     @Test
+    public void fallsBackToLegacyGbkZipEntryNames() throws Exception {
+        Path zip = temporaryFolder.newFile("legacy-gbk.zip").toPath();
+        createZip(zip, Arrays.asList(
+                entry("收入/收入1.xls", "first"),
+                entry("收入/收入2.xls", "second")
+        ), Charset.forName("GBK"));
+        Path destination = temporaryFolder.newFolder("legacy-output").toPath();
+
+        SafeZipExtractor extractor = new SafeZipExtractor(100, 1024 * 1024, 512 * 1024);
+        extractor.extract(zip, destination);
+
+        assertEquals(Arrays.asList("收入/收入1.xls", "收入/收入2.xls"),
+                relativeNames(destination, extractor.findBusinessFiles(destination, "xls", "xlsx")));
+    }
+
+    @Test
     public void rejectsPathTraversalEntry() throws Exception {
         Path zip = temporaryFolder.newFile("traversal.zip").toPath();
         createZip(zip, Collections.singletonList(entry("../escaped.xls", "unsafe")));
@@ -107,8 +124,12 @@ public class SafeZipExtractorTest {
     }
 
     private void createZip(Path zip, List<ZipContent> entries) throws IOException {
+        createZip(zip, entries, StandardCharsets.UTF_8);
+    }
+
+    private void createZip(Path zip, List<ZipContent> entries, Charset charset) throws IOException {
         try (OutputStream output = Files.newOutputStream(zip);
-             ZipOutputStream zipOutput = new ZipOutputStream(output, StandardCharsets.UTF_8)) {
+             ZipOutputStream zipOutput = new ZipOutputStream(output, charset)) {
             for (ZipContent content : entries) {
                 zipOutput.putNextEntry(new ZipEntry(content.name));
                 zipOutput.write(content.value);

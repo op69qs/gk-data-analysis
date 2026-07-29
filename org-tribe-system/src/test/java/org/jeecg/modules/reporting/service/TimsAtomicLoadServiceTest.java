@@ -81,7 +81,8 @@ public class TimsAtomicLoadServiceTest {
             for (int i = 0; i < count; i++) writer.write(row(i));
             spool = writer.finish();
         }
-        return new TimsPreparationResult(1, count, java.util.Collections.emptyList(), spool);
+        return new TimsPreparationResult(1, count, java.util.Collections.emptyList(),
+                java.util.Collections.emptyMap(), spool);
     }
 
     private TimsReportRecord row(int index) {

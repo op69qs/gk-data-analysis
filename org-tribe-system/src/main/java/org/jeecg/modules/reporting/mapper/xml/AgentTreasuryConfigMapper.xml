@@ -6,4 +6,18 @@
           from edw.cm_guoku_dimnsn g
          where g.guoku_id = #{guokuId}
     </select>
+
+    <select id="findGuokuIdByBookorgcode" resultType="java.lang.String">
+        select g.guoku_id
+          from edw.cm_guoku_dimnsn g
+         where g.bookorgcode = #{bookorgcode}
+         limit 1
+    </select>
+
+    <select id="findScopePrefixByBookorgcode" resultType="java.lang.String">
+        select substring(g.guoku_id, 1, (g.level - 1) * 2)
+          from edw.cm_guoku_dimnsn g
+         where g.bookorgcode = #{bookorgcode}
+         limit 1
+    </select>
 </mapper>

@@ -2,7 +2,7 @@ package org.jeecg.filter;
 
 import com.netflix.zuul.context.RequestContext;
 import org.jeecg.common.system.vo.LoginUser;
-import org.jeecg.common.util.RedisUtil;
+import org.jeecg.modules.oauth.NexusPortalIdentitySupport;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysUserService;
 import org.junit.Before;
@@ -19,15 +19,15 @@ import static org.mockito.Mockito.when;
 public class IndicatorIdentityZuulFilterTest {
 
     private IndicatorIdentityZuulFilter filter;
-    private RedisUtil redisUtil;
+    private NexusPortalIdentitySupport portalIdentitySupport;
     private ISysUserService userService;
 
     @Before
     public void setUp() {
         filter = new IndicatorIdentityZuulFilter();
-        redisUtil = mock(RedisUtil.class);
+        portalIdentitySupport = mock(NexusPortalIdentitySupport.class);
         userService = mock(ISysUserService.class);
-        ReflectionTestUtils.setField(filter, "redisUtil", redisUtil);
+        ReflectionTestUtils.setField(filter, "portalIdentitySupport", portalIdentitySupport);
         ReflectionTestUtils.setField(filter, "sysUserService", userService);
     }
 
@@ -35,7 +35,7 @@ public class IndicatorIdentityZuulFilterTest {
     public void portalSubjectCodeWinsEvenWhenLocalMappingExists() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("X-Access-Token", "token-1");
-        when(redisUtil.get("PREFIX_NEXUS_PORTAL_SUBJECT_CODE_token-1")).thenReturn("BOOK-001");
+        when(portalIdentitySupport.resolveSubjectCode("token-1")).thenReturn("BOOK-001");
         RequestContext context = new RequestContext();
 
         filter.addAuthenticatedHeaders(context, request, loginUser("portal-id", "portal-name"));
@@ -49,6 +49,7 @@ public class IndicatorIdentityZuulFilterTest {
     public void localLoginUsesConfiguredGuoku() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader("X-Access-Token", "token-2");
+        when(portalIdentitySupport.resolveSubjectCode("token-2")).thenReturn(null);
         SysUser local = new SysUser();
         local.setGuokuId("GK-001");
         when(userService.getUserByName("local-name")).thenReturn(local);

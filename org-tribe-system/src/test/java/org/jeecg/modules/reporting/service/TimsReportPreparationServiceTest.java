@@ -40,6 +40,9 @@ public class TimsReportPreparationServiceTest {
             assertTrue(result.getErrors().isEmpty());
             assertEquals(3, result.getFileCount());
             assertEquals(3L, result.getRowCount());
+            assertEquals(1L, result.getFileStats().get("收入1.xls").getSuccessRowCount());
+            assertEquals(1L, result.getFileStats().get("收入2.xls").getSuccessRowCount());
+            assertEquals(1L, result.getFileStats().get("收入3.xls").getSuccessRowCount());
             assertTrue(result.getSpool().getPath().startsWith(work));
             assertTrue(Files.exists(result.getSpool().getPath()));
             assertEquals(64, result.getSpool().getSha256().length());

@@ -20,6 +20,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -82,13 +84,16 @@ public class ReportWorkflowServiceTest {
         when(workflowMapper.renewAndLockOwnedTask(any(), any(), any(), any())).thenReturn(1);
         when(workflowMapper.updateOwnedTaskProgress(any(), any(), any(Integer.class), any(), any(), any())).thenReturn(1);
         when(workflowMapper.completeOwnedTask(any(), any())).thenReturn(1);
-        when(workflowMapper.findBatchFiles("batch-1")).thenReturn(Collections.singletonList(archiveFile()));
+        when(workflowMapper.findBatchFiles("batch-1")).thenReturn(files());
         doAnswer(invocation -> {
             TimsLoadCommitAction action = invocation.getArgument(4);
             TimsPreparationAction preparation = invocation.getArgument(5);
             preparation.afterPrepared(2, 8L);
             action.afterCommittedRowsLoaded(8L);
-            return new TimsReportProcessingResult(2, 8, Collections.emptyList());
+            Map<String, TimsPreparationResult.FileStat> fileStats = new LinkedHashMap<>();
+            fileStats.put("收入1.xls", new TimsPreparationResult.FileStat(3, 0));
+            fileStats.put("收入2.xls", new TimsPreparationResult.FileStat(5, 0));
+            return new TimsReportProcessingResult(2, 8, Collections.emptyList(), fileStats);
         }).when(timsService).process(any(), eq(TimsBusinessType.INCOME),
                 eq(java.time.YearMonth.of(2026, 7)), any(), any(), any());
 
@@ -107,6 +112,10 @@ public class ReportWorkflowServiceTest {
         assertEquals("WAITING_MANUAL", batch.getProcessCallStatus());
         assertEquals(Integer.valueOf(100), batch.getProgressPercent());
         assertEquals(Long.valueOf(8), batch.getSuccessRowCount());
+        verify(fileMapper, org.mockito.Mockito.atLeastOnce()).updateById(org.mockito.ArgumentMatchers.argThat(
+                file -> "收入1.xls".equals(file.getOriginalName()) && Long.valueOf(3L).equals(file.getSuccessRowCount())));
+        verify(fileMapper, org.mockito.Mockito.atLeastOnce()).updateById(org.mockito.ArgumentMatchers.argThat(
+                file -> "收入2.xls".equals(file.getOriginalName()) && Long.valueOf(5L).equals(file.getSuccessRowCount())));
         verify(workflowMapper, org.mockito.Mockito.atLeastOnce()).updateBatchState(batch);
     }
 
@@ -185,5 +194,20 @@ public class ReportWorkflowServiceTest {
         file.setOriginalName("收入.zip");
         file.setStoragePath("/tmp/reporting/batch-1/archive/source.zip");
         return file;
+    }
+
+    private java.util.List<ReportFile> files() {
+        ReportFile archive = archiveFile();
+        ReportFile file1 = new ReportFile();
+        file1.setId("file-1");
+        file1.setBatchId("batch-1");
+        file1.setFileRole("EXTRACTED");
+        file1.setOriginalName("收入1.xls");
+        ReportFile file2 = new ReportFile();
+        file2.setId("file-2");
+        file2.setBatchId("batch-1");
+        file2.setFileRole("EXTRACTED");
+        file2.setOriginalName("收入2.xls");
+        return java.util.Arrays.asList(archive, file1, file2);
     }
 }

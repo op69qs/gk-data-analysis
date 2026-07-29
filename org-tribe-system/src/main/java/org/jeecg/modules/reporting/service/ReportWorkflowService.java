@@ -28,6 +28,7 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 /** Executes one tracked reporting stage. The listener invokes this outside the upload transaction. */
@@ -195,6 +196,7 @@ public class ReportWorkflowService {
                     }
                     completion.afterCommittedRowsLoaded(committedRows);
                 }, preparationAction);
+        updateTimsFileStats(files, result.getFileStats());
         for (TimsExcelParseError error : result.getErrors()) {
             persistError(batch, task, findFileId(files, error.getFileName()), error.getSheetName(),
                     error.getRowNumber(), error.getColumnName(), error.getRawValue(), error.getMessage());
@@ -404,6 +406,26 @@ public class ReportWorkflowService {
             }
             file.setParseStatus(status);
             file.setErrorSummary(errorSummary);
+            file.setUpdateTime(new Date());
+            fileMapper.updateById(file);
+        }
+    }
+
+    private void updateTimsFileStats(List<ReportFile> files, Map<String, TimsPreparationResult.FileStat> fileStats) {
+        if (fileStats == null || fileStats.isEmpty()) {
+            return;
+        }
+        for (ReportFile file : files) {
+            if (!"EXTRACTED".equals(file.getFileRole()) || file.getOriginalName() == null) {
+                continue;
+            }
+            TimsPreparationResult.FileStat stat = fileStats.get(file.getOriginalName());
+            if (stat == null) {
+                continue;
+            }
+            file.setTotalRowCount(stat.getTotalRowCount());
+            file.setSuccessRowCount(stat.getSuccessRowCount());
+            file.setErrorRowCount(stat.getErrorRowCount());
             file.setUpdateTime(new Date());
             fileMapper.updateById(file);
         }
