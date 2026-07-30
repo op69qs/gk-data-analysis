@@ -5,20 +5,21 @@ SET search_path TO report, public;
 -- Strategy: keep MySQL B-compatible procedure bodies first, then validate by dependency chain.
 
 -- PROCEDURE report.P_MONTH_REPORT_TEXT
+
 DROP PROCEDURE IF EXISTS report.P_MONTH_REPORT_TEXT;
 CREATE PROCEDURE report.P_MONTH_REPORT_TEXT(IN v_data_date VARCHAR(20))
 AS
     V_PROC_NAME     VARCHAR(80) := 'REPORT.P_MONTH_REPORT_TEXT.PRC';
     V_START_TIME    CHAR(19) := NOW();
-    V_STEP_ID       INT := 0; 
+    V_STEP_ID       INT := 0;
 BEGIN
-	
+
     V_STEP_ID := 1;
     DELETE FROM REPORT.REPORT_TEXT WHERE ACCOUNT_PERIOD = v_data_date;
     CALL ETL.EDW_PROC_TRACE_LOG(v_data_date,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-	
+
     V_STEP_ID := 2;
-    insert into   report.report_text  
+    insert into   report.report_text
     (
                 ACCOUNT_PERIOD,
 		lib_000001,
@@ -210,12 +211,12 @@ BEGIN
 		,lib_000440
 	      ,INDEX_DIM_CODE
 		,PERIOD_FLAG
-	       ,DIMENSION_FLAG 
+	       ,DIMENSION_FLAG
 	       ,lib_000189
 		,lib_000190
 		,lib_000191
     )
-    
+
     SELECT
 	  v_data_date AS ACCOUNT_PERIOD,
 	 (SELECT a.INDEX_VALUE FROM indicators_lib.lib_indicators_000001 a
@@ -345,7 +346,7 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000027, 
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000027,
 			(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000028 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
@@ -355,7 +356,7 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000029,   
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000029,
 		1 AS lib_000030,
 		(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000031 a
 		WHERE a.PERIOD_FLAG = '2'
@@ -487,7 +488,7 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000057, 
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000057,
 			(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000058 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
@@ -497,8 +498,8 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000059,   
-		
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000059,
+
 		(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000060 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
@@ -509,7 +510,7 @@ BEGIN
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
 		AND ACCOUNT_PERIOD=v_data_date) AS lib_000061 ,
-		
+
 		    (SELECT a.INDEX_VALUE FROM indicators_lib.lib_indicators_000062 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
@@ -634,7 +635,7 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000086, 
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000086,
 			(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000087 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
@@ -644,8 +645,8 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000088,   
-		
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000088,
+
 		(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000089 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
@@ -656,7 +657,7 @@ BEGIN
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
 		AND ACCOUNT_PERIOD=v_data_date) AS lib_000090 ,
-		
+
 		    (SELECT a.INDEX_VALUE FROM indicators_lib.lib_indicators_000091 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
@@ -776,7 +777,7 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000114, 
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000114,
 			(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000115 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
@@ -786,14 +787,14 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000116,   
-		
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000116,
+
 		(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000117 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
 		AND ACCOUNT_PERIOD=v_data_date) AS lib_000117,
-		
+
 		    (SELECT a.INDEX_VALUE FROM indicators_lib.lib_indicators_000119 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
@@ -908,29 +909,29 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000142, 
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000142,
 			(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000143 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000143, 
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000143,
 		(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000144 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000144,  
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000144,
 		(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000145 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000145,  
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000145,
 		(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000146 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000146 
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000146
 	  ,
-	  
+
 		    (SELECT a.INDEX_VALUE FROM indicators_lib.lib_indicators_000147 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
@@ -1050,7 +1051,7 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000170, 
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000170,
 			(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000171 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
@@ -1060,7 +1061,7 @@ BEGIN
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
-		AND ACCOUNT_PERIOD=v_data_date) AS lib_000172,   
+		AND ACCOUNT_PERIOD=v_data_date) AS lib_000172,
 		(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000173 a
 		WHERE a.PERIOD_FLAG = '2'
 		AND DIMENSION_FLAG = '2'
@@ -1071,7 +1072,7 @@ BEGIN
 		AND DIMENSION_FLAG = '2'
 		AND INDEX_DIM_CODE = '500000'
 		AND ACCOUNT_PERIOD=v_data_date) AS lib_000174 ,
-		
+
 		    (SELECT a.INDEX_VALUE FROM indicators_lib.lib_indicators_000175 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
@@ -1131,7 +1132,7 @@ BEGIN
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
-		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000435  
+		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000435
 		    ,(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000436 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
@@ -1141,20 +1142,20 @@ BEGIN
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
-		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000439  
+		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000439
 		    ,(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000440 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
-		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000440    
-	      ,'500000' AS INDEX_DIM_CODE  
+		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000440
+	      ,'500000' AS INDEX_DIM_CODE
 	      ,'2' AS  PERIOD_FLAG
-	      ,'2' AS  DIMENSION_FLAG 
+	      ,'2' AS  DIMENSION_FLAG
 	      ,(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000189 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
-		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000189 
+		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000189
 	      ,(SELECT a.INDEX_VALUE FROM  indicators_lib.lib_indicators_000190 a
 	  WHERE a.PERIOD_FLAG = '2'
 		    AND DIMENSION_FLAG = '2'
@@ -1165,35 +1166,36 @@ BEGIN
 		    AND DIMENSION_FLAG = '2'
 		    AND INDEX_DIM_CODE = '500000'
 		    AND ACCOUNT_PERIOD=v_data_date) AS lib_000191
-     
+
 	    ;
-    
-    
-    
-  
+
+
+
+
 END
 ;
 /
 
 
 -- PROCEDURE report.P_NEWS_FLASH_MONTH_REPORT_TEXT
+
 DROP PROCEDURE IF EXISTS report.P_NEWS_FLASH_MONTH_REPORT_TEXT;
 CREATE PROCEDURE report.P_NEWS_FLASH_MONTH_REPORT_TEXT(IN v_data_date VARCHAR(20))
 AS
     V_PROC_NAME     VARCHAR(80) := 'REPORT.P_NEWS_FLASH_MONTH_REPORT_TEXT.PRC';
     V_START_TIME    CHAR(19) := NOW();
-    V_STEP_ID       INT := 0; 
+    V_STEP_ID       INT := 0;
 BEGIN
-	
+
     V_STEP_ID := 1;
     DELETE FROM REPORT.NEWS_FLASH_MONTH_TEXT WHERE ACCOUNT_PERIOD = v_data_date;
     CALL ETL.EDW_PROC_TRACE_LOG(v_data_date,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-	
+
     V_STEP_ID := 2;
-INSERT INTO   report.NEWS_FLASH_MONTH_TEXT  
+INSERT INTO   report.NEWS_FLASH_MONTH_TEXT
     (
 	ACCOUNT_PERIOD,
-	INDEX_DIM_CODE , 
+	INDEX_DIM_CODE ,
 	lib_000001,
 	lib_000184,
 	lib_000002,
@@ -1240,10 +1242,10 @@ INSERT INTO   report.NEWS_FLASH_MONTH_TEXT
 	lib_000453,
 	lib_000258,
 	PERIOD_FLAG,
-	DIMENSION_FLAG 
+	DIMENSION_FLAG
     )
     SELECT    v_data_date AS  ACCOUNT_PERIOD
-	      ,'500000' AS INDEX_DIM_CODE  
+	      ,'500000' AS INDEX_DIM_CODE
 	      ,   (SELECT
         a.INDEX_VALUE
         FROM
@@ -1488,7 +1490,7 @@ INSERT INTO   report.NEWS_FLASH_MONTH_TEXT
         indicators_lib.lib_indicators_000181 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '2' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000181',		
+        AND a.INDEX_DIM_CODE='500000')  AS '000181',
           (SELECT
         a.INDEX_VALUE
         FROM
@@ -1560,21 +1562,22 @@ INSERT INTO   report.NEWS_FLASH_MONTH_TEXT
         AND  a.PERIOD_FLAG = '2' AND ACCOUNT_PERIOD =v_data_date
         AND a.INDEX_DIM_CODE='500000')  AS '000258'
 	   ,'2' AS  PERIOD_FLAG
-	      ,'2' AS  DIMENSION_FLAG     
-	      
-	      
-	              
+	      ,'2' AS  DIMENSION_FLAG
+
+
+
 	    ;
-    
-    
-    
-  
+
+
+
+
 END
 ;
 /
 
 
 -- PROCEDURE report.P_NEWS_FLASH_MONTH_TEXT_NUMBER
+
 DROP PROCEDURE IF EXISTS report.P_NEWS_FLASH_MONTH_TEXT_NUMBER;
 
 SET search_path TO report, public;
@@ -2017,176 +2020,176 @@ CREATE PROCEDURE report.P_NEWS_FLASH_QUARTER_REPORT_TEXT(IN v_data_date VARCHAR(
 AS
     V_PROC_NAME     VARCHAR(80) := 'REPORT.P_NEWS_FLASH_QUARTER_REPORT_TEXT.PRC';
     V_START_TIME    CHAR(19) := NOW();
-    V_STEP_ID       INT := 0; 
+    V_STEP_ID       INT := 0;
 BEGIN
-	
+
     V_STEP_ID := 1;
     DELETE FROM REPORT.NEWS_FLASH_QUARTER_REPORT_TEXT WHERE ACCOUNT_PERIOD = v_data_date;
     CALL ETL.EDW_PROC_TRACE_LOG(v_data_date,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-	
+
     V_STEP_ID := 2;
-INSERT INTO   report.NEWS_FLASH_QUARTER_REPORT_TEXT  
+INSERT INTO   report.NEWS_FLASH_QUARTER_REPORT_TEXT
     (
 	ACCOUNT_PERIOD,
-	INDEX_DIM_CODE , 
+	INDEX_DIM_CODE ,
 	PERIOD_FLAG,
 	DIMENSION_FLAG ,
-	 lib_000217 			
-	,lib_000031 			
-	,lib_000037 			
-	,lib_000043 			
-	,lib_000049 			
-	,lib_000221 			
-	,lib_000225 			 
-	,lib_000233 			
-	,lib_000235 			
-	,lib_000237 			
-	,lib_000239 			
-	,lib_000241 			
-	,lib_000243 			
-	,lib_000245 			
-	,lib_000247 			
-	,lib_000249 			
-	,lib_000251 			
-	,lib_000038 			
-	,lib_000044 			
-	,lib_000050 			  			  			 			
-	,lib_000222 			
-	,lib_000226 			
-	,lib_000134 			
-	,lib_000232 			
-	,lib_000252 				
-	,lib_000228 			
-	,lib_000001 			
-	,lib_000008 			
-	,lib_000052 			
-	,lib_000015 			
-	,lib_000117 			
-	,lib_000021 			
-	,lib_000194 			
-	,lib_000198 			
-	,lib_000202 			
-	,lib_000206 			
-	,lib_000210 			
-	,lib_000214 			
-	,lib_000027 			
-	,lib_000034 			
-	,lib_000040 			
-	,lib_000046 			
-	,lib_000131 			
-	,lib_000133 			
-	,lib_000242 			
-	,lib_000244 			
-	,lib_000246 			
-	,lib_000248 			
-	,lib_000250 			
-	,lib_000254 			
-	,lib_000230 			
-	,lib_000012 			
-	,lib_000218 			
-	,lib_000018 			
-	,lib_000273 			
-	,lib_000392 			
-	,lib_000423 			
-	,lib_000341 			
-	,lib_000343 			
-	,lib_000342 			
-	,lib_000346 			
-	,lib_000348 			
-	,lib_000347 			
-	,lib_000345 			
-	,lib_000234 			
-	,lib_000236 			
-	,lib_000238 			
-	,lib_000240 			
-	,lib_000042 			
-	,lib_000048 			
-	,lib_000220 			
-	,lib_000224 			
-	,lib_000176 			
-	,lib_000175 			
-	,lib_000036 			
-	,lib_000179 			
-	,lib_000182 			
-	,lib_000039 			
-	,lib_000045 			
-	,lib_000051 			
-	,lib_000223 			
-	,lib_000227 			
-	,lib_000005 			
-	,lib_000441 			
-	,lib_000393 			
-	,lib_00031802 				
-	,lib_00032001 				
-	,lib_000395	 			
-	,lib_000396	 			
-	,lib_000372	 			
-	,lib_000376	 			
-	,lib_000172	 			
-	,lib_000365	 			
-	,lib_000177	 			
-	,lib_000192	 			
-	,lib_000118	 			
-	,lib_000178	 			
-	,lib_000180	 			
-	,lib_000337	 			
-	,lib_000181	 			
-	,lib_000262	 			
-	,lib_000264	 			
-	,lib_000209	 			
-	,lib_000260	 			
-	,lib_000024	 			
-	,lib_000196	 			
-	,lib_000200	 			
-	,lib_000204	 			
-	,lib_000208	 			
-	,lib_000212	 			
-	,lib_000216	 			
-	,lib_000255	 			
-	,lib_000231	 			
-	,lib_000006	 			
-	,lib_000013	 			
-	,lib_000219	 			
-	,lib_000019	 			
-	,lib_000119	 			
-	,lib_000025	 			
-	,lib_000197	 			
-	,lib_000201	 			
-	,lib_000205	 			
-	,lib_000041	 			
-	,lib_000213	 			
-	,lib_000047	 			
-	,lib_000132	 			
-	,lib_000331	 			
-	,lib_000032	 			
-	,lib_000253   					
-	,lib_000229   					
-	,lib_000002   					
-	,lib_000009   					
-	,lib_000054   					
-	,lib_000016   					
-	,lib_000120   					
-	,lib_000022	 			
-	,lib_000195	 			
-	,lib_000199	 			
-	,lib_000203	 			
-	,lib_000207	 			
-	,lib_000211	 			
-	,lib_000215	 			
-	,lib_000028	 			
+	 lib_000217
+	,lib_000031
+	,lib_000037
+	,lib_000043
+	,lib_000049
+	,lib_000221
+	,lib_000225
+	,lib_000233
+	,lib_000235
+	,lib_000237
+	,lib_000239
+	,lib_000241
+	,lib_000243
+	,lib_000245
+	,lib_000247
+	,lib_000249
+	,lib_000251
+	,lib_000038
+	,lib_000044
+	,lib_000050
+	,lib_000222
+	,lib_000226
+	,lib_000134
+	,lib_000232
+	,lib_000252
+	,lib_000228
+	,lib_000001
+	,lib_000008
+	,lib_000052
+	,lib_000015
+	,lib_000117
+	,lib_000021
+	,lib_000194
+	,lib_000198
+	,lib_000202
+	,lib_000206
+	,lib_000210
+	,lib_000214
+	,lib_000027
+	,lib_000034
+	,lib_000040
+	,lib_000046
+	,lib_000131
+	,lib_000133
+	,lib_000242
+	,lib_000244
+	,lib_000246
+	,lib_000248
+	,lib_000250
+	,lib_000254
+	,lib_000230
+	,lib_000012
+	,lib_000218
+	,lib_000018
+	,lib_000273
+	,lib_000392
+	,lib_000423
+	,lib_000341
+	,lib_000343
+	,lib_000342
+	,lib_000346
+	,lib_000348
+	,lib_000347
+	,lib_000345
+	,lib_000234
+	,lib_000236
+	,lib_000238
+	,lib_000240
+	,lib_000042
+	,lib_000048
+	,lib_000220
+	,lib_000224
+	,lib_000176
+	,lib_000175
+	,lib_000036
+	,lib_000179
+	,lib_000182
+	,lib_000039
+	,lib_000045
+	,lib_000051
+	,lib_000223
+	,lib_000227
+	,lib_000005
+	,lib_000441
+	,lib_000393
+	,lib_00031802
+	,lib_00032001
+	,lib_000395
+	,lib_000396
+	,lib_000372
+	,lib_000376
+	,lib_000172
+	,lib_000365
+	,lib_000177
+	,lib_000192
+	,lib_000118
+	,lib_000178
+	,lib_000180
+	,lib_000337
+	,lib_000181
+	,lib_000262
+	,lib_000264
+	,lib_000209
+	,lib_000260
+	,lib_000024
+	,lib_000196
+	,lib_000200
+	,lib_000204
+	,lib_000208
+	,lib_000212
+	,lib_000216
+	,lib_000255
+	,lib_000231
+	,lib_000006
+	,lib_000013
+	,lib_000219
+	,lib_000019
+	,lib_000119
+	,lib_000025
+	,lib_000197
+	,lib_000201
+	,lib_000205
+	,lib_000041
+	,lib_000213
+	,lib_000047
+	,lib_000132
+	,lib_000331
+	,lib_000032
+	,lib_000253
+	,lib_000229
+	,lib_000002
+	,lib_000009
+	,lib_000054
+	,lib_000016
+	,lib_000120
+	,lib_000022
+	,lib_000195
+	,lib_000199
+	,lib_000203
+	,lib_000207
+	,lib_000211
+	,lib_000215
+	,lib_000028
 	,lib_000035
-	,lib_000458	
+	,lib_000458
 	,lib_000459
 	,lib_000460
-	,lib_000461 
-	,lib_000453 											
-	
+	,lib_000461
+	,lib_000453
+
     )
     SELECT    v_data_date AS  ACCOUNT_PERIOD
-	      ,'500000' AS INDEX_DIM_CODE  
+	      ,'500000' AS INDEX_DIM_CODE
 	      ,'3' AS  PERIOD_FLAG
-	      ,'2' AS  DIMENSION_FLAG  
-	        
+	      ,'2' AS  DIMENSION_FLAG
+
      ,   (SELECT
        a.INDEX_VALUE
       FROM
@@ -3194,7 +3197,7 @@ INSERT INTO   report.NEWS_FLASH_QUARTER_REPORT_TEXT
       indicators_lib.lib_indicators_000035 a
       WHERE a.DIMENSION_FLAG = '2'
        AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-       AND a.INDEX_DIM_CODE='500000')  AS 'lib_000035'  
+       AND a.INDEX_DIM_CODE='500000')  AS 'lib_000035'
       ,      (SELECT
        a.INDEX_VALUE
       FROM
@@ -3237,23 +3240,24 @@ END
 
 
 -- PROCEDURE report.P_QUARTER_REPORT_TEXT
+
 DROP PROCEDURE IF EXISTS report.P_QUARTER_REPORT_TEXT;
 CREATE PROCEDURE report.P_QUARTER_REPORT_TEXT(IN v_data_date VARCHAR(20))
 AS
     V_PROC_NAME     VARCHAR(80) := 'REPORT.P_QUARTER_REPORT_TEXT.PRC';
     V_START_TIME    CHAR(19) := NOW();
-    V_STEP_ID       INT := 0; 
+    V_STEP_ID       INT := 0;
 BEGIN
-	
+
     V_STEP_ID := 1;
     DELETE FROM REPORT.quarter_report_text  WHERE ACCOUNT_PERIOD = v_data_date;
     CALL ETL.EDW_PROC_TRACE_LOG(v_data_date,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-	
+
     V_STEP_ID := 2;
-INSERT INTO report.quarter_report_text  
+INSERT INTO report.quarter_report_text
     (
 	ACCOUNT_PERIOD,
-	INDEX_DIM_CODE , 
+	INDEX_DIM_CODE ,
 	PERIOD_FLAG,
 	DIMENSION_FLAG ,
 	lib_000407,
@@ -3449,12 +3453,12 @@ INSERT INTO report.quarter_report_text
 	lib_000493,
 	lib_000494,
 	lib_000495,
-	lib_000006 
+	lib_000006
     )
 	SELECT    v_data_date AS  ACCOUNT_PERIOD
-	,'500000' AS INDEX_DIM_CODE  
+	,'500000' AS INDEX_DIM_CODE
 	,'3' AS  PERIOD_FLAG
-	,'2' AS  DIMENSION_FLAG     
+	,'2' AS  DIMENSION_FLAG
 	, (SELECT
         a.INDEX_VALUE
         FROM
@@ -4350,7 +4354,7 @@ INSERT INTO report.quarter_report_text
         indicators_lib.lib_indicators_000338 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000338', 
+        AND a.INDEX_DIM_CODE='500000')  AS '000338',
 		  (SELECT
         a.INDEX_VALUE
         FROM
@@ -4476,7 +4480,7 @@ INSERT INTO report.quarter_report_text
         indicators_lib.lib_indicators_000347 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000347'      
+        AND a.INDEX_DIM_CODE='500000')  AS '000347'
         , (SELECT
         a.INDEX_VALUE
         FROM
@@ -4490,330 +4494,330 @@ INSERT INTO report.quarter_report_text
         indicators_lib.lib_indicators_000432 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000432'   
+        AND a.INDEX_DIM_CODE='500000')  AS '000432'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000441 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000441'  
+        AND a.INDEX_DIM_CODE='500000')  AS '000441'
           , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000442 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000442'  
+        AND a.INDEX_DIM_CODE='500000')  AS '000442'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000443 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000443' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000443'
            , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000444 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000444'  
+        AND a.INDEX_DIM_CODE='500000')  AS '000444'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000445 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000445' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000445'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000446 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000446'  
+        AND a.INDEX_DIM_CODE='500000')  AS '000446'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000447 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000447' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000447'
             , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_00027901 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '00027901' 
+        AND a.INDEX_DIM_CODE='500000')  AS '00027901'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_00028001 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '00028001'  
+        AND a.INDEX_DIM_CODE='500000')  AS '00028001'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_00028101 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '00028101' 
+        AND a.INDEX_DIM_CODE='500000')  AS '00028101'
         , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000334 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000334' 
-        
+        AND a.INDEX_DIM_CODE='500000')  AS '000334'
+
         , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_00033001 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '00033001' 
+        AND a.INDEX_DIM_CODE='500000')  AS '00033001'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_00033002 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '00033002' 
+        AND a.INDEX_DIM_CODE='500000')  AS '00033002'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000496 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000496' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000496'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000410 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000410' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000410'
 		 , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000423 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000423' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000423'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000497 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000497' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000497'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000498 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000498' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000498'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000499 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000499' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000499'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000500 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000500' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000500'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000501 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000501' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000501'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000502 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000502' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000502'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000503 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000503' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000503'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000504 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000504' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000504'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000505 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000505' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000505'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000506 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000506' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000506'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000507 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000507'  
+        AND a.INDEX_DIM_CODE='500000')  AS '000507'
         , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000508 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000508' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000508'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000509 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000509' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000509'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000510 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000510' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000510'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000511 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000511' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000511'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000512 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000512' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000512'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000513 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000513' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000513'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000514 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000514' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000514'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000515 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000515' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000515'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000516 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000516' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000516'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000517 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000517' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000517'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000488 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000488' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000488'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000489 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000489' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000489'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000490 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000490' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000490'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000491 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000491' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000491'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000492 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000492' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000492'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000493 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000493' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000493'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000494 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000494' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000494'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000495 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000495' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000495'
          , (SELECT
         a.INDEX_VALUE
         FROM
         indicators_lib.lib_indicators_000006 a
         WHERE a.DIMENSION_FLAG = '2'
         AND  a.PERIOD_FLAG = '3' AND ACCOUNT_PERIOD =v_data_date
-        AND a.INDEX_DIM_CODE='500000')  AS '000006' 
+        AND a.INDEX_DIM_CODE='500000')  AS '000006'
 	;
 END
 ;
@@ -4821,4 +4825,3 @@ END
 
 
 -- PROCEDURE report.p_trs_income_payout_statistics
-DROP PROCEDURE IF EXISTS report.p_trs_income_payout_statistics;

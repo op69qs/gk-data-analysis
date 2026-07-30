@@ -1,52 +1,69 @@
 # Vastbase 生产初始化脚本
 
+## 交付结论
+
+本目录以 `all_event.sql`（2026-07-29 现场提供的 MySQL 全库 Event 和
+routine 导出）为唯一业务过程基线。筛选规则不是“迁移所有过程”，而是从
+全部 Event 的 `DO CALL` 开始，递归保留直接和间接调用到的过程/函数。
+
+静态闭包审计结果：
+
+- MySQL Event：15 个，目标缺失 0、额外 0。
+- MySQL routine 总数：361 个；Event 可达闭包：76 个。
+- 目标 routine：闭包 76 个全部覆盖，另保留 2 个
+  `visual_screen` 编排适配器，共 77 个过程、1 个函数。
+- Event 调用与调度语义不一致 0；参数模式不一致 0；未解释的调用边差异 0；
+  未解释的 DML 目标差异 0。
+- ADM 不再全量搬运：5 个 Event 最终只需要 13 个 ADM routine
+  （12 个过程、1 个函数）和 5 个 EDW 下游依赖过程。
+
+闭包按源 schema 分布：
+
+| schema | Event | Event 可达 routine |
+| --- | ---: | ---: |
+| adm | 5 | 13 |
+| edw | 2 | 8 |
+| etl | 2 | 4 |
+| indicators_lib | 4 | 7 |
+| ods | 1 | 1 |
+| report | 0 | 5 |
+| visual_screen | 1 | 38 |
+| 合计 | 15 | 76 |
+
 ## 生产执行范围
 
-生产只执行 `000_run_all.sql`。入口使用相对 `\ir`，因此现场只需保证下列文件位于同一目录，不依赖开发机绝对路径。
+生产只执行 `000_run_all.sql`。入口全部使用相对 `\ir`，现场只需把本目录
+中的文件原样放在同一个目录，不依赖开发机路径。入口依次加载 18 个脚本：
 
-入口按顺序加载 18 个脚本：
+1. `001_etl_init.sql`：真实 ETL 过程跟踪/错误日志表及两个日志过程。
+2. `001a_etl_event_routines_init.sql`：两个 ETL Event 入口过程及运行日志表。
+3. `002_ods_init.sql`：ODS 闭包过程。
+4. `003_report_init.sql`：Report 闭包过程。
+5. `004_edw_init.sql`：EDW 闭包过程。
+6. `005_visual_screen_init.sql`：38 个源闭包过程及 2 个任务拆分适配器。
+7. `006_indicators_lib_init.sql`：指标库闭包过程。
+8. `006a_event_dependency_routines_init.sql`：EDW Event 的两个入口过程。
+9. `007_events_init.sql`：ETL、EDW、指标库、ODS、大屏共 10 个 Event。
+10. `008_ucloud_tables_init.sql`：ucloud 相关表。
+11. `009_upm_alarmlog_tables_init.sql`：UPM 告警日志表。
+12. `010_upm_system_data_tables_init.sql`：UPM 系统数据表。
+13. `011_upm_netperformance_tables_init.sql`：UPM 性能数据表。
+14. `013_adm_tables_init.sql`：331 张 ADM 表，已包含动态刷新日志表及索引。
+15. `014_adm_indexes_init.sql`：90 个 ADM 索引。
+16. `014a_adm_dependency_routines_init.sql`：ADM 闭包需要的 5 个 EDW 过程。
+17. `015_adm_routines_init.sql`：12 个 ADM 过程、1 个 ADM 函数。
+18. `016_adm_events_init.sql`：5 个 ADM Event。
 
-1. `001_etl_init.sql`
-2. `002_ods_init.sql`
-3. `003_report_init.sql`
-4. `004_edw_init.sql`
-5. `005_visual_screen_init.sql`
-6. `006_indicators_lib_init.sql`
-7. `006a_event_dependency_routines_init.sql`
-8. `007_events_init.sql`
-9. `008_ucloud_tables_init.sql`
-10. `009_upm_alarmlog_tables_init.sql`
-11. `010_upm_system_data_tables_init.sql`
-12. `011_upm_netperformance_tables_init.sql`
-13. `012_ucloud_upm_procedures_init.sql`
-14. `013_adm_tables_init.sql`
-15. `014_adm_indexes_init.sql`
-16. `014a_adm_dependency_routines_init.sql`
-17. `015_adm_routines_init.sql`
-18. `016_adm_events_init.sql`
+`012_ucloud_upm_procedures_init.sql` 已删除：其中过程不在本次 Event 闭包内。
+`017_dynamic_refresh_run_log_init.sql` 只供已有库增量升级；新库所需定义已经合并
+进 `013_adm_tables_init.sql`，因此不在总入口重复执行。
 
-`017_dynamic_refresh_run_log_init.sql` 是已有数据库的增量补丁，不在新库总入口重复执行；它的表和两个索引已经合并在 `013_adm_tables_init.sql` 中。
+## 前提与正式执行
 
-ADM 覆盖内容：
-
-- `013`：331 张 ADM 表，包含 `dynamic_refresh_run_log`。
-- `014`：90 个 ADM 索引。
-- `014a`：ADM 过程调用所需的 9 个 EDW、Report、Indicators 依赖过程。
-- `015`：ADM 的 117 个存储过程和 2 个函数。
-- `016`：ADM 的 5 个 Event。
-
-整包合计创建或重建 203 个存储过程、2 个函数和 15 个 Event。
-
-## 前提
-
-- 目标数据库必须是 Vastbase MySQL 兼容模式：`sql_compatibility = B`。
-- 所有 SQL 文件必须放在同一个目录内。
-- 过程使用 Vastbase 支持的 `CREATE PROCEDURE ... AS ... BEGIN ... END; /` 格式，独立 `/` 不能删除。
-- `007` 和 `016` 中的 15 个 Event 均为 `ENABLE`，与 MySQL 源对象状态一致；是否允许调度由实例参数 `enable_prevent_job_task_startup` 统一控制。
-
-## 正式执行
-
-先进入 SQL 所在目录，再执行入口：
+- 目标数据库为 Vastbase MySQL 兼容模式：`sql_compatibility = B`。
+- 执行账号有创建 schema、表、索引、过程、函数和 Event 的权限。
+- 18 个入口脚本和 `000_run_all.sql` 位于同一目录。
+- 生产执行前建议先全局关闭 Event 调度，脚本成功后再按变更窗口开启。
 
 ```bash
 cd <final目录>
@@ -54,11 +71,13 @@ vsql -h <host> -p <port> -U <user> -d <database> -W '<password>' \
   -v ON_ERROR_STOP=1 -f 000_run_all.sql
 ```
 
-脚本依赖 `vsql` 对独立 `/` 终止符的处理，生产整包不要改用标准 PostgreSQL `psql`。
+脚本中的过程使用 Vastbase 支持的独立 `/` 结束符。若现场命令名是 `psql`，
+只有该客户端确实是 Vastbase 兼容客户端并支持独立 `/` 时，才能把上述命令的
+`vsql` 替换成 `psql`；标准 PostgreSQL `psql` 不能直接执行这套脚本。
 
 ## Dry run
 
-`BEGIN`、入口和 `ROLLBACK` 必须位于同一个连接：
+`BEGIN`、入口和 `ROLLBACK` 必须在同一个连接中，不能分别执行三个命令：
 
 ```bash
 cd <final目录>
@@ -67,9 +86,12 @@ printf '%s\n' 'BEGIN;' '\ir 000_run_all.sql' 'ROLLBACK;' | \
   -v ON_ERROR_STOP=1
 ```
 
-## Event 控制
+这只验证建表和过程/Event 的解析、依赖及创建，不会提交对象，也不会用生产数据
+实际跑 15 条业务任务。上线后仍须按下文逐个手工调用并核查业务结果和日志。
 
-参数含义是“阻止任务启动”，因此值与开关语义相反。以下命令由数据库管理员执行：
+## Event 全局和单独控制
+
+`enable_prevent_job_task_startup` 的含义是“阻止任务启动”，所以值与启停语义相反：
 
 ```sql
 -- 查看全局状态
@@ -78,13 +100,14 @@ SHOW enable_prevent_job_task_startup;
 -- 全局关闭所有 Event 调度
 ALTER SYSTEM SET enable_prevent_job_task_startup = on;
 
--- 全局允许 Event 调度
+-- 全局允许所有已 ENABLE 的 Event 调度
 ALTER SYSTEM SET enable_prevent_job_task_startup = off;
 ```
 
-该参数在当前 Vastbase 环境中为 `sighup` 级别。修改后重新执行 `SHOW` 确认；若现场集群未自动刷新，由 DBA 按集群运维方式 reload 配置。
+修改后再次 `SHOW` 确认。该参数在验证环境中是 reload 级别；若现场集群没有自动
+刷新，由 DBA 按现场集群方式 reload。
 
-单独启停某个 Event：
+单独启停 Event：
 
 ```sql
 ALTER EVENT adm_enterprise_survey_1 DISABLE;
@@ -92,9 +115,20 @@ ALTER EVENT adm_enterprise_survey_1 ENABLE;
 SHOW EVENTS;
 ```
 
-`ENABLE` 只是允许它按计划调度，不会立即执行。需要立刻手工跑某个 Event 时，直接执行它的 `DO CALL` 对应过程。例如：
+`ENABLE` 只允许按计划触发，不代表立即执行。手工执行某个 Event 时，直接复制
+`007_events_init.sql` 或 `016_adm_events_init.sql` 中该 Event 的 `DO CALL` 内容。
+例如：
 
 ```sql
+CALL etl.entrance_merge_dimnsn_data();
+CALL etl.entrance_merge_t_jrtj_dim_value_data();
+CALL edw.p_trs_budget_new();
+CALL edw.proc_trs_guoku_cp();
+CALL indicators_lib.init_report01(
+  DATE_FORMAT(LAST_DAY(DATE_ADD(CURDATE(), INTERVAL -1 MONTH)), '%Y-%m-%d')
+);
+CALL ods.p_pt_gy_files_temp();
+CALL visual_screen.p_task_vscreen(DATE_FORMAT(CURDATE(), '%Y%m%d'));
 CALL adm.p_ana_sust_mth_enterprise_survey_temp(DATE_FORMAT(NOW(), '%Y%m'));
 CALL adm.p_ana_sust_mth_enterprise_survey(DATE_FORMAT(NOW(), '%Y%m'), '', '');
 CALL adm.p_ana_sust_update(CURDATE());
@@ -102,9 +136,72 @@ CALL adm.p_trs_stat_agentbankpay_back_detail();
 CALL adm.p_trs_stat_agentbankpay_detail();
 ```
 
-## 验证结果
+## 调用日志与上线核查
 
+`SHOW EVENTS` 只能看 Event 定义和启停状态，不能代替业务调用日志。本次恢复了
+源库真实日志对象，不再使用编译占位桩：
+
+```sql
+-- 有埋点过程的步骤成功记录；同一日期/过程/步骤只保留最新一条
+SELECT *
+  FROM etl.edw_proc_trace_log
+ ORDER BY end_time DESC, proc_name, step_id;
+
+-- 有异常埋点过程的失败记录
+SELECT *
+  FROM etl.edw_proc_error_log
+ ORDER BY end_time DESC, proc_name, step_id;
+
+-- 两个 ETL Event 入口的成功、抢锁失败或异常记录
+SELECT *
+  FROM etl.t_run_log
+ ORDER BY run_time DESC;
+```
+
+这些表只覆盖源过程本来带日志调用的链路，以及本次迁移的两个 ETL 入口；不能据此
+推断所有过程都已执行。上线验收建议先全局关调度，逐个手工 `CALL`，同时记录开始
+时间，检查上述日志、目标表数据日期/行数和数据库服务端错误日志，确认后再开启调度。
+
+## 语义适配说明
+
+以下差异经过人工核对并在审计工具中显式登记，不属于遗漏：
+
+1. 源 `indicators_lib.p_xunhuan_formula` 调用了源文件中不存在的
+   `edw.p_trs_budget_income_compare_xin`。目标改为调用源文件中真实存在的
+   `indicators_lib.p_trs_budget_income_compare_xin`，否则 Event 必然运行失败。
+2. `visual_screen.p_task_vscreen` 的 37 个叶子调用拆到
+   `p_task_vscreen_daily` 和 `p_task_vscreen_month_end` 两个适配器，入口 Event 不变，
+   两个适配器合并后的业务调用集合与源入口一致。
+3. 指标库 `init_report01 -> p_exe_formula -> p_exe_formula_hand` 使用包装过程承接
+   循环和日志，最终业务执行及日志仍落在同一调用链。
+4. MySQL 的 schema 限定 `TEMPORARY TABLE` 无法直接映射到 Vastbase；
+   `etl.entrance_merge_t_jrtj_dim_value_data` 改用 `ods_temp` 下 UNLOGGED 工作表，
+   并用 advisory lock 保证单实例执行，保留原数据变换、清理和运行日志语义。
+5. 源 `edw.p_trs_budget_income_compare` 异常分支引用了未声明的 `TABLE_NAME`；
+   目标记录实际过程名，避免错误处理器自身再次报错。
+6. MySQL 的 `EVERY 1 WEEK` 在 Vastbase 不被接受，等价改写为 `EVERY 7 DAY`。
+
+## 可重复闭包审计
+
+开发侧可用同一份 `all_event.sql` 重新执行静态审计：
+
+```bash
+python3 ../../tools/audit_event_closure.py \
+  /path/to/all_event.sql . --json /tmp/all_event_closure.json
+```
+
+命令返回 0 的条件包括：Event/routine 无缺失、无未登记的额外对象、Event 的调用、
+周期、起始时间、保留策略和启停状态一致、参数模式一致，且调用边和 DML 目标不存在
+未解释差异。`filter_event_closure_bundle.py` 是按闭包重新裁剪脚本的机械工具，不是
+生产执行入口。
+
+## 已完成验证
+
+- 静态基线：15 Event、361 源 routine、76 个 Event 可达 routine；缺失 0，
+  未解释差异 0，审计退出码 0。
 - 环境：`cui02-t` 的 `g100` Vastbase 容器，数据库 `gk_data_analysis`。
-- 方式：同一连接执行 `BEGIN -> \ir 000_run_all.sql -> ROLLBACK`，启用 `ON_ERROR_STOP=1`，不使用任何依赖占位。
-- 结果：18/18 脚本完成，输出无 `ERROR`，最终 `ROLLBACK`，总耗时 24622 ms。
+- 方式：同一连接执行 `BEGIN -> \ir 000_run_all.sql -> ROLLBACK`，并设置
+  `ON_ERROR_STOP=1`。
+- 结果：18/18 脚本完成，日志无 `ERROR/FATAL`，最终正常 `ROLLBACK`，
+  总耗时 33666 ms（2026-07-29）。
 - 测试事务已回滚，测试库未保留本次 dry-run 对象变更。

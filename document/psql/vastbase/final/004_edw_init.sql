@@ -3,7 +3,14 @@ SET search_path TO edw, public;
 DROP PROCEDURE IF EXISTS edw.P_TRS_BUDGET_INCOME_COMPARE;
 CREATE PROCEDURE edw.P_TRS_BUDGET_INCOME_COMPARE(IN P_DATA_DATE VARCHAR(10))
 AS
+    v_proc_name VARCHAR(80) := 'EDW.P_TRS_BUDGET_INCOME_COMPARE.PRC';
+    v_start_time CHAR(19) := NOW();
+    v_step_id INT := 0;
+    s_data_date VARCHAR(8) := DATE_FORMAT(P_DATA_DATE, '%Y-%m');
+    v_return_code TEXT;
+    v_error_msg TEXT;
 BEGIN
+    v_step_id := 1;
     DELETE FROM edw.trs_budget_income_compare
     WHERE data_date IN (
         SELECT data_date
@@ -23,6 +30,7 @@ BEGIN
         ) targets
     );
 
+    v_step_id := 2;
     INSERT INTO edw.trs_budget_income_compare
     WITH monthly_dates AS (
         SELECT DISTINCT data_date
@@ -252,6 +260,20 @@ BEGIN
         MAX(rows_id)
     FROM quarter_union
     GROUP BY data_date, project;
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1
+            v_return_code = RETURNED_SQLSTATE,
+            v_error_msg = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(
+            s_data_date,
+            v_start_time,
+            NOW(),
+            v_proc_name,
+            v_step_id,
+            v_return_code,
+            v_error_msg
+        );
 END
 ;
 /

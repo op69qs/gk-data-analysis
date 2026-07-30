@@ -1,83 +1,89 @@
--- Compile-unblocker stubs for ETL logging procedures.
--- These are placeholders until the real ETL source procedures are recovered.
+-- ETL logging tables and procedures adapted from all_event.sql.
 
 CREATE SCHEMA IF NOT EXISTS etl;
 
-DROP TABLE IF EXISTS etl.proc_log_stub;
-CREATE TABLE IF NOT EXISTS etl.proc_log_stub (
-    id BIGSERIAL PRIMARY KEY,
-    log_type VARCHAR(20) NOT NULL,
-    acct_id VARCHAR(64),
-    start_time TIMESTAMP,
-    end_time TIMESTAMP,
-    proc_name VARCHAR(200),
+CREATE TABLE IF NOT EXISTS etl.edw_proc_trace_log (
+    data_date CHAR(10),
+    start_time CHAR(19),
+    end_time CHAR(19),
+    proc_name VARCHAR(80),
     step_id INT,
-    payload_a TEXT,
-    payload_b TEXT,
-    created_at TIMESTAMP DEFAULT NOW()
+    row_count INT
 );
+
+CREATE INDEX IF NOT EXISTS idx_edw_proc_trace_log_lookup
+    ON etl.edw_proc_trace_log (data_date, proc_name, step_id);
+
+CREATE TABLE IF NOT EXISTS etl.edw_proc_error_log (
+    data_date CHAR(10),
+    start_time CHAR(19),
+    end_time CHAR(19),
+    run_time BIGINT,
+    proc_name VARCHAR(80),
+    step_id INT,
+    error_code CHAR(9),
+    error_msg VARCHAR(2000)
+);
+
+CREATE INDEX IF NOT EXISTS idx_edw_proc_error_log_lookup
+    ON etl.edw_proc_error_log (data_date, proc_name, step_id);
 
 DROP PROCEDURE IF EXISTS etl.edw_proc_trace_log;
 CREATE PROCEDURE etl.edw_proc_trace_log(
-    IN p_acct_id VARCHAR(64),
-    IN p_start_time TIMESTAMP,
-    IN p_end_time TIMESTAMP,
-    IN p_proc_name VARCHAR(200),
+    IN p_data_date CHAR(10),
+    IN p_start_time CHAR(19),
+    IN p_end_time CHAR(19),
+    IN p_proc_name VARCHAR(80),
     IN p_step_id INT,
-    IN p_row_count BIGINT
+    IN p_row_count INT
 )
 AS
 BEGIN
-    INSERT INTO etl.proc_log_stub (
-        log_type,
-        acct_id,
-        start_time,
-        end_time,
-        proc_name,
-        step_id,
-        payload_a
+    DELETE FROM etl.edw_proc_trace_log
+     WHERE data_date = p_data_date
+       AND proc_name = p_proc_name
+       AND step_id = p_step_id;
+
+    INSERT INTO etl.edw_proc_trace_log (
+        data_date, start_time, end_time, proc_name, step_id, row_count
     ) VALUES (
-        'TRACE',
-        p_acct_id,
-        p_start_time,
-        p_end_time,
-        p_proc_name,
-        p_step_id,
-        CAST(p_row_count AS TEXT)
+        p_data_date, p_start_time, p_end_time, p_proc_name, p_step_id, p_row_count
     );
+    COMMIT;
 END;
 /
 
 DROP PROCEDURE IF EXISTS etl.edw_proc_error_log;
 CREATE PROCEDURE etl.edw_proc_error_log(
-    IN p_acct_id VARCHAR(64),
-    IN p_start_time TIMESTAMP,
-    IN p_end_time TIMESTAMP,
-    IN p_proc_name VARCHAR(200),
+    IN p_data_date CHAR(10),
+    IN p_start_time CHAR(19),
+    IN p_end_time CHAR(19),
+    IN p_proc_name VARCHAR(80),
     IN p_step_id INT,
-    IN p_return_code TEXT,
-    IN p_error_msg TEXT
+    IN p_error_code CHAR(9),
+    IN p_error_msg VARCHAR(2000)
 )
 AS
 BEGIN
-    INSERT INTO etl.proc_log_stub (
-        log_type,
-        acct_id,
+    INSERT INTO etl.edw_proc_error_log (
+        data_date,
         start_time,
         end_time,
+        run_time,
         proc_name,
         step_id,
-        payload_a,
-        payload_b
+        error_code,
+        error_msg
     ) VALUES (
-        'ERROR',
-        p_acct_id,
+        p_data_date,
         p_start_time,
         p_end_time,
+        TIMESTAMPDIFF(SECOND, p_start_time, p_end_time),
         p_proc_name,
         p_step_id,
-        p_return_code,
+        p_error_code,
         p_error_msg
     );
+    COMMIT;
 END;
 /

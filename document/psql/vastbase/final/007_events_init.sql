@@ -6,19 +6,27 @@
 --
 -- Notes:
 --   1. Vastbase does not allow duplicate event names within one database.
---   2. Source events seo.P_task_vs and visual_screen.P_task_vs are therefore renamed.
+--   2. Event names are prefixed with their source schema for operational clarity.
 --   3. Events are created ENABLE to match MySQL object state. Use the global
 --      enable_prevent_job_task_startup parameter as the environment gate.
 
-SET search_path TO dmcode, public;
+SET search_path TO etl, public;
 
-DROP EVENT IF EXISTS dmcode_evt_dmcode_drop_temp_tables;
-CREATE EVENT IF NOT EXISTS dmcode_evt_dmcode_drop_temp_tables
-ON SCHEDULE EVERY 1 DAY STARTS '2017-08-31 23:30:00'
+DROP EVENT IF EXISTS etl_evt_etl_dimnsn_data;
+CREATE EVENT IF NOT EXISTS etl_evt_etl_dimnsn_data
+ON SCHEDULE EVERY 7 DAY STARTS '2017-07-27 15:00:00'
 ON COMPLETION PRESERVE
 ENABLE
-COMMENT 'source mysql event dmcode.evt_dmcode_drop_temp_tables'
-DO CALL dmcode.p_drop_temp_tables();
+COMMENT 'source mysql event etl.evt_etl_dimnsn_data'
+DO CALL etl.entrance_merge_dimnsn_data();
+
+DROP EVENT IF EXISTS etl_evt_etl_ods_to_dm;
+CREATE EVENT IF NOT EXISTS etl_evt_etl_ods_to_dm
+ON SCHEDULE EVERY 3 MINUTE STARTS '2017-04-27 09:15:00'
+ON COMPLETION PRESERVE
+ENABLE
+COMMENT 'source mysql event etl.evt_etl_ods_to_dm'
+DO CALL etl.entrance_merge_t_jrtj_dim_value_data();
 
 SET search_path TO edw, public;
 
@@ -81,16 +89,6 @@ ON COMPLETION NOT PRESERVE
 ENABLE
 COMMENT 'source mysql event ods.pt_gy_files_task'
 DO CALL ods.p_pt_gy_files_temp();
-
-SET search_path TO seo, public;
-
-DROP EVENT IF EXISTS seo_p_task_vs;
-CREATE EVENT IF NOT EXISTS seo_p_task_vs
-ON SCHEDULE EVERY 1 DAY STARTS '2021-01-06 02:00:00'
-ON COMPLETION NOT PRESERVE
-ENABLE
-COMMENT 'source mysql event seo.P_task_vs'
-DO CALL visual_screen.p_task_vscreen(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 1 DAY), '%Y%m%d'));
 
 SET search_path TO visual_screen, public;
 
