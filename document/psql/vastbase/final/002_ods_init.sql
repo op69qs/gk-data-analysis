@@ -5,6 +5,7 @@ CREATE SCHEMA IF NOT EXISTS ods;
 
 DROP PROCEDURE IF EXISTS ods.p_pt_gy_files_temp;
 CREATE PROCEDURE ods.p_pt_gy_files_temp()
+AS
 BEGIN
     TRUNCATE ods.pt_gy_files_temp;
 
@@ -55,6 +56,7 @@ END;
 
 DROP PROCEDURE IF EXISTS ods.p_trs_info_enterprises_temporary;
 CREATE PROCEDURE ods.p_trs_info_enterprises_temporary()
+AS
 BEGIN
     TRUNCATE ods.trs_info_enterprises;
 
@@ -67,6 +69,7 @@ END;
 
 DROP PROCEDURE IF EXISTS ods.p_trs_info_nonbusiness_temporary;
 CREATE PROCEDURE ods.p_trs_info_nonbusiness_temporary()
+AS
 BEGIN
     TRUNCATE ods.trs_info_nonbusiness;
 
@@ -113,6 +116,7 @@ END;
 
 DROP PROCEDURE IF EXISTS ods.p_trs_info_practice_cancel_temporary;
 CREATE PROCEDURE ods.p_trs_info_practice_cancel_temporary()
+AS
 BEGIN
     TRUNCATE ods.trs_info_practice_cancel;
 

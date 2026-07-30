@@ -3,6 +3,7 @@
 
 DROP PROCEDURE IF EXISTS indicators_lib.init_report02;
 CREATE PROCEDURE indicators_lib.init_report02(IN v_data_date VARCHAR(10))
+AS
 BEGIN
 
 	DELETE FROM indicators_lib.lib_indicators_000204 
@@ -705,6 +706,7 @@ SET search_path TO indicators_lib, public;
 
 DROP PROCEDURE IF EXISTS indicators_lib.P_TRS_BUDGET_INCOME_COMPARE_XIN;
 CREATE PROCEDURE indicators_lib.P_TRS_BUDGET_INCOME_COMPARE_XIN(IN V_DATA_DATE VARCHAR(6))
+AS
 BEGIN
     DELETE FROM edw.trs_budget_income_compare
     WHERE data_date IN (
@@ -920,30 +922,26 @@ SET search_path TO indicators_lib, public;
 
 DROP PROCEDURE IF EXISTS indicators_lib.p_exe_formula_hand;
 CREATE PROCEDURE indicators_lib.p_exe_formula_hand(IN v_data_date VARCHAR(20), IN v_index_id VARCHAR(32))
+AS
+    v_proc_name VARCHAR(80) := 'INDICATORS_LIB.P_EXE_FORMULA_HAND.PRC';
+    v_start_time CHAR(19) := NOW();
+    v_step_id INT := 0;
+    p_data_date VARCHAR(8) := DATE_FORMAT(v_data_date, '%Y-%m');
+    index_id VARCHAR(32);
+    table_name VARCHAR(200);
+    delete_sql TEXT;
+    sesin TEXT;
+    insert_str TEXT;
+    where_str TEXT;
+    delete_exec TEXT;
+    insert_exec TEXT;
+    quoted_data_date TEXT;
+    quoted_last_date TEXT;
+    quoted_id TEXT;
+    v_return_code TEXT;
+    v_error_msg TEXT;
 BEGIN
-    DECLARE v_proc_name VARCHAR(80) DEFAULT 'INDICATORS_LIB.P_EXE_FORMULA_HAND.PRC';
-    DECLARE v_start_time CHAR(19) DEFAULT NOW();
-    DECLARE v_step_id INT DEFAULT 0;
-    DECLARE p_data_date VARCHAR(8) DEFAULT DATE_FORMAT(v_data_date, '%Y-%m');
-    DECLARE index_id VARCHAR(32);
-    DECLARE table_name VARCHAR(200);
-    DECLARE delete_sql TEXT;
-    DECLARE sesin TEXT;
-    DECLARE insert_str TEXT;
-    DECLARE where_str TEXT;
-    DECLARE delete_exec TEXT;
-    DECLARE insert_exec TEXT;
-    DECLARE quoted_data_date TEXT;
-    DECLARE quoted_last_date TEXT;
-    DECLARE quoted_id TEXT;
-    DECLARE v_return_code TEXT;
-    DECLARE v_error_msg TEXT;
 
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 v_return_code = RETURNED_SQLSTATE, v_error_msg = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(p_data_date, v_start_time, NOW(), v_proc_name, v_step_id, v_return_code, v_error_msg);
-    END;
 
     SELECT
         id,
@@ -957,39 +955,44 @@ BEGIN
     WHERE id = v_index_id
     LIMIT 1;
 
-    SET quoted_data_date = CONCAT('''', DATE_FORMAT(v_data_date, '%Y-%m-%d'), '''');
-    SET quoted_last_date = CONCAT('''', DATE_FORMAT(DATE_SUB(v_data_date, INTERVAL 1 YEAR), '%Y-%m-%d'), '''');
-    SET quoted_id = CONCAT('''', v_index_id, '''');
+    quoted_data_date := CONCAT('''', DATE_FORMAT(v_data_date, '%Y-%m-%d'), '''');
+    quoted_last_date := CONCAT('''', DATE_FORMAT(DATE_SUB(v_data_date, INTERVAL 1 YEAR), '%Y-%m-%d'), '''');
+    quoted_id := CONCAT('''', v_index_id, '''');
 
-    SET delete_exec = COALESCE(delete_sql, 'SELECT 1');
-    SET delete_exec = REPLACE(delete_exec, '@LAST_DATE', quoted_last_date);
-    SET delete_exec = REPLACE(delete_exec, '@DATA_DATE', quoted_data_date);
-    SET delete_exec = REPLACE(delete_exec, '@data_date', quoted_data_date);
-    SET delete_exec = REPLACE(delete_exec, '@ID', quoted_id);
+    delete_exec := COALESCE(delete_sql, 'SELECT 1');
+    delete_exec := REPLACE(delete_exec, '@LAST_DATE', quoted_last_date);
+    delete_exec := REPLACE(delete_exec, '@DATA_DATE', quoted_data_date);
+    delete_exec := REPLACE(delete_exec, '@data_date', quoted_data_date);
+    delete_exec := REPLACE(delete_exec, '@ID', quoted_id);
 
-    SET insert_exec = COALESCE(CONCAT_WS('', insert_str, sesin, where_str), 'SELECT 1');
-    SET insert_exec = REPLACE(insert_exec, '@LAST_DATE', quoted_last_date);
-    SET insert_exec = REPLACE(insert_exec, '@DATA_DATE', quoted_data_date);
-    SET insert_exec = REPLACE(insert_exec, '@data_date', quoted_data_date);
-    SET insert_exec = REPLACE(insert_exec, '@ID', quoted_id);
+    insert_exec := COALESCE(CONCAT_WS('', insert_str, sesin, where_str), 'SELECT 1');
+    insert_exec := REPLACE(insert_exec, '@LAST_DATE', quoted_last_date);
+    insert_exec := REPLACE(insert_exec, '@DATA_DATE', quoted_data_date);
+    insert_exec := REPLACE(insert_exec, '@data_date', quoted_data_date);
+    insert_exec := REPLACE(insert_exec, '@ID', quoted_id);
 
-    SET v_step_id = 1;
+    v_step_id := 1;
     EXECUTE IMMEDIATE delete_exec;
     CALL ETL.EDW_PROC_TRACE_LOG(p_data_date, v_start_time, NOW(), v_proc_name, v_step_id, ROW_COUNT());
 
-    SET v_step_id = 2;
+    v_step_id := 2;
     EXECUTE IMMEDIATE insert_exec;
     CALL ETL.EDW_PROC_TRACE_LOG(p_data_date, v_start_time, NOW(), v_proc_name, v_step_id, ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 v_return_code = RETURNED_SQLSTATE, v_error_msg = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(p_data_date, v_start_time, NOW(), v_proc_name, v_step_id, v_return_code, v_error_msg);
 END
 ;
 /
 
 DROP PROCEDURE IF EXISTS indicators_lib.p_exe_formula;
 CREATE PROCEDURE indicators_lib.p_exe_formula(IN V_DATA_DATE VARCHAR(20))
+AS
+    v_sql TEXT := '';
 BEGIN
-    DECLARE v_sql TEXT DEFAULT '';
 
-    SET v_sql = COALESCE((
+    v_sql := COALESCE((
         SELECT string_agg(stmt, ' ')
         FROM (
             SELECT CONCAT(
@@ -1011,6 +1014,7 @@ END
 
 DROP PROCEDURE IF EXISTS indicators_lib.init_report01;
 CREATE PROCEDURE indicators_lib.init_report01(IN v_data_date VARCHAR(10))
+AS
 BEGIN
     CALL indicators_lib.p_exe_formula(DATE_FORMAT(v_data_date, '%Y%m%d'));
 END
@@ -1019,6 +1023,7 @@ END
 
 DROP PROCEDURE IF EXISTS indicators_lib.init_report03;
 CREATE PROCEDURE indicators_lib.init_report03(IN v_data_date VARCHAR(10))
+AS
 BEGIN
     CALL indicators_lib.p_exe_formula_hand(v_data_date, '7a9dc86298ce11eab404000c298a21af');
     CALL indicators_lib.p_exe_formula_hand(v_data_date, '7a9dc7a698ce11eab404000c298a21af');
@@ -1035,48 +1040,44 @@ END
 
 DROP PROCEDURE IF EXISTS indicators_lib.p_xunhuan_formula;
 CREATE PROCEDURE indicators_lib.p_xunhuan_formula(IN v_batch_date VARCHAR(10))
+AS
+    v_proc_name VARCHAR(80) := 'INDICATORS_LIB.P_XUNHUAN_FORMULA.PRC';
+    v_start_time CHAR(19) := NOW();
+    v_step_id INT := 0;
+    p_data_date VARCHAR(8) := DATE_FORMAT(v_batch_date, '%Y-%m');
+    v_daily_sql TEXT := '';
+    v_month_sql TEXT := '';
+    v_return_code TEXT;
+    v_error_msg TEXT;
 BEGIN
-    DECLARE v_proc_name VARCHAR(80) DEFAULT 'INDICATORS_LIB.P_XUNHUAN_FORMULA.PRC';
-    DECLARE v_start_time CHAR(19) DEFAULT NOW();
-    DECLARE v_step_id INT DEFAULT 0;
-    DECLARE p_data_date VARCHAR(8) DEFAULT DATE_FORMAT(v_batch_date, '%Y-%m');
-    DECLARE v_daily_sql TEXT DEFAULT '';
-    DECLARE v_month_sql TEXT DEFAULT '';
-    DECLARE v_return_code TEXT;
-    DECLARE v_error_msg TEXT;
 
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 v_return_code = RETURNED_SQLSTATE, v_error_msg = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(p_data_date, v_start_time, NOW(), v_proc_name, v_step_id, v_return_code, v_error_msg);
-    END;
 
-    SET v_step_id = 1;
+    v_step_id := 1;
     UPDATE STG.TRS_TMIS_BUDGET_INCOME
     SET D_ACCT = CASE
         WHEN LENGTH(D_ACCT) = 6 THEN DATE_FORMAT(CONCAT(D_ACCT, '01'), '%Y-%m-%d')
         ELSE DATE_FORMAT(D_ACCT, '%Y-%m-%d')
     END;
 
-    SET v_step_id = 2;
+    v_step_id := 2;
     UPDATE STG.TRS_TMIS_BUDGET_PAYOUT
     SET D_ACCT = CASE
         WHEN LENGTH(D_ACCT) = 6 THEN DATE_FORMAT(CONCAT(D_ACCT, '01'), '%Y-%m-%d')
         ELSE DATE_FORMAT(D_ACCT, '%Y-%m-%d')
     END;
 
-    SET v_step_id = 3;
+    v_step_id := 3;
     UPDATE STG.TRS_TMIS_STOCK
     SET TRECODE = '2200000000',
         TREDSCR = '国家金库重庆市分库'
     WHERE TRECODE = 'NNNNNNNNNN';
 
-    SET v_step_id = 4;
+    v_step_id := 4;
     CALL edw.P_TRS_BUDGET_INCOME_COMPARE(DATE_FORMAT(v_batch_date, '%Y%m%d'));
     CALL indicators_lib.P_TRS_BUDGET_INCOME_COMPARE_XIN(DATE_FORMAT(v_batch_date, '%Y%m'));
 
-    SET v_step_id = 5;
-    SET v_daily_sql = COALESCE((
+    v_step_id := 5;
+    v_daily_sql := COALESCE((
         SELECT string_agg(stmt, ' ')
         FROM (
             SELECT CONCAT(
@@ -1122,8 +1123,8 @@ BEGIN
     ), 'SELECT 1');
     EXECUTE IMMEDIATE v_daily_sql;
 
-    SET v_step_id = 6;
-    SET v_month_sql = COALESCE((
+    v_step_id := 6;
+    v_month_sql := COALESCE((
         SELECT string_agg(stmt, ' ')
         FROM (
             SELECT CONCAT(
@@ -1160,6 +1161,10 @@ BEGIN
         ) call_queue
     ), 'SELECT 1');
     EXECUTE IMMEDIATE v_month_sql;
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 v_return_code = RETURNED_SQLSTATE, v_error_msg = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(p_data_date, v_start_time, NOW(), v_proc_name, v_step_id, v_return_code, v_error_msg);
 END
 ;
 /

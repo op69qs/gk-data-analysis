@@ -2,6 +2,7 @@ SET search_path TO edw, public;
 
 DROP PROCEDURE IF EXISTS edw.P_TRS_BUDGET_INCOME_COMPARE;
 CREATE PROCEDURE edw.P_TRS_BUDGET_INCOME_COMPARE(IN P_DATA_DATE VARCHAR(10))
+AS
 BEGIN
     DELETE FROM edw.trs_budget_income_compare
     WHERE data_date IN (

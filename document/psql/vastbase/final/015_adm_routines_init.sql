@@ -8,33 +8,28 @@ CREATE PROCEDURE adm.ana_cx_mth_cash_servinfo(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_mth_cash_servinfo.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     
 
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_mth_cash_servinfo.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_mth_cash_servinfo WHERE MONTH = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
  
 INSERT INTO ana_cx_mth_cash_servinfo(
 DATA_DATE,	
@@ -121,11 +116,11 @@ from adm.ana_cx_mth_cash_servinfo
   where DATA_DATE=SUBSTR(V_ACCT_ID, 1, 6)
   group by DATA_DATE,MONTH,CITY_CODE, CITY_NAME ;
       CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    SET V_STEP_ID = 3;
+    V_STEP_ID := 3;
     DELETE FROM adm.ana_cx_mth_cash_servinfo_map WHERE MONTH = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-        SET V_STEP_ID = 4;
+        V_STEP_ID := 4;
   
 INSERT INTO adm.ana_cx_mth_cash_servinfo_map
 (DATA_DATE, 
@@ -160,6 +155,11 @@ GROUP BY trade_date,city_code,city_name,SUBSTR(city_code,1,4) ;
   SET a.url= (SELECT b.url FROM adm.py_cx_menu_zt b WHERE a.menu_id=b.menu_id)
   WHERE SUBSTR(a.url,-3) ='RPY' AND a.url LIKE '%MONTH%' ;   		
   
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -171,6 +171,15 @@ CREATE PROCEDURE adm.ana_cx_qtr_accts(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_qtr_accts.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -183,31 +192,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_qtr_accts.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_qtr_accts WHERE QUARTER = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 取非支付现金业务 当期数据
 INSERT INTO adm.ana_cx_qtr_accts
 SELECT 
@@ -298,6 +293,11 @@ a.type2;
  
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -309,6 +309,15 @@ CREATE PROCEDURE adm.ana_cx_qtr_bank_card(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_qtr_bank_card.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -321,30 +330,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_qtr_bank_card.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_qtr_bank_dq_card WHERE QUARTER = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 银行卡受理市场建设情况 当期数据
 INSERT INTO adm.ana_cx_qtr_bank_dq_card 
 SELECT
@@ -445,6 +440,11 @@ WHERE a.quarter = SUBSTR(V_ACCT_ID, 1, 6) ;
  
  
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -454,6 +454,15 @@ CREATE PROCEDURE adm.ana_cx_qtr_bank_cards(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_qtr_bank_cards.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -466,31 +475,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_qtr_bank_cards.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_qtr_bank_cards WHERE QUARTER = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 取非支付现金业务 当期数据 市-市
 INSERT INTO adm.ana_cx_qtr_bank_cards
 SELECT 
@@ -627,6 +622,11 @@ AREA_TYPE_CODE,
 TYPE;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
      
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -636,6 +636,15 @@ CREATE PROCEDURE adm.ana_cx_qtr_cls(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_qtr_cls.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -648,31 +657,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_qtr_cls.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_qtr_dq_cls WHERE QUARTER = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，添加地区名称，区分地区类型--插入农村数据
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 取非支付现金业务 当期数据
 INSERT INTO adm.ana_cx_qtr_dq_cls 
 SELECT
@@ -799,6 +794,11 @@ WHERE a.quarter = SUBSTR(V_DATES, 1, 6) ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
        
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -808,6 +808,15 @@ CREATE PROCEDURE adm.ana_cx_qtr_non_cash_pay(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_qtr_non_cash_pay.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -820,30 +829,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_qtr_non_cash_pay.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_qtr_non_cash_dq_pay WHERE QUARTER = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 银行卡受理市场建设情况 当期数据
 INSERT INTO adm.ana_cx_qtr_non_cash_dq_pay 
 SELECT
@@ -1008,6 +1003,11 @@ WHERE a.quarter = SUBSTR(V_ACCT_ID, 1, 6) ;
   WHERE SUBSTR(a.url,-3) ='RPY' AND a.url LIKE '%QUARTER%' ;   
   
   
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -1017,6 +1017,15 @@ CREATE PROCEDURE adm.ana_cx_qtr_non_cash_pay_kh(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_qtr_non_cash_pay_kh.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -1029,31 +1038,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_qtr_non_cash_pay_kh.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_qtr_non_cash_pay_kh WHERE QUARTER = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 取非支付现金业务 当期数据 地市-地市
 INSERT INTO adm.ana_cx_qtr_non_cash_pay_kh
 SELECT DISTINCT
@@ -1095,6 +1090,11 @@ ON t.pay_code=p.business_code
 WHERE t.pay_code!='0'  AND t.data_date = SUBSTR(V_ACCT_ID,1,6) AND p.business_type IS NOT NULL ;
    CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -1104,6 +1104,15 @@ CREATE PROCEDURE adm.ana_cx_qtr_static(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_qtr_static.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -1116,30 +1125,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_qtr_static.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_qtr_static WHERE QUARTER = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 行政村覆盖率及空白行政村数量统计表  市-市
 INSERT INTO adm.ana_cx_qtr_static
 SELECT STR_TO_DATE(CONCAT(LEFT(V_ACCT_ID,4),'-',SUBSTR(V_ACCT_ID,5,2),'-01'),'%Y-%m-%d') AS DATA_DATE,
@@ -1213,6 +1208,11 @@ GROUP BY   t.data_date ,area_id,area_name,t.area_type_code) b
  ON  a.area_id=b.area_id AND a.area_type_code=b.area_type_code  ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -1222,6 +1222,15 @@ CREATE PROCEDURE adm.ana_cx_qtr_trade_all(
      IN V_ACCT_ID    VARCHAR(8),
      OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.ana_cx_qtr_trade_all.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -1234,30 +1243,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.ana_cx_qtr_trade_all.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     /* ------------------------------------------------------------------------ */
-     SET V_STEP_ID = 1;
+     V_STEP_ID := 1;
     DELETE FROM adm.ana_cx_qtr_trade_all WHERE QUARTER = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   --  农村支付上报交易总览					
  INSERT INTO adm.ana_cx_qtr_trade_all 
 SELECT data_date,QUARTER,city_code,city_name,county_code,county_name,area_type_code,'支付清算',SUM(COUNT),SUM(count_ly),SUM(money),SUM(money_ly)
@@ -1274,26 +1269,32 @@ GROUP BY data_date,QUARTER,city_code,city_name,county_code,county_name,area_type
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
    
  
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.loop_tjzh;
 
 CREATE PROCEDURE adm.loop_tjzh(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.loop_tjzh.PRC';
+  V_STEP_ID       INT := 0;
+  V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+  V_SQLTXT        LONGTEXT := ''; -- 执行SQL
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.loop_tjzh.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
-  DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-  DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
  DELETE FROM adm.trs_budget_summary_all_daily WHERE D_REPORTDATE = s_date;
   
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 		-- (多维)库存分账户统计表
 	-- 2018年3月30日之后取(含30日)
 	INSERT INTO adm.trs_budget_summary_all_daily
@@ -1534,9 +1535,9 @@ GROUP BY
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
@@ -1548,6 +1549,15 @@ CREATE PROCEDURE adm.py_cx_act_shop(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_act_shop.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -1560,29 +1570,15 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_act_shop.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
    DELETE FROM edw.py_cx_act_shop WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
   -- 广东省特约商户手机PAY、二维码、双免活跃商户统计表				
 INSERT INTO edw.py_cx_act_shop(
 DATA_DATE, -- 数据日期，账期
@@ -1604,11 +1600,11 @@ proportion       -- 占比
 FROM ods.py_cx_act_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-     SET V_STEP_ID = 3;
+     V_STEP_ID := 3;
     DELETE FROM adm.py_cx_act_shop WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 4;
+   V_STEP_ID := 4;
   -- 广东省特约商户手机PAY、二维码、双免活跃商户统计表					
 INSERT INTO adm.py_cx_act_shop(
 DATA_DATE, -- 数据日期，账期
@@ -1630,11 +1626,11 @@ proportion       -- 占比
 FROM edw.py_cx_act_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
-     SET V_STEP_ID = 5;
+     V_STEP_ID := 5;
     DELETE FROM adm.ana_cx_mth_act_shop WHERE month = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 6;
+   V_STEP_ID := 6;
   -- 广东省特约商户手机PAY、二维码、双免活跃商户统计表					
 INSERT INTO adm.ana_cx_mth_act_shop
 SELECT  
@@ -1653,6 +1649,11 @@ FROM edw.py_cx_act_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
  /* ------------------------------------------------------------------------ */
     
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -1664,6 +1665,15 @@ CREATE PROCEDURE adm.py_cx_advt_train(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_advt_train.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -1676,31 +1686,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_advt_train.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_advt_train WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO edw.py_cx_advt_train
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -1735,7 +1731,7 @@ BEGIN
  /* ------------------------------------------------------------------------ */
    
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 3; 
+   V_STEP_ID := 3; 
   INSERT INTO edw.py_cx_advt_train
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -1769,12 +1765,12 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 4;
+  V_STEP_ID := 4;
     DELETE FROM adm.py_cx_advt_train WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-   SET V_STEP_ID = 5;
+   V_STEP_ID := 5;
   INSERT INTO adm.py_cx_advt_train
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -1826,7 +1822,7 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 6;
+  V_STEP_ID := 6;
  INSERT INTO adm.py_cx_advt_train
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -1877,6 +1873,11 @@ BEGIN
     WHERE a.data_date=SUBSTR(V_ACCT_ID,1,6) ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -1888,6 +1889,15 @@ CREATE PROCEDURE adm.py_cx_bd_shop(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_bd_shop.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -1900,30 +1910,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_bd_shop.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-     SET V_STEP_ID = 1;
+     V_STEP_ID := 1;
     DELETE FROM edw.py_cx_bd_shop WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 广东省各地市云闪付APP注册用户数量统计表					
 INSERT INTO edw.py_cx_bd_shop(
 DATA_DATE     , -- 数据日期，账期
@@ -1942,11 +1938,11 @@ FROM ods.py_cx_bd_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     
-    SET V_STEP_ID = 3;
+    V_STEP_ID := 3;
     DELETE FROM adm.py_cx_bd_shop WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 4;
+    V_STEP_ID := 4;
   -- 广东省银行机构云闪付APP绑卡数量统计表					
 INSERT INTO adm.py_cx_bd_shop(
 DATA_DATE     , -- 数据日期，账期
@@ -1965,11 +1961,11 @@ FROM edw.py_cx_bd_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
     
-      SET V_STEP_ID = 5;
+      V_STEP_ID := 5;
     DELETE FROM adm.ana_cx_mth_bd_app WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 6;
+    V_STEP_ID := 6;
   -- 广东省银行机构云闪付APP绑卡数量统计表					
 INSERT INTO adm.ana_cx_mth_bd_app
 SELECT    
@@ -1983,6 +1979,11 @@ FROM edw.py_cx_bd_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -1992,6 +1993,15 @@ CREATE PROCEDURE adm.py_cx_cash_servinfo(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_cash_servinfo.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -2004,26 +2014,12 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_cash_servinfo.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     /* ------------------------------------------------------------------------ */
-     SET V_STEP_ID = 1; 
+     V_STEP_ID := 1; 
 DELETE FROM edw.py_cx_cash_servinfo WHERE insert_type='2';
 INSERT INTO edw.py_cx_cash_servinfo
 SELECT
@@ -2071,7 +2067,7 @@ HAVING DATA_DATE=MAX(DATA_DATE))  a ON
  ON SUBSTR(b.area_no_id,1,6)=c.area_no_id ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
      TRUNCATE TABLE adm.py_cx_dw_cash_servinfo_tmp;
 INSERT INTO adm.py_cx_dw_cash_servinfo_tmp   
 SELECT SUBSTR(INSTALL_DATE,1,6) AS data_date,
@@ -2085,7 +2081,7 @@ GROUP BY SUBSTR(INSTALL_DATE,1,6),
 VILLAGE_CODE,ORG_NUM,SUBSTR(ORG_NUM,1,6),CASE WHEN STATE='1' THEN '正常' ELSE '撤销' END ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
        
-          SET V_STEP_ID = 3; 
+          V_STEP_ID := 3; 
 TRUNCATE TABLE adm.py_cx_dw_cash_servinfo  ;
 INSERT INTO adm.py_cx_dw_cash_servinfo
 (DATA_DATE, -- 数据日期
@@ -2106,6 +2102,11 @@ ON a.area_no=c.area_no AND a.org_no=c.org_no
 AND a.bank_type=c.bank_type AND a.state=c.state AND DATE_FORMAT(DATE_SUB(CONCAT(a.data_date,'01'),INTERVAL 1 MONTH),'%Y%m')=c.data_date ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
        
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -2117,6 +2118,15 @@ CREATE PROCEDURE adm.py_cx_envbld_agent_issue(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_envbld_agent_issue.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -2129,31 +2139,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_envbld_agent_issue.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_agent_issue WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO edw.py_cx_envbld_agent_issue
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -2190,7 +2186,7 @@ BEGIN
  /* ------------------------------------------------------------------------ */
    
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 3; 
+   V_STEP_ID := 3; 
   INSERT INTO edw.py_cx_envbld_agent_issue
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -2226,12 +2222,12 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 4;
+  V_STEP_ID := 4;
     DELETE FROM adm.py_cx_envbld_agent_issue WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-   SET V_STEP_ID = 5;
+   V_STEP_ID := 5;
   INSERT INTO adm.py_cx_envbld_agent_issue
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -2287,7 +2283,7 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 6;
+  V_STEP_ID := 6;
  INSERT INTO adm.py_cx_envbld_agent_issue
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -2342,6 +2338,11 @@ BEGIN
     WHERE a.data_date=SUBSTR(V_ACCT_ID,1,6) ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -2352,6 +2353,15 @@ CREATE PROCEDURE adm.py_cx_envbld_hf_wd(
      IN V_ORG_ID     VARCHAR(14),
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14))
+AS
+	V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_envbld_hf_wd.PRC';
+	V_START_TIME    CHAR(19) := NOW();
+	V_STEP_ID       INT := 0;
+	P_RESULT        INT := 0;
+	V_DATES         VARCHAR(20) := 0;
+	V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -2364,29 +2374,15 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-	DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_envbld_hf_wd.PRC';
-	DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-	DECLARE V_STEP_ID       INT           DEFAULT 0;
-	DECLARE P_RESULT        INT           DEFAULT 0;
-	DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-	DECLARE V_STATE CHAR(1);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-         BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
     
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_hf_wd WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
         CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 2; 
+    V_STEP_ID := 2; 
     INSERT INTO edw.py_cx_envbld_hf_wd(
  DATA_DATE       	                -- 数据日期，账期            
 ,AREA_ID         	                -- 地区代码                  
@@ -2544,7 +2540,7 @@ FROM ods.py_cx_envbld_hf_wd1 w INNER JOIN edw.py_cx_area_ncpk_code b
     
     
      -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-    SET V_STEP_ID = 3;
+    V_STEP_ID := 3;
     
     INSERT INTO adm.py_cx_envbld_hf_wd (
 DATA_DATE          -- 数据日期，账期                 
@@ -2625,6 +2621,11 @@ LEFT JOIN
     WHERE  w.data_date=SUBSTR(V_ACCT_ID,1,6) ;
          
       CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());    
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -2633,6 +2634,12 @@ DROP PROCEDURE IF EXISTS adm.py_cx_envbld_hf_wd_mid;
 CREATE PROCEDURE adm.py_cx_envbld_hf_wd_mid(
     IN  P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT    INT)
+AS
+	V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_envbld_hf_wd_mid.PRC';
+	V_START_TIME    CHAR(19) := NOW();
+	V_STEP_ID       INT := 0;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -2645,25 +2652,14 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-	DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_envbld_hf_wd_mid.PRC';
-	DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-	DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     /* ------------------------------------------------------------------------ */
     
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.py_cx_envbld_hf_wd_mid WHERE DATA_DATE = SUBSTR(P_DATA_DATE,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 2; 
+    V_STEP_ID := 2; 
     INSERT INTO adm.py_cx_envbld_hf_wd_mid_cs(
     
 	DATA_DATE,                 -- 账期          
@@ -2936,7 +2932,7 @@ WHERE trade_type  NOT LIKE '%转账%' AND trade_type  NOT LIKE '%查询%' AND tr
 GROUP BY s.city_name ;
 CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 3; 
+    V_STEP_ID := 3; 
 INSERT INTO adm.py_cx_envbld_hf_wd_mid(
     
 	DATA_DATE,                 -- 账期          
@@ -2964,7 +2960,7 @@ INSERT INTO adm.py_cx_envbld_hf_wd_mid(
    from  adm.py_cx_envbld_hf_wd_mid_cs m left JOIN edw.py_cx_cash_servinfo s on m.city_name=s.city_name
    group by city_name;
 CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-   SET V_STEP_ID = 4; 
+   V_STEP_ID := 4; 
 INSERT INTO adm.py_cx_envbld_hf_wd_mid(
     
 	DATA_DATE,                 -- 账期          
@@ -2994,6 +2990,11 @@ FROM adm.py_cx_envbld_hf_wd_mid
 WHERE DATA_DATE=SUBSTR('20141001',1,6)
 GROUP BY service_point_count;
 CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());	
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 	END;
 /
 
@@ -3005,6 +3006,15 @@ CREATE PROCEDURE adm.py_cx_envbld_nonbnk_innet_pay(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_envbld_nonbnk_innet_pay.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -3017,31 +3027,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_envbld_nonbnk_innet_pay.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_nonbnk_innet_pay WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO edw.py_cx_envbld_nonbnk_innet_pay
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3078,7 +3074,7 @@ BEGIN
  /* ------------------------------------------------------------------------ */
    
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 3; 
+   V_STEP_ID := 3; 
   INSERT INTO edw.py_cx_envbld_nonbnk_innet_pay
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3114,12 +3110,12 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 4;
+  V_STEP_ID := 4;
     DELETE FROM adm.py_cx_envbld_nonbnk_innet_pay WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-   SET V_STEP_ID = 5;
+   V_STEP_ID := 5;
   INSERT INTO adm.py_cx_envbld_nonbnk_innet_pay
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3175,7 +3171,7 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 6;
+  V_STEP_ID := 6;
   INSERT INTO adm.py_cx_envbld_nonbnk_innet_pay
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3230,6 +3226,11 @@ BEGIN
     WHERE a.data_date=SUBSTR(V_ACCT_ID,1,6) ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -3241,6 +3242,15 @@ CREATE PROCEDURE adm.py_cx_envbld_rural_bnk_accts(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_envbld_rural_bnk_accts.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -3253,31 +3263,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_envbld_rural_bnk_accts.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_rural_bnk_accts WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO edw.py_cx_envbld_rural_bnk_accts
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3310,7 +3306,7 @@ BEGIN
  /* ------------------------------------------------------------------------ */
    
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 3; 
+   V_STEP_ID := 3; 
   INSERT INTO edw.py_cx_envbld_rural_bnk_accts
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3342,12 +3338,12 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 4;
+  V_STEP_ID := 4;
     DELETE FROM adm.py_cx_envbld_rural_bnk_accts WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-   SET V_STEP_ID = 5;
+   V_STEP_ID := 5;
   INSERT INTO adm.py_cx_envbld_rural_bnk_accts
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3395,7 +3391,7 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 6;
+  V_STEP_ID := 6;
   INSERT INTO adm.py_cx_envbld_rural_bnk_accts
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3442,6 +3438,11 @@ BEGIN
     WHERE a.data_date=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -3453,6 +3454,15 @@ CREATE PROCEDURE adm.py_cx_envbld_rural_bnk_cards(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_envbld_rural_bnk_cards.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -3465,31 +3475,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_envbld_rural_bnk_cards.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_rural_bnk_cards WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO edw.py_cx_envbld_rural_bnk_cards
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3522,7 +3518,7 @@ BEGIN
  /* ------------------------------------------------------------------------ */
    
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 3; 
+   V_STEP_ID := 3; 
   INSERT INTO edw.py_cx_envbld_rural_bnk_cards
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3554,12 +3550,12 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 4;
+  V_STEP_ID := 4;
     DELETE FROM adm.py_cx_envbld_rural_bnk_cards WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-   SET V_STEP_ID = 5;
+   V_STEP_ID := 5;
   INSERT INTO adm.py_cx_envbld_rural_bnk_cards
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3607,7 +3603,7 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 6;
+  V_STEP_ID := 6;
   INSERT INTO adm.py_cx_envbld_rural_bnk_cards
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -3654,6 +3650,11 @@ BEGIN
     where  a.data_date=substr(V_ACCT_ID,1,6) ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -3665,6 +3666,15 @@ CREATE PROCEDURE adm.py_cx_envbld_rural_cards_mkt(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'edw.py_cx_envbld_rural_cards_mkt.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -3677,30 +3687,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'edw.py_cx_envbld_rural_cards_mkt.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_rural_cards_mkt WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
 INSERT INTO edw.py_cx_envbld_rural_cards_mkt (
 DATA_DATE      ,-- 数据日期，账期                                                                                         
 AREA_ID        ,-- 地区代码                                                                                               
@@ -3733,7 +3729,7 @@ FROM ods.py_cx_envbld_rural_cards_mkt1 m LEFT JOIN edw.py_cx_area_ncpk_code b
  WHERE b.area_type_code='1' AND m.data_date=SUBSTR(V_ACCT_ID,1,6);  
    
    CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-   SET V_STEP_ID = 3; 
+   V_STEP_ID := 3; 
    
    INSERT INTO edw.py_cx_envbld_rural_cards_mkt (
 DATA_DATE      ,-- 数据日期，账期                                                                                         
@@ -3769,7 +3765,7 @@ FROM ods.py_cx_envbld_rural_cards_mkt1 m LEFT JOIN edw.py_cx_area_ncpk_code b
  
  
  -- ods.py_cx_envbld_rural_cards_mkt2汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 4;   
+   V_STEP_ID := 4;   
    INSERT INTO edw.py_cx_envbld_rural_cards_mkt (
 DATA_DATE      ,-- 数据日期，账期                                                                                         
 AREA_ID        ,-- 地区代码                                                                                               
@@ -3803,7 +3799,7 @@ FROM ods.py_cx_envbld_rural_cards_mkt2 m LEFT JOIN edw.py_cx_area_ncpk_code b
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
      -- ods.py_cx_envbld_rural_cards_mkt2汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 5;   
+   V_STEP_ID := 5;   
 INSERT INTO edw.py_cx_envbld_rural_cards_mkt (
 DATA_DATE      ,-- 数据日期，账期                                                                                         
 AREA_ID        ,-- 地区代码                                                                                               
@@ -3838,7 +3834,7 @@ FROM ods.py_cx_envbld_rural_cards_mkt2 m LEFT JOIN edw.py_cx_area_ncpk_code b
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
    -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-     SET V_STEP_ID = 6;  
+     V_STEP_ID := 6;  
      
      INSERT INTO adm.py_cx_envbld_rural_cards_mkt (
 DATA_DATE              ,
@@ -3890,7 +3886,7 @@ LEFT JOIN
     ON m.org_id=c.org_id
     WHERE m.data_date=SUBSTR(V_ACCT_ID,1,6) ;
     
-      SET V_STEP_ID = 7; 
+      V_STEP_ID := 7; 
     
  INSERT INTO adm.py_cx_envbld_rural_cards_mkt (
 DATA_DATE              ,
@@ -3943,6 +3939,11 @@ LEFT JOIN
     WHERE  m.data_date=SUBSTR(V_ACCT_ID,1,6) ;
    
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -3954,6 +3955,15 @@ CREATE PROCEDURE adm.py_cx_envbld_rural_cls(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_envbld_rural_cls.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -3966,31 +3976,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_envbld_rural_cls.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_rural_cls WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO edw.py_cx_envbld_rural_cls
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -4025,7 +4021,7 @@ BEGIN
  /* ------------------------------------------------------------------------ */
    
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 3; 
+   V_STEP_ID := 3; 
    INSERT INTO edw.py_cx_envbld_rural_cls
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -4059,12 +4055,12 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 4;
+  V_STEP_ID := 4;
     DELETE FROM adm.py_cx_envbld_rural_cls WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-   SET V_STEP_ID = 5;
+   V_STEP_ID := 5;
   INSERT INTO adm.py_cx_envbld_rural_cls
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -4116,7 +4112,7 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 6;
+  V_STEP_ID := 6;
   INSERT INTO adm.py_cx_envbld_rural_cls
                (
                   DATA_DATE            , -- 数据日期，账期          
@@ -4167,6 +4163,11 @@ BEGIN
     WHERE  a.data_date=SUBSTR(V_ACCT_ID,1,6) ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -4178,6 +4179,15 @@ CREATE PROCEDURE adm.py_cx_envbld_rural_ncpi_tltyp(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'edw.py_cx_envbld_rural_ncpi_tltyp.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -4190,31 +4200,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'edw.py_cx_envbld_rural_ncpi_tltyp.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_rural_ncpi_tltyp WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods.py_cx_envbld_rural_ncpi_tltyp1汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
    
 INSERT INTO edw.py_cx_envbld_rural_ncpi_tltyp (
 DATA_DATE      ,-- 数据日期，账期                                      
@@ -4249,7 +4245,7 @@ FROM ods.py_cx_envbld_rural_ncpi_tltyp1 t LEFT JOIN edw.py_cx_area_ncpk_code b
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
      /* ------------------------------------------------------------------------ */
       -- ods.py_cx_envbld_rural_ncpi_tltyp1汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 3;
+   V_STEP_ID := 3;
    INSERT INTO edw.py_cx_envbld_rural_ncpi_tltyp (
 DATA_DATE      ,-- 数据日期，账期                                      
 AREA_ID        ,-- 地区代码                                            
@@ -4281,7 +4277,7 @@ FROM ods.py_cx_envbld_rural_ncpi_tltyp1 t LEFT JOIN edw.py_cx_area_ncpk_code b
      CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
           /* ------------------------------------------------------------------------ */
       -- ods.py_cx_envbld_rural_ncpi_tltyp2汇总到edw，添加地区名称，区分地区类型  --插入农村数据      
-   SET V_STEP_ID = 4;
+   V_STEP_ID := 4;
    INSERT INTO edw.py_cx_envbld_rural_ncpi_tltyp (
 DATA_DATE      ,-- 数据日期，账期                                      
 AREA_ID        ,-- 地区代码                                            
@@ -4315,7 +4311,7 @@ FROM ods.py_cx_envbld_rural_ncpi_tltyp2 t LEFT JOIN edw.py_cx_area_ncpk_code b
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
      /* ------------------------------------------------------------------------ */
       -- ods.py_cx_envbld_rural_ncpi_tltyp2汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 5;
+   V_STEP_ID := 5;
    INSERT INTO edw.py_cx_envbld_rural_ncpi_tltyp (
 DATA_DATE      ,-- 数据日期，账期                                      
 AREA_ID        ,-- 地区代码                                            
@@ -4349,7 +4345,7 @@ FROM ods.py_cx_envbld_rural_ncpi_tltyp2 t LEFT JOIN edw.py_cx_area_ncpk_code b
    
           
      -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-     SET V_STEP_ID = 6;
+     V_STEP_ID := 6;
      INSERT INTO adm.py_cx_envbld_rural_ncpi_tltyp (
 DATA_DATE              ,
 AREA_ID                ,
@@ -4394,7 +4390,7 @@ LEFT JOIN
     ON t.org_id=c.org_id
     WHERE t.data_date=SUBSTR(V_ACCT_ID,1,6) ;
    CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-SET V_STEP_ID = 7;
+V_STEP_ID := 7;
  INSERT INTO adm.py_cx_envbld_rural_ncpi_tltyp (
 DATA_DATE              ,
 AREA_ID                ,
@@ -4440,6 +4436,11 @@ LEFT JOIN
     WHERE t.data_date=SUBSTR(V_ACCT_ID,1,6);
     
    CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -4451,6 +4452,15 @@ CREATE PROCEDURE adm.py_cx_envbld_rural_static(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_envbld_rural_static.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -4463,31 +4473,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_envbld_rural_static.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_envbld_rural_static WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型--插入农村数据
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   INSERT INTO edw.py_cx_envbld_rural_static
                (
                  DATA_DATE      , -- 数据日期，账期         
@@ -4522,7 +4518,7 @@ BEGIN
  /* ------------------------------------------------------------------------ */
    
    -- ods汇总到edw，添加地区名称，区分地区类型--插入贫困数据
-   SET V_STEP_ID = 3;
+   V_STEP_ID := 3;
   INSERT INTO edw.py_cx_envbld_rural_static
                (
                  DATA_DATE      , -- 数据日期，账期         
@@ -4556,12 +4552,12 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 3;
+  V_STEP_ID := 3;
     DELETE FROM adm.py_cx_envbld_rural_static WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，生成报表展示adm表 
-   SET V_STEP_ID = 4;
+   V_STEP_ID := 4;
   INSERT INTO adm.py_cx_envbld_rural_static
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -4597,6 +4593,11 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -4608,6 +4609,15 @@ CREATE PROCEDURE adm.py_cx_env_support(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_env_support.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -4620,31 +4630,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_env_support.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM edw.py_cx_env_support WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入农村数据
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO edw.py_cx_env_support
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -4675,7 +4671,7 @@ BEGIN
  /* ------------------------------------------------------------------------ */
    
     -- ods汇总到edw，添加地区名称，区分地区类型  --插入贫困数据
-   SET V_STEP_ID = 3; 
+   V_STEP_ID := 3; 
    INSERT INTO edw.py_cx_env_support
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -4705,12 +4701,12 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 4;
+  V_STEP_ID := 4;
     DELETE FROM adm.py_cx_env_support WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，生成报表展示adm表，同时生成 异动分析结果表
-   SET V_STEP_ID = 5;
+   V_STEP_ID := 5;
   INSERT INTO adm.py_cx_env_support
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -4754,7 +4750,7 @@ BEGIN
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
-  SET V_STEP_ID = 6;
+  V_STEP_ID := 6;
   INSERT INTO adm.py_cx_env_support
                (
                  DATA_DATE            , -- 数据日期，账期          
@@ -4797,6 +4793,11 @@ BEGIN
     WHERE a.data_date=SUBSTR(V_ACCT_ID,1,6) ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -4808,6 +4809,15 @@ CREATE PROCEDURE adm.py_cx_map_fwdcity(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_map_fwdcity.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -4820,30 +4830,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_map_fwdcity.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-     SET V_STEP_ID = 1;
+     V_STEP_ID := 1;
     DELETE FROM adm.py_cx_map_fwdcity WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 城市地图语句					
  INSERT INTO adm.py_cx_map_fwdcity 
  SELECT a.data_date,
@@ -4902,6 +4898,11 @@ LEFT JOIN (SELECT data_date,area_id,SUM(DEBIT_CARD) AS DEBIT_CARD,SUM(CREDIT_CAR
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
    
  
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -4913,6 +4914,15 @@ CREATE PROCEDURE adm.py_cx_mod_change_tj(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_mod_change_tj.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -4925,30 +4935,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_mod_change_tj.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-     SET V_STEP_ID = 1;
+     V_STEP_ID := 1;
     DELETE FROM edw.py_cx_mod_change_tj WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
  -- 示范地区商户改造进展表					
 INSERT INTO edw.py_cx_mod_change_tj(
 DATA_DATE     , -- 数据日期，账期
@@ -4971,11 +4967,11 @@ FROM ods.py_cx_mod_change_tj WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
- SET V_STEP_ID = 3;
+ V_STEP_ID := 3;
     DELETE FROM adm.py_cx_mod_change_tj WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 4;
+   V_STEP_ID := 4;
  -- 示范地区商户改造进展表					
 INSERT INTO adm.py_cx_mod_change_tj(
 DATA_DATE     , -- 数据日期，账期
@@ -4999,7 +4995,7 @@ FROM edw.py_cx_mod_change_tj WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
  /* ------------------------------------------------------------------------ */
     
     
-       SET V_STEP_ID = 5;
+       V_STEP_ID := 5;
  -- 加工示范地区商户改造进展表					
 INSERT INTO adm.ana_cx_mth_mod_change_tj(
 DATA_DATE     , -- 数据日期，账期
@@ -5032,6 +5028,11 @@ WHERE  b.area_no IS NOT NULL and DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
  /* ------------------------------------------------------------------------ */
  
  
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -5043,6 +5044,15 @@ CREATE PROCEDURE adm.py_cx_mod_trade(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_mod_trade.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -5055,30 +5065,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_mod_trade.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
       DELETE FROM edw.py_cx_mod_trade WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- ods汇总到edw，添加地区名称，区分地区类型--插入农村数据
-   SET V_STEP_ID = 2;					
+   V_STEP_ID := 2;					
 INSERT INTO edw.py_cx_mod_trade(
 DATA_DATE       , -- 数据日期，账期
 model_area      , -- 示范地区      
@@ -5099,11 +5095,11 @@ tot_trade_amout  -- 累计交易额
 FROM ods.py_cx_mod_trade WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
      /* ------------------------------------------------------------------------ */
- SET V_STEP_ID = 3;
+ V_STEP_ID := 3;
           DELETE FROM adm.py_cx_mod_trade WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 4;					
+   V_STEP_ID := 4;					
 INSERT INTO adm.py_cx_mod_trade(
 DATA_DATE       , -- 数据日期，账期
 order_num       , -- 排序序号
@@ -5130,7 +5126,7 @@ WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
     
-     SET V_STEP_ID = 4;					
+     V_STEP_ID := 4;					
 INSERT INTO adm.ana_cx_mth_mod_trade
 SELECT    
 DATE_FORMAT(V_ACCT_ID,'%Y-%m-%d'), 
@@ -5158,6 +5154,11 @@ and DATA_DATE=SUBSTR(V_ACCT_ID,1,6)    ;
     
     
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -5167,29 +5168,24 @@ CREATE PROCEDURE adm.py_cx_mth_cash_active_area(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_mth_cash_active_area.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     
 
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_mth_cash_active_area.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.py_cx_mth_cash_active_area ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
  INSERT INTO adm.py_cx_mth_cash_active_area 
 SELECT 
   a.trade_date,
@@ -5244,6 +5240,11 @@ GROUP BY a.trade_date,
   b.area_code,
   b.city_code ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -5253,27 +5254,22 @@ CREATE PROCEDURE adm.py_cx_mth_cash_servinfo_active(
      IN  P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'edw.py_cx_mth_cash_servinfo_active.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'edw.py_cx_mth_cash_servinfo_active.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.py_cx_mth_cash_servinfo_active WHERE trade_date = SUBSTR(P_DATA_DATE,1,6);
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
     
 INSERT INTO adm.py_cx_mth_cash_servinfo_active
 SELECT  DISTINCT
@@ -5305,6 +5301,11 @@ village_code,
 FROM adm.px_cx_mth_cash_servinfo    GROUP BY village_code,SUBSTR(trade_date,1,6),shop_num HAVING MAX(trade_num)<10) a ON a.shop_num=s.shop_num 
 WHERE  s.shop_num IS NOT NULL AND s.shop_num!='' AND a.trade_date!='' AND a.trade_date IS NOT NULL; 
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -5314,37 +5315,37 @@ CREATE PROCEDURE adm.py_cx_org_id(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_org_id.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_org_id.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM dmcode.zf_t_org_biz_lvl;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO dmcode.zf_t_org_biz_lvl
       select * from dmcode.t_org_biz_lvl;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -5356,6 +5357,15 @@ CREATE PROCEDURE adm.py_cx_pay_change_tj(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_pay_change_tj.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -5368,30 +5378,16 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_pay_change_tj.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-     SET V_STEP_ID = 1;
+     V_STEP_ID := 1;
     DELETE FROM edw.py_cx_pay_change_tj WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
   INSERT INTO edw.py_cx_pay_change_tj
 SELECT DISTINCT
   t.data_date, -- '数据日期，账期'
@@ -5412,11 +5408,11 @@ WHERE t.data_date=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
  
- SET V_STEP_ID = 3;
+ V_STEP_ID := 3;
     DELETE FROM adm.py_cx_pay_change_tj WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 4;
+   V_STEP_ID := 4;
   INSERT INTO adm.py_cx_pay_change_tj
 SELECT 
   DATA_DATE, -- '数据日期，账期'
@@ -5433,11 +5429,11 @@ tot_trade_amount	-- '该场景累计交易金额'
 FROM edw.py_cx_pay_change_tj WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
-  SET V_STEP_ID = 5;
+  V_STEP_ID := 5;
     DELETE FROM adm.ana_cx_mth_pay_change_tj WHERE MONTH_2 = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-   SET V_STEP_ID = 6;
+   V_STEP_ID := 6;
  INSERT INTO adm.ana_cx_mth_pay_change_tj
 SELECT 
    DATE_FORMAT(CONCAT(t.data_date,'01'), '%Y-%m-%d'), -- '数据日期，账期'
@@ -5454,6 +5450,11 @@ t.tot_trade_amount	-- '该场景累计交易金额'
 FROM edw.py_cx_pay_change_tj t
 WHERE t.data_date=SUBSTR(V_ACCT_ID,1,6);
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -5465,6 +5466,15 @@ CREATE PROCEDURE adm.py_cx_reg_shop(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_reg_shop.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -5477,31 +5487,17 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_reg_shop.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-      SET V_STEP_ID = 1;
+      V_STEP_ID := 1;
     DELETE FROM edw.py_cx_reg_shop WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     -- edw汇总到adm，添加地区名称，区分地区类型--插入农村数据
-   SET V_STEP_ID = 2;
+   V_STEP_ID := 2;
   -- 广东省各地市云闪付APP注册用户数量统计表					
 INSERT INTO edw.py_cx_reg_shop(
 DATA_DATE, -- 数据日期，账期
@@ -5521,11 +5517,11 @@ FROM edw.py_cx_reg_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
  /* ------------------------------------------------------------------------ */
  
  
- SET V_STEP_ID = 3;
+ V_STEP_ID := 3;
     DELETE FROM adm.py_cx_reg_shop WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 4;
+    V_STEP_ID := 4;
   -- 广东省各地市云闪付APP注册用户数量统计表					
 INSERT INTO adm.py_cx_reg_shop(
 DATA_DATE, -- 数据日期，账期
@@ -5544,11 +5540,11 @@ FROM edw.py_cx_reg_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  /* ------------------------------------------------------------------------ */
     
-     SET V_STEP_ID = 5;
+     V_STEP_ID := 5;
     DELETE FROM adm.ana_cx_mth_reg_app WHERE month = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_STEP_ID = 6;
+    V_STEP_ID := 6;
   -- 广东省各地市云闪付APP注册用户数量统计表					
 INSERT INTO adm.ana_cx_mth_reg_app
 SELECT     
@@ -5563,6 +5559,11 @@ FROM edw.py_cx_reg_shop WHERE DATA_DATE=SUBSTR(V_ACCT_ID,1,6);
  /* ------------------------------------------------------------------------ */
     
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -5572,27 +5573,22 @@ CREATE PROCEDURE adm.py_cx_trade_check_info(
      IN  P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'edw.py_cx_trade_check_info.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'edw.py_cx_trade_check_info.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.py_cx_trade_check_info WHERE data_date = SUBSTR(P_DATA_DATE,1,6);
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
 INSERT INTO  adm.py_cx_trade_check_info 
 SELECT SUBSTR(P_DATA_DATE,1,6),a.*,
 IFNULL(b.serv_point,0),
@@ -5641,7 +5637,7 @@ ON a.area_code=e.area_no_id;
     
   
     
-    SET V_STEP_ID = 3;
+    V_STEP_ID := 3;
 INSERT INTO  adm.py_cx_trade_check_info 
 SELECT SUBSTR(P_DATA_DATE,1,6),a.*,
 IFNULL(b.serv_point,0),
@@ -5684,7 +5680,7 @@ ON a.termina_num=b.termina_num AND a.shop_num=b.shop_num
 GROUP BY a.area_no_id_2) e
 ON a.city_code=e.area_no_id_2;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-SET V_STEP_ID = 4;
+V_STEP_ID := 4;
  
 INSERT INTO  adm.py_cx_trade_check_info 
 SELECT SUBSTR(P_DATA_DATE,1,6),a.*,
@@ -5739,7 +5735,7 @@ ON a.termina_num=b.termina_num AND a.shop_num=b.shop_num
 GROUP BY a.area_no_id) e
 ON a.area_code=e.area_no_id;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-SET V_STEP_ID = 5;
+V_STEP_ID := 5;
 INSERT INTO  adm.py_cx_trade_check_info 
 SELECT SUBSTR(P_DATA_DATE,1,6),a.*,
 IFNULL(b.serv_point,0),
@@ -5789,7 +5785,7 @@ ON a.termina_num=b.termina_num AND a.shop_num=b.shop_num
 GROUP BY a.area_no_id_2) e
 ON a.city_code=e.area_no_id_2;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-SET V_STEP_ID = 6;
+V_STEP_ID := 6;
  
 INSERT INTO  adm.py_cx_trade_check_info 
 SELECT SUBSTR(P_DATA_DATE,1,4),a.*,
@@ -5837,7 +5833,7 @@ ON a.termina_num=b.termina_num AND a.shop_num=b.shop_num
 GROUP BY a.area_no_id) e
 ON a.area_code=e.area_no_id;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-SET V_STEP_ID = 7;
+V_STEP_ID := 7;
 INSERT INTO  adm.py_cx_trade_check_info 
 SELECT SUBSTR(P_DATA_DATE,1,4),a.*,
 IFNULL(b.serv_point,0),
@@ -5883,6 +5879,11 @@ ON a.city_code=e.area_no_id_2;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -5895,105 +5896,112 @@ CREATE PROCEDURE adm.py_cx_verity_table(
      IN V_ORG_ID     VARCHAR(15), 
      OUT RESULT_INT INT 
 )
-label:BEGIN 
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_verity_table.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    STG_TABLE_NAME_WHERE          	VARCHAR(50)  ;
+    ODS_TABLE_NAME_WHERE          	VARCHAR(50)  ;
+    STG_TABLE_NAME          	VARCHAR(50)  ;
+    ODS_TABLE_NAME          	VARCHAR(50)  ;
+    Result INT ;
+    i INT := 0;		      
+    AREA_NO_                 VARCHAR(50) := NULL;
+    ADD_DATE_                TIMESTAMP := NULL;
+    verity_file_table_count           INT  ; 
+    t_error INTEGER := 0;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_del_result TEXT;
+    v_at_falg BIGINT;
+    v_at_insert_result TEXT;
+    v_at_odsResult BIGINT;
+    v_at_query_ods_data TEXT;
+    v_at_resultState BIGINT;
+    v_at_sqlstr TEXT;
+    v_at_sqlstr_py_cx_verify_file_del TEXT;
+    v_at_sqlstr_py_cx_verify_file_details_del_data TEXT;
+    v_at_sqlstr_py_cx_verify_file_details_insert TEXT;
+    v_at_sqlstr_py_cx_verify_file_details_insert_indata TEXT;
+    v_at_sqlstr_py_cx_verify_file_details_update_data TEXT;
+    v_at_sqlstr_py_cx_verify_file_nodata_insert TEXT;
+    v_at_sqlstr_py_cx_verify_file_update TEXT;
+    v_at_sqlstr_two TEXT;
+    v_at_sumResult BIGINT;
+    v_at_up_state BIGINT;
+BEGIN
 	 
 	 
 	
 	
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_verity_table.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
-    
-    DECLARE STG_TABLE_NAME_WHERE          	VARCHAR(50)  ;
-    DECLARE ODS_TABLE_NAME_WHERE          	VARCHAR(50)  ;
-    DECLARE STG_TABLE_NAME          	VARCHAR(50)  ;
-    DECLARE ODS_TABLE_NAME          	VARCHAR(50)  ;
-    DECLARE Result INT ;
-    DECLARE i INT DEFAULT 0;		      
-    DECLARE AREA_NO_                 VARCHAR(50)  DEFAULT NULL;
-    DECLARE ADD_DATE_                TIMESTAMP  DEFAULT NULL;
-    DECLARE verity_file_table_count           INT  ; 
-    
-    
-    DECLARE t_error INTEGER DEFAULT 0;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-	SET t_error=1;
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log('',V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-        SET RESULT_INT = 0;
-    
-    END;
     
     
     
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
-    SET V_TABLE_NAME = UPPER(V_TABLE_NAME);
-    SET P_RESULT = 0;
-    SET V_STEP_ID = 1;  
-    SET i = V_TABLE_PARAM_NUM;
-    
-    SET STG_TABLE_NAME_WHERE = CONCAT("'","STG",".",V_TABLE_NAME,"'");
-    SET ODS_TABLE_NAME_WHERE = CONCAT("'","ODS",".",V_TABLE_NAME,"'");
-    SET STG_TABLE_NAME = CONCAT("STG",".",V_TABLE_NAME);
-    SET ODS_TABLE_NAME = CONCAT("ODS",".",V_TABLE_NAME);
     
     
-    SET @odsResult = 0;
-    SET @query_ods_data = CONCAT("select count(*) INTO @odsResult from ",ODS_TABLE_NAME," where org_no = '",V_ORG_ID,"' and data_date= '",V_ACCT_ID,"'");
-    PREPARE stmt_ods FROM @query_ods_data;  
-    EXECUTE stmt_ods;  
-    DEALLOCATE PREPARE stmt_ods; 
-    IF (@odsResult=0) THEN
-	 SET i = 2;
-	 LEAVE label; 
+    
+    V_DATES := CONCAT(V_ACCT_ID,'01');
+    V_TABLE_NAME := UPPER(V_TABLE_NAME);
+    P_RESULT := 0;
+    V_STEP_ID := 1;  
+    i := V_TABLE_PARAM_NUM;
+    
+    STG_TABLE_NAME_WHERE := CONCAT("'","STG",".",V_TABLE_NAME,"'");
+    ODS_TABLE_NAME_WHERE := CONCAT("'","ODS",".",V_TABLE_NAME,"'");
+    STG_TABLE_NAME := CONCAT("STG",".",V_TABLE_NAME);
+    ODS_TABLE_NAME := CONCAT("ODS",".",V_TABLE_NAME);
+    
+    
+    v_at_odsResult := 0;
+    v_at_query_ods_data := CONCAT("select count(*) INTO @odsResult from ",ODS_TABLE_NAME," where org_no = '",V_ORG_ID,"' and data_date= '",V_ACCT_ID,"'");
+    EXECUTE IMMEDIATE v_at_query_ods_data;
+    IF (v_at_odsResult=0) THEN
+	 i := 2;
+	 RETURN; 
     END IF;	
 		
     
     IF (i=1) THEN
 	
-	BEGIN
-		DECLARE TABLE_NAME          	VARCHAR(50)  ;
-		DECLARE START_ROW          	VARCHAR(50)  ;
-	        DECLARE TEMPLATE_ID                 VARCHAR(50)  ;
-	        DECLARE COLUMN_NAME                 VARCHAR(50)  ;
-	        DECLARE COLUMN_TYPE                 VARCHAR(50)  ;
-	        DECLARE CELL         	        VARCHAR(50)  ;
-	        DECLARE up_load_table               VARCHAR(50)  ;
-	        DECLARE target_description          VARCHAR(50)  ;
-	        DECLARE compare_same_previous_begin       DOUBLE  ;
-	        DECLARE compare_same_previous_end       DOUBLE  ;
-	        DECLARE compare_chain_base_begin          DOUBLE  ;
-	        DECLARE compare_chain_base_end          DOUBLE  ;
-	        DECLARE compare_same_previous_fs_begin       DOUBLE  ;
-	        DECLARE compare_same_previous_fs_end       DOUBLE  ;
-	        DECLARE compare_chain_base_fs_begin          DOUBLE  ;
-	        DECLARE compare_chain_base_fs_end          DOUBLE  ;
-	       	DECLARE COLUMN_GROUP               VARCHAR(500);
+DECLARE
+		TABLE_NAME          	VARCHAR(50)  ;
+		START_ROW          	VARCHAR(50)  ;
+	        TEMPLATE_ID                 VARCHAR(50)  ;
+	        COLUMN_NAME                 VARCHAR(50)  ;
+	        COLUMN_TYPE                 VARCHAR(50)  ;
+	        CELL         	        VARCHAR(50)  ;
+	        up_load_table               VARCHAR(50)  ;
+	        target_description          VARCHAR(50)  ;
+	        compare_same_previous_begin       DOUBLE  ;
+	        compare_same_previous_end       DOUBLE  ;
+	        compare_chain_base_begin          DOUBLE  ;
+	        compare_chain_base_end          DOUBLE  ;
+	        compare_same_previous_fs_begin       DOUBLE  ;
+	        compare_same_previous_fs_end       DOUBLE  ;
+	        compare_chain_base_fs_begin          DOUBLE  ;
+	        compare_chain_base_fs_end          DOUBLE  ;
+	       	COLUMN_GROUP               VARCHAR(500);
+	       	v_tableid          VARCHAR(50)  ;
+	       	v_cell          VARCHAR(50)  ;
+	       	v_pos          VARCHAR(50)  ;
+	       	v_dscr          VARCHAR(50)  ;
+	       	v_where          VARCHAR(50)  ;
+	        done INT := FALSE; 
+		CURSOR My_Cursor IS SELECT * FROM adm.v_py_cx_verity_table;
+BEGIN
 	       	
-	       	DECLARE v_tableid          VARCHAR(50)  ;
-	       	DECLARE v_cell          VARCHAR(50)  ;
-	       	DECLARE v_pos          VARCHAR(50)  ;
-	       	DECLARE v_dscr          VARCHAR(50)  ;
-	       	DECLARE v_where          VARCHAR(50)  ;
 	       	
-	        DECLARE done INT DEFAULT FALSE; 
-		DECLARE My_Cursor CURSOR FOR (SELECT * FROM adm.v_py_cx_verity_table);
-		DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;  
 		
 		
 		DROP VIEW IF EXISTS adm.v_py_cx_verity_table;  
-		SET @sqlstr = "CREATE VIEW adm.v_py_cx_verity_table as ";  
-		SET @sqlstr = CONCAT(@sqlstr , "SELECT 
+		v_at_sqlstr := "CREATE VIEW adm.v_py_cx_verity_table as ";  
+		v_at_sqlstr := CONCAT(v_at_sqlstr , "SELECT 
 					        c.table_name,
 					         START_ROW,
 					        TEMPLATE_ID,
@@ -6034,13 +6042,12 @@ label:BEGIN
 					    INNER JOIN 
 					    (SELECT * FROM edw.py_cx_verify_labelset WHERE table_name = '",V_TABLE_NAME,"' AND state = 1) d 
 					    ON (c.cell = d.cell_number AND d.state=1) OR FIND_IN_SET(CONCAT(d.cell_number,'*'), c.cell) ");
-		PREPARE stmt FROM @sqlstr;  
-		EXECUTE stmt;  
-		DEALLOCATE PREPARE stmt;  
+		EXECUTE IMMEDIATE v_at_sqlstr;
 		
-		SET @falg = 1;
+		v_at_falg := 1;
 		OPEN My_Cursor;
-		myLoop: LOOP
+		<<myLoop>>
+		LOOP
 			
 			FETCH My_Cursor INTO TABLE_NAME,START_ROW,TEMPLATE_ID,COLUMN_NAME,COLUMN_TYPE,CELL,up_load_table,target_description,
 				compare_same_previous_begin,compare_same_previous_end,
@@ -6048,13 +6055,15 @@ label:BEGIN
 				compare_same_previous_fs_begin,compare_same_previous_fs_end,
 				compare_chain_base_fs_begin,compare_chain_base_fs_end,
 				v_tableid,v_cell,v_pos,v_dscr,v_where;
+			EXIT WHEN My_Cursor%NOTFOUND;
 			IF done THEN 
-				LEAVE myLoop; 
+				EXIT myLoop; 
 			END IF;	
 			
 			
-			BEGIN
-				DECLARE thb_count                 INT  ; 
+DECLARE
+				thb_count                 INT  ; 
+BEGIN
 				
 				
 				
@@ -6064,8 +6073,8 @@ label:BEGIN
 				
 				
 				DROP VIEW IF EXISTS adm.v_py_cx_verity_table_ods_data;  
-				SET @sqlstr_two = "CREATE VIEW adm.v_py_cx_verity_table_ods_data as ";  
-				SET @sqlstr_two = CONCAT(@sqlstr_two , "
+				v_at_sqlstr_two := "CREATE VIEW adm.v_py_cx_verity_table_ods_data as ";  
+				v_at_sqlstr_two := CONCAT(v_at_sqlstr_two , "
 							SELECT a.area_no,a.data_date,a.org_no,a.org_id,a.add_date,a.",COLUMN_NAME," AS NOW_DATA,b.",COLUMN_NAME," HB_DATA,
 							c.",COLUMN_NAME," TB_DATA,d.",COLUMN_NAME," HB_DATA_FS,e.",COLUMN_NAME," TB_DATA_FS,
 							ROUND(IFNULL(((a.",COLUMN_NAME,"-b.",COLUMN_NAME,")/b.",COLUMN_NAME,"),0),2) AS HB_RATE,
@@ -6105,9 +6114,7 @@ label:BEGIN
 							ON a.area_no = c.area_no AND  a.org_no = c.org_no 
 							
 							");
-				PREPARE stmt_two FROM @sqlstr_two;  
-				EXECUTE stmt_two;  
-				DEALLOCATE PREPARE stmt_two;
+				EXECUTE IMMEDIATE v_at_sqlstr_two;
 				
 				
 				SELECT COUNT(1) FROM adm.v_py_cx_verity_table_ods_data  WHERE (HB_RATE NOT BETWEEN compare_chain_base_begin AND compare_chain_base_end) 
@@ -6115,18 +6122,18 @@ label:BEGIN
 											OR ( (compare_chain_base_fs_begin !=0.0 OR compare_chain_base_fs_end !=0.0) AND HB_RATE_FS NOT BETWEEN compare_chain_base_fs_begin AND compare_chain_base_fs_end)  
 											OR ( (compare_same_previous_fs_begin!=0.0 OR compare_same_previous_fs_end!=0.0) AND TB_RATE_FS NOT BETWEEN compare_same_previous_fs_begin AND compare_same_previous_fs_end) INTO thb_count;
 				
-				SET @sqlstr_py_cx_verify_file_del = CONCAT("delete from edw.py_cx_verify_file where payment_days = '",V_ACCT_ID,"' and report_org= '",V_ORG_ID,"'");						
+				v_at_sqlstr_py_cx_verify_file_del := CONCAT("delete from edw.py_cx_verify_file where payment_days = '",V_ACCT_ID,"' and report_org= '",V_ORG_ID,"'");						
 				
 				SELECT COUNT(1) FROM edw.py_cx_verify_file WHERE payment_days=V_ACCT_ID AND report_org=V_ORG_ID INTO verity_file_table_count;
 				
-				SET @sqlstr_py_cx_verify_file_details_insert = CONCAT("INSERT INTO  edw.py_cx_verify_filedetails",
+				v_at_sqlstr_py_cx_verify_file_details_insert := CONCAT("INSERT INTO  edw.py_cx_verify_filedetails",
 											" ( SELECT null,'11111','",up_load_table,"','",target_description,"',CELL,ROWS_ID,NOW_DATA,TB_DATA,HB_DATA,TB_DATA_FS,HB_DATA_FS,'' ",
 											" FROM adm.v_py_cx_verity_table_ods_data WHERE (HB_RATE NOT BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")   OR (TB_RATE NOT BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") OR ( (",compare_chain_base_fs_begin," !=0.0 or ",compare_chain_base_fs_end," !=0.0) AND HB_RATE_FS NOT BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,")   OR ( (",compare_same_previous_fs_begin,"!=0.0 or ",compare_same_previous_fs_end,"!=0.0) AND TB_RATE_FS NOT BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,") )");
 						
 				
 				
 				IF (thb_count!=0) THEN
-					SET @falg = 0;
+					v_at_falg := 0;
 					
 					IF (AREA_NO_ IS NULL) THEN
 						SELECT AREA_NO,ADD_DATE INTO AREA_NO_,ADD_DATE_ FROM adm.v_py_cx_verity_table_ods_data LIMIT 1 ;
@@ -6136,26 +6143,24 @@ label:BEGIN
 					IF (verity_file_table_count=0) THEN
 					
 						
-						PREPARE stmt_py_cx_verify_file_details_insert FROM @sqlstr_py_cx_verify_file_details_insert;  
-						EXECUTE stmt_py_cx_verify_file_details_insert;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_details_insert; 
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_insert;
 					ELSE
 						
 						
-						SET @sqlstr_py_cx_verify_file_details_del_data = CONCAT("delete  b from 
+						v_at_sqlstr_py_cx_verify_file_details_del_data := CONCAT("delete  b from 
 										edw.py_cx_verify_filedetails b 
 										INNER JOIN edw.py_cx_verify_file a ON a.id = b.file_id AND b.template_name = '",up_load_table,"' AND payment_days='",V_ACCT_ID,"' AND report_org='",V_ORG_ID,"' 
 										INNER JOIN adm.v_py_cx_verity_table_ods_data c ON  b.row_num = c.rows_id AND b.column_num = c.cell AND ( (c.hb_rate BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")  and (c.tb_rate BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") and (",compare_chain_base_fs_begin,"=0.0 and ",compare_chain_base_fs_end,"=0.0 OR  (c.hb_rate_fs BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,") ) and  (",compare_same_previous_fs_begin,"=0.0 and ",compare_same_previous_fs_end,"=0.0 OR  (c.tb_rate_fs BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,")) )
 										");
 										
 						
-						SET @sqlstr_py_cx_verify_file_details_update_data = CONCAT("UPDATE edw.py_cx_verify_filedetails b 
+						v_at_sqlstr_py_cx_verify_file_details_update_data := CONCAT("UPDATE edw.py_cx_verify_filedetails b 
 										INNER JOIN edw.py_cx_verify_file a ON a.id = b.file_id AND b.template_name = '",up_load_table,"' AND payment_days='",V_ACCT_ID,"' AND report_org='",V_ORG_ID,"' 
 										INNER JOIN adm.v_py_cx_verity_table_ods_data c ON  b.column_num = c.cell AND b.row_num = c.rows_id AND ( (c.hb_rate NOT BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")  OR (c.tb_rate NOT BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") OR ( (",compare_chain_base_fs_begin,"!=0.0 or ",compare_chain_base_fs_end,"!=0.0) AND  (c.hb_rate_fs NOT BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,")) OR ( (",compare_same_previous_fs_begin,"!=0.0 or ",compare_same_previous_fs_end,"!=0.0) and  (c.tb_rate_fs NOT BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,")) ) 
 										SET b.current_data = c.now_data,b.last_data = c.tb_data,b.sequential_data = c.hb_data,b.sequential_data_fs = c.hb_data_fs,b.last_data_fs = c.tb_data_fs");
 										             
 						
-						SET @sqlstr_py_cx_verify_file_details_insert_indata = CONCAT("
+						v_at_sqlstr_py_cx_verify_file_details_insert_indata := CONCAT("
 								INSERT INTO  edw.py_cx_verify_filedetails
 								SELECT null,a.id,'",up_load_table,"','",target_description,"',CELL,ROWS_ID,NOW_DATA,TB_DATA,HB_DATA,TB_DATA_FS,HB_DATA_FS, '' 
 								FROM  adm.v_py_cx_verity_table_ods_data 
@@ -6168,17 +6173,11 @@ label:BEGIN
 								) AND ( (HB_RATE NOT BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")  OR (TB_RATE NOT BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") OR ( (",compare_chain_base_fs_begin," !=0.0 or ",compare_chain_base_fs_end," !=0.0) AND HB_RATE_FS NOT BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,")   OR  ( (",compare_same_previous_fs_begin,"!=0.0 or ",compare_same_previous_fs_end,"!=0.0) AND TB_RATE_FS NOT BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,") )
 								");				
 											
-						PREPARE stmt_py_cx_verify_file_details_del FROM @sqlstr_py_cx_verify_file_details_del_data;  
-						EXECUTE stmt_py_cx_verify_file_details_del;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_details_del; 
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_del_data;
 						
-						PREPARE stmt_py_cx_verify_file_details_update FROM @sqlstr_py_cx_verify_file_details_update_data;  
-						EXECUTE stmt_py_cx_verify_file_details_update;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_details_update; 
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_update_data;
 						
-						PREPARE stmt_py_cx_verify_file_details_insert FROM @sqlstr_py_cx_verify_file_details_insert_indata;  
-						EXECUTE stmt_py_cx_verify_file_details_insert;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_details_insert; 
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_insert_indata;
 					END IF;
 					
 				ELSE
@@ -6187,108 +6186,98 @@ label:BEGIN
 					END IF;
 					
 					
-					SET @sqlstr_py_cx_verify_file_details_del_data = CONCAT("delete  b from 
+					v_at_sqlstr_py_cx_verify_file_details_del_data := CONCAT("delete  b from 
 									edw.py_cx_verify_filedetails b 
 									INNER JOIN edw.py_cx_verify_file a ON a.id = b.file_id AND b.template_name = '",up_load_table,"' AND payment_days='",V_ACCT_ID,"' AND report_org='",V_ORG_ID,"' 
 									INNER JOIN adm.v_py_cx_verity_table_ods_data c ON  b.row_num = c.rows_id AND b.column_num = c.cell AND (  (c.hb_rate BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")  and (c.tb_rate BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") and (",compare_chain_base_fs_begin,"=0.0 and ",compare_chain_base_fs_end,"=0.0 OR  (c.hb_rate_fs BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,") ) and  (",compare_same_previous_fs_begin,"=0.0 and ",compare_same_previous_fs_end,"=0.0 OR  (c.tb_rate_fs BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,"))  )
 									");
-					PREPARE stmt_py_cx_verify_file_details_del FROM @sqlstr_py_cx_verify_file_details_del_data;  
-					EXECUTE stmt_py_cx_verify_file_details_del;  
-					DEALLOCATE PREPARE stmt_py_cx_verify_file_details_del; 
+					EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_del_data;
 				END IF;	
 			END;
 				
 			END LOOP myLoop;	
 			
-			SET @up_state=2;
-			SET @sqlstr_py_cx_verify_file_nodata_insert = CONCAT("INSERT INTO  edw.py_cx_verify_file",
-									" values( null,'",AREA_NO_,"','",V_ACCT_ID,"','",V_ORG_ID,"','','",@up_state,"','",ADD_DATE_,"','adm.",V_TABLE_NAME,"','",V_ACCT_ID,"','','' )");
+			v_at_up_state := 2;
+			v_at_sqlstr_py_cx_verify_file_nodata_insert := CONCAT("INSERT INTO  edw.py_cx_verify_file",
+									" values( null,'",AREA_NO_,"','",V_ACCT_ID,"','",V_ORG_ID,"','','",v_at_up_state,"','",ADD_DATE_,"','adm.",V_TABLE_NAME,"','",V_ACCT_ID,"','','' )");
 												
 			
 			
-			SET @del_result = CONCAT(" delete from edw.py_cx_verify_result where DATA_DATE='",V_ACCT_ID,"' and ORG_NO='",V_ORG_ID,"' and TABLE_NAME='",V_TABLE_NAME,"' ");
-			PREPARE stmt_del_result FROM @del_result;  
-			EXECUTE stmt_del_result;  
-			DEALLOCATE PREPARE stmt_del_result;
+			v_at_del_result := CONCAT(" delete from edw.py_cx_verify_result where DATA_DATE='",V_ACCT_ID,"' and ORG_NO='",V_ORG_ID,"' and TABLE_NAME='",V_TABLE_NAME,"' ");
+			EXECUTE IMMEDIATE v_at_del_result;
 				
 			
-			IF (@falg = 1) THEN
+			IF (v_at_falg = 1) THEN
 			
 				
 				
-				SET @resultState = '1';
-				SET @insert_result = CONCAT(" insert into edw.py_cx_verify_result values('",V_ACCT_ID,"','",V_ORG_ID,"','",@resultState,"','",V_TABLE_NAME,"') ");
-				PREPARE stmt_insert_result FROM @insert_result;  
-				EXECUTE stmt_insert_result;  
-				DEALLOCATE PREPARE stmt_insert_result;
+				v_at_resultState := '1';
+				v_at_insert_result := CONCAT(" insert into edw.py_cx_verify_result values('",V_ACCT_ID,"','",V_ORG_ID,"','",v_at_resultState,"','",V_TABLE_NAME,"') ");
+				EXECUTE IMMEDIATE v_at_insert_result;
 				
 				IF (verity_file_table_count=0) THEN
 				
 					
-					SET @up_state=1;
-					SET @sqlstr_py_cx_verify_file_nodata_insert = CONCAT("INSERT INTO  edw.py_cx_verify_file",
-										" values( null,'",AREA_NO_,"','",V_ACCT_ID,"','",V_ORG_ID,"','','",@up_state,"','",ADD_DATE_,"','adm.",V_TABLE_NAME,"','",V_ACCT_ID,"','','' )");
-					PREPARE stmt_py_cx_verify_file_insert FROM @sqlstr_py_cx_verify_file_nodata_insert;  
-					EXECUTE stmt_py_cx_verify_file_insert;  
-					DEALLOCATE PREPARE stmt_py_cx_verify_file_insert;
+					v_at_up_state := 1;
+					v_at_sqlstr_py_cx_verify_file_nodata_insert := CONCAT("INSERT INTO  edw.py_cx_verify_file",
+										" values( null,'",AREA_NO_,"','",V_ACCT_ID,"','",V_ORG_ID,"','','",v_at_up_state,"','",ADD_DATE_,"','adm.",V_TABLE_NAME,"','",V_ACCT_ID,"','','' )");
+					EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_nodata_insert;
 				ELSE
 					
-					SELECT COUNT(1) INTO @sumResult FROM edw.py_cx_verify_result WHERE data_date=V_ACCT_ID AND org_no=V_ORG_ID AND state=0;
+					SELECT COUNT(1) INTO v_at_sumResult FROM edw.py_cx_verify_result WHERE data_date=V_ACCT_ID AND org_no=V_ORG_ID AND state=0;
 					
-					IF(@sumResult=0) THEN
+					IF(v_at_sumResult=0) THEN
 						
-						SET @sqlstr_py_cx_verify_file_update = CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 1  ,report_date='",ADD_DATE_,"'  WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
-						PREPARE stmt_py_cx_verify_file_update FROM @sqlstr_py_cx_verify_file_update;  
-						EXECUTE stmt_py_cx_verify_file_update;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_update;
+						v_at_sqlstr_py_cx_verify_file_update := CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 1  ,report_date='",ADD_DATE_,"'  WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_update;
 					ELSE
 						
-						SET @sqlstr_py_cx_verify_file_update = CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 2  ,report_date='",ADD_DATE_,"' WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
-						PREPARE stmt_py_cx_verify_file_update FROM @sqlstr_py_cx_verify_file_update;  
-						EXECUTE stmt_py_cx_verify_file_update;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_update;
+						v_at_sqlstr_py_cx_verify_file_update := CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 2  ,report_date='",ADD_DATE_,"' WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_update;
 					END IF;
 					 
 				END IF;
 				
 			ELSE
 				
-				SET @resultState = '0';
-				SET @insert_result = CONCAT(" insert into edw.py_cx_verify_result values('",V_ACCT_ID,"','",V_ORG_ID,"','",@resultState,"','",V_TABLE_NAME,"') ");
-				PREPARE stmt_insert_result FROM @insert_result;  
-				EXECUTE stmt_insert_result;  
-				DEALLOCATE PREPARE stmt_insert_result;	
+				v_at_resultState := '0';
+				v_at_insert_result := CONCAT(" insert into edw.py_cx_verify_result values('",V_ACCT_ID,"','",V_ORG_ID,"','",v_at_resultState,"','",V_TABLE_NAME,"') ");
+				EXECUTE IMMEDIATE v_at_insert_result;
 			
 				IF (verity_file_table_count=0) THEN
 				
 					
 					
-					SET @up_state=2;
-					PREPARE stmt_py_cx_verify_file_insert FROM @sqlstr_py_cx_verify_file_nodata_insert;  
-					EXECUTE stmt_py_cx_verify_file_insert;  
-					DEALLOCATE PREPARE stmt_py_cx_verify_file_insert; 
+					v_at_up_state := 2;
+					EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_nodata_insert;
 					
 					
-					SET Result=LAST_INSERT_ID();
+					Result := LAST_INSERT_ID();
 					UPDATE edw.py_cx_verify_filedetails SET file_id = Result WHERE file_id='11111';
 				ELSE
 					
-					SET @sqlstr_py_cx_verify_file_update = CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 2  ,report_date='",ADD_DATE_,"' WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
-					PREPARE stmt_py_cx_verify_file_update FROM @sqlstr_py_cx_verify_file_update;  
-					EXECUTE stmt_py_cx_verify_file_update;  
-					DEALLOCATE PREPARE stmt_py_cx_verify_file_update; 
+					v_at_sqlstr_py_cx_verify_file_update := CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 2  ,report_date='",ADD_DATE_,"' WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
+					EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_update;
 				END IF;
 			END IF;
 	END;
 	
-	SET RESULT_INT = 1;
-    ELSEIF (i>1) THEN
+	RESULT_INT := 1;
+    ELSIF (i>1) THEN
 	 
-	SET i=3;
+	i := 3;
     
     END IF;
     
     CALL etl.edw_proc_trace_log('',V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+	t_error := 1;
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log('',V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
+        RESULT_INT := 0;
+    
     END;
 /
 
@@ -6301,58 +6290,67 @@ CREATE PROCEDURE adm.py_cx_verity_table_rh(
      IN V_ORG_ID     VARCHAR(15), 
      OUT RESULT_INT INT
 )
-label:BEGIN
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_verity_table_rh.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    STG_TABLE_NAME_WHERE          	VARCHAR(50)  ;
+    ODS_TABLE_NAME_WHERE          	VARCHAR(50)  ;
+    STG_TABLE_NAME          	VARCHAR(50)  ;
+    ODS_TABLE_NAME          	VARCHAR(50)  ;
+    Result INT ;
+    i INT := 0;		      
+    AREA_NO_                 VARCHAR(50) := NULL;
+    ADD_DATE_                TIMESTAMP := NULL;
+    verity_file_table_count           INT  ; 
+    t_error INTEGER := 0;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_del_result TEXT;
+    v_at_falg BIGINT;
+    v_at_insert_result TEXT;
+    v_at_odsResult BIGINT;
+    v_at_query_ods_data TEXT;
+    v_at_resultState BIGINT;
+    v_at_sqlstr TEXT;
+    v_at_sqlstr_py_cx_verify_file_del TEXT;
+    v_at_sqlstr_py_cx_verify_file_details_del_data TEXT;
+    v_at_sqlstr_py_cx_verify_file_details_insert TEXT;
+    v_at_sqlstr_py_cx_verify_file_details_insert_indata TEXT;
+    v_at_sqlstr_py_cx_verify_file_details_update_data TEXT;
+    v_at_sqlstr_py_cx_verify_file_nodata_insert TEXT;
+    v_at_sqlstr_py_cx_verify_file_update TEXT;
+    v_at_sqlstr_two TEXT;
+    v_at_sumResult BIGINT;
+    v_at_up_state BIGINT;
+BEGIN
 	 
 	
 	
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_verity_table_rh.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
-    
-    DECLARE STG_TABLE_NAME_WHERE          	VARCHAR(50)  ;
-    DECLARE ODS_TABLE_NAME_WHERE          	VARCHAR(50)  ;
-    DECLARE STG_TABLE_NAME          	VARCHAR(50)  ;
-    DECLARE ODS_TABLE_NAME          	VARCHAR(50)  ;
-    DECLARE Result INT ;
-    DECLARE i INT DEFAULT 0;		      
-    DECLARE AREA_NO_                 VARCHAR(50)  DEFAULT NULL;
-    DECLARE ADD_DATE_                TIMESTAMP  DEFAULT NULL;
-    DECLARE verity_file_table_count           INT  ; 
     
     
-    DECLARE t_error INTEGER DEFAULT 0;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log('',V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-        SET RESULT_INT = 0;
-        SET RESULT_INT = 0;
-        
-    END;
     
     
-    SET V_STEP_ID = 1; 
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
-    SET V_TABLE_NAME = UPPER(V_TABLE_NAME);
-    SET P_RESULT = 0;
-    SET V_STEP_ID = 2;  
-    SET i = V_TABLE_PARAM_NUM;
-    SET STG_TABLE_NAME_WHERE = CONCAT("'","STG",".",V_TABLE_NAME,"'");
-    SET ODS_TABLE_NAME_WHERE = CONCAT("'","ODS",".",V_TABLE_NAME,"'");
-    SET STG_TABLE_NAME = CONCAT("STG",".",V_TABLE_NAME);
-    SET ODS_TABLE_NAME = CONCAT("ODS",".",V_TABLE_NAME);
+    
+    V_STEP_ID := 1; 
+    V_DATES := CONCAT(V_ACCT_ID,'01');
+    V_TABLE_NAME := UPPER(V_TABLE_NAME);
+    P_RESULT := 0;
+    V_STEP_ID := 2;  
+    i := V_TABLE_PARAM_NUM;
+    STG_TABLE_NAME_WHERE := CONCAT("'","STG",".",V_TABLE_NAME,"'");
+    ODS_TABLE_NAME_WHERE := CONCAT("'","ODS",".",V_TABLE_NAME,"'");
+    STG_TABLE_NAME := CONCAT("STG",".",V_TABLE_NAME);
+    ODS_TABLE_NAME := CONCAT("ODS",".",V_TABLE_NAME);
     
     
-    SET @odsResult = 0;
-    SET @query_ods_data = CONCAT("select count(*) INTO @odsResult from ",ODS_TABLE_NAME," where  ORG_NO IN ( 
+    v_at_odsResult := 0;
+    v_at_query_ods_data := CONCAT("select count(*) INTO @odsResult from ",ODS_TABLE_NAME," where  ORG_NO IN ( 
 		   SELECT c.* 
 		   FROM (
 			SELECT ORG_ID FROM dmcode.t_org_biz_lvl  WHERE pbc_id = '",V_ORG_ID,"') c
@@ -6360,52 +6358,50 @@ label:BEGIN
 		   ON c.org_id = b.report_org AND b.payment_days='",V_ACCT_ID,"' AND b.report_status IN ('1','5')
 		   
 		  ) OR '",V_ORG_ID,"' '",V_ORG_ID,"' and data_date= '",V_ACCT_ID,"' ");
-    PREPARE stmt_ods FROM @query_ods_data;  
-    EXECUTE stmt_ods;  
-    DEALLOCATE PREPARE stmt_ods;
+    EXECUTE IMMEDIATE v_at_query_ods_data;
     
-    IF (@odsResult=0) THEN
-	 SET i = 2;
-	 LEAVE label; 
+    IF (v_at_odsResult=0) THEN
+	 i := 2;
+	 RETURN; 
     END IF;
     
     
     IF (i=1) THEN
-	BEGIN
-		DECLARE TABLE_NAME          	VARCHAR(50)  ;
-		DECLARE START_ROW          	VARCHAR(50)  ;
-	        DECLARE TEMPLATE_ID                 VARCHAR(50)  ;
-	        DECLARE COLUMN_NAME                 VARCHAR(50)  ;
-	        DECLARE COLUMN_TYPE                 VARCHAR(50)  ;
-	        DECLARE CELL         	        VARCHAR(50)  ;
-	        DECLARE up_load_table               VARCHAR(50)  ;
-	        DECLARE target_description          VARCHAR(50)  ;
-	        DECLARE compare_same_previous_begin       DOUBLE  ;
-	        DECLARE compare_same_previous_end       DOUBLE  ;
-	        DECLARE compare_chain_base_begin          DOUBLE  ;
-	        DECLARE compare_chain_base_end          DOUBLE  ;
-	        DECLARE compare_same_previous_fs_begin       DOUBLE  ;
-	        DECLARE compare_same_previous_fs_end       DOUBLE  ;
-	        DECLARE compare_chain_base_fs_begin          DOUBLE  ;
-	        DECLARE compare_chain_base_fs_end          DOUBLE  ;
-	       	DECLARE COLUMN_GROUP               VARCHAR(500);
+DECLARE
+		TABLE_NAME          	VARCHAR(50)  ;
+		START_ROW          	VARCHAR(50)  ;
+	        TEMPLATE_ID                 VARCHAR(50)  ;
+	        COLUMN_NAME                 VARCHAR(50)  ;
+	        COLUMN_TYPE                 VARCHAR(50)  ;
+	        CELL         	        VARCHAR(50)  ;
+	        up_load_table               VARCHAR(50)  ;
+	        target_description          VARCHAR(50)  ;
+	        compare_same_previous_begin       DOUBLE  ;
+	        compare_same_previous_end       DOUBLE  ;
+	        compare_chain_base_begin          DOUBLE  ;
+	        compare_chain_base_end          DOUBLE  ;
+	        compare_same_previous_fs_begin       DOUBLE  ;
+	        compare_same_previous_fs_end       DOUBLE  ;
+	        compare_chain_base_fs_begin          DOUBLE  ;
+	        compare_chain_base_fs_end          DOUBLE  ;
+	       	COLUMN_GROUP               VARCHAR(500);
+	       	v_tableid          VARCHAR(50)  ;
+	       	v_cell          VARCHAR(50)  ;
+	       	v_pos          VARCHAR(50)  ;
+	       	v_dscr          VARCHAR(50)  ;
+	       	v_where          VARCHAR(50)  ;
+	        done INT := FALSE; 
+		CURSOR My_Cursor IS SELECT * FROM adm.v_py_cx_verity_table;
+BEGIN
 	       	
-	       	DECLARE v_tableid          VARCHAR(50)  ;
-	       	DECLARE v_cell          VARCHAR(50)  ;
-	       	DECLARE v_pos          VARCHAR(50)  ;
-	       	DECLARE v_dscr          VARCHAR(50)  ;
-	       	DECLARE v_where          VARCHAR(50)  ;
 	       	
-	        DECLARE done INT DEFAULT FALSE; 
-		DECLARE My_Cursor CURSOR FOR (SELECT * FROM adm.v_py_cx_verity_table);
-		DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;  
 		
 		
 		
 		
 		DROP VIEW IF EXISTS adm.v_py_cx_verity_table;  
-		SET @sqlstr = "CREATE VIEW adm.v_py_cx_verity_table as ";  
-		SET @sqlstr = CONCAT(@sqlstr , "SELECT 
+		v_at_sqlstr := "CREATE VIEW adm.v_py_cx_verity_table as ";  
+		v_at_sqlstr := CONCAT(v_at_sqlstr , "SELECT 
 					        c.table_name,
 					         START_ROW,
 					        TEMPLATE_ID,
@@ -6446,14 +6442,13 @@ label:BEGIN
 					    INNER JOIN 
 					    (SELECT * FROM edw.py_cx_verify_labelset WHERE table_name = '",V_TABLE_NAME,"' AND state = 1) d 
 					    ON (c.cell = d.cell_number AND d.state=1) OR FIND_IN_SET(CONCAT(d.cell_number,'*'), c.cell) ");
-		PREPARE stmt FROM @sqlstr;  
-		EXECUTE stmt;  
-		DEALLOCATE PREPARE stmt;  
+		EXECUTE IMMEDIATE v_at_sqlstr;
 		
-		SET V_STEP_ID = 3;  
-		SET @falg = 1;
+		V_STEP_ID := 3;  
+		v_at_falg := 1;
 		OPEN My_Cursor;
-		myLoop: LOOP
+		<<myLoop>>
+		LOOP
 			
 			FETCH My_Cursor INTO TABLE_NAME,START_ROW,TEMPLATE_ID,COLUMN_NAME,COLUMN_TYPE,CELL,up_load_table,target_description,
 				compare_same_previous_begin,compare_same_previous_end,
@@ -6461,13 +6456,15 @@ label:BEGIN
 				compare_same_previous_fs_begin,compare_same_previous_fs_end,
 				compare_chain_base_fs_begin,compare_chain_base_fs_end,
 				v_tableid,v_cell,v_pos,v_dscr,v_where;
+			EXIT WHEN My_Cursor%NOTFOUND;
 			IF done THEN 
-				LEAVE myLoop; 
+				EXIT myLoop; 
 			END IF;	
 			
 			
-			BEGIN
-				DECLARE thb_count                 INT  ; 
+DECLARE
+				thb_count                 INT  ; 
+BEGIN
 				
 				
 				
@@ -6476,10 +6473,10 @@ label:BEGIN
 				
 				
 				
-				SET V_STEP_ID =  4;
+				V_STEP_ID := 4;
 				DROP VIEW IF EXISTS adm.v_py_cx_verity_table_ods_data;  
-				SET @sqlstr_two = "CREATE VIEW adm.v_py_cx_verity_table_ods_data as ";  
-				SET @sqlstr_two = CONCAT(@sqlstr_two , "
+				v_at_sqlstr_two := "CREATE VIEW adm.v_py_cx_verity_table_ods_data as ";  
+				v_at_sqlstr_two := CONCAT(v_at_sqlstr_two , "
 							SELECT a.area_no,a.data_date,a.org_no,a.org_id,a.add_date,a.sum_data AS NOW_DATA,b.sum_hb_data as HB_DATA,
 							c.sum_tb_data as  TB_DATA,d.sum_hb_data_fs as  HB_DATA_FS,e.sum_tb_data_fs as TB_DATA_FS,
 							ROUND(IFNULL(((a.",COLUMN_NAME,"-b.",COLUMN_NAME,")/b.",COLUMN_NAME,"),0),2) AS HB_RATE,
@@ -6669,28 +6666,26 @@ label:BEGIN
 							END  AND ",v_where,"  )  e
 							ON 1=1
 							");
-				PREPARE stmt_two FROM @sqlstr_two;  
-				EXECUTE stmt_two;  
-				DEALLOCATE PREPARE stmt_two;
-				SET V_STEP_ID =  5;
+				EXECUTE IMMEDIATE v_at_sqlstr_two;
+				V_STEP_ID := 5;
 				
 				SELECT COUNT(1) FROM adm.v_py_cx_verity_table_ods_data  WHERE (HB_RATE not BETWEEN compare_chain_base_begin and compare_chain_base_end) 
 											OR (TB_RATE NOT between compare_same_previous_begin and compare_same_previous_end)
 											OR ( (compare_chain_base_fs_begin !=0.0 or compare_chain_base_fs_end !=0.0) AND HB_RATE_FS NOT between compare_chain_base_fs_begin and compare_chain_base_fs_end)  
 											OR ( (compare_same_previous_fs_begin!=0.0 or compare_same_previous_fs_end!=0.0) AND TB_RATE_FS NOT BETWEEN compare_same_previous_fs_begin and compare_same_previous_fs_end) INTO thb_count;
 				
-				SET @sqlstr_py_cx_verify_file_del = CONCAT("delete from edw.py_cx_verify_file where payment_days = '",V_ACCT_ID,"' and report_org= '",V_ORG_ID,"'");						
+				v_at_sqlstr_py_cx_verify_file_del := CONCAT("delete from edw.py_cx_verify_file where payment_days = '",V_ACCT_ID,"' and report_org= '",V_ORG_ID,"'");						
 				
 				SELECT COUNT(1) FROM edw.py_cx_verify_file WHERE payment_days=V_ACCT_ID AND report_org=V_ORG_ID INTO verity_file_table_count;
 				
-				SET @sqlstr_py_cx_verify_file_details_insert = CONCAT("INSERT INTO  edw.py_cx_verify_filedetails",
+				v_at_sqlstr_py_cx_verify_file_details_insert := CONCAT("INSERT INTO  edw.py_cx_verify_filedetails",
 											" ( SELECT null,'11111','",up_load_table,"','",target_description,"',CELL,ROWS_ID,NOW_DATA,TB_DATA,HB_DATA,TB_DATA_FS,HB_DATA_FS,'' ",
 											" FROM adm.v_py_cx_verity_table_ods_data WHERE (HB_RATE NOT BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")   OR (TB_RATE NOT BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") OR ( (",compare_chain_base_fs_begin," !=0.0 or ",compare_chain_base_fs_end," !=0.0) AND HB_RATE_FS NOT BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,")   OR ( (",compare_same_previous_fs_begin,"!=0.0 or ",compare_same_previous_fs_end,"!=0.0) AND TB_RATE_FS NOT BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,") )");
 						
-				SET V_STEP_ID =  6;
+				V_STEP_ID := 6;
 				
 				IF (thb_count!=0) THEN
-					SET @falg = 0;
+					v_at_falg := 0;
 					
 					IF (AREA_NO_ IS NULL) THEN
 						SELECT AREA_NO,NOW() INTO AREA_NO_,ADD_DATE_ FROM adm.v_py_cx_verity_table_ods_data LIMIT 1 ;
@@ -6700,26 +6695,24 @@ label:BEGIN
 					IF (verity_file_table_count=0) THEN
 					
 						
-						PREPARE stmt_py_cx_verify_file_details_insert FROM @sqlstr_py_cx_verify_file_details_insert;  
-						EXECUTE stmt_py_cx_verify_file_details_insert;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_details_insert; 
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_insert;
 					ELSE
 						
 						
-						SET @sqlstr_py_cx_verify_file_details_del_data = CONCAT("delete  b from 
+						v_at_sqlstr_py_cx_verify_file_details_del_data := CONCAT("delete  b from 
 										edw.py_cx_verify_filedetails b 
 										INNER JOIN edw.py_cx_verify_file a ON a.id = b.file_id AND b.template_name = '",up_load_table,"' AND payment_days='",V_ACCT_ID,"' AND report_org='",V_ORG_ID,"' 
 										INNER JOIN adm.v_py_cx_verity_table_ods_data c ON  b.row_num = c.rows_id AND b.column_num = c.cell AND ( (c.hb_rate BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")  and (c.tb_rate BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") and (",compare_chain_base_fs_begin,"=0.0 and ",compare_chain_base_fs_end,"=0.0 OR  (c.hb_rate_fs BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,") ) and  (",compare_same_previous_fs_begin,"=0.0 and ",compare_same_previous_fs_end,"=0.0 OR  (c.tb_rate_fs BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,")) )
 										");
 										
 						
-						SET @sqlstr_py_cx_verify_file_details_update_data = CONCAT("UPDATE edw.py_cx_verify_filedetails b 
+						v_at_sqlstr_py_cx_verify_file_details_update_data := CONCAT("UPDATE edw.py_cx_verify_filedetails b 
 										INNER JOIN edw.py_cx_verify_file a ON a.id = b.file_id AND b.template_name = '",up_load_table,"' AND payment_days='",V_ACCT_ID,"' AND report_org='",V_ORG_ID,"' 
 										INNER JOIN adm.v_py_cx_verity_table_ods_data c ON  b.column_num = c.cell AND b.row_num = c.rows_id AND ( (c.hb_rate NOT BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")  OR (c.tb_rate NOT BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") OR ( (",compare_chain_base_fs_begin,"!=0.0 or ",compare_chain_base_fs_end,"!=0.0) AND  (c.hb_rate_fs NOT BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,")) OR ( (",compare_same_previous_fs_begin,"!=0.0 or ",compare_same_previous_fs_end,"!=0.0) and  (c.tb_rate_fs NOT BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,")) ) 
 										SET b.current_data = c.now_data,b.last_data = c.tb_data,b.sequential_data = c.hb_data,b.sequential_data_fs = c.hb_data_fs,b.last_data_fs = c.tb_data_fs");
 										             
 						
-						SET @sqlstr_py_cx_verify_file_details_insert_indata = CONCAT("
+						v_at_sqlstr_py_cx_verify_file_details_insert_indata := CONCAT("
 								INSERT INTO  edw.py_cx_verify_filedetails
 								SELECT null,a.id,'",up_load_table,"','",target_description,"',CELL,ROWS_ID,NOW_DATA,TB_DATA,HB_DATA,TB_DATA_FS,HB_DATA_FS, '' 
 								FROM  adm.v_py_cx_verity_table_ods_data 
@@ -6732,17 +6725,11 @@ label:BEGIN
 								) AND ( (HB_RATE NOT BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")  OR (TB_RATE NOT BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") OR ( (",compare_chain_base_fs_begin," !=0.0 or ",compare_chain_base_fs_end," !=0.0) AND HB_RATE_FS NOT BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,")   OR  ( (",compare_same_previous_fs_begin,"!=0.0 or ",compare_same_previous_fs_end,"!=0.0) AND TB_RATE_FS NOT BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,") )
 								");				
 											
-						PREPARE stmt_py_cx_verify_file_details_del FROM @sqlstr_py_cx_verify_file_details_del_data;  
-						EXECUTE stmt_py_cx_verify_file_details_del;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_details_del; 
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_del_data;
 						
-						PREPARE stmt_py_cx_verify_file_details_update FROM @sqlstr_py_cx_verify_file_details_update_data;  
-						EXECUTE stmt_py_cx_verify_file_details_update;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_details_update; 
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_update_data;
 						
-						PREPARE stmt_py_cx_verify_file_details_insert FROM @sqlstr_py_cx_verify_file_details_insert_indata;  
-						EXECUTE stmt_py_cx_verify_file_details_insert;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_details_insert; 
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_insert_indata;
 					END IF;
 					
 				ELSE
@@ -6751,153 +6738,140 @@ label:BEGIN
 						SELECT AREA_NO,NOW() INTO AREA_NO_,ADD_DATE_ FROM adm.v_py_cx_verity_table_ods_data LIMIT 1 ;
 					END IF;
 					
-					SET V_STEP_ID =  7;
+					V_STEP_ID := 7;
 					
-					SET @sqlstr_py_cx_verify_file_details_del_data = CONCAT("delete  b from 
+					v_at_sqlstr_py_cx_verify_file_details_del_data := CONCAT("delete  b from 
 									edw.py_cx_verify_filedetails b 
 									INNER JOIN edw.py_cx_verify_file a ON a.id = b.file_id AND b.template_name = '",up_load_table,"' AND payment_days='",V_ACCT_ID,"' AND report_org='",V_ORG_ID,"' 
 									INNER JOIN adm.v_py_cx_verity_table_ods_data c ON  b.row_num = c.rows_id AND b.column_num = c.cell AND (  (c.hb_rate BETWEEN ",compare_chain_base_begin," AND ",compare_chain_base_end,")  and (c.tb_rate BETWEEN ",compare_same_previous_begin," AND ",compare_same_previous_end,") and (",compare_chain_base_fs_begin,"=0.0 and ",compare_chain_base_fs_end,"=0.0 OR  (c.hb_rate_fs BETWEEN ",compare_chain_base_fs_begin," AND ",compare_chain_base_fs_end,") ) and  (",compare_same_previous_fs_begin,"=0.0 and ",compare_same_previous_fs_end,"=0.0 OR  (c.tb_rate_fs BETWEEN ",compare_same_previous_fs_begin," AND ",compare_same_previous_fs_end,"))  )
 									");
-					PREPARE stmt_py_cx_verify_file_details_del FROM @sqlstr_py_cx_verify_file_details_del_data;  
-					EXECUTE stmt_py_cx_verify_file_details_del;  
-					DEALLOCATE PREPARE stmt_py_cx_verify_file_details_del; 
-					SET V_STEP_ID =  8;
+					EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_details_del_data;
+					V_STEP_ID := 8;
 				END IF;	
 				
 			END;
 				
 			END LOOP myLoop;	
-			SET V_STEP_ID = 9;  
-			SET @up_state=2;
-			SET @sqlstr_py_cx_verify_file_nodata_insert = CONCAT("INSERT INTO  edw.py_cx_verify_file",
-									" values( null,'",AREA_NO_,"','",V_ACCT_ID,"','",V_ORG_ID,"','','",@up_state,"','",ADD_DATE_,"','adm.",V_TABLE_NAME,"','",V_ACCT_ID,"','','' )");
+			V_STEP_ID := 9;  
+			v_at_up_state := 2;
+			v_at_sqlstr_py_cx_verify_file_nodata_insert := CONCAT("INSERT INTO  edw.py_cx_verify_file",
+									" values( null,'",AREA_NO_,"','",V_ACCT_ID,"','",V_ORG_ID,"','','",v_at_up_state,"','",ADD_DATE_,"','adm.",V_TABLE_NAME,"','",V_ACCT_ID,"','','' )");
 												
 			
 			
-			SET @del_result = CONCAT(" delete from edw.py_cx_verify_result where DATA_DATE='",V_ACCT_ID,"' and ORG_NO='",V_ORG_ID,"' and TABLE_NAME='",V_TABLE_NAME,"' ");
-			PREPARE stmt_del_result FROM @del_result;  
-			EXECUTE stmt_del_result;  
-			DEALLOCATE PREPARE stmt_del_result;
+			v_at_del_result := CONCAT(" delete from edw.py_cx_verify_result where DATA_DATE='",V_ACCT_ID,"' and ORG_NO='",V_ORG_ID,"' and TABLE_NAME='",V_TABLE_NAME,"' ");
+			EXECUTE IMMEDIATE v_at_del_result;
 				
 			
-			IF (@falg = 1) THEN
+			IF (v_at_falg = 1) THEN
 			
 				
 				
-				SET @resultState = '1';
-				SET @insert_result = CONCAT(" insert into edw.py_cx_verify_result values('",V_ACCT_ID,"','",V_ORG_ID,"','",@resultState,"','",V_TABLE_NAME,"') ");
-				PREPARE stmt_insert_result FROM @insert_result;  
-				EXECUTE stmt_insert_result;  
-				DEALLOCATE PREPARE stmt_insert_result;
+				v_at_resultState := '1';
+				v_at_insert_result := CONCAT(" insert into edw.py_cx_verify_result values('",V_ACCT_ID,"','",V_ORG_ID,"','",v_at_resultState,"','",V_TABLE_NAME,"') ");
+				EXECUTE IMMEDIATE v_at_insert_result;
 				
 				IF (verity_file_table_count=0) THEN
 				
 					
-					SET @up_state=1;
-					SET @sqlstr_py_cx_verify_file_nodata_insert = CONCAT("INSERT INTO  edw.py_cx_verify_file",
-										" values( null,'",AREA_NO_,"','",V_ACCT_ID,"','",V_ORG_ID,"','','",@up_state,"','",ADD_DATE_,"','adm.",V_TABLE_NAME,"','",V_ACCT_ID,"','','' )");
-					PREPARE stmt_py_cx_verify_file_insert FROM @sqlstr_py_cx_verify_file_nodata_insert;  
-					EXECUTE stmt_py_cx_verify_file_insert;  
-					DEALLOCATE PREPARE stmt_py_cx_verify_file_insert;
+					v_at_up_state := 1;
+					v_at_sqlstr_py_cx_verify_file_nodata_insert := CONCAT("INSERT INTO  edw.py_cx_verify_file",
+										" values( null,'",AREA_NO_,"','",V_ACCT_ID,"','",V_ORG_ID,"','','",v_at_up_state,"','",ADD_DATE_,"','adm.",V_TABLE_NAME,"','",V_ACCT_ID,"','','' )");
+					EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_nodata_insert;
 				ELSE
 					
-					SELECT COUNT(1) INTO @sumResult FROM edw.py_cx_verify_result WHERE data_date=V_ACCT_ID AND org_no=V_ORG_ID AND state=0;
+					SELECT COUNT(1) INTO v_at_sumResult FROM edw.py_cx_verify_result WHERE data_date=V_ACCT_ID AND org_no=V_ORG_ID AND state=0;
 					
-					IF(@sumResult=0) THEN
+					IF(v_at_sumResult=0) THEN
 						
-						SET @sqlstr_py_cx_verify_file_update = CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 1  ,report_date='",ADD_DATE_,"'  WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
-						PREPARE stmt_py_cx_verify_file_update FROM @sqlstr_py_cx_verify_file_update;  
-						EXECUTE stmt_py_cx_verify_file_update;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_update;
+						v_at_sqlstr_py_cx_verify_file_update := CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 1  ,report_date='",ADD_DATE_,"'  WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_update;
 					ELSE
 						
-						SET @sqlstr_py_cx_verify_file_update = CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 2  ,report_date='",ADD_DATE_,"' WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
-						PREPARE stmt_py_cx_verify_file_update FROM @sqlstr_py_cx_verify_file_update;  
-						EXECUTE stmt_py_cx_verify_file_update;  
-						DEALLOCATE PREPARE stmt_py_cx_verify_file_update;
+						v_at_sqlstr_py_cx_verify_file_update := CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 2  ,report_date='",ADD_DATE_,"' WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
+						EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_update;
 					END IF;
 					 
 				END IF;
 				
 			ELSE
 				
-				SET @resultState = '0';
-				SET @insert_result = CONCAT(" insert into edw.py_cx_verify_result values('",V_ACCT_ID,"','",V_ORG_ID,"','",@resultState,"','",V_TABLE_NAME,"') ");
-				PREPARE stmt_insert_result FROM @insert_result;  
-				EXECUTE stmt_insert_result;  
-				DEALLOCATE PREPARE stmt_insert_result;	
+				v_at_resultState := '0';
+				v_at_insert_result := CONCAT(" insert into edw.py_cx_verify_result values('",V_ACCT_ID,"','",V_ORG_ID,"','",v_at_resultState,"','",V_TABLE_NAME,"') ");
+				EXECUTE IMMEDIATE v_at_insert_result;
 			
 				IF (verity_file_table_count=0) THEN
 				
 					
 					
-					SET @up_state=2;
-					PREPARE stmt_py_cx_verify_file_insert FROM @sqlstr_py_cx_verify_file_nodata_insert;  
-					EXECUTE stmt_py_cx_verify_file_insert;  
-					DEALLOCATE PREPARE stmt_py_cx_verify_file_insert; 
+					v_at_up_state := 2;
+					EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_nodata_insert;
 					
 					
-					SET Result=LAST_INSERT_ID();
+					Result := LAST_INSERT_ID();
 					UPDATE edw.py_cx_verify_filedetails SET file_id = Result WHERE file_id='11111';
 				ELSE
 					
-					SET @sqlstr_py_cx_verify_file_update = CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 2  ,report_date='",ADD_DATE_,"' WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
-					PREPARE stmt_py_cx_verify_file_update FROM @sqlstr_py_cx_verify_file_update;  
-					EXECUTE stmt_py_cx_verify_file_update;  
-					DEALLOCATE PREPARE stmt_py_cx_verify_file_update; 
+					v_at_sqlstr_py_cx_verify_file_update := CONCAT("UPDATE edw.py_cx_verify_file SET report_status = 2  ,report_date='",ADD_DATE_,"' WHERE payment_days = '",V_ACCT_ID,"' AND report_org = '",V_ORG_ID,"' ");					
+					EXECUTE IMMEDIATE v_at_sqlstr_py_cx_verify_file_update;
 				END IF;
 			END IF;
 	END;
 	
-	SET RESULT_INT = 1;
-    ELSEIF (i>1) THEN
+	RESULT_INT := 1;
+    ELSIF (i>1) THEN
 	 
-	SET i=3;
+	i := 3;
     
     END IF;
     
     CALL etl.edw_proc_trace_log('',V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
   
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log('',V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
+        RESULT_INT := 0;
+        RESULT_INT := 0;
+        
     END;
 /
 
 DROP PROCEDURE IF EXISTS adm.py_cx_verity_testquerycol;
 
 CREATE PROCEDURE adm.py_cx_verity_testquerycol()
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_verity_testquerycol.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    COLUMN_NAME         VARCHAR(50) := 0;
+    done INT := FALSE; 
+    CURSOR My_Cursor IS SELECT COLUMN_NAME  FROM information_schema.columns WHERE  TABLE_SCHEMA ="ods" AND table_name='py_cx_envbld_rural_bnk_accts';
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN 
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_verity_testquerycol.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     
-    DECLARE COLUMN_NAME         VARCHAR(50)   DEFAULT 0;
-    DECLARE done INT DEFAULT FALSE; 
-    DECLARE My_Cursor CURSOR FOR (SELECT COLUMN_NAME  FROM information_schema.columns WHERE  TABLE_SCHEMA ="ods" AND table_name='py_cx_envbld_rural_bnk_accts');
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;  
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
+    -- NOT FOUND handler replaced by explicit cursor %NOTFOUND checks below.
         
     
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log('',V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
-    SET P_RESULT = 0;
-    SET V_STEP_ID = 1;  
+    V_DATES := CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_STEP_ID := 1;  
  
     OPEN My_Cursor;
-		myLoop: LOOP
+		<<myLoop>>
+		LOOP
 			FETCH My_Cursor INTO COLUMN_NAME;
+			EXIT WHEN My_Cursor%NOTFOUND;
 			IF done THEN 
-				LEAVE myLoop; 
+				EXIT myLoop; 
 			END IF;
 		END LOOP myLoop;
    
@@ -6910,6 +6884,11 @@ BEGIN
     
     
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log('',V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -6919,29 +6898,24 @@ CREATE PROCEDURE adm.py_cx_website_info_offline(
      IN  V_ACCT_ID VARCHAR(8)
     ,OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_website_info_offline.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     
 
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_website_info_offline.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     
-     SET V_STEP_ID = 1; 
+     V_STEP_ID := 1; 
      DELETE FROM edw.py_cx_website_info_offline WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 insert into edw.py_cx_website_info_offline
@@ -6979,7 +6953,7 @@ select
 ,XCZL_COUNT       
 from ods.py_cx_website_info_offline;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-     SET V_STEP_ID = 2; 
+     V_STEP_ID := 2; 
          DELETE FROM adm.py_cx_website_info_offline WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 insert into adm.py_cx_website_info_offline
@@ -7018,6 +6992,11 @@ select
 from edw.py_cx_website_info_offline;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
        
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -7027,33 +7006,28 @@ CREATE PROCEDURE adm.py_cx_yc_check_tjb(
      IN V_ACCT_ID    VARCHAR(8),
      OUT P_RESULT    INT
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_yc_check_tjb.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     
 
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_yc_check_tjb.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = V_ACCT_ID;
+    P_RESULT := 0;
+    V_DATES := V_ACCT_ID;
     
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM adm.py_cx_yc_check_tjb WHERE DATA_DATE = SUBSTR(V_ACCT_ID,1,6);
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
   
-   SET V_STEP_ID = 2; 
+   V_STEP_ID := 2; 
   INSERT INTO adm.py_cx_yc_check_tjb 
 SELECT 
   SUBSTR(trade_date, 1, 6) AS data_date,
@@ -7081,6 +7055,11 @@ GROUP BY SUBSTR(trade_date, 1, 6),
   Remarks ;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -7092,6 +7071,15 @@ CREATE PROCEDURE adm.py_cx_ydfx(
      IN V_PARM_TYPE  VARCHAR(1),
      IN V_AREA_ID    VARCHAR(14)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.py_cx_ydfx.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*[DEFINER = { user | CURRENT_USER }]*/
 /*
@@ -7104,26 +7092,12 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-01-09  姓名           1.CREATE THE PROCEDURE
 */
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.py_cx_ydfx.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
     /* ------------------------------------------------------------------------ */
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
-    SET V_DATES = CONCAT(V_ACCT_ID,'01');
+    P_RESULT := 0;
+    V_DATES := CONCAT(V_ACCT_ID,'01');
     /* ------------------------------------------------------------------------ */
-     SET V_STEP_ID = 1;  -- 表2农村地区银行账户 一 核查结果
+     V_STEP_ID := 1;  -- 表2农村地区银行账户 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_envbld_rural_bnk_accts SET UNIT_BACKMARK=0 , PERSONAL_BANK_1MARK=0 , PERSONAL_BANK_2MARK=0 , PERSONAL_BANK_3MARK=0;
 TRUNCATE TABLE adm.py_cx_ydfx;
@@ -7159,7 +7133,7 @@ FROM adm.py_cx_envbld_rural_bnk_accts  GROUP BY data_date) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  
-  SET V_STEP_ID = 2;  -- 表3农村地区银行卡 一 核查结果
+  V_STEP_ID := 2;  -- 表3农村地区银行卡 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_envbld_rural_bnk_cards SET DEBIT_CARDMARK=0 , CREDIT_CARDMARK=0 , DEBIT_CREDITMARK=0 , PER_CAPITAMARK=0;
  -- 更新异动分析结果
@@ -7194,7 +7168,7 @@ FROM adm.py_cx_envbld_rural_bnk_cards  GROUP BY data_date) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
- SET V_STEP_ID = 3;  -- 表4农村地区非现金支付工具和方式 一 核查结果
+ V_STEP_ID := 3;  -- 表4农村地区非现金支付工具和方式 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_envbld_rural_ncpi_tltyp SET ACCOUNT_NUMBERMARK=0 , COUNTMARK=0 , MONEYMARK=0 ;
  -- 更新异动分析结果
@@ -7224,7 +7198,7 @@ FROM adm.py_cx_envbld_rural_ncpi_tltyp  GROUP BY data_date) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
- SET V_STEP_ID = 4;  -- 表5农村地区银行卡受理市场建设情况 一 核查结果
+ V_STEP_ID := 4;  -- 表5农村地区银行卡受理市场建设情况 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_envbld_rural_cards_mkt SET SPECIAL_MERCHMARK=0 , NUMBERMARK=0 , COUNTMARK=0,MONEYMARK=0,TRANSFER_PHONEMARK=0 ;
  -- 更新异动分析结果
@@ -7267,7 +7241,7 @@ FROM adm.py_cx_envbld_rural_cards_mkt  GROUP BY data_date) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  
- SET V_STEP_ID = 5;  -- 表6农村地区支付清算系统接入情况 一 核查结果
+ V_STEP_ID := 5;  -- 表6农村地区支付清算系统接入情况 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_envbld_rural_cls SET COUNTMARK=0 , MONEYMARK=0 , BANK_BRANCHMARK=0,AGENCY_BRANCHMARK=0,COVERAGEMARK=0 ;
  -- 更新异动分析结果
@@ -7309,7 +7283,7 @@ FROM (SELECT SUM(COUNTMARK+MONEYMARK+BANK_BRANCHMARK+AGENCY_BRANCHMARK+COVERAGEM
 FROM adm.py_cx_envbld_rural_cls  GROUP BY data_date ) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
- SET V_STEP_ID = 6;  -- 表7助农取款服务 一 核查结果
+ V_STEP_ID := 6;  -- 表7助农取款服务 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_envbld_hf_wd SET COUNTMARK=0 , PERCENTMARK=0 , PENMARK=0,AMOUNTMARK=0 ;
  -- 更新异动分析结果
@@ -7344,7 +7318,7 @@ FROM (SELECT SUM(COUNTMARK+PERCENTMARK+PENMARK+AMOUNTMARK ) AS order_num,data_da
 FROM adm.py_cx_envbld_hf_wd  GROUP BY data_date ) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
- SET V_STEP_ID = 7;  -- 表8代理发放 一 核查结果
+ V_STEP_ID := 7;  -- 表8代理发放 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_envbld_agent_issue 
 SET RETIREMENT_COUNTMARK=0 , RETIREMENT_MONEYMARK=0 , MERGE_COUNTMARK=0,MERGE_MONEYMARK=0,SUBSIDY_COUNTMARK=0,SUBSIDY_MONEYMARK=0 ;
@@ -7394,7 +7368,7 @@ WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
     
-     SET V_STEP_ID = 8;  -- 表9农村地区支付结算宣传培训情况 一 核查结果
+     V_STEP_ID := 8;  -- 表9农村地区支付结算宣传培训情况 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_advt_train 
 SET PUBL_TIMEMARK=0 , PUBL_NUMMARK=0 , OFF_TIMEMARK=0,TRAIN_TIMEMARK=0,TRAIN_NUMMARK=0  ;
@@ -7438,7 +7412,7 @@ FROM adm.py_cx_advt_train  GROUP BY data_date ) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
- SET V_STEP_ID = 9;  -- 表10非银行支付机构农村网络支付业务 一 核查结果
+ V_STEP_ID := 9;  -- 表10非银行支付机构农村网络支付业务 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_envbld_nonbnk_innet_pay 
 SET ONLINE_PAY_COUNTMARK=0 , ONLINE_PAY_MONEYMARK=0 , MOVE_PHONE_COUNTMARK=0,MOVE_PHONE_MONEYMARK=0,ONLINE_RETAIL_COUNTMARK=0,ONLINE_RETAIL_MONEYMARK=0 ;
@@ -7486,7 +7460,7 @@ FROM (SELECT SUM(ONLINE_PAY_COUNTMARK+ONLINE_PAY_MONEYMARK+MOVE_PHONE_COUNTMARK+
 FROM adm.py_cx_envbld_nonbnk_innet_pay  GROUP BY data_date ) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
- SET V_STEP_ID = 10;  -- 表11农村支付服务环境资金支持政策 一 核查结果
+ V_STEP_ID := 10;  -- 表11农村支付服务环境资金支持政策 一 核查结果
      -- 重置异动分析指
 UPDATE adm.py_cx_env_support 
 SET PROVINCE_SUPPERTMARK=0 , CITY_SUPPERTMARK=0 , COUNTY_SUPPERTMARK=0  ;
@@ -7516,6 +7490,11 @@ FROM adm.py_cx_env_support  GROUP BY data_date ) a
 WHERE order_num>=1;
     CALL etl.edw_proc_trace_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
            
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(V_ACCT_ID,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -7525,40 +7504,40 @@ CREATE PROCEDURE adm.p_all_control(
 IN V_DATA_DATE VARCHAR(10)
 ,IN V_ID   CHAR(19)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.p_all_control.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_DATA_DATE     VARCHAR(8) := DATE_FORMAT(CONCAT(V_DATA_DATE,'01'),'%Y-%m');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.p_all_control.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_DATA_DATE     VARCHAR(8)	DEFAULT	DATE_FORMAT(CONCAT(V_DATA_DATE,'01'),'%Y-%m');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
    
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        
-        UPDATE  adm.exec_shell_task SET STATUS='500' WHERE id=V_ID;    --   修改状态跑批失败
-    END;
   
-	SET V_DATA_DATE = DATE_FORMAT(CONCAT(V_DATA_DATE, '01'), '%Y-%m') ;
-	SET V_STEP_ID = 1 ;
+	V_DATA_DATE := DATE_FORMAT(CONCAT(V_DATA_DATE, '01'), '%Y-%m') ;
+	V_STEP_ID := 1 ;
 	UPDATE 
 	  adm.exec_shell_task 
 	SET
 	  STATUS = '1' 
 	WHERE id=V_ID;  --   修改状态跑批正在运行
-	SET V_STEP_ID = 2 ;
+	V_STEP_ID := 2 ;
 	CALL indicators_lib.p_xunhuan_formula_new(REPLACE(V_DATA_DATE,'-',''));
-	SET V_STEP_ID = 3 ;
+	V_STEP_ID := 3 ;
 	UPDATE 
 	  adm.exec_shell_task 
 	SET
 	  STATUS = '200' 
 	WHERE   id=V_ID; --   修改状态跑批成功
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        
+        UPDATE  adm.exec_shell_task SET STATUS='500' WHERE id=V_ID;    --   修改状态跑批失败
 END;
 /
 
@@ -7568,48 +7547,56 @@ CREATE PROCEDURE adm.p_all_control_big(
 IN V_DATA_DATE VARCHAR(10)
 ,IN V_ID   CHAR(19)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.p_all_control_big.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_DATA_DATE     VARCHAR(8) := DATE_FORMAT(CONCAT(V_DATA_DATE,'01'),'%Y-%m');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.p_all_control_big.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_DATA_DATE     VARCHAR(8)	DEFAULT	DATE_FORMAT(CONCAT(V_DATA_DATE,'01'),'%Y-%m');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
    
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        
-        UPDATE  adm.exec_shell_task SET STATUS='500' WHERE id=V_ID;    --   修改状态跑批失败
-    END;
   
-	SET V_DATA_DATE = DATE_FORMAT(CONCAT(V_DATA_DATE, '01'), '%Y-%m') ;
-	SET V_STEP_ID = 1 ;
+	V_DATA_DATE := DATE_FORMAT(CONCAT(V_DATA_DATE, '01'), '%Y-%m') ;
+	V_STEP_ID := 1 ;
 	UPDATE 
 	  adm.exec_shell_task 
 	SET
 	  STATUS = '1' 
 	WHERE id=V_ID;  --   修改状态跑批正在运行
-	SET V_STEP_ID = 2 ;
+	V_STEP_ID := 2 ;
 -- 	CALL indicators_lib.p_xunhuan_formula_new(V_DATA_DATE);
 	
 	CALL visual_screen.p_task_vscreen_new(REPLACE(V_DATA_DATE,'-',''));
-	SET V_STEP_ID = 3 ;
+	V_STEP_ID := 3 ;
 	UPDATE 
 	  adm.exec_shell_task 
 	SET
 	  STATUS = '200' 
 	WHERE   id=V_ID; --   修改状态跑批成功
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        
+        UPDATE  adm.exec_shell_task SET STATUS='500' WHERE id=V_ID;    --   修改状态跑批失败
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_ana_credit_monitor;
 
 CREATE PROCEDURE adm.p_ana_credit_monitor(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_ana_credit_monitor.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);
+    V_DATA_DATE_p VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*
 | Author :ZHANGJIAO
@@ -7623,21 +7610,8 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2019-03-20   ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_ana_credit_monitor.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-    DECLARE V_DATA_DATE_p VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     SET V_STEP:='1';
     DELETE  FROM adm.ana_glr_mth_credit_monitor WHERE FISCAL_MTH  = V_DATA_DATE;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
@@ -7780,12 +7754,26 @@ BEGIN
   CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
      
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_ana_growth_rate;
 
 CREATE PROCEDURE adm.p_ana_growth_rate(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_ana_growth_rate.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);    
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_rownum BIGINT;
+    v_at_rowtotal BIGINT;
 BEGIN
 /*
 | Author :严锦涛
@@ -7803,21 +7791,9 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        209-01-21    严锦涛        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_ana_growth_rate.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);    
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
     SET V_STEP:='1';
     DELETE  FROM adm.ana_glr_mth_lm_increase_top5 WHERE FISCAL_MTH = V_DATA_DATE;
@@ -7825,13 +7801,13 @@ BEGIN
     
     SET V_STEP:='2';
     insert into adm.ana_glr_mth_lm_increase_top5 (
-	 FISCAL_DATE             #月份_date
-	,FISCAL_MTH              #月份
-	,ORG_ID                  #金融机构编码
-	,ORG_NAME                #金融机构名称
-	,LOAN_MM_INCREASE        #余额当月增量
-	,LOAN_MM_END_RANK        #余额当月增量排名
-	,RANK_DSCR               #排序描述
+	 FISCAL_DATE             -- 月份_date
+	,FISCAL_MTH              -- 月份
+	,ORG_ID                  -- 金融机构编码
+	,ORG_NAME                -- 金融机构名称
+	,LOAN_MM_INCREASE        -- 余额当月增量
+	,LOAN_MM_END_RANK        -- 余额当月增量排名
+	,RANK_DSCR               -- 排序描述
 	)
     -- 增速分析-贷款余额当月增量机构排名
     SELECT 
@@ -7849,10 +7825,7 @@ BEGIN
 	       ,tmp.org_id
 	       ,tmp.org_name
 	       ,tmp.bad_loan
-	       ,case WHEN @rowtotal = tmp.bad_loan  THEN @rownum
-		     WHEN @rowtotal := tmp.bad_loan THEN @rownum :=@rownum + 1
-		     WHEN @rowtotal = 0 THEN @rownum :=@rownum + 1
-	        END AS rank
+	       ,DENSE_RANK() OVER (ORDER BY tmp.bad_loan DESC) AS rank
 	    
 	    FROM (
 		SELECT 
@@ -7866,8 +7839,7 @@ BEGIN
                     ,t.org_no
                     ,t.org_name
                 ORDER BY SUM(IFNULL(LOAN_BAL_SUB_P,0)) DESC 
-	    ) TMP ,
-	   (SELECT @rownum := 0 ,@rowtotal := NULL) r
+	    ) TMP
     
     ) result  
     ;
@@ -7881,13 +7853,13 @@ BEGIN
     
     SET V_STEP:='4';
     insert into adm.ana_glr_mth_begin_increase_top5 (
-	 FISCAL_DATE               #月份_date
-	,FISCAL_MTH                #月份
-	,ORG_ID                    #金融机构编码
-	,ORG_NAME                  #金融机构名称
-	,LOAN_REMAIN_INCREASE      #余额较年初新增
-	,LOAN_REMAIN_END_RANK      #余额较年初新增排名
-	,RANK_DSCR                 #排序描述
+	 FISCAL_DATE               -- 月份_date
+	,FISCAL_MTH                -- 月份
+	,ORG_ID                    -- 金融机构编码
+	,ORG_NAME                  -- 金融机构名称
+	,LOAN_REMAIN_INCREASE      -- 余额较年初新增
+	,LOAN_REMAIN_END_RANK      -- 余额较年初新增排名
+	,RANK_DSCR                 -- 排序描述
 	)
     
     SELECT 
@@ -7905,10 +7877,7 @@ BEGIN
 	       ,tmp.org_id
 	       ,tmp.org_name
 	       ,tmp.bad_loan
-	       ,case WHEN @rowtotal = tmp.bad_loan  THEN @rownum
-		     WHEN @rowtotal := tmp.bad_loan THEN @rownum :=@rownum + 1
-		     WHEN @rowtotal = 0 THEN @rownum :=@rownum + 1
-	         END AS rank
+	       ,DENSE_RANK() OVER (ORDER BY tmp.bad_loan DESC) AS rank
 	    
 	    FROM (
 		SELECT 
@@ -7922,8 +7891,7 @@ BEGIN
                     ,t.org_no
                     ,t.org_name
                 ORDER BY SUM(IFNULL(LOAN_BAL_SUB_BGY,0)) DESC 
-	    ) TMP ,
-	    (SELECT @rownum := 0 ,@rowtotal := NULL) r
+	    ) TMP
     ) result 
     ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
@@ -7935,13 +7903,13 @@ BEGIN
     
     SET V_STEP:='6';
     insert into adm.ana_glr_mth_remain_increase_top5 (
-	 FISCAL_DATE        #月份_date
-	,FISCAL_MTH         #月份
-	,ORG_ID             #金融机构编码
-	,ORG_NAME           #金融机构名称
-	,LOAN_REMAIN_TB     #贷款余额同比增速
-	,LOAN_REMAIN_RANK   #贷款余额同比增速排名
-	,RANK_DSCR          #排序描述
+	 FISCAL_DATE        -- 月份_date
+	,FISCAL_MTH         -- 月份
+	,ORG_ID             -- 金融机构编码
+	,ORG_NAME           -- 金融机构名称
+	,LOAN_REMAIN_TB     -- 贷款余额同比增速
+	,LOAN_REMAIN_RANK   -- 贷款余额同比增速排名
+	,RANK_DSCR          -- 排序描述
 	)  
     SELECT 
         CONCAT(v_data_date,'01')
@@ -7958,10 +7926,7 @@ BEGIN
 	       ,tmp.org_id
 	       ,tmp.org_name
 	       ,tmp.bad_loan
-	       ,CASE WHEN @rowtotal = tmp.bad_loan  THEN @rownum
-		     WHEN @rowtotal := tmp.bad_loan THEN @rownum :=@rownum + 1
-		     WHEN @rowtotal = 0 THEN @rownum :=@rownum + 1
-	        END AS rank
+	       ,DENSE_RANK() OVER (ORDER BY tmp.bad_loan DESC) AS rank
 	    
 	    FROM (
 		SELECT 
@@ -7975,8 +7940,7 @@ BEGIN
                     ,t.org_no
                     ,t.org_name
                 ORDER BY IFNULL(LOAN_BAL_TB,0)/100 DESC 
-	    ) TMP ,
-	    (SELECT @rownum := 0 ,@rowtotal := NULL) r
+	    ) TMP
     ) result 
     ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
@@ -8011,10 +7975,7 @@ BEGIN
 	       ,tmp.org_id
 	       ,tmp.org_name
 	       ,tmp.bad_loan
-	       ,CASE WHEN @rowtotal = tmp.bad_loan  THEN @rownum
-		     WHEN @rowtotal := tmp.bad_loan THEN @rownum :=@rownum + 1
-		     WHEN @rowtotal = 0 THEN @rownum :=@rownum + 1
-	        END AS rank
+	       ,DENSE_RANK() OVER (ORDER BY tmp.bad_loan DESC) AS rank
 	    FROM (
 		SELECT 
                      t.data_date                   AS    FISCAL_MTH
@@ -8027,8 +7988,7 @@ BEGIN
                     ,t.org_no
                     ,t.org_name
                 ORDER BY SUM(IFNULL(DEPB_BAL_SUB_P,0)) DESC 
-	    ) TMP ,
-	    (SELECT @rownum := 0 ,@rowtotal := NULL) r
+	    ) TMP
     ) result 
     ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
@@ -8064,10 +8024,7 @@ BEGIN
 	       ,tmp.org_id
 	       ,tmp.org_name
 	       ,tmp.bad_loan
-	       ,CASE WHEN @rowtotal = tmp.bad_loan  THEN @rownum
-		     WHEN @rowtotal := tmp.bad_loan THEN @rownum :=@rownum + 1
-		     WHEN @rowtotal = 0 THEN @rownum :=@rownum + 1
-	        END AS rank
+	       ,DENSE_RANK() OVER (ORDER BY tmp.bad_loan DESC) AS rank
 	    
 	    FROM (
 		SELECT 
@@ -8081,8 +8038,7 @@ BEGIN
                     ,t.org_no
                     ,t.org_name
                 ORDER BY SUM(IFNULL(DEPB_BAL_SUB_BGY,0)) DESC 
-	    ) TMP ,
-	    (SELECT @rownum := 0 ,@rowtotal := NULL) r
+	    ) TMP
     ) result 
     ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
@@ -8118,10 +8074,7 @@ BEGIN
 	       ,tmp.org_id
 	       ,tmp.org_name
 	       ,tmp.bad_loan
-	       ,CASE WHEN @rowtotal = tmp.bad_loan  THEN @rownum
-		     WHEN @rowtotal := tmp.bad_loan THEN @rownum :=@rownum + 1
-		     WHEN @rowtotal = 0 THEN @rownum :=@rownum + 1
-	        END AS rank
+	       ,DENSE_RANK() OVER (ORDER BY tmp.bad_loan DESC) AS rank
 	    
 	    FROM (
 		SELECT 
@@ -8135,18 +8088,36 @@ BEGIN
                     ,t.org_no
                     ,t.org_name
                 ORDER BY IFNULL(DEPB_BAL_TB,0)/100 DESC 
-	    ) TMP ,
-	    (SELECT @rownum := 0 ,@rowtotal := NULL) r
+	    ) TMP
     ) result 
     ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
         
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_ana_small_micro_enterprise;
 
 CREATE PROCEDURE adm.p_ana_small_micro_enterprise(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_ana_small_micro_enterprise.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);    
+    V_DATA_DATE_P VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);
+    V_DATA_DATE_L VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
+    V_DATA_DATE_L_P VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 13 MONTH),'%Y%m%d'),1,6);
+    V_DATA_END_Y VARCHAR(6) := CONCAT(SUBSTR(P_DATA_DATE,1,4)-1,'01');          -- 上年末
+    V_DATA_END_Y_L VARCHAR(6) := CONCAT(SUBSTR(P_DATA_DATE,1,4)-2,'01');        -- 上上年末
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_rownum BIGINT;
+    v_at_rowtotal BIGINT;
 BEGIN
 /*
 | Author :严锦涛
@@ -8158,45 +8129,28 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2019-01-02     严锦涛        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_ana_small_micro_enterprise.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);    
-    DECLARE V_DATA_DATE_P VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);
     
-    DECLARE V_DATA_DATE_L VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
-    DECLARE V_DATA_DATE_L_P VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 13 MONTH),'%Y%m%d'),1,6);
     
-    DECLARE V_DATA_END_Y VARCHAR(6) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4)-1,'01');          #上年末
-    DECLARE V_DATA_END_Y_L VARCHAR(6) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4)-2,'01');        #上上年末
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     SET V_STEP:='1';
     DELETE  FROM adm.ana_glr_mth_small_micro WHERE FISCAL_MTH = V_DATA_DATE;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     SET V_STEP:='2';
     insert into adm.ana_glr_mth_small_micro (
-	 FISCAL_DATE             #月份_date
-	,FISCAL_MTH              #月份
-	,CITY_ID                 #市编码
-	,CITY_NAME               #市名称
-	,AREA_NO_ID              #县编码
-	,AREA_DSCR               #县名称
-	,DIM_CODE                #纬度编码
-	,DIM_DSCR                #纬度描述
-	,DIM_TYPE                #纬度类型
+	 FISCAL_DATE             -- 月份_date
+	,FISCAL_MTH              -- 月份
+	,CITY_ID                 -- 市编码
+	,CITY_NAME               -- 市名称
+	,AREA_NO_ID              -- 县编码
+	,AREA_DSCR               -- 县名称
+	,DIM_CODE                -- 纬度编码
+	,DIM_DSCR                -- 纬度描述
+	,DIM_TYPE                -- 纬度类型
 	,SERVICE_TYPE
-	,LOAN_AMOUNT             #贷款余额
-	,LOAN_AMOUNT_LY          #同期贷款余额
+	,LOAN_AMOUNT             -- 贷款余额
+	,LOAN_AMOUNT_LY          -- 同期贷款余额
      )
     -- 1. 01 分行业投向(一级)
     select 
@@ -8567,14 +8521,14 @@ BEGIN
     
     SET V_STEP:='4';    
     insert into adm.ana_glr_mth_small_micro_map (
-	 FISCAL_DATE             #月份_date
-	,FISCAL_MTH              #月份
-	,ISO_ID                  #区域代码
-	,AREA_NO_ID              #县编码
-	,AREA_DSCR               #县名称
-	,SERVICE_TYPE            #业务统计类型
-	,LOAN_AMOUNT             #贷款余额
-	,LOAN_AMOUNT_LY          #去年同期贷款余额
+	 FISCAL_DATE             -- 月份_date
+	,FISCAL_MTH              -- 月份
+	,ISO_ID                  -- 区域代码
+	,AREA_NO_ID              -- 县编码
+	,AREA_DSCR               -- 县名称
+	,SERVICE_TYPE            -- 业务统计类型
+	,LOAN_AMOUNT             -- 贷款余额
+	,LOAN_AMOUNT_LY          -- 去年同期贷款余额
     )
     SELECT 
         CONCAT(V_DATA_DATE,'01')       AS    FISCAL_DATE
@@ -8645,13 +8599,13 @@ BEGIN
     
     SET V_STEP:='6';    
     insert into adm.ana_glr_mth_small_micro_bad(
-	 FISCAL_DATE           #月份_date
-	,FISCAL_MTH            #月份
-	,ORG_ID                #金融机构编码
-	,ORG_NAME              #金融机构名称
-	,BAD_LOAN_RATE         #不良贷款率
-	,BAD_LOAN_RATE_RANK    #不良贷款率排序
-	,RANK_DSCR             #排序描述
+	 FISCAL_DATE           -- 月份_date
+	,FISCAL_MTH            -- 月份
+	,ORG_ID                -- 金融机构编码
+	,ORG_NAME              -- 金融机构名称
+	,BAD_LOAN_RATE         -- 不良贷款率
+	,BAD_LOAN_RATE_RANK    -- 不良贷款率排序
+	,RANK_DSCR             -- 排序描述
 	)
 	
     select 
@@ -8670,10 +8624,7 @@ BEGIN
 	       ,tmp.org_id
 	       ,tmp.org_name
 	       ,tmp.bad_loan
-	       ,CASE WHEN @rowtotal = tmp.bad_loan  THEN @rownum
-		     WHEN @rowtotal := tmp.bad_loan THEN @rownum :=@rownum + 1
-		     WHEN @rowtotal = 0 THEN @rownum :=@rownum + 1
-	        END AS rank
+	       ,DENSE_RANK() OVER (ORDER BY tmp.bad_loan DESC) AS rank
 	    
 	    FROM (
 		    SELECT 
@@ -8694,9 +8645,8 @@ BEGIN
 		    GROUP BY V_DATA_DATE
 			,t.org_no      
 			,o.org_dscr    
-		    ORDER BY SUM(IFNULL(balance_cny,0)) DESC   #必须加排序
-	    ) TMP ,
-	    (SELECT @rownum := 0 ,@rowtotal := NULL) r
+		    ORDER BY SUM(IFNULL(balance_cny,0)) DESC   -- 必须加排序
+	    ) TMP
     
     ) result 
     ;
@@ -8710,11 +8660,11 @@ BEGIN
     
     SET V_STEP:='8';
     insert into adm.ana_glr_mth_small_micro_rate (
-	 FISCAL_DATE            #日期
-	,FISCAL_MTH             #月份
-	,SERVICE_TYPE           #业务统计类型
-	,LOANS_COUNT            #小微企业贷款金额
-	,LOANS_TOTAL            #各项贷款金额
+	 FISCAL_DATE            -- 日期
+	,FISCAL_MTH             -- 月份
+	,SERVICE_TYPE           -- 业务统计类型
+	,LOANS_COUNT            -- 小微企业贷款金额
+	,LOANS_TOTAL            -- 各项贷款金额
 	)
     SELECT 
          ds1.fiscal_date
@@ -8736,7 +8686,7 @@ BEGIN
     (
        SELECT 
          SUM(IFNULL(loan_balance,0)) AS loan_all
-       FROM edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       FROM edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        WHERE t.rows_id = 3
         AND data_date = v_data_date 
     )DS2
@@ -8762,7 +8712,7 @@ BEGIN
     (
        SELECT 
          SUM(CASE WHEN data_date = v_data_date THEN IFNULL(loan_balance,0) else 0 end ) - SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(loan_balance,0) ELSE 0 END ) AS loan_all
-       FROM edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       FROM edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        WHERE t.rows_id = 3
     )DS4
         
@@ -8787,7 +8737,7 @@ BEGIN
     (
        SELECT 
          SUM(CASE WHEN data_date = v_data_date THEN IFNULL(loan_balance,0) ELSE 0 END ) - SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(loan_balance,0) ELSE 0 END ) AS loan_all
-       FROM edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       FROM edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        WHERE t.rows_id = 3
     )DS6
     ;
@@ -8795,12 +8745,18 @@ BEGIN
     
     
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_credit_rece_pay_area;
 
 CREATE PROCEDURE adm.p_ana_sust_mth_credit_rece_pay_area(in V_DATA_DATE varchar(10))
+AS
 BEGIN
 /*信贷收支总览   地图*/
 delete FROM adm.ana_sust_mth_credit_rece_pay_area WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
@@ -8824,6 +8780,7 @@ WHERE a.data_date = date_format(V_DATA_DATE,'%Y%m');
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_credit_rece_pay_struc;
 
 CREATE PROCEDURE adm.p_ana_sust_mth_credit_rece_pay_struc(in v_data_date varchar(10))
+AS
 BEGIN
 /*存贷主要项目在各期余额*/
 DELETE FROM adm.ana_sust_mth_credit_rece_pay_struc WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
@@ -8896,6 +8853,7 @@ WHERE a.data_date = DATE_FORMAT(v_data_date,'%Y%m');
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_credit_rece_pay_times;
 
 CREATE PROCEDURE adm.p_ana_sust_mth_credit_rece_pay_times(in v_data_date varchar(10))
+AS
 BEGIN
 /*信贷总览  收支时序表*/
 DELETE FROM adm.ana_sust_mth_credit_rece_pay_times WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
@@ -8929,103 +8887,106 @@ IN V_DATA_DATE VARCHAR(6),
 IN E_ID VARCHAR(8), 
 IN N_ID VARCHAR(5) 
 )
+AS
+	V_PROC_NAME     VARCHAR(80) := 'adm.p_ana_sust_mth_enterprise_survey.PRC';
+	V_START_TIME    CHAR(19) := NOW();
+	V_STEP_ID       INT := 0;
+	P_DATA_DATE     VARCHAR(8) := V_DATA_DATE;
+	DONE            INT := FALSE;	
+	V_NORM_ID       VARCHAR(100);		
+	V_NORM_NAME     VARCHAR(100);		
+	V_PLAN_ID       VARCHAR(100);		
+	ENT_ID          VARCHAR(100);		
+	ENT_NAME        VARCHAR(100);           
+	V_SQL_INSERT    LONGTEXT := '';	
+	CURSOR CUR_ENTERPRISE IS SELECT ENTERPRISE_ID,ENTERPRISE_name FROM adm.sust_enterprise_view where ENTERPRISE_name is not null; 
+	CURSOR CUR_NORM IS SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm_view where norm_id is not null; 
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_DATA_DATE VARCHAR(2000);
+    v_at_E_ID VARCHAR(2000);
+    v_at_E_NAME VARCHAR(2000);
+    v_at_NORM_ID VARCHAR(2000);
+    v_at_NORM_NAME VARCHAR(2000);
+    v_at_SQLSTR TEXT;
+    v_at_SQLTXT TEXT;
+    v_at_V_SQLTXT TEXT;
 BEGIN
 
          
 
-	DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.p_ana_sust_mth_enterprise_survey.PRC';
-	DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-	DECLARE V_STEP_ID       INT           DEFAULT 0;
-	DECLARE P_DATA_DATE     VARCHAR(8)    DEFAULT V_DATA_DATE;
 
-	DECLARE DONE            INT DEFAULT FALSE;	
-	DECLARE V_NORM_ID       VARCHAR(100);		
-	DECLARE V_NORM_NAME     VARCHAR(100);		
-	DECLARE V_PLAN_ID       VARCHAR(100);		
-	DECLARE ENT_ID          VARCHAR(100);		
-	DECLARE ENT_NAME        VARCHAR(100);           
-	DECLARE V_SQL_INSERT    LONGTEXT  DEFAULT '';	
-	DECLARE CUR_ENTERPRISE  CURSOR FOR SELECT ENTERPRISE_ID,ENTERPRISE_name FROM adm.sust_enterprise_view where ENTERPRISE_name is not null; 
-	DECLARE CUR_NORM        CURSOR FOR SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm_view where norm_id is not null; 
-	DECLARE CONTINUE HANDLER FOR NOT FOUND SET DONE:= TRUE;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
+    -- NOT FOUND handler replaced by explicit cursor %NOTFOUND checks below.
 	
 
 	
-	   DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	BEGIN
-	GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-	UPDATE transfer.tf_business_launch_record SET RUN_STATUS = 3 WHERE ACCT_DATE = P_DATA_DATE;
-	CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_NORM_ID,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-	END;
 	
 	
-	SET V_STEP_ID = 1;
+	V_STEP_ID := 1;
 	DROP VIEW IF EXISTS adm.sust_enterprise_view;
 	
-	SET V_STEP_ID = 2;
-	SET @SQLSTR = "CREATE VIEW adm.sust_enterprise_view AS ";
+	V_STEP_ID := 2;
+	v_at_SQLSTR := "CREATE VIEW adm.sust_enterprise_view AS ";
 	
 	IF E_ID = '' 
 	THEN
-	SET @SQLSTR = CONCAT(@SQLSTR,"SELECT DISTINCT ENTERPRISE_ID,ENTERPRISE_name FROM adm.ana_sust_mth_enterprise_survey_temp "," WHERE DATA_DATE = ",V_DATA_DATE,";");
+	v_at_SQLSTR := CONCAT(v_at_SQLSTR,"SELECT DISTINCT ENTERPRISE_ID,ENTERPRISE_name FROM adm.ana_sust_mth_enterprise_survey_temp "," WHERE DATA_DATE = ",V_DATA_DATE,";");
 	ELSE 
-	SET @SQLSTR = CONCAT(@SQLSTR,"SELECT DISTINCT ENTERPRISE_ID,ENTERPRISE_name FROM adm.ana_sust_mth_enterprise_survey_temp WHERE ENTERPRISE_ID = '",E_ID,"';");
+	v_at_SQLSTR := CONCAT(v_at_SQLSTR,"SELECT DISTINCT ENTERPRISE_ID,ENTERPRISE_name FROM adm.ana_sust_mth_enterprise_survey_temp WHERE ENTERPRISE_ID = '",E_ID,"';");
 	END IF;
 	
-	PREPARE SQLSTR FROM @SQLSTR;
+	EXECUTE IMMEDIATE v_at_SQLSTR;
 	
-	EXECUTE SQLSTR;
 	
-	DEALLOCATE PREPARE SQLSTR;
 	
-	set V_STEP_ID = 3;
+	V_STEP_ID := 3;
 	
 	DROP VIEW IF EXISTS adm.sust_standard_norm_view;
 	
-	SET V_STEP_ID = 4;
-	SET @SQLTXT = "CREATE VIEW adm.sust_standard_norm_view AS ";
+	V_STEP_ID := 4;
+	v_at_SQLTXT := "CREATE VIEW adm.sust_standard_norm_view AS ";
 	IF N_ID = ''
 	THEN 
-	SET @SQLTXT = CONCAT(@SQLTXT,"SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm ORDER BY ID;");
+	v_at_SQLTXT := CONCAT(v_at_SQLTXT,"SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm ORDER BY ID;");
 	ELSE 
-	SET @SQLTXT = CONCAT(@SQLTXT,"SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm WHERE NORM_ID = '",N_ID,"'ORDER BY ID;");
+	v_at_SQLTXT := CONCAT(v_at_SQLTXT,"SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm WHERE NORM_ID = '",N_ID,"'ORDER BY ID;");
 	END IF;
 	
-	PREPARE SQLTXT FROM @SQLTXT;
-	EXECUTE SQLTXT;
-	DEALLOCATE PREPARE SQLTXT;
+	EXECUTE IMMEDIATE v_at_SQLTXT;
 	
-	SET V_STEP_ID = 5;
+	V_STEP_ID := 5;
 	
 	
 	OPEN CUR_ENTERPRISE;
-		ENTLOOP:LOOP
+		<<ENTLOOP>>
+		LOOP
 			FETCH CUR_ENTERPRISE INTO ENT_ID,ENT_NAME;
+			EXIT WHEN CUR_ENTERPRISE%NOTFOUND;
 			IF DONE THEN
-			LEAVE ENTLOOP;
+			EXIT ENTLOOP;
 			END IF;
 			
 			OPEN CUR_NORM;
-				NORMLOOP:LOOP
+				<<NORMLOOP>>
+				LOOP
 					FETCH CUR_NORM INTO V_NORM_ID,V_NORM_NAME;
+					EXIT WHEN CUR_NORM%NOTFOUND;
 					IF DONE THEN
-					LEAVE NORMLOOP;
+					EXIT NORMLOOP;
 					END IF;
 
 					
-					SET @DATA_DATE = V_DATA_DATE;
-					SET @E_ID = ENT_ID;
-					SET @E_NAME = ENT_NAME;
-					SET @NORM_ID = V_NORM_ID;
-					SET @NORM_NAME = V_NORM_NAME;
+					v_at_DATA_DATE := V_DATA_DATE;
+					v_at_E_ID := ENT_ID;
+					v_at_E_NAME := ENT_NAME;
+					v_at_NORM_ID := V_NORM_ID;
+					v_at_NORM_NAME := V_NORM_NAME;
 										
 					
 					DELETE FROM adm.ana_sust_mth_enterprise_survey 
-					WHERE DATA_DATE = @DATA_DATE 
-					AND ENTERPRISE_ID = @E_ID 
-					AND STANDARD_CODE = @NORM_ID;
+					WHERE DATA_DATE = v_at_DATA_DATE 
+					AND ENTERPRISE_ID = v_at_E_ID 
+					AND STANDARD_CODE = v_at_NORM_ID;
 					
 					
 					
@@ -9044,46 +9005,44 @@ BEGIN
 					WHERE indicators_id = V_NORM_ID;
 
 					
-					SET @V_SQLTXT = V_SQL_INSERT;
-					PREPARE V_SQLTXT FROM @V_SQLTXT;
-					EXECUTE V_SQLTXT;
-					DEALLOCATE PREPARE V_SQLTXT;
+					v_at_V_SQLTXT := V_SQL_INSERT;
+					EXECUTE IMMEDIATE v_at_V_SQLTXT;
 
 			END LOOP NORMLOOP;
 			CLOSE CUR_NORM;
 
-			SET DONE = FALSE;
+			DONE := FALSE;
 	END LOOP ENTLOOP;
 	CLOSE CUR_ENTERPRISE;
 
 	
 
 
+EXCEPTION
+    WHEN OTHERS THEN
+	GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+	UPDATE transfer.tf_business_launch_record SET RUN_STATUS = 3 WHERE ACCT_DATE = P_DATA_DATE;
+	CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_NORM_ID,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_enterprise_survey_temp;
 
 CREATE PROCEDURE adm.p_ana_sust_mth_enterprise_survey_temp(in V_DATA_DATE varchar(6))
+AS
+	V_PROC_NAME     VARCHAR(80) := 'adm.p_ana_sust_mth_enterprise_survey_temp.PRC';
+	V_START_TIME    CHAR(19) := NOW();
+	V_STEP_ID       INT := 0;
+	P_DATA_DATE     VARCHAR(8) := V_DATA_DATE;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
-	DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.p_ana_sust_mth_enterprise_survey_temp.PRC';
-	DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-	DECLARE V_STEP_ID       INT           DEFAULT 0;
-	DECLARE P_DATA_DATE     VARCHAR(8)    DEFAULT V_DATA_DATE;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
 	
 	
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION
-	BEGIN
-	GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-	UPDATE transfer.tf_business_launch_record SET RUN_STATUS = 3 WHERE ACCT_DATE = P_DATA_DATE;
-	CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-	END;
 	
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 delete from adm.ana_sust_mth_enterprise_survey_temp WHERE DATA_DATE = V_DATA_DATE;
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 INSERT INTO adm.ana_sust_mth_enterprise_survey_temp( 
   DATA_DATE,
   ENTERPRISE_ID,
@@ -9122,18 +9081,24 @@ WHERE n1.data_date = V_DATA_DATE
     AND LENGTH(MONEY_2) = CHAR_LENGTH(MONEY_2)
     AND RIGHT(MONEY_2,1) <> '-'
     AND MONEY_2 <> '.';
-SET V_STEP_ID = 3;
+V_STEP_ID := 3;
 DELETE FROM adm.ana_sust_mth_enterprise_survey_temp WHERE DATA_DATE = V_DATA_DATE AND LENGTH(money) <> CHAR_LENGTH(money); 
-SET V_STEP_ID = 4;
+V_STEP_ID := 4;
 DELETE FROM adm.ana_sust_mth_enterprise_survey_temp WHERE DATA_DATE = V_DATA_DATE AND (MONEY = '0' OR MONEY IS NULL OR MONEY = '' OR RIGHT(MONEY,1) = '-' or money = '42');
-SET V_STEP_ID = 5;
+V_STEP_ID := 5;
 CALL adm.p_ana_sust_mth_enterprise_survey(V_DATA_DATE,'','');
+EXCEPTION
+    WHEN OTHERS THEN
+	GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+	UPDATE transfer.tf_business_launch_record SET RUN_STATUS = 3 WHERE ACCT_DATE = P_DATA_DATE;
+	CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_special_struc_agricu;
 
 CREATE PROCEDURE adm.p_ana_sust_mth_special_struc_agricu(in v_data_date varchar(10))
+AS
 BEGIN
 DELETE FROM adm.ana_sust_mth_special_struc_agricu WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
 insert into adm.ana_sust_mth_special_struc_agricu
@@ -9159,6 +9124,7 @@ OR a.project = '（八）其他');
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_special_struc_enter_scale;
 
 CREATE PROCEDURE adm.p_ana_sust_mth_special_struc_enter_scale(in v_data_date varchar(10))
+AS
 BEGIN
 DELETE FROM adm.ana_sust_mth_special_struc_enter_scale WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
 insert into adm.ana_sust_mth_special_struc_enter_scale
@@ -9185,6 +9151,7 @@ OR a.industry_name LIKE '%境内微型企业贷款合计');
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_special_struc_realty;
 
 CREATE PROCEDURE adm.p_ana_sust_mth_special_struc_realty(in v_data_date varchar(10))
+AS
 BEGIN
 DELETE FROM adm.ana_sust_mth_special_struc_realty WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
 INSERT INTO adm.ana_sust_mth_special_struc_realty
@@ -9204,6 +9171,7 @@ WHERE a.data_date = date_format(v_data_date,'%Y%m')
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_special_times;
 
 CREATE PROCEDURE adm.p_ana_sust_mth_special_times(in v_data_date varchar(10))
+AS
 BEGIN
 DELETE FROM adm.ana_sust_mth_special_times WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
 insert into adm.ana_sust_mth_special_times
@@ -9250,6 +9218,7 @@ GROUP BY s.data_date;
 DROP PROCEDURE IF EXISTS adm.p_ana_sust_update;
 
 CREATE PROCEDURE adm.p_ana_sust_update(IN V_DATA_DATE VARCHAR(10))
+AS
 BEGIN
 -- 维度表更新
 CALL edw.p_cm_sust_update();
@@ -9275,42 +9244,329 @@ CREATE PROCEDURE adm.p_big_all(
 IN V_DATA_DATE VARCHAR(10)
 ,IN V_ID   CHAR(19)
 )
+AS
+    V_PROC_NAME     VARCHAR(80) := 'adm.p_big_all.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_DATA_DATE     VARCHAR(8) := DATE_FORMAT(CONCAT(V_DATA_DATE,'01'),'%Y-%m');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.p_big_all.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_DATA_DATE     VARCHAR(8)	DEFAULT	DATE_FORMAT(CONCAT(V_DATA_DATE,'01'),'%Y-%m');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
    
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        
-        UPDATE  adm.exec_shell_task SET STATUS='500' WHERE id=V_ID;    --   修改状态跑批失败
-    END;
   
-	SET V_DATA_DATE = DATE_FORMAT(CONCAT(V_DATA_DATE, '01'), '%Y-%m') ;
-	SET V_STEP_ID = 1 ;
+	V_DATA_DATE := DATE_FORMAT(CONCAT(V_DATA_DATE, '01'), '%Y-%m') ;
+	V_STEP_ID := 1 ;
 	UPDATE 
 	  adm.exec_shell_task 
 	SET
 	  STATUS = '1' 
 	WHERE id=V_ID;  --   修改状态跑批正在运行
-	SET V_STEP_ID = 2 ;
+	V_STEP_ID := 2 ;
 -- 	CALL indicators_lib.p_xunhuan_formula_new(V_DATA_DATE);
 	
 	CALL visual_screen.p_task_vscreen(V_DATA_DATE);
-	SET V_STEP_ID = 3 ;
+	V_STEP_ID := 3 ;
 	UPDATE 
 	  adm.exec_shell_task 
 	SET
 	  STATUS = '200' 
 	WHERE   id=V_ID; --   修改状态跑批成功
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        
+        UPDATE  adm.exec_shell_task SET STATUS='500' WHERE id=V_ID;    --   修改状态跑批失败
+END;
+/
+
+DROP PROCEDURE IF EXISTS adm.p_guoku_day_ana_processing;
+
+CREATE PROCEDURE adm.p_guoku_day_ana_processing(
+    IN P_DATA_DATE CHAR(10)
+)
+AS
+    V_PROC_NAME     VARCHAR(50) := 'adm.p_guoku_day_ana_processing.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;  -- 步骤编号
+    V_STEP_NAME     VARCHAR(100) := ''; -- 步骤信息
+    V_SQL_ID        INT := 0;  -- 查询SQL的ID
+    V_TABLE_NAME    VARCHAR(50) := ''; -- 操作表名
+    V_SQL_DELETE    VARCHAR(100) := ''; -- 删除语句SQL
+    V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+    V_SQLTXT        LONGTEXT := ''; -- 执行SQL
+    DONE            INT := FALSE; -- 自定义控制游标循环变量,默认false
+    CURSOR PROC_CURSOR IS 
+                                       SELECT ID FROM adm.trs_guoku_analysis_processing
+                                       WHERE FREQUENCY_CODE = '1' and IS_ACTIVE='1'
+                                       AND REPLACE(P_DATA_DATE,'-','') BETWEEN START_DATE AND END_DATE
+                                       ; -- 定义游标并输入结果集
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_DAY_DATE VARCHAR(2000);
+    v_at_LASTMTH_DATE VARCHAR(2000);
+    v_at_LASTYEAR_DATE VARCHAR(2000);
+    v_at_V_SQLTXT TEXT;
+BEGIN
+/******************
+过程跑数频率：按日
+过程跑数内容：执行专题加工所有按日跑的过程
+*******************/
+    -- NOT FOUND handler replaced by explicit cursor %NOTFOUND checks below.
+    /* EXCEPTION HANDLER */
+    
+    OPEN PROC_CURSOR; -- 打开游标
+    <<PROC_CURSOR>>
+    LOOP -- 开始循环体,PROC_CURSOR为自定义循环名,结束循环时用到
+    FETCH PROC_CURSOR INTO V_SQL_ID; -- 将游标当前读取行的数据顺序赋予自定义变量-查询SQL的ID
+    EXIT WHEN PROC_CURSOR%NOTFOUND;
+    IF DONE THEN -- 判断是否继续循环
+      EXIT PROC_CURSOR; -- 结束循环
+    END IF;
+    -- 自己要做的事情,在 sql 中直接使用自定义变量即可
+    
+    -- 每日日期
+    v_at_DAY_DATE := CONCAT(P_DATA_DATE);
+    -- 上月日期
+    v_at_LASTMTH_DATE := CONCAT(DATE_ADD(v_at_DAY_DATE, INTERVAL -1 MONTH));
+    -- 去年同期日期
+    v_at_LASTYEAR_DATE := CONCAT(DATE_ADD(v_at_DAY_DATE, INTERVAL -1 YEAR));
+    -- 年初日期
+    v_at_LASTYEAR_DATE := CONCAT(DATE_SUB(v_at_DAY_DATE,INTERVAL DAYOFYEAR(v_at_DAY_DATE) DAY));
+    -- 获取表名
+    SELECT TABLE_NAME INTO V_TABLE_NAME FROM adm.trs_guoku_analysis_processing WHERE  ID=V_SQL_ID;
+    -- 获取删除语句SQL
+    SELECT SQL_DELETE INTO V_SQL_DELETE FROM adm.trs_guoku_analysis_processing WHERE  ID=V_SQL_ID;
+    -- 获取插数语句SQL
+    SELECT SQL_INSERT INTO V_SQL_INSERT FROM adm.trs_guoku_analysis_processing WHERE  ID=V_SQL_ID;
+    
+    -- 删除步骤开始
+    V_STEP_ID := V_STEP_ID + 1;
+    -- 更新步骤信息
+    V_STEP_NAME := CONCAT('删除',V_TABLE_NAME,'该日期下的数据');
+    -- 封装删除语句
+    v_at_V_SQLTXT := CONCAT(V_SQL_DELETE);
+    -- 准备删除
+    EXECUTE IMMEDIATE v_at_V_SQLTXT;
+    -- 执行删除
+    -- ETL记录删除结果
+    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    -- 删除步骤结束
+    
+    -- 插数步骤开始
+    V_STEP_ID := V_STEP_ID + 1;
+    -- 更新步骤信息
+    V_STEP_NAME := CONCAT('增加',V_TABLE_NAME,'该日期下的数据');
+    -- 封装插数语句
+    v_at_V_SQLTXT := CONCAT(V_SQL_INSERT);
+    -- 准备插数
+    EXECUTE IMMEDIATE v_at_V_SQLTXT;
+    -- 执行插数
+    -- ETL记录插数结果
+    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    -- 插数步骤结束
+    
+    COMMIT; -- 提交事务  
+    END LOOP PROC_CURSOR; -- 结束自定义循环体  
+    CLOSE PROC_CURSOR; -- 关闭游标
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+END;
+/
+
+DROP PROCEDURE IF EXISTS adm.p_guoku_lastday_ana_processing;
+
+CREATE PROCEDURE adm.p_guoku_lastday_ana_processing(
+    IN P_DATA_DATE CHAR(10)
+)
+AS
+    V_PROC_NAME     VARCHAR(50) := 'adm.p_guoku_lastday_ana_processing.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;  -- 步骤编号
+    V_STEP_NAME     VARCHAR(100) := ''; -- 步骤信息
+    V_SQL_ID        INT := 0;  -- 查询SQL的ID
+    V_TABLE_NAME    VARCHAR(50) := ''; -- 操作表名
+    V_SQL_DELETE    VARCHAR(100) := ''; -- 删除语句SQL
+    V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+    V_SQLTXT        LONGTEXT := ''; -- 执行SQL
+    DONE            INT := FALSE; -- 自定义控制游标循环变量,默认false
+    CURSOR PROC_CURSOR IS 
+                                       SELECT ID FROM adm.trs_guoku_analysis_processing
+                                       WHERE FREQUENCY_CODE = '2' and IS_ACTIVE='1'
+                                       AND REPLACE(P_DATA_DATE,'-','') BETWEEN START_DATE AND END_DATE
+                                       ; -- 定义游标并输入结果集
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_DAY_DATE VARCHAR(2000);
+    v_at_LASTMTH_DATE VARCHAR(2000);
+    v_at_LASTYEAR_DATE VARCHAR(2000);
+    v_at_V_SQLTXT TEXT;
+BEGIN
+/******************
+过程跑数频率：按每月最后一天
+过程跑数内容：执行专题加工所有每月最后一天跑的过程
+*******************/
+    -- NOT FOUND handler replaced by explicit cursor %NOTFOUND checks below.
+    /* EXCEPTION HANDLER */
+    
+    OPEN PROC_CURSOR; -- 打开游标
+    <<PROC_CURSOR>>
+    LOOP -- 开始循环体,PROC_CURSOR为自定义循环名,结束循环时用到
+    FETCH PROC_CURSOR INTO V_SQL_ID; -- 将游标当前读取行的数据顺序赋予自定义变量-查询SQL的ID
+    EXIT WHEN PROC_CURSOR%NOTFOUND;
+    IF DONE THEN -- 判断是否继续循环
+      EXIT PROC_CURSOR; -- 结束循环
+    END IF;
+    -- 自己要做的事情,在 sql 中直接使用自定义变量即可
+    
+    -- 每日日期
+    v_at_DAY_DATE := CONCAT(P_DATA_DATE);
+    -- 上月日期
+    v_at_LASTMTH_DATE := CONCAT(DATE_ADD(v_at_DAY_DATE, INTERVAL -1 MONTH));
+    -- 去年同期日期
+    v_at_LASTYEAR_DATE := CONCAT(DATE_ADD(v_at_DAY_DATE, INTERVAL -1 YEAR));
+    -- 年初日期
+    v_at_LASTYEAR_DATE := CONCAT(DATE_SUB(v_at_DAY_DATE,INTERVAL DAYOFYEAR(v_at_DAY_DATE) DAY));
+    -- 获取表名
+    SELECT TABLE_NAME INTO V_TABLE_NAME FROM adm.trs_guoku_analysis_processing WHERE   ID=V_SQL_ID;
+    -- 获取删除语句SQL
+    SELECT SQL_DELETE INTO V_SQL_DELETE FROM adm.trs_guoku_analysis_processing WHERE   ID=V_SQL_ID;
+    -- 获取插数语句SQL
+    SELECT SQL_INSERT INTO V_SQL_INSERT FROM adm.trs_guoku_analysis_processing WHERE   ID=V_SQL_ID;
+    
+    -- 删除步骤开始
+    V_STEP_ID := V_STEP_ID + 1;
+    -- 更新步骤信息
+    V_STEP_NAME := CONCAT('删除',V_TABLE_NAME,'该日期下的数据');
+    -- 封装删除语句
+    v_at_V_SQLTXT := CONCAT(V_SQL_DELETE);
+    -- 准备删除
+    EXECUTE IMMEDIATE v_at_V_SQLTXT;
+    -- 执行删除
+    -- ETL记录删除结果
+    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    -- 删除步骤结束
+    
+    -- 插数步骤开始
+    V_STEP_ID := V_STEP_ID + 1;
+    -- 更新步骤信息
+    V_STEP_NAME := CONCAT('增加',V_TABLE_NAME,'该日期下的数据');
+    -- 封装插数语句
+    v_at_V_SQLTXT := CONCAT(V_SQL_INSERT);
+    -- 准备插数
+    EXECUTE IMMEDIATE v_at_V_SQLTXT;
+    -- 执行插数
+    -- ETL记录插数结果
+    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    -- 插数步骤结束
+    
+    COMMIT; -- 提交事务  
+    END LOOP PROC_CURSOR; -- 结束自定义循环体  
+    CLOSE PROC_CURSOR; -- 关闭游标
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+END;
+/
+
+DROP PROCEDURE IF EXISTS adm.p_guoku_saiku_processing;
+
+CREATE PROCEDURE adm.p_guoku_saiku_processing(
+    IN P_DATA_DATE CHAR(10)
+)
+AS
+    V_PROC_NAME     VARCHAR(50) := 'adm.p_guoku_saiku_processing.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;  -- 步骤编号
+    V_STEP_NAME     VARCHAR(100) := ''; -- 步骤信息
+    V_SQL_ID        INT := 0;  -- 查询SQL的ID
+    V_TABLE_NAME    VARCHAR(50) := ''; -- 操作表名
+    V_SQL_DELETE    VARCHAR(100) := ''; -- 删除语句SQL
+    V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+    V_SQLTXT        LONGTEXT := ''; -- 执行SQL
+    DONE            INT := FALSE; -- 自定义控制游标循环变量,默认false
+    CURSOR PROC_CURSOR IS 
+                                       SELECT ID FROM adm.trs_guoku_saiku_processing
+                                       WHERE IS_ACTIVE='1' and REPLACE(P_DATA_DATE,'-','') BETWEEN START_DATE AND END_DATE
+                                       ; -- 定义游标并输入结果集
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_DAY_DATE VARCHAR(2000);
+    v_at_MONTH_DATE VARCHAR(2000);
+    v_at_V_SQLTXT TEXT;
+    v_at_YEAR_DATE VARCHAR(2000);
+BEGIN
+/******************
+过程跑数频率：按日
+过程跑数内容：执行多维加工所有过程
+*******************/
+    -- NOT FOUND handler replaced by explicit cursor %NOTFOUND checks below.
+    /* EXCEPTION HANDLER */
+    
+    OPEN PROC_CURSOR; -- 打开游标
+    <<PROC_CURSOR>>
+    LOOP -- 开始循环体,PROC_CURSOR为自定义循环名,结束循环时用到
+    FETCH PROC_CURSOR INTO V_SQL_ID; -- 将游标当前读取行的数据顺序赋予自定义变量-查询SQL的ID
+    EXIT WHEN PROC_CURSOR%NOTFOUND;
+    IF DONE THEN -- 判断是否继续循环
+      EXIT PROC_CURSOR; -- 结束循环
+    END IF;
+    -- 自己要做的事情,在 sql 中直接使用自定义变量即可
+    
+    -- 日账期
+    v_at_DAY_DATE := CONCAT(P_DATA_DATE);
+    -- 月账期
+    v_at_MONTH_DATE := CONCAT(SUBSTR(P_DATA_DATE,1,7));
+    -- 年账期
+    v_at_YEAR_DATE := CONCAT(SUBSTR(P_DATA_DATE,1,4));
+    -- 获取表名
+    SELECT TABLE_NAME INTO V_TABLE_NAME FROM adm.trs_guoku_saiku_processing WHERE  ID=V_SQL_ID;
+    -- 获取删除语句SQL
+    SELECT SQL_DELETE INTO V_SQL_DELETE FROM adm.trs_guoku_saiku_processing WHERE  ID=V_SQL_ID;
+    -- 获取插数语句SQL
+    SELECT SQL_INSERT INTO V_SQL_INSERT FROM adm.trs_guoku_saiku_processing WHERE  ID=V_SQL_ID;
+    
+    -- 删除步骤开始
+    V_STEP_ID := V_STEP_ID + 1;
+    -- 更新步骤信息
+    V_STEP_NAME := CONCAT('删除',V_TABLE_NAME,'该日期下的数据');
+    -- 封装删除语句
+      v_at_V_SQLTXT := CONCAT(V_SQL_DELETE);
+   -- SET v_at_V_SQLTXT = CONCAT(V_SQL_DELETE,'WHERE REPORTDATE = ',P_DATA_DATE);
+    -- 准备删除
+    EXECUTE IMMEDIATE v_at_V_SQLTXT;
+    -- 执行删除
+    -- ETL记录删除结果
+    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    -- 删除步骤结束
+    
+    -- 插数步骤开始
+    V_STEP_ID := V_STEP_ID + 1;
+    -- 更新步骤信息
+    V_STEP_NAME := CONCAT('增加',V_TABLE_NAME,'该日期下的数据');
+    -- 封装插数语句
+      v_at_V_SQLTXT := CONCAT(V_SQL_INSERT);
+   --  SET v_at_V_SQLTXT = CONCAT(V_SQL_INSERT ,'WHERE b.s_acct = ',P_DATA_DATE);
+    -- 准备插数
+    EXECUTE IMMEDIATE v_at_V_SQLTXT;
+    -- 执行插数
+    -- ETL记录插数结果
+    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+    -- 插数步骤结束
+    
+    COMMIT; -- 提交事务  
+    END LOOP PROC_CURSOR; -- 结束自定义循环体  
+    CLOSE PROC_CURSOR; -- 关闭游标
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 END;
 /
 
@@ -9319,19 +9575,21 @@ DROP PROCEDURE IF EXISTS adm.p_execute_date_processing;
 CREATE PROCEDURE adm.p_execute_date_processing(
 IN P_DATA_DATE CHAR(10)
 )
+AS
+    v_at_P_LASTDAY_DAYE VARCHAR(2000);
 BEGIN
   -- DECLARE  P_DAY_DATE  CHAR(10) DEFAULT '';
     -- 定义跑数日期（当前时间的7天前）
    -- SET P_DAY_DATE = CONCAT(DATE_SUB(DATE_FORMAT(NOW(),'%Y-%m-%d'),INTERVAL 7 DAY));
-   SET P_DATA_DATE=DATE_FORMAT(P_DATA_DATE,'%Y-%m-%d');
+   P_DATA_DATE := DATE_FORMAT(P_DATA_DATE,'%Y-%m-%d');
   -- SET P_DAY_DATE = P_DATA_DATE;
     -- 定义跑数日期的本月最后一天日期
-    SET @P_LASTDAY_DAYE=CONCAT(LAST_DAY(P_DATA_DATE));
+    v_at_P_LASTDAY_DAYE := CONCAT(LAST_DAY(P_DATA_DATE));
     -- 执行报表数据加工过程
   --  CALL adm.p_guoku_report_processing(P_DAY_DATE);
     -- 执行多维数据加工过程
     CALL adm.p_guoku_saiku_processing(P_DATA_DATE);
-    IF P_DATA_DATE=@P_LASTDAY_DAYE 
+    IF P_DATA_DATE=v_at_P_LASTDAY_DAYE 
     THEN
          -- 执行专题按日跑的数据加工过程
          CALL adm.p_guoku_day_ana_processing(P_DATA_DATE);
@@ -9349,19 +9607,21 @@ DROP PROCEDURE IF EXISTS adm.p_execute_date_processing1;
 CREATE PROCEDURE adm.p_execute_date_processing1(
 IN P_DATA_DATE CHAR(10)
 )
+AS
+    v_at_P_LASTDAY_DAYE VARCHAR(2000);
 BEGIN
   -- DECLARE  P_DAY_DATE  CHAR(10) DEFAULT '';
     -- 定义跑数日期（当前时间的7天前）
    -- SET P_DAY_DATE = CONCAT(DATE_SUB(DATE_FORMAT(NOW(),'%Y-%m-%d'),INTERVAL 7 DAY));
-   SET P_DATA_DATE=DATE_FORMAT(P_DATA_DATE,'%Y-%m-%d');
+   P_DATA_DATE := DATE_FORMAT(P_DATA_DATE,'%Y-%m-%d');
   -- SET P_DAY_DATE = P_DATA_DATE;
     -- 定义跑数日期的本月最后一天日期
-    SET @P_LASTDAY_DAYE=CONCAT(LAST_DAY(P_DATA_DATE));
+    v_at_P_LASTDAY_DAYE := CONCAT(LAST_DAY(P_DATA_DATE));
     -- 执行报表数据加工过程
   --  CALL adm.p_guoku_report_processing(P_DAY_DATE);
     -- 执行多维数据加工过程
     
-    IF P_DATA_DATE=@P_LASTDAY_DAYE 
+    IF P_DATA_DATE=v_at_P_LASTDAY_DAYE 
     THEN
          -- 执行专题按日跑的数据加工过程
          CALL adm.p_guoku_day_ana_processing(P_DATA_DATE);
@@ -9374,329 +9634,56 @@ BEGIN
     END;
 /
 
-DROP PROCEDURE IF EXISTS adm.p_guoku_day_ana_processing;
-
-CREATE PROCEDURE adm.p_guoku_day_ana_processing(
-    IN P_DATA_DATE CHAR(10)
-)
-BEGIN
-/******************
-过程跑数频率：按日
-过程跑数内容：执行专题加工所有按日跑的过程
-*******************/
-    DECLARE V_PROC_NAME     VARCHAR(50)     DEFAULT 'adm.p_guoku_day_ana_processing.PRC';
-    DECLARE V_START_TIME    CHAR(19)        DEFAULT NOW();
-    DECLARE V_STEP_ID       INT             DEFAULT 0;  -- 步骤编号
-    DECLARE V_STEP_NAME     VARCHAR(100)    DEFAULT ''; -- 步骤信息
-    DECLARE V_SQL_ID        INT             DEFAULT 0;  -- 查询SQL的ID
-    DECLARE V_TABLE_NAME    VARCHAR(50)     DEFAULT ''; -- 操作表名
-    DECLARE V_SQL_DELETE    VARCHAR(100)    DEFAULT ''; -- 删除语句SQL
-    DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-    DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
-    DECLARE DONE            INT             DEFAULT FALSE; -- 自定义控制游标循环变量,默认false
-    DECLARE PROC_CURSOR     CURSOR FOR (
-                                       SELECT ID FROM adm.trs_guoku_analysis_processing
-                                       WHERE FREQUENCY_CODE = '1' and IS_ACTIVE='1'
-                                       AND REPLACE(P_DATA_DATE,'-','') BETWEEN START_DATE AND END_DATE
-                                       ); -- 定义游标并输入结果集
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET DONE = TRUE; -- 绑定控制变量到游标,游标循环结束自动转true
-    /* EXCEPTION HANDLER */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-    END;
-    
-    OPEN PROC_CURSOR; -- 打开游标
-    PROC_CURSOR: LOOP -- 开始循环体,PROC_CURSOR为自定义循环名,结束循环时用到
-    FETCH PROC_CURSOR INTO V_SQL_ID; -- 将游标当前读取行的数据顺序赋予自定义变量-查询SQL的ID
-    IF DONE THEN -- 判断是否继续循环
-      LEAVE PROC_CURSOR; -- 结束循环
-    END IF;
-    -- 自己要做的事情,在 sql 中直接使用自定义变量即可
-    
-    -- 每日日期
-    SET @DAY_DATE = CONCAT(P_DATA_DATE);
-    -- 上月日期
-    SET @LASTMTH_DATE = CONCAT(DATE_ADD(@DAY_DATE, INTERVAL -1 MONTH));
-    -- 去年同期日期
-    SET @LASTYEAR_DATE = CONCAT(DATE_ADD(@DAY_DATE, INTERVAL -1 YEAR));
-    -- 年初日期
-    SET @LASTYEAR_DATE = CONCAT(DATE_SUB(@DAY_DATE,INTERVAL DAYOFYEAR(@DAY_DATE) DAY));
-    -- 获取表名
-    SELECT TABLE_NAME INTO V_TABLE_NAME FROM adm.trs_guoku_analysis_processing WHERE  ID=V_SQL_ID;
-    -- 获取删除语句SQL
-    SELECT SQL_DELETE INTO V_SQL_DELETE FROM adm.trs_guoku_analysis_processing WHERE  ID=V_SQL_ID;
-    -- 获取插数语句SQL
-    SELECT SQL_INSERT INTO V_SQL_INSERT FROM adm.trs_guoku_analysis_processing WHERE  ID=V_SQL_ID;
-    
-    -- 删除步骤开始
-    SET V_STEP_ID = V_STEP_ID + 1;
-    -- 更新步骤信息
-    SET V_STEP_NAME = CONCAT('删除',V_TABLE_NAME,'该日期下的数据');
-    -- 封装删除语句
-    SET @V_SQLTXT = CONCAT(V_SQL_DELETE);
-    -- 准备删除
-    PREPARE V_SQLTXT FROM @V_SQLTXT;
-    -- 执行删除
-    EXECUTE V_SQLTXT;
-    -- ETL记录删除结果
-    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    -- 删除步骤结束
-    
-    -- 插数步骤开始
-    SET V_STEP_ID = V_STEP_ID + 1;
-    -- 更新步骤信息
-    SET V_STEP_NAME=CONCAT('增加',V_TABLE_NAME,'该日期下的数据');
-    -- 封装插数语句
-    SET @V_SQLTXT = CONCAT(V_SQL_INSERT);
-    -- 准备插数
-    PREPARE V_SQLTXT FROM @V_SQLTXT;
-    -- 执行插数
-    EXECUTE V_SQLTXT;
-    -- ETL记录插数结果
-    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    -- 插数步骤结束
-    
-    COMMIT; -- 提交事务  
-    END LOOP PROC_CURSOR; -- 结束自定义循环体  
-    CLOSE PROC_CURSOR; -- 关闭游标
-END;
-/
-
-DROP PROCEDURE IF EXISTS adm.p_guoku_lastday_ana_processing;
-
-CREATE PROCEDURE adm.p_guoku_lastday_ana_processing(
-    IN P_DATA_DATE CHAR(10)
-)
-BEGIN
-/******************
-过程跑数频率：按每月最后一天
-过程跑数内容：执行专题加工所有每月最后一天跑的过程
-*******************/
-    DECLARE V_PROC_NAME     VARCHAR(50)     DEFAULT 'adm.p_guoku_lastday_ana_processing.PRC';
-    DECLARE V_START_TIME    CHAR(19)        DEFAULT NOW();
-    DECLARE V_STEP_ID       INT             DEFAULT 0;  -- 步骤编号
-    DECLARE V_STEP_NAME     VARCHAR(100)    DEFAULT ''; -- 步骤信息
-    DECLARE V_SQL_ID        INT             DEFAULT 0;  -- 查询SQL的ID
-    DECLARE V_TABLE_NAME    VARCHAR(50)     DEFAULT ''; -- 操作表名
-    DECLARE V_SQL_DELETE    VARCHAR(100)    DEFAULT ''; -- 删除语句SQL
-    DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-    DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
-    DECLARE DONE            INT             DEFAULT FALSE; -- 自定义控制游标循环变量,默认false
-    DECLARE PROC_CURSOR     CURSOR FOR (
-                                       SELECT ID FROM adm.trs_guoku_analysis_processing
-                                       WHERE FREQUENCY_CODE = '2' and IS_ACTIVE='1'
-                                       AND REPLACE(P_DATA_DATE,'-','') BETWEEN START_DATE AND END_DATE
-                                       ); -- 定义游标并输入结果集
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET DONE = TRUE; -- 绑定控制变量到游标,游标循环结束自动转true
-    /* EXCEPTION HANDLER */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-    END;
-    
-    OPEN PROC_CURSOR; -- 打开游标
-    PROC_CURSOR: LOOP -- 开始循环体,PROC_CURSOR为自定义循环名,结束循环时用到
-    FETCH PROC_CURSOR INTO V_SQL_ID; -- 将游标当前读取行的数据顺序赋予自定义变量-查询SQL的ID
-    IF DONE THEN -- 判断是否继续循环
-      LEAVE PROC_CURSOR; -- 结束循环
-    END IF;
-    -- 自己要做的事情,在 sql 中直接使用自定义变量即可
-    
-    -- 每日日期
-    SET @DAY_DATE = CONCAT(P_DATA_DATE);
-    -- 上月日期
-    SET @LASTMTH_DATE = CONCAT(DATE_ADD(@DAY_DATE, INTERVAL -1 MONTH));
-    -- 去年同期日期
-    SET @LASTYEAR_DATE = CONCAT(DATE_ADD(@DAY_DATE, INTERVAL -1 YEAR));
-    -- 年初日期
-    SET @LASTYEAR_DATE = CONCAT(DATE_SUB(@DAY_DATE,INTERVAL DAYOFYEAR(@DAY_DATE) DAY));
-    -- 获取表名
-    SELECT TABLE_NAME INTO V_TABLE_NAME FROM adm.trs_guoku_analysis_processing WHERE   ID=V_SQL_ID;
-    -- 获取删除语句SQL
-    SELECT SQL_DELETE INTO V_SQL_DELETE FROM adm.trs_guoku_analysis_processing WHERE   ID=V_SQL_ID;
-    -- 获取插数语句SQL
-    SELECT SQL_INSERT INTO V_SQL_INSERT FROM adm.trs_guoku_analysis_processing WHERE   ID=V_SQL_ID;
-    
-    -- 删除步骤开始
-    SET V_STEP_ID = V_STEP_ID + 1;
-    -- 更新步骤信息
-    SET V_STEP_NAME = CONCAT('删除',V_TABLE_NAME,'该日期下的数据');
-    -- 封装删除语句
-    SET @V_SQLTXT = CONCAT(V_SQL_DELETE);
-    -- 准备删除
-    PREPARE V_SQLTXT FROM @V_SQLTXT;
-    -- 执行删除
-    EXECUTE V_SQLTXT;
-    -- ETL记录删除结果
-    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    -- 删除步骤结束
-    
-    -- 插数步骤开始
-    SET V_STEP_ID = V_STEP_ID + 1;
-    -- 更新步骤信息
-    SET V_STEP_NAME=CONCAT('增加',V_TABLE_NAME,'该日期下的数据');
-    -- 封装插数语句
-    SET @V_SQLTXT = CONCAT(V_SQL_INSERT);
-    -- 准备插数
-    PREPARE V_SQLTXT FROM @V_SQLTXT;
-    -- 执行插数
-    EXECUTE V_SQLTXT;
-    -- ETL记录插数结果
-    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    -- 插数步骤结束
-    
-    COMMIT; -- 提交事务  
-    END LOOP PROC_CURSOR; -- 结束自定义循环体  
-    CLOSE PROC_CURSOR; -- 关闭游标
-END;
-/
-
-DROP PROCEDURE IF EXISTS adm.p_guoku_saiku_processing;
-
-CREATE PROCEDURE adm.p_guoku_saiku_processing(
-    IN P_DATA_DATE CHAR(10)
-)
-BEGIN
-/******************
-过程跑数频率：按日
-过程跑数内容：执行多维加工所有过程
-*******************/
-    DECLARE V_PROC_NAME     VARCHAR(50)     DEFAULT 'adm.p_guoku_saiku_processing.PRC';
-    DECLARE V_START_TIME    CHAR(19)        DEFAULT NOW();
-    DECLARE V_STEP_ID       INT             DEFAULT 0;  -- 步骤编号
-    DECLARE V_STEP_NAME     VARCHAR(100)    DEFAULT ''; -- 步骤信息
-    DECLARE V_SQL_ID        INT             DEFAULT 0;  -- 查询SQL的ID
-    DECLARE V_TABLE_NAME    VARCHAR(50)     DEFAULT ''; -- 操作表名
-    DECLARE V_SQL_DELETE    VARCHAR(100)    DEFAULT ''; -- 删除语句SQL
-    DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-    DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
-    DECLARE DONE            INT             DEFAULT FALSE; -- 自定义控制游标循环变量,默认false
-    DECLARE PROC_CURSOR     CURSOR FOR (
-                                       SELECT ID FROM adm.trs_guoku_saiku_processing
-                                       WHERE IS_ACTIVE='1' and REPLACE(P_DATA_DATE,'-','') BETWEEN START_DATE AND END_DATE
-                                       ); -- 定义游标并输入结果集
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET DONE = TRUE; -- 绑定控制变量到游标,游标循环结束自动转true
-    /* EXCEPTION HANDLER */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-    END;
-    
-    OPEN PROC_CURSOR; -- 打开游标
-    PROC_CURSOR: LOOP -- 开始循环体,PROC_CURSOR为自定义循环名,结束循环时用到
-    FETCH PROC_CURSOR INTO V_SQL_ID; -- 将游标当前读取行的数据顺序赋予自定义变量-查询SQL的ID
-    IF DONE THEN -- 判断是否继续循环
-      LEAVE PROC_CURSOR; -- 结束循环
-    END IF;
-    -- 自己要做的事情,在 sql 中直接使用自定义变量即可
-    
-    -- 日账期
-    SET @DAY_DATE = CONCAT(P_DATA_DATE);
-    -- 月账期
-    SET @MONTH_DATE = CONCAT(SUBSTR(P_DATA_DATE,1,7));
-    -- 年账期
-    SET @YEAR_DATE = CONCAT(SUBSTR(P_DATA_DATE,1,4));
-    -- 获取表名
-    SELECT TABLE_NAME INTO V_TABLE_NAME FROM adm.trs_guoku_saiku_processing WHERE  ID=V_SQL_ID;
-    -- 获取删除语句SQL
-    SELECT SQL_DELETE INTO V_SQL_DELETE FROM adm.trs_guoku_saiku_processing WHERE  ID=V_SQL_ID;
-    -- 获取插数语句SQL
-    SELECT SQL_INSERT INTO V_SQL_INSERT FROM adm.trs_guoku_saiku_processing WHERE  ID=V_SQL_ID;
-    
-    -- 删除步骤开始
-    SET V_STEP_ID = V_STEP_ID + 1;
-    -- 更新步骤信息
-    SET V_STEP_NAME = CONCAT('删除',V_TABLE_NAME,'该日期下的数据');
-    -- 封装删除语句
-      SET @V_SQLTXT = CONCAT(V_SQL_DELETE);
-   -- SET @V_SQLTXT = CONCAT(V_SQL_DELETE,'WHERE REPORTDATE = ',P_DATA_DATE);
-    -- 准备删除
-    PREPARE V_SQLTXT FROM @V_SQLTXT;
-    -- 执行删除
-    EXECUTE V_SQLTXT;
-    -- ETL记录删除结果
-    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    -- 删除步骤结束
-    
-    -- 插数步骤开始
-    SET V_STEP_ID = V_STEP_ID + 1;
-    -- 更新步骤信息
-    SET V_STEP_NAME=CONCAT('增加',V_TABLE_NAME,'该日期下的数据');
-    -- 封装插数语句
-      SET @V_SQLTXT = CONCAT(V_SQL_INSERT);
-   --  SET @V_SQLTXT = CONCAT(V_SQL_INSERT ,'WHERE b.s_acct = ',P_DATA_DATE);
-    -- 准备插数
-    PREPARE V_SQLTXT FROM @V_SQLTXT;
-    -- 执行插数
-    EXECUTE V_SQLTXT;
-    -- ETL记录插数结果
-    CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    -- 插数步骤结束
-    
-    COMMIT; -- 提交事务  
-    END LOOP PROC_CURSOR; -- 结束自定义循环体  
-    CLOSE PROC_CURSOR; -- 关闭游标
-END;
-/
-
 DROP PROCEDURE IF EXISTS adm.p_guoku_saiku_processing1;
 
 CREATE PROCEDURE adm.p_guoku_saiku_processing1(
     IN P_DATA_DATE CHAR(10)
 )
+AS
+    V_PROC_NAME     VARCHAR(50) := 'adm.p_guoku_saiku_processing1.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;  -- 步骤编号
+    V_STEP_NAME     VARCHAR(100) := ''; -- 步骤信息
+    V_SQL_ID        INT := 0;  -- 查询SQL的ID
+    V_TABLE_NAME    VARCHAR(50) := ''; -- 操作表名
+    V_SQL_DELETE    VARCHAR(100) := ''; -- 删除语句SQL
+    V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+    V_SQLTXT        LONGTEXT := ''; -- 执行SQL
+    DONE            INT := FALSE; -- 自定义控制游标循环变量,默认false
+    CURSOR PROC_CURSOR IS 
+                                       SELECT ID FROM adm.trs_guoku_saiku_processing
+                                       WHERE IS_ACTIVE='1' and ID in ('2','4') AND REPLACE(P_DATA_DATE,'-','') BETWEEN START_DATE AND END_DATE
+                                       ; -- 定义游标并输入结果集
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_DAY_DATE VARCHAR(2000);
+    v_at_MONTH_DATE VARCHAR(2000);
+    v_at_V_SQLTXT TEXT;
+    v_at_YEAR_DATE VARCHAR(2000);
 BEGIN
 /******************
 过程跑数频率：按日
 过程跑数内容：执行多维加工所有过程
 *******************/
-    DECLARE V_PROC_NAME     VARCHAR(50)     DEFAULT 'adm.p_guoku_saiku_processing1.PRC';
-    DECLARE V_START_TIME    CHAR(19)        DEFAULT NOW();
-    DECLARE V_STEP_ID       INT             DEFAULT 0;  -- 步骤编号
-    DECLARE V_STEP_NAME     VARCHAR(100)    DEFAULT ''; -- 步骤信息
-    DECLARE V_SQL_ID        INT             DEFAULT 0;  -- 查询SQL的ID
-    DECLARE V_TABLE_NAME    VARCHAR(50)     DEFAULT ''; -- 操作表名
-    DECLARE V_SQL_DELETE    VARCHAR(100)    DEFAULT ''; -- 删除语句SQL
-    DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-    DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
-    DECLARE DONE            INT             DEFAULT FALSE; -- 自定义控制游标循环变量,默认false
-    DECLARE PROC_CURSOR     CURSOR FOR (
-                                       SELECT ID FROM adm.trs_guoku_saiku_processing
-                                       WHERE IS_ACTIVE='1' and ID in ('2','4') AND REPLACE(P_DATA_DATE,'-','') BETWEEN START_DATE AND END_DATE
-                                       ); -- 定义游标并输入结果集
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET DONE = TRUE; -- 绑定控制变量到游标,游标循环结束自动转true
+    -- NOT FOUND handler replaced by explicit cursor %NOTFOUND checks below.
     /* EXCEPTION HANDLER */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-    END;
     
     OPEN PROC_CURSOR; -- 打开游标
-    PROC_CURSOR: LOOP -- 开始循环体,PROC_CURSOR为自定义循环名,结束循环时用到
+    <<PROC_CURSOR>>
+    LOOP -- 开始循环体,PROC_CURSOR为自定义循环名,结束循环时用到
     FETCH PROC_CURSOR INTO V_SQL_ID; -- 将游标当前读取行的数据顺序赋予自定义变量-查询SQL的ID
+    EXIT WHEN PROC_CURSOR%NOTFOUND;
     IF DONE THEN -- 判断是否继续循环
-      LEAVE PROC_CURSOR; -- 结束循环
+      EXIT PROC_CURSOR; -- 结束循环
     END IF;
     -- 自己要做的事情,在 sql 中直接使用自定义变量即可
     
     -- 日账期
-    SET @DAY_DATE = CONCAT(P_DATA_DATE);
+    v_at_DAY_DATE := CONCAT(P_DATA_DATE);
     -- 月账期
-    SET @MONTH_DATE = CONCAT(SUBSTR(P_DATA_DATE,1,7));
+    v_at_MONTH_DATE := CONCAT(SUBSTR(P_DATA_DATE,1,7));
     -- 年账期
-    SET @YEAR_DATE = CONCAT(SUBSTR(P_DATA_DATE,1,4));
+    v_at_YEAR_DATE := CONCAT(SUBSTR(P_DATA_DATE,1,4));
     -- 获取表名
     SELECT TABLE_NAME INTO V_TABLE_NAME FROM adm.trs_guoku_saiku_processing WHERE  ID=V_SQL_ID;
     -- 获取删除语句SQL
@@ -9705,35 +9692,33 @@ BEGIN
     SELECT SQL_INSERT INTO V_SQL_INSERT FROM adm.trs_guoku_saiku_processing WHERE  ID=V_SQL_ID;
     
     -- 删除步骤开始
-    SET V_STEP_ID = V_STEP_ID + 1;
+    V_STEP_ID := V_STEP_ID + 1;
     -- 更新步骤信息
-    SET V_STEP_NAME = CONCAT('删除',V_TABLE_NAME,'该日期下的数据');
+    V_STEP_NAME := CONCAT('删除',V_TABLE_NAME,'该日期下的数据');
     -- 封装删除语句
-    SET @V_SQLTXT = CONCAT(V_SQL_DELETE,'WHERE REPORTDATE = ',CONCAT("'",SUBSTR(P_DATA_DATE,1,7),"-01'"));
-  select @V_SQLTXT;
+    v_at_V_SQLTXT := CONCAT(V_SQL_DELETE,'WHERE REPORTDATE = ',CONCAT("'",SUBSTR(P_DATA_DATE,1,7),"-01'"));
+  select v_at_V_SQLTXT;
     -- 准备删除
-    PREPARE V_SQLTXT FROM @V_SQLTXT;
+    EXECUTE IMMEDIATE v_at_V_SQLTXT;
  
     -- 执行删除
-    EXECUTE V_SQLTXT;
     -- ETL记录删除结果
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     -- 删除步骤结束
     
     -- 插数步骤开始
-    SET V_STEP_ID = V_STEP_ID + 1;
+    V_STEP_ID := V_STEP_ID + 1;
     -- 更新步骤信息
-    SET V_STEP_NAME=CONCAT('增加',V_TABLE_NAME,'该日期下的数据');
+    V_STEP_NAME := CONCAT('增加',V_TABLE_NAME,'该日期下的数据');
     -- 封装插数语句
                                                 
-    SET @V_SQLTXT = concat(V_SQL_INSERT ,'WHERE b.d_expfile = ',CONCAT("'",P_DATA_DATE,"'"));
+    v_at_V_SQLTXT := concat(V_SQL_INSERT ,'WHERE b.d_expfile = ',CONCAT("'",P_DATA_DATE,"'"));
     -- 准备插数
     
-    --  SELECT @V_SQLTXT;
-    PREPARE V_SQLTXT FROM @V_SQLTXT;
+    --  SELECT v_at_V_SQLTXT;
+    EXECUTE IMMEDIATE v_at_V_SQLTXT;
     -- 执行插数
      
-    EXECUTE V_SQLTXT;
     -- ETL记录插数结果
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     -- 插数步骤结束
@@ -9741,12 +9726,28 @@ BEGIN
     COMMIT; -- 提交事务  
     END LOOP PROC_CURSOR; -- 结束自定义循环体  
     CLOSE PROC_CURSOR; -- 关闭游标
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_nan_real_estate;
 
 CREATE PROCEDURE adm.p_nan_real_estate(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_nan_real_estate.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);    
+    V_DATA_DATE_P VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);
+    V_DATA_DATE_L VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
+    V_DATA_DATE_L_P VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 13 MONTH),'%Y%m%d'),1,6);
+    V_DATA_END_Y VARCHAR(6) := CONCAT(SUBSTR(P_DATA_DATE,1,4)-1,'12');          -- 上年末
+    V_DATA_END_Y_L VARCHAR(6) := CONCAT(SUBSTR(P_DATA_DATE,1,4)-2,'12');        -- 上上年末
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*
 | Author :严锦涛
@@ -9761,42 +9762,25 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2018-12-27     严锦涛        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_nan_real_estate.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);    
-    DECLARE V_DATA_DATE_P VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);
     
-    DECLARE V_DATA_DATE_L VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
-    DECLARE V_DATA_DATE_L_P VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 13 MONTH),'%Y%m%d'),1,6);
     
-    DECLARE V_DATA_END_Y VARCHAR(6) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4)-1,'12');          #上年末
-    DECLARE V_DATA_END_Y_L VARCHAR(6) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4)-2,'12');        #上上年末
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     SET V_STEP:='1';
     DELETE  FROM adm.ana_glr_mth_real_estate_loans WHERE FISCAL_MTH = V_DATA_DATE;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     SET V_STEP:='2';
     INSERT INTO adm.ana_glr_mth_real_estate_loans (
-	        FISCAL_DATE                   #日期
-	       ,FISCAL_MTH                    #月份
-	       ,AREA_NO_ID                    #区县编码
-	       ,AREA_DSCR                     #区县名称
-	       ,REAL_ESTATE_LOANS_TYPE1_ID    #房地产贷款类型ID
-	       ,LOANS_TYPE1_DSCR              #房地产贷款类型1描述  ()
-	       ,SERVICE_TYPE                  #业务统计类型
-	       ,LOAN_AMOUNT                   #贷款金额
-	       ,LOAN_AMOUNT_LY                #去年同期贷款金额
+	        FISCAL_DATE                   -- 日期
+	       ,FISCAL_MTH                    -- 月份
+	       ,AREA_NO_ID                    -- 区县编码
+	       ,AREA_DSCR                     -- 区县名称
+	       ,REAL_ESTATE_LOANS_TYPE1_ID    -- 房地产贷款类型ID
+	       ,LOANS_TYPE1_DSCR              -- 房地产贷款类型1描述  ()
+	       ,SERVICE_TYPE                  -- 业务统计类型
+	       ,LOAN_AMOUNT                   -- 贷款金额
+	       ,LOAN_AMOUNT_LY                -- 去年同期贷款金额
 	)
     -- 1.1(合计)  余额当月新增  
     SELECT 
@@ -9983,12 +9967,12 @@ BEGIN
      
     SET V_STEP:='4';
     INSERT INTO adm.ana_glr_mth_real_estate_loans_org (
-	        FISCAL_DATE           #日期
-	       ,FISCAL_MTH            #月份
-	       ,ORG_ID                #金融机构编码
-	       ,ORG_NAME              #金融机构名称
-	       ,SERVICE_TYPE          #业务统计类型
-	       ,LOAN_AMOUNT           #贷款金额
+	        FISCAL_DATE           -- 日期
+	       ,FISCAL_MTH            -- 月份
+	       ,ORG_ID                -- 金融机构编码
+	       ,ORG_NAME              -- 金融机构名称
+	       ,SERVICE_TYPE          -- 业务统计类型
+	       ,LOAN_AMOUNT           -- 贷款金额
 	) 
      -- 1.贷款余额当月新增
      SELECT 
@@ -10319,13 +10303,13 @@ BEGIN
     
     SET V_STEP:='6';
     INSERT INTO adm.ana_glr_mth_real_estate_loans_rate (
-	        FISCAL_DATE               #日期
-	       ,FISCAL_MTH                #月份
-	       ,SERVICE_TYPE              #业务统计类型
-	       ,REAL_ESTATE_LOANS         #房地产贷款金额
-	       ,REAL_ESTATE_LOANS_DEV     #房地产开发贷款金额
-	       ,REAL_ESTATE_LOANS_PER     #个人住房贷款金额
-	       ,LOANS_TOTAL               #各项贷款金额
+	        FISCAL_DATE               -- 日期
+	       ,FISCAL_MTH                -- 月份
+	       ,SERVICE_TYPE              -- 业务统计类型
+	       ,REAL_ESTATE_LOANS         -- 房地产贷款金额
+	       ,REAL_ESTATE_LOANS_DEV     -- 房地产开发贷款金额
+	       ,REAL_ESTATE_LOANS_PER     -- 个人住房贷款金额
+	       ,LOANS_TOTAL               -- 各项贷款金额
 	)
      SELECT 
         ds1.fiscal_date
@@ -10345,13 +10329,13 @@ BEGIN
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000   AS REAL_ESTATE_LOANS
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000   AS REAL_ESTATE_LOANS_DEV
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000   AS REAL_ESTATE_LOANS_PER
-      FROM edw.glr_rel_estate_loan_direct_org  T    #房地产-房地产贷款投向统计分机构表
+      FROM edw.glr_rel_estate_loan_direct_org  T    -- 房地产-房地产贷款投向统计分机构表
      )ds1 
      JOIN 
      (
        SELECT 
          SUM(IFNULL(loan_balance,0)) AS loan_all
-       FROM edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       FROM edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        WHERE t.rows_id = 3
         AND data_date = v_data_date 
      )ds2
@@ -10376,13 +10360,13 @@ BEGIN
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000  AS REAL_ESTATE_LOANS
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000  AS REAL_ESTATE_LOANS_DEV
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000  AS REAL_ESTATE_LOANS_PER
-    FROM edw.glr_rel_estate_loan_direct_org  T    #房地产-房地产贷款投向统计分机构表
+    FROM edw.glr_rel_estate_loan_direct_org  T    -- 房地产-房地产贷款投向统计分机构表
     ) ds3
     JOIN 
     (
        SELECT 
          SUM(CASE WHEN data_date = v_data_date THEN IFNULL(loan_balance,0) ELSE 0 END ) - SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(loan_balance,0) ELSE 0 END ) AS loan_all
-       FROM edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       FROM edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        WHERE t.rows_id = 3
      
     ) ds4     
@@ -10407,13 +10391,13 @@ BEGIN
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000  AS REAL_ESTATE_LOANS
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000 AS REAL_ESTATE_LOANS_DEV
 	     ,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000 AS REAL_ESTATE_LOANS_PER
-     FROM edw.glr_rel_estate_loan_direct_org  T    #房地产-房地产贷款投向统计分机构表
+     FROM edw.glr_rel_estate_loan_direct_org  T    -- 房地产-房地产贷款投向统计分机构表
    )ds5 
    JOIN 
    (
        SELECT 
          SUM(CASE WHEN data_date = v_data_date THEN IFNULL(loan_balance,0) ELSE 0 END ) - SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(loan_balance,0) ELSE 0 END ) AS loan_all
-       FROM edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       FROM edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        WHERE t.rows_id = 3
    ) ds6 
    ON 1=1
@@ -10421,12 +10405,29 @@ BEGIN
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_nan_real_estate_20190711;
 
 CREATE PROCEDURE adm.p_nan_real_estate_20190711(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_nan_real_estate.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);    
+    V_DATA_DATE_P VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);
+    V_DATA_DATE_L VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
+    V_DATA_DATE_L_P VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 13 MONTH),'%Y%m%d'),1,6);
+    V_DATA_END_Y VARCHAR(6) := CONCAT(SUBSTR(P_DATA_DATE,1,4),'01');          -- 上年末
+    V_DATA_END_Y_L VARCHAR(6) := CONCAT(SUBSTR(P_DATA_DATE,1,4)-1,'01');        -- 上上年末
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*
 | Author :严锦涛
@@ -10441,42 +10442,25 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2018-12-27     严锦涛        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_nan_real_estate.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);    
-    DECLARE V_DATA_DATE_P VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);
     
-    DECLARE V_DATA_DATE_L VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
-    DECLARE V_DATA_DATE_L_P VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 13 MONTH),'%Y%m%d'),1,6);
     
-    DECLARE V_DATA_END_Y VARCHAR(6) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4),'01');          #上年末
-    DECLARE V_DATA_END_Y_L VARCHAR(6) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4)-1,'01');        #上上年末
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     SET V_STEP:='1';
     DELETE  FROM adm.ana_glr_mth_real_estate_loans WHERE FISCAL_MTH = V_DATA_DATE;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     SET V_STEP:='2';
     insert into adm.ana_glr_mth_real_estate_loans (
-	 FISCAL_DATE                   #日期
-	,FISCAL_MTH                    #月份
-	,AREA_NO_ID                    #区县编码
-	,AREA_DSCR                     #区县名称
-	,REAL_ESTATE_LOANS_TYPE1_ID    #房地产贷款类型ID
-	,LOANS_TYPE1_DSCR              #房地产贷款类型1描述  ()
-	,SERVICE_TYPE                  #业务统计类型
-	,LOAN_AMOUNT                   #贷款金额
-	,LOAN_AMOUNT_LY                #去年同期贷款金额
+	 FISCAL_DATE                   -- 日期
+	,FISCAL_MTH                    -- 月份
+	,AREA_NO_ID                    -- 区县编码
+	,AREA_DSCR                     -- 区县名称
+	,REAL_ESTATE_LOANS_TYPE1_ID    -- 房地产贷款类型ID
+	,LOANS_TYPE1_DSCR              -- 房地产贷款类型1描述  ()
+	,SERVICE_TYPE                  -- 业务统计类型
+	,LOAN_AMOUNT                   -- 贷款金额
+	,LOAN_AMOUNT_LY                -- 去年同期贷款金额
 	)
     -- 1.1(合计)  余额当月新增  
     SELECT 
@@ -11367,12 +11351,12 @@ BEGIN
      
     SET V_STEP:='4';
     insert into adm.ana_glr_mth_real_estate_loans_org (
-	 FISCAL_DATE           #日期
-	,FISCAL_MTH            #月份
-	,ORG_ID                #金融机构编码
-	,ORG_NAME              #金融机构名称
-	,SERVICE_TYPE          #业务统计类型
-	,LOAN_AMOUNT           #贷款金额
+	 FISCAL_DATE           -- 日期
+	,FISCAL_MTH            -- 月份
+	,ORG_ID                -- 金融机构编码
+	,ORG_NAME              -- 金融机构名称
+	,SERVICE_TYPE          -- 业务统计类型
+	,LOAN_AMOUNT           -- 贷款金额
 	) 
      -- 1.贷款余额当月新增
      SELECT 
@@ -11703,13 +11687,13 @@ BEGIN
     
     SET V_STEP:='6';
     insert into adm.ana_glr_mth_real_estate_loans_rate (
-	 FISCAL_DATE               #日期
-	,FISCAL_MTH                #月份
-	,SERVICE_TYPE              #业务统计类型
-	,REAL_ESTATE_LOANS         #房地产贷款金额
-	,REAL_ESTATE_LOANS_DEV     #房地产开发贷款金额
-	,REAL_ESTATE_LOANS_PER     #个人住房贷款金额
-	,LOANS_TOTAL               #各项贷款金额
+	 FISCAL_DATE               -- 日期
+	,FISCAL_MTH                -- 月份
+	,SERVICE_TYPE              -- 业务统计类型
+	,REAL_ESTATE_LOANS         -- 房地产贷款金额
+	,REAL_ESTATE_LOANS_DEV     -- 房地产开发贷款金额
+	,REAL_ESTATE_LOANS_PER     -- 个人住房贷款金额
+	,LOANS_TOTAL               -- 各项贷款金额
 	)
      select 
         ds1.fiscal_date
@@ -11729,13 +11713,13 @@ BEGIN
 	,SUM(case when data_date = v_data_date then IFNULL(LOAN_BAL_TOTAL,0) else 0 end )/10000   as REAL_ESTATE_LOANS
 	,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000   AS REAL_ESTATE_LOANS_DEV
 	,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000   AS REAL_ESTATE_LOANS_PER
-      FROM edw.glr_rel_estate_loan_direct_org  T    #房地产-房地产贷款投向统计分机构表
+      FROM edw.glr_rel_estate_loan_direct_org  T    -- 房地产-房地产贷款投向统计分机构表
      )ds1 
      join 
      (
        select 
          sum(ifnull(loan_balance,0)) as loan_all
-       from edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       from edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        where t.rows_id = 3
         and data_date = v_data_date 
      )ds2
@@ -11760,13 +11744,13 @@ BEGIN
 	,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000  AS REAL_ESTATE_LOANS
 	,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000  AS REAL_ESTATE_LOANS_DEV
 	,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000  AS REAL_ESTATE_LOANS_PER
-     FROM edw.glr_rel_estate_loan_direct_org  T    #房地产-房地产贷款投向统计分机构表
+     FROM edw.glr_rel_estate_loan_direct_org  T    -- 房地产-房地产贷款投向统计分机构表
     ) ds3
     join 
     (
        SELECT 
          SUM(case when data_date = v_data_date then IFNULL(loan_balance,0) else 0 end ) - SUM(CASE WHEN data_date = v_data_date_p THEN IFNULL(loan_balance,0) ELSE 0 END ) AS loan_all
-       FROM edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       FROM edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        WHERE t.rows_id = 3
      
     ) ds4     
@@ -11791,13 +11775,13 @@ BEGIN
 	,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(LOAN_BAL_TOTAL,0) ELSE 0 END )/10000  AS REAL_ESTATE_LOANS
 	,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(LOAN_BAL_DEV_HOUS,0) ELSE 0 END )/10000 AS REAL_ESTATE_LOANS_DEV
 	,SUM(CASE WHEN data_date = v_data_date THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000 -SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(LOAN_BAL_PERS_LIVE,0) ELSE 0 END )/10000 AS REAL_ESTATE_LOANS_PER
-     FROM edw.glr_rel_estate_loan_direct_org  T    #房地产-房地产贷款投向统计分机构表
+     FROM edw.glr_rel_estate_loan_direct_org  T    -- 房地产-房地产贷款投向统计分机构表
    )ds5 
    join 
    (
        SELECT 
          SUM(CASE WHEN data_date = v_data_date THEN IFNULL(loan_balance,0) ELSE 0 END ) - SUM(CASE WHEN data_date = V_DATA_END_Y THEN IFNULL(loan_balance,0) ELSE 0 END ) AS loan_all
-       FROM edw.glr_mpa_all_cny_credit T    #重庆市全金融机构人民币信贷收支合并表 各项贷款
+       FROM edw.glr_mpa_all_cny_credit T    -- 重庆市全金融机构人民币信贷收支合并表 各项贷款
        WHERE t.rows_id = 3
    ) ds6 
    on 1=1
@@ -11805,12 +11789,25 @@ BEGIN
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_nan_real_estate_bak20190122;
 
 CREATE PROCEDURE adm.p_nan_real_estate_bak20190122(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'p_ana_small_micro_enterprise.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);
+    V_DATA_DATE_L VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*
 | Author :严锦涛
@@ -11825,23 +11822,10 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2018-12-27     严锦涛        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'p_ana_small_micro_enterprise.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-    declare V_DATA_DATE_L VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
 
 
-    SET P_RESULT = 0;
+    P_RESULT := 0;
 
     SET V_STEP:='1';
     DELETE  FROM adm.ana_glr_mth_real_estate_loans WHERE DATA_DATE = V_DATA_DATE;
@@ -13226,12 +13210,29 @@ BEGIN
 
 
 
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_nan_summary;
 
 CREATE PROCEDURE adm.p_nan_summary(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_nan_summary.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);    
+    V_DATA_DATE_P VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);       -- 上月
+    V_DATA_DATE_L VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);       -- 去年同期
+    V_DATA_DATE_L_P VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 13 MONTH),'%Y%m%d'),1,6);     -- 去年同期上月
+    V_DATA_END_Y VARCHAR(6) := CONCAT(SUBSTR(P_DATA_DATE,1,4),'01');                                                                   -- 年末
+    V_DATA_END_Y_L VARCHAR(6) := CONCAT(SUBSTR(P_DATA_DATE,1,4)-1,'01');                                                               -- 上年末
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*
 | Author :严锦涛
@@ -13247,28 +13248,11 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2019-01-03     严锦涛        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_nan_summary.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);    
-    DECLARE V_DATA_DATE_P VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);       -- 上月
-    
-    DECLARE V_DATA_DATE_L VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);       -- 去年同期
-    DECLARE V_DATA_DATE_L_P VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 13 MONTH),'%Y%m%d'),1,6);     -- 去年同期上月
-    
-    DECLARE V_DATA_END_Y VARCHAR(6) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4),'01');                                                                   -- 年末
-    DECLARE V_DATA_END_Y_L VARCHAR(6) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4)-1,'01');                                                               -- 上年末
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    
+    
+    P_RESULT := 0;
     
     SET V_STEP:='1';
     DELETE  FROM adm.ana_glr_mth_loan_summary WHERE FISCAL_MTH = V_DATA_DATE;
@@ -13277,24 +13261,24 @@ BEGIN
     SET V_STEP:='2';
     -- 本外币贷款余额
     INSERT INTO adm.ana_glr_mth_loan_summary (
-	 FISCAL_DATE                             #日期
-	,FISCAL_MTH                              #月份
-	,CITY_ID                                 #市编码
-	,CITY_NAME                               #市名称
-	,DIRECTION_INDUSTRY_ID                   #行业投向编码
-	,DIRECTION_INDUSTRY_NAME                 #行业投向名称
-	,LOAN_REMAIN                             #人民币贷款余额
-	,LOAN_REMAIN_LY                          #去年同期人民币贷款余额
-	,LOAN_REMAIN_ZDM                         #人民币贷款余额当月增量
-	,LOAN_REMAIN_ZDM_LY                      #去年同期人民币贷款余额当月增量
-	,LOAN_REMAIN_ZBY                         #人民币贷款余额比年初增量
-	,LOAN_REMAIN_ZBY_LY                      #去年同期人民币贷款余额比年初增量
-	,LOAN_REMAINT                            #本外币贷款余额
-	,LOAN_REMAINT_LY                         #去年同期本外币贷款余额
-	,LOAN_REMAIN_ZDMT                        #本外币贷款余额当月增量(本月-上月)
-	,LOAN_REMAIN_ZDMT_LY                     #去年同期本外币贷款余额当月增量
-	,LOAN_REMAIN_ZBYT                        #本外币贷款余额比年初增量(减去年12月)
-	,LOAN_REMAIN_ZBYT_LY                     #去年同期本外币贷款余额比年初增量
+	 FISCAL_DATE                             -- 日期
+	,FISCAL_MTH                              -- 月份
+	,CITY_ID                                 -- 市编码
+	,CITY_NAME                               -- 市名称
+	,DIRECTION_INDUSTRY_ID                   -- 行业投向编码
+	,DIRECTION_INDUSTRY_NAME                 -- 行业投向名称
+	,LOAN_REMAIN                             -- 人民币贷款余额
+	,LOAN_REMAIN_LY                          -- 去年同期人民币贷款余额
+	,LOAN_REMAIN_ZDM                         -- 人民币贷款余额当月增量
+	,LOAN_REMAIN_ZDM_LY                      -- 去年同期人民币贷款余额当月增量
+	,LOAN_REMAIN_ZBY                         -- 人民币贷款余额比年初增量
+	,LOAN_REMAIN_ZBY_LY                      -- 去年同期人民币贷款余额比年初增量
+	,LOAN_REMAINT                            -- 本外币贷款余额
+	,LOAN_REMAINT_LY                         -- 去年同期本外币贷款余额
+	,LOAN_REMAIN_ZDMT                        -- 本外币贷款余额当月增量(本月-上月)
+	,LOAN_REMAIN_ZDMT_LY                     -- 去年同期本外币贷款余额当月增量
+	,LOAN_REMAIN_ZBYT                        -- 本外币贷款余额比年初增量(减去年12月)
+	,LOAN_REMAIN_ZBYT_LY                     -- 去年同期本外币贷款余额比年初增量
 	)
      SELECT 
           CONCAT(V_DATA_DATE,'01')   
@@ -13333,22 +13317,22 @@ BEGIN
     SET V_STEP:='4';
   -- 本外币存款余额分类型
  INSERT INTO adm.ana_glr_mth_loan_summary_1 (
-	 FISCAL_DATE                                #日期
-	,FISCAL_MTH                                 #月份
-	,CITY_ID                                    #市编码
-	,CITY_NAME                                  #市名称
-	,DEPOSIT_REMAIN                             #人民币贷款余额
-	,DEPOSIT_REMAIN_LY                          #去年同期人民币贷款余额
-	,DEPOSIT_REMAIN_ZDM                         #人民币贷款余额当月增量
-	,DEPOSIT_REMAIN_ZDM_LY                      #去年同期人民币贷款余额当月增量
-	,DEPOSIT_REMAIN_ZBY                         #人民币贷款余额比年初增量
-	,DEPOSIT_REMAIN_ZBY_LY                      #去年同期人民币贷款余额比年初增量
-	,DEPOSIT_REMAINT                            #本外币贷款余额
-	,DEPOSIT_REMAINT_LY                         #去年同期本外币贷款余额
-	,DEPOSIT_REMAIN_ZDMT                        #本外币贷款余额当月增量(本月-上月)
-	,DEPOSIT_REMAIN_ZDMT_LY                     #去年同期本外币贷款余额当月增量
-	,DEPOSIT_REMAIN_ZBYT                        #本外币贷款余额比年初增量(减去年12月)
-	,DEPOSIT_REMAIN_ZBYT_LY                     #去年同期本外币贷款余额比年初增量
+	 FISCAL_DATE                                -- 日期
+	,FISCAL_MTH                                 -- 月份
+	,CITY_ID                                    -- 市编码
+	,CITY_NAME                                  -- 市名称
+	,DEPOSIT_REMAIN                             -- 人民币贷款余额
+	,DEPOSIT_REMAIN_LY                          -- 去年同期人民币贷款余额
+	,DEPOSIT_REMAIN_ZDM                         -- 人民币贷款余额当月增量
+	,DEPOSIT_REMAIN_ZDM_LY                      -- 去年同期人民币贷款余额当月增量
+	,DEPOSIT_REMAIN_ZBY                         -- 人民币贷款余额比年初增量
+	,DEPOSIT_REMAIN_ZBY_LY                      -- 去年同期人民币贷款余额比年初增量
+	,DEPOSIT_REMAINT                            -- 本外币贷款余额
+	,DEPOSIT_REMAINT_LY                         -- 去年同期本外币贷款余额
+	,DEPOSIT_REMAIN_ZDMT                        -- 本外币贷款余额当月增量(本月-上月)
+	,DEPOSIT_REMAIN_ZDMT_LY                     -- 去年同期本外币贷款余额当月增量
+	,DEPOSIT_REMAIN_ZBYT                        -- 本外币贷款余额比年初增量(减去年12月)
+	,DEPOSIT_REMAIN_ZBYT_LY                     -- 去年同期本外币贷款余额比年初增量
 	)
      SELECT 
           CONCAT(V_DATA_DATE,'01')   
@@ -13411,24 +13395,24 @@ SELECT
      
     SET V_STEP:='5';
     INSERT INTO adm.ana_glr_mth_deposit_summary (
-	 FISCAL_DATE                    #日期
-	,FISCAL_MTH                     #月份
-	,CITY_ID                        #市编码
-	,CITY_NAME                      #市名称
-	,DEPOSIT_TYPE_ID                #存款类型编码
-	,DEPOSIT_TYPE                   #存款类型名称
-	,DEPOSIT_REMAIN                 #人民币存款余额
-	,DEPOSIT_REMAIN_LY              #去年同期人民币存款余额
-	,DEPOSIT_REMAIN_ZDM             #人民币存款余额当月增量
-	,DEPOSIT_REMAIN_ZDM_LY          #去年同期人民币存款余额当月增量
-	,DEPOSIT_REMAIN_ZBY             #人民币存款余额比年初增量
-	,DEPOSIT_REMAIN_ZBY_LY          #人民币去年人民币同期存款余额比年初增量
-	,DEPOSIT_REMAINT                #本外币存款余额
-	,DEPOSIT_REMAINT_LY             #去年同期本外币存款余额
-	,DEPOSIT_REMAIN_ZDMT            #本外币存款余额当月增量
-	,DEPOSIT_REMAIN_ZDMT_LY         #去年同期本外币存款余额当月增量
-	,DEPOSIT_REMAIN_ZBYT            #本外币存款余额比年初增量
-	,DEPOSIT_REMAIN_ZBYT_LY         #去年同期本外币存款余额比年初增量
+	 FISCAL_DATE                    -- 日期
+	,FISCAL_MTH                     -- 月份
+	,CITY_ID                        -- 市编码
+	,CITY_NAME                      -- 市名称
+	,DEPOSIT_TYPE_ID                -- 存款类型编码
+	,DEPOSIT_TYPE                   -- 存款类型名称
+	,DEPOSIT_REMAIN                 -- 人民币存款余额
+	,DEPOSIT_REMAIN_LY              -- 去年同期人民币存款余额
+	,DEPOSIT_REMAIN_ZDM             -- 人民币存款余额当月增量
+	,DEPOSIT_REMAIN_ZDM_LY          -- 去年同期人民币存款余额当月增量
+	,DEPOSIT_REMAIN_ZBY             -- 人民币存款余额比年初增量
+	,DEPOSIT_REMAIN_ZBY_LY          -- 人民币去年人民币同期存款余额比年初增量
+	,DEPOSIT_REMAINT                -- 本外币存款余额
+	,DEPOSIT_REMAINT_LY             -- 去年同期本外币存款余额
+	,DEPOSIT_REMAIN_ZDMT            -- 本外币存款余额当月增量
+	,DEPOSIT_REMAIN_ZDMT_LY         -- 去年同期本外币存款余额当月增量
+	,DEPOSIT_REMAIN_ZBYT            -- 本外币存款余额比年初增量
+	,DEPOSIT_REMAIN_ZBYT_LY         -- 去年同期本外币存款余额比年初增量
 	)
      -- 本外币存款余额分类型
           SELECT 
@@ -13511,12 +13495,31 @@ SELECT
      
      ;
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_nan_tpa_poor_results;
 
 CREATE PROCEDURE adm.p_nan_tpa_poor_results(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_nan_tpa_poor_results.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);
+    V_DATA_DATE_L VARCHAR(20);
+    V_QUA_DESC VARCHAR(100) := CONCAT(DATE_FORMAT( P_DATA_DATE, '%Y' ),'年','第',QUARTER(P_DATA_DATE),'季度');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_instr_l TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH_L VARCHAR(2000);
 BEGIN
 /*
 | Author :严锦涛
@@ -13530,68 +13533,50 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2019-01-02     严锦涛        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_nan_tpa_poor_results.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-    DECLARE V_DATA_DATE_L VARCHAR(20);
-    DECLARE V_QUA_DESC VARCHAR(100) DEFAULT CONCAT(DATE_FORMAT( P_DATA_DATE, '%Y' ),'年','第',QUARTER(P_DATA_DATE),'季度');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
      -- 去年同期
-    SET V_DATA_DATE_L = DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -12 MONTH);
+    V_DATA_DATE_L := DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -12 MONTH);
     -- 本年季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
     
-    PREPARE smt FROM @instr;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;    
+    EXECUTE IMMEDIATE v_at_instr;
     
     
     -- 去年季度
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_L,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr_l = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_L,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr_l := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(V_DATA_DATE_L,1,4));
     
-    PREPARE smt FROM @instr_l;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;    
+    EXECUTE IMMEDIATE v_at_instr_l;
     
     
     SET V_STEP:='1';
-    DELETE  FROM adm.ana_glr_mth_fina_jzfp WHERE FISCAL_MTH = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.ana_glr_mth_fina_jzfp WHERE FISCAL_MTH = v_at_V_TEMP_QUA_MONTH;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     SET V_STEP:='2';
     INSERT INTO adm.ana_glr_mth_fina_jzfp (
-	 FISCAL_DATE               #日期
-	,FISCAL_MTH                #月份
-	,DSCR_QUA                  #该月对应季度描述
-	,CITY_ID                   #市编码
-	,CITY_NAME                 #市名称
-	,ORG_TYPE_ID               #金融机构类型编码
-	,ORG_TYPE_NAME             #金融机构类型名称
-	,ORG_ID                    #金融机构编码
-	,ORG_NAME                  #金融机构名称
-	,LOAN_TYPE_ID              #贷款类型ID
-	,LOAN_TYPE_NAME            #贷款类型描述
-	,LOAN_REMAIN               #贷款余额
-	,LOAN_REMAIN_LY            #去年同期贷款余额
-	,LOAN_FF                   #当年累计发放额
-	,LOAN_FF_LY                #去年同期累计发放额
-	,STROKE_COUNT              #贷款笔数
-	,SPUR_SERV_POOR_NUM        #带动服务贫困人口数
+	 FISCAL_DATE               -- 日期
+	,FISCAL_MTH                -- 月份
+	,DSCR_QUA                  -- 该月对应季度描述
+	,CITY_ID                   -- 市编码
+	,CITY_NAME                 -- 市名称
+	,ORG_TYPE_ID               -- 金融机构类型编码
+	,ORG_TYPE_NAME             -- 金融机构类型名称
+	,ORG_ID                    -- 金融机构编码
+	,ORG_NAME                  -- 金融机构名称
+	,LOAN_TYPE_ID              -- 贷款类型ID
+	,LOAN_TYPE_NAME            -- 贷款类型描述
+	,LOAN_REMAIN               -- 贷款余额
+	,LOAN_REMAIN_LY            -- 去年同期贷款余额
+	,LOAN_FF                   -- 当年累计发放额
+	,LOAN_FF_LY                -- 去年同期累计发放额
+	,STROKE_COUNT              -- 贷款笔数
+	,SPUR_SERV_POOR_NUM        -- 带动服务贫困人口数
 	)
      -- 1. 个人精准扶贫贷款 贷款余额|去年同期贷款余额|当年累计发放额|去年同期累计发放额|贷款笔数|带动服务贫困人口数
      -- 个人精准扶贫贷款(建档立卡贫困人口贷款余额 +其他个人精准扶贫贷款余额)
@@ -13615,8 +13600,8 @@ BEGIN
          ,temp.spur_serv_poor_num
      FROM(
      SELECT 
-         CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-	,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+         CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+	,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
 	,V_QUA_DESC               AS DSCR_QUA
 	,'50000'                  AS CITY_ID
 	,'重庆市'                 AS CITY_NAME
@@ -13670,14 +13655,14 @@ BEGIN
 	,t.org_name AS ORG_NAME
 	,'1' AS LOAN_TYPE_ID
 	,'个人精准扶贫贷款' AS LOAN_TYPE_NAME
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_2,0) + IFNULL(LOAN_BAL_4,0) ELSE 0 END )/10000       AS LOAN_REMAIN
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_2,0) + IFNULL(LOAN_BAL_4,0) ELSE 0 END )/10000      AS LOAN_REMAIN_LY
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_2,0) + IFNULL(LOAN_BAL_ADD_Y_4,0) ELSE 0 END )/10000   AS LOAN_FF
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_2,0) + IFNULL(LOAN_BAL_ADD_Y_4,0) ELSE 0 END )/10000   AS LOAN_FF_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_2,0) + IFNULL(LOAN_BAL_4,0) ELSE 0 END )/10000       AS LOAN_REMAIN
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_2,0) + IFNULL(LOAN_BAL_4,0) ELSE 0 END )/10000      AS LOAN_REMAIN_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_2,0) + IFNULL(LOAN_BAL_ADD_Y_4,0) ELSE 0 END )/10000   AS LOAN_FF
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_2,0) + IFNULL(LOAN_BAL_ADD_Y_4,0) ELSE 0 END )/10000   AS LOAN_FF_LY
 	,0 AS STROKE_COUNT
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_31,0) ELSE 0 END )   AS SPUR_SERV_POOR_NUM
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_31,0) ELSE 0 END )   AS SPUR_SERV_POOR_NUM
      FROM edw.glr_tpa_org_loan t
-     WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+     WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
      GROUP BY 
      CASE ORG_NAME 
 		WHEN  '中国工商银行'                   THEN     'C1010211000012'
@@ -13753,8 +13738,8 @@ BEGIN
          ,temp.spur_serv_poor_num
      FROM(
      SELECT 
-         CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-	,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+         CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+	,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
 	,V_QUA_DESC               AS DSCR_QUA
 	,'50000'                  AS CITY_ID
 	,'重庆市'                 AS CITY_NAME
@@ -13808,14 +13793,14 @@ BEGIN
 	,t.org_name AS ORG_NAME
 	,'2' AS LOAN_TYPE_ID
 	,'金融精准扶贫贷款' AS LOAN_TYPE_NAME
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_1,0) ELSE 0 END )/10000 AS LOAN_REMAIN
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_1,0) ELSE 0 END )/10000 AS LOAN_REMAIN_LY
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_1,0)  ELSE 0 END )/10000 AS LOAN_FF
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_1,0)  ELSE 0 END )/10000 AS LOAN_FF_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_1,0) ELSE 0 END )/10000 AS LOAN_REMAIN
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_1,0) ELSE 0 END )/10000 AS LOAN_REMAIN_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_1,0)  ELSE 0 END )/10000 AS LOAN_FF
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_1,0)  ELSE 0 END )/10000 AS LOAN_FF_LY
 	,0 AS STROKE_COUNT
 	,0 AS SPUR_SERV_POOR_NUM
      FROM edw.glr_tpa_org_loan t
-     WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+     WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
      GROUP BY 
      CASE ORG_NAME 
 		WHEN  '中国工商银行'                   THEN     'C1010211000012'
@@ -13891,8 +13876,8 @@ BEGIN
          ,temp.spur_serv_poor_num
      FROM(
      SELECT 
-         CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-	,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+         CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+	,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
 	,V_QUA_DESC               AS DSCR_QUA
 	,'50000'                  AS CITY_ID
 	,'重庆市'                 AS CITY_NAME
@@ -13946,15 +13931,15 @@ BEGIN
 	,t.org_name AS ORG_NAME
 	,'3' AS LOAN_TYPE_ID
 	,'金融精准扶贫贷款(含已脱贫人口)' AS LOAN_TYPE_NAME
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_1,0) + IFNULL(LOAN_BAL_3,0) ELSE 0 END )/10000 AS LOAN_REMAIN
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_1,0)+ IFNULL(LOAN_BAL_3,0) ELSE 0 END )/10000 AS LOAN_REMAIN_LY
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_1,0) +IFNULL(LOAN_BAL_ADD_Y_3,0) ELSE 0 END )/10000 AS LOAN_FF
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_1,0)+IFNULL(LOAN_BAL_ADD_Y_3,0) ELSE 0 END )/10000 AS LOAN_FF_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_1,0) + IFNULL(LOAN_BAL_3,0) ELSE 0 END )/10000 AS LOAN_REMAIN
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_1,0)+ IFNULL(LOAN_BAL_3,0) ELSE 0 END )/10000 AS LOAN_REMAIN_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_1,0) +IFNULL(LOAN_BAL_ADD_Y_3,0) ELSE 0 END )/10000 AS LOAN_FF
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_1,0)+IFNULL(LOAN_BAL_ADD_Y_3,0) ELSE 0 END )/10000 AS LOAN_FF_LY
 	,0 AS STROKE_COUNT
 	-- 一、个人精准扶贫贷款+二、产业精准扶贫贷款+三、项目精准扶贫贷款）人数+已脱贫人口贷款人数 
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_41,0)+ IFNULL(LOAN_COUNT_60,0)+ IFNULL(LOAN_COUNT_21,0) ELSE 0 END ) AS SPUR_SERV_POOR_NUM
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_41,0)+ IFNULL(LOAN_COUNT_60,0)+ IFNULL(LOAN_COUNT_21,0) ELSE 0 END ) AS SPUR_SERV_POOR_NUM
      FROM edw.glr_tpa_org_loan t
-     WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+     WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
      GROUP BY 
      CASE ORG_NAME 
 		WHEN  '中国工商银行'                   THEN     'C1010211000012'
@@ -14030,8 +14015,8 @@ BEGIN
          ,temp.spur_serv_poor_num
      FROM(
      SELECT 
-         CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-	,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+         CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+	,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
 	,V_QUA_DESC               AS DSCR_QUA
 	,'50000'                  AS CITY_ID
 	,'重庆市'                 AS CITY_NAME
@@ -14085,14 +14070,14 @@ BEGIN
 	,t.org_name AS ORG_NAME
 	,'4' AS LOAN_TYPE_ID
 	,'产业精准扶贫贷款' AS LOAN_TYPE_NAME
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_5,0)  ELSE 0 END )/10000 AS LOAN_REMAIN
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_5,0) ELSE 0 END )/10000 AS LOAN_REMAIN_LY
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_5,0)  ELSE 0 END )/10000 AS LOAN_FF
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_5,0) ELSE 0 END )/10000 AS LOAN_FF_LY
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_40,0) ELSE 0 END ) AS STROKE_COUNT
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_COUNT_41,0)  ELSE 0 END ) AS SPUR_SERV_POOR_NUM
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_5,0)  ELSE 0 END )/10000 AS LOAN_REMAIN
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_5,0) ELSE 0 END )/10000 AS LOAN_REMAIN_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_5,0)  ELSE 0 END )/10000 AS LOAN_FF
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_5,0) ELSE 0 END )/10000 AS LOAN_FF_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_40,0) ELSE 0 END ) AS STROKE_COUNT
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_COUNT_41,0)  ELSE 0 END ) AS SPUR_SERV_POOR_NUM
      FROM edw.glr_tpa_org_loan t
-     WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+     WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
      GROUP BY 
      CASE ORG_NAME 
 		WHEN  '中国工商银行'                   THEN     'C1010211000012'
@@ -14170,8 +14155,8 @@ BEGIN
          ,temp.spur_serv_poor_num
      FROM(
      SELECT 
-         CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-	,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+         CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+	,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
 	,V_QUA_DESC               AS DSCR_QUA
 	,'50000'                  AS CITY_ID
 	,'重庆市'                 AS CITY_NAME
@@ -14225,14 +14210,14 @@ BEGIN
 	,t.org_name AS ORG_NAME
 	,'5' AS LOAN_TYPE_ID
 	,'项目精准扶贫贷款' AS LOAN_TYPE_NAME
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_6,0)  ELSE 0 END )/10000 AS LOAN_REMAIN
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_6,0) ELSE 0 END )/10000 AS LOAN_REMAIN_LY
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_6,0)  ELSE 0 END )/10000 AS LOAN_FF
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_6,0) ELSE 0 END )/10000 AS LOAN_FF_LY
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_59,0) ELSE 0 END ) AS STROKE_COUNT
-	,SUM(CASE WHEN data_date = @V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_COUNT_60,0)  ELSE 0 END ) AS SPUR_SERV_POOR_NUM
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_6,0)  ELSE 0 END )/10000 AS LOAN_REMAIN
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_6,0) ELSE 0 END )/10000 AS LOAN_REMAIN_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_BAL_ADD_Y_6,0)  ELSE 0 END )/10000 AS LOAN_FF
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_ADD_Y_6,0) ELSE 0 END )/10000 AS LOAN_FF_LY
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_59,0) ELSE 0 END ) AS STROKE_COUNT
+	,SUM(CASE WHEN data_date = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_COUNT_60,0)  ELSE 0 END ) AS SPUR_SERV_POOR_NUM
      FROM edw.glr_tpa_org_loan t
-     WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+     WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
      GROUP BY 
      CASE ORG_NAME 
 		WHEN  '中国工商银行'                   THEN     'C1010211000012'
@@ -14290,128 +14275,142 @@ BEGIN
      CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
      
     SET V_STEP:='3';
-    DELETE  FROM adm.ana_glr_mth_fina_jzfp_1 WHERE FISCAL_MTH = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.ana_glr_mth_fina_jzfp_1 WHERE FISCAL_MTH = v_at_V_TEMP_QUA_MONTH;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
    
     SET V_STEP:='4';
     INSERT INTO adm.ana_glr_mth_fina_jzfp_1 (
-      FISCAL_DATE                #月份_date
-     ,FISCAL_MTH                 #月份
-     ,DSCR_QUA                   #该月对应季度描述
-     ,CITY_ID                    #市编码
-     ,CITY_NAME                  #市名称
-     ,LOAN_TYPE_ID               #贷款类型ID
-     ,LOAN_TYPE_NAME             #贷款类型描述
-     ,LOAN_REMAIN                #贷款余额
-     ,LOAN_FF                    #当年累计发放额
-     ,LOAN_FF_LYTB               #当年累计发放额同比增长
+      FISCAL_DATE                -- 月份_date
+     ,FISCAL_MTH                 -- 月份
+     ,DSCR_QUA                   -- 该月对应季度描述
+     ,CITY_ID                    -- 市编码
+     ,CITY_NAME                  -- 市名称
+     ,LOAN_TYPE_ID               -- 贷款类型ID
+     ,LOAN_TYPE_NAME             -- 贷款类型描述
+     ,LOAN_REMAIN                -- 贷款余额
+     ,LOAN_FF                    -- 当年累计发放额
+     ,LOAN_FF_LYTB               -- 当年累计发放额同比增长
      )
    -- 1. 个人精准扶贫贷款 贷款余额|去年同期贷款余额|当年累计发放额|去年同期累计发放额|贷款笔数|带动服务贫困人口数
     SELECT 
-        CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-       ,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+        CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+       ,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
        ,V_QUA_DESC               AS DSCR_QUA
        ,'50000'                  AS CITY_ID
        ,'重庆市'                 AS CITY_NAME
        ,'1'                      AS LOAN_TYPE_ID
        ,'个人精准扶贫贷款'       AS LOAN_TYPE_NAME
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
-       ,CASE WHEN SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
-        /SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
+       ,CASE WHEN SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
+        /SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
     FROM edw.glr_tpa_type_loan T
-    WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+    WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
     AND t.rows_id IN ('24','25','42','43')
-    GROUP BY @V_TEMP_QUA_MONTH
+    GROUP BY v_at_V_TEMP_QUA_MONTH
   
     UNION ALL
     -- 2.金融精准扶贫贷款(一、建档立卡贫困人口贷款 +三、其他个人精准扶贫贷款+四、产业精准扶贫贷款+五、项目精准扶贫贷款)：贷款余额|去年同期贷款余额|当年累计发放额|去年同期累计发放额|贷款笔数|带动服务贫困人口数
     SELECT 
-        CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-       ,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+        CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+       ,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
        ,V_QUA_DESC               AS DSCR_QUA
        ,'50000'                  AS CITY_ID
        ,'重庆市'                 AS CITY_NAME
        ,'2'                      AS LOAN_TYPE_ID
        ,'金融精准扶贫贷款'       AS LOAN_TYPE_NAME
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
-       ,CASE WHEN SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
-        /SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
+       ,CASE WHEN SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
+        /SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
     FROM edw.glr_tpa_type_loan T
-    WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+    WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
     AND t.rows_id IN ('24','25','42','43','56','57','77','78')
-    GROUP BY @V_TEMP_QUA_MONTH
+    GROUP BY v_at_V_TEMP_QUA_MONTH
     
     UNION ALL
     
     -- 3. 金融精准扶贫贷款(含已脱贫人口)
     SELECT 
-        CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-       ,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+        CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+       ,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
        ,V_QUA_DESC               AS DSCR_QUA
        ,'50000'                  AS CITY_ID
        ,'重庆市'                 AS CITY_NAME
        ,'3'                      AS LOAN_TYPE_ID
        ,'金融精准扶贫贷款(含已脱贫人口)'       AS LOAN_TYPE_NAME
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
-       ,CASE WHEN SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
-        /SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
+       ,CASE WHEN SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
+        /SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
     FROM edw.glr_tpa_type_loan T
-   WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+   WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
     AND t.rows_id IN ('11','24','25','42','43','56','57','77','78')
-    GROUP BY @V_TEMP_QUA_MONTH
+    GROUP BY v_at_V_TEMP_QUA_MONTH
    
    UNION ALL
    
    -- 4. 产业精准扶贫贷款 贷款余额|去年同期贷款余额|当年累计发放额|去年同期累计发放额|贷款笔数|带动服务贫困人口数
    SELECT 
-        CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-       ,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+        CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+       ,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
        ,V_QUA_DESC               AS DSCR_QUA
        ,'50000'                  AS CITY_ID
        ,'重庆市'                 AS CITY_NAME
        ,'4'                      AS LOAN_TYPE_ID
        ,'产业精准扶贫贷款'       AS LOAN_TYPE_NAME
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
-       ,CASE WHEN SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
-        /SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
+       ,CASE WHEN SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
+        /SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
     FROM edw.glr_tpa_type_loan T
-   WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+   WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
     AND t.rows_id IN ('56','57')
-    GROUP BY @V_TEMP_QUA_MONTH
+    GROUP BY v_at_V_TEMP_QUA_MONTH
     
     UNION ALL 
     
     -- 5. 项目精准扶贫贷款  贷款余额|去年同期贷款余额|当年累计发放额|去年同期累计发放额|贷款笔数|带动服务贫困人口数
        SELECT 
-        CONCAT(@V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
-       ,@V_TEMP_QUA_MONTH              AS FISCAL_MTH
+        CONCAT(v_at_V_TEMP_QUA_MONTH,'01') AS FISCAL_DATE
+       ,v_at_V_TEMP_QUA_MONTH              AS FISCAL_MTH
        ,V_QUA_DESC               AS DSCR_QUA
        ,'50000'                  AS CITY_ID
        ,'重庆市'                 AS CITY_NAME
        ,'5'                      AS LOAN_TYPE_ID
        ,'项目精准扶贫贷款'       AS LOAN_TYPE_NAME
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
-       ,SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
-       ,CASE WHEN SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
-        /SUM(CASE WHEN t.data_date =@V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL,0) ELSE 0 END )/10000  AS LOAN_REMAIN
+       ,SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END )/10000  AS LOAN_FF
+       ,CASE WHEN SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(LOAN_BAL_Y,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) - SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ))
+        /SUM(CASE WHEN t.data_date =v_at_V_TEMP_QUA_MONTH_L THEN  IFNULL(LOAN_BAL_Y,0) ELSE 0 END ) END      AS LOAN_FF_LYTB
     FROM edw.glr_tpa_type_loan T
-   WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+   WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
     AND t.rows_id IN ('77','78')
-    GROUP BY @V_TEMP_QUA_MONTH
+    GROUP BY v_at_V_TEMP_QUA_MONTH
     
     ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_nan_tpa_poor_results_bak20190122;
 
 CREATE PROCEDURE adm.p_nan_tpa_poor_results_bak20190122(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'p_nan_tpa_poor_results.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(6) := SUBSTR(P_DATA_DATE,1,6);
+    V_DATA_DATE_L VARCHAR(6) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
+    V_QUA_DESC VARCHAR(100) := concat(DATE_FORMAT( P_DATA_DATE, '%Y' ),'年','第',QUARTER(P_DATA_DATE),'季度');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*
 | Author :严锦涛
@@ -14425,22 +14424,8 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2019-01-02     严锦涛        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'p_nan_tpa_poor_results.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(6) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-    DECLARE V_DATA_DATE_L VARCHAR(6) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);
-    declare V_QUA_DESC VARCHAR(100) DEFAULT concat(DATE_FORMAT( P_DATA_DATE, '%Y' ),'年','第',QUARTER(P_DATA_DATE),'季度');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
     SET V_STEP:='1';
     DELETE  FROM adm.ana_glr_mth_fina_jzfp WHERE FISCAL_MTH = V_DATA_DATE;
@@ -14448,23 +14433,23 @@ BEGIN
     
     SET V_STEP:='2';
     insert into adm.ana_glr_mth_fina_jzfp (
-      FISCAL_DATE                #月份_date
-     ,FISCAL_MTH                 #月份
-     ,DSCR_QUA                   #该月对应季度描述
-     ,CITY_ID                    #市编码
-     ,CITY_NAME                  #市名称
-     ,ORG_TYPE_ID                #金融机构类型编码
-     ,ORG_TYPE_NAME              #金融机构类型名称
-     ,ORG_ID                     #金融机构编码
-     ,ORG_NAME                   #金融机构名称
-     ,LOAN_TYPE_ID               #贷款类型ID
-     ,LOAN_TYPE_NAME             #贷款类型描述
-     ,LOAN_REMAIN                #贷款余额
-     ,LOAN_REMAIN_LY             #去年同期贷款余额
-     ,LOAN_FF                    #当年累计发放额
-     ,LOAN_FF_LY                 #去年同期累计发放额
-     ,STROKE_COUNT               #贷款笔数
-     ,SPUR_SERV_POOR_NUM         #带动服务贫困人口数
+      FISCAL_DATE                -- 月份_date
+     ,FISCAL_MTH                 -- 月份
+     ,DSCR_QUA                   -- 该月对应季度描述
+     ,CITY_ID                    -- 市编码
+     ,CITY_NAME                  -- 市名称
+     ,ORG_TYPE_ID                -- 金融机构类型编码
+     ,ORG_TYPE_NAME              -- 金融机构类型名称
+     ,ORG_ID                     -- 金融机构编码
+     ,ORG_NAME                   -- 金融机构名称
+     ,LOAN_TYPE_ID               -- 贷款类型ID
+     ,LOAN_TYPE_NAME             -- 贷款类型描述
+     ,LOAN_REMAIN                -- 贷款余额
+     ,LOAN_REMAIN_LY             -- 去年同期贷款余额
+     ,LOAN_FF                    -- 当年累计发放额
+     ,LOAN_FF_LY                 -- 去年同期累计发放额
+     ,STROKE_COUNT               -- 贷款笔数
+     ,SPUR_SERV_POOR_NUM         -- 带动服务贫困人口数
      
      )
 
@@ -14605,12 +14590,23 @@ BEGIN
     ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
 
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_rpt_finance_key_kpi_mth;
 
 CREATE PROCEDURE adm.p_rpt_finance_key_kpi_mth(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_finance_key_kpi_mth.PRC';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
  /*
     Author :yanjintao
@@ -14621,21 +14617,10 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2019-02-26     yanjintao        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_finance_key_kpi_mth.PRC';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
     
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
     DELETE  FROM adm.rpt_finance_key_kpi_mth WHERE DATA_DATE = P_DATA_DATE ;
@@ -14643,29 +14628,29 @@ BEGIN
     
     SET V_STEP:='2';
     INSERT INTO adm.rpt_finance_key_kpi_mth(
-	 BATCH_DATE                         #跑批日期                            
-	,AREA_NO                            #上报地区                            
-	,DATA_DATE                          #数据日期，账期                      
-	,ORG_NO                             #上报机构/上报用户                   
-	,ROWS_ID                            #行号                                
-	,ORG_CODE                           #机构编码                            
-	,ORG_NAME                           #机构名称                            
-	,DEP_LOCAL_FOREIGN_BAL              #本外币存款余额(万元)                
-	,DEP_LOCAL_FOREIGN_BAL_P            #上期本外币存款余额(万元)            
-	,DEP_CNY_BAL                        #人民币存款余额(万元)                
-	,DEP_CNY_BAL_P                      #上期人民币存款余额(万元)            
-	,DEP_SAVE_BAL                       #储蓄存款(万元)                      
-	,DEP_SAVE_BAL_P                     #上期储蓄存款(万元)                  
-	,LOAB_LOCAL_FOREIGN_BAL             #本外币贷款余额(万元)                
-	,LOAB_LOCAL_FOREIGN_BAL_P           #上期本外币贷款余额(万元)            
-	,LOAN_CNY_BAL                       #人民币贷款余额(万元)                
-	,LOAN_CNY_BAL_P                     #上期人民币贷款余额(万元)            
-	,LOAN_SHORT_BAL                     #短期贷款余额(万元)                  
-	,LOAN_SHORT_BAL_P                   #上期短期贷款余额(万元)              
-	,LOAN_MID_BAL                       #中长期贷款余额(万元)                
-	,LOAN_MID_BAL_P                     #上期中长期贷款余额(万元)            
-	,LOAN_PERSON_MID_BAL                #个人中长期贷款(万元)                
-	,LOAN_PERSON_MID_BAL_P              #上期个人中长期贷款(万元)            
+	 BATCH_DATE                         -- 跑批日期                            
+	,AREA_NO                            -- 上报地区                            
+	,DATA_DATE                          -- 数据日期，账期                      
+	,ORG_NO                             -- 上报机构/上报用户                   
+	,ROWS_ID                            -- 行号                                
+	,ORG_CODE                           -- 机构编码                            
+	,ORG_NAME                           -- 机构名称                            
+	,DEP_LOCAL_FOREIGN_BAL              -- 本外币存款余额(万元)                
+	,DEP_LOCAL_FOREIGN_BAL_P            -- 上期本外币存款余额(万元)            
+	,DEP_CNY_BAL                        -- 人民币存款余额(万元)                
+	,DEP_CNY_BAL_P                      -- 上期人民币存款余额(万元)            
+	,DEP_SAVE_BAL                       -- 储蓄存款(万元)                      
+	,DEP_SAVE_BAL_P                     -- 上期储蓄存款(万元)                  
+	,LOAB_LOCAL_FOREIGN_BAL             -- 本外币贷款余额(万元)                
+	,LOAB_LOCAL_FOREIGN_BAL_P           -- 上期本外币贷款余额(万元)            
+	,LOAN_CNY_BAL                       -- 人民币贷款余额(万元)                
+	,LOAN_CNY_BAL_P                     -- 上期人民币贷款余额(万元)            
+	,LOAN_SHORT_BAL                     -- 短期贷款余额(万元)                  
+	,LOAN_SHORT_BAL_P                   -- 上期短期贷款余额(万元)              
+	,LOAN_MID_BAL                       -- 中长期贷款余额(万元)                
+	,LOAN_MID_BAL_P                     -- 上期中长期贷款余额(万元)            
+	,LOAN_PERSON_MID_BAL                -- 个人中长期贷款(万元)                
+	,LOAN_PERSON_MID_BAL_P              -- 上期个人中长期贷款(万元)            
 	)
 	SELECT 
 	 NOW()
@@ -14695,6 +14680,11 @@ BEGIN
 	WHERE DATA_DATE = P_DATA_DATE 
 	;
 	CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -14703,6 +14693,12 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_estate_stat;
 CREATE PROCEDURE adm.p_rpt_m_estate_stat(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_estate_stat.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*
     Author :zhangjiao
@@ -14713,21 +14709,10 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2019-01-29     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_estate_stat.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
     
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
     DELETE  FROM adm.rpt_m_estate_stat WHERE DATA_DATE = SUBSTR(P_DATA_DATE,1,6) ;
@@ -14759,6 +14744,11 @@ BEGIN
              ,PROJECT     
              ;             
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -14767,6 +14757,15 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_farm_loan_stat;
 CREATE PROCEDURE adm.p_rpt_m_farm_loan_stat(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_farm_loan_stat.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
 BEGIN
     /*
     Author :zhangjiao
@@ -14777,32 +14776,19 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-11-20     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_farm_loan_stat.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
             -- 季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-        SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+        v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
         AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
         
-    PREPARE smt FROM @instr;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;
+    EXECUTE IMMEDIATE v_at_instr;
     
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_m_farm_loan_stat WHERE DATA_DATE = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.rpt_m_farm_loan_stat WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     -- 业务逻辑处理
@@ -14833,13 +14819,18 @@ BEGIN
               ,IFNULL(LOAN_BAL_ADD_NEW_ZB,0)
               ,IFNULL(LOAN_BAL_TB,0)
         FROM edw.glr_agl_farm_loan
-     WHERE DATA_DATE = @V_TEMP_QUA_MONTH
+     WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH
      GROUP BY  DATA_DATE
               ,AREA_NO
               ,ORG_NO
               ,PROJECT
               ,ROWS_ID;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -14848,6 +14839,18 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_dist_org_proj;
 CREATE PROCEDURE adm.p_rpt_m_loan_dist_org_proj(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_dist_org_proj.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE_LM VARCHAR(20) ;
+    V_DATA_DATE_LQ VARCHAR(20) ;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH_L VARCHAR(2000);
 BEGIN
     /*
     Author :zhangjiao
@@ -14859,43 +14862,26 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-12-25     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_dist_org_proj.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE_LM VARCHAR(20) ;
-    DECLARE V_DATA_DATE_LQ VARCHAR(20) ;
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
      -- 上季度日期处理
-     SET V_DATA_DATE_LQ = DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -3 MONTH); 
+     V_DATA_DATE_LQ := DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -3 MONTH); 
      
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_LQ,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_LQ,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(V_DATA_DATE_LQ,1,4));
     
-        PREPARE smt FROM @instr;
-        EXECUTE smt;
-        DEALLOCATE PREPARE smt;
+        EXECUTE IMMEDIATE v_at_instr;
     
     -- 本年季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
     
-        PREPARE smt FROM @instr;
-        EXECUTE smt;
-        DEALLOCATE PREPARE smt;
-    SET P_RESULT = 0;
+        EXECUTE IMMEDIATE v_at_instr;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_m_loan_dist_org_proj WHERE DATA_DATE = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.rpt_m_loan_dist_org_proj WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     
@@ -14917,7 +14903,7 @@ BEGIN
               )
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -14933,9 +14919,9 @@ BEGIN
             ELSE m.dim_desc END 
            ,'CS01'
            ,'大型企业贷款'
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END)/10000 AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END)/10000 AS BALANCE_CNY
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
    LEFT JOIN dmcode.t_org_biz_lvl X
            ON t.org_no = x.org_id
@@ -14943,7 +14929,7 @@ BEGIN
            ON m.mapping_id = t.kpi_code
    WHERE KPI_CODE IN ('33370','33371','33372','33373','33374','33375','33376','33377','33378','33379','33380','33381','33382','33383','33384','33385','33386','33387','33388','33389','33390','33391'
                       ,'33392','33393','33394','33520','33521','33522','33523','33524','33525','33556','33557','33558','33559','33580','33581','33582','33583','33584','33585','33635','33641','33642','33653','33659','3369E')
-        AND DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+        AND DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
        GROUP BY 
             t.org_no
            ,x.org_dscr
@@ -14954,7 +14940,7 @@ UNION ALL
            
     (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -14970,9 +14956,9 @@ UNION ALL
             ELSE m.dim_desc END 
            ,'CS02'
            ,'中型企业贷款'
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
        FROM edw.glr_mpa_cbrc_3302 t
     LEFT JOIN dmcode.t_org_biz_lvl X
            ON t.org_no = x.org_id
@@ -14980,7 +14966,7 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
       WHERE KPI_CODE IN ('33395','33396','33397','33398','33399','33400','33401','33402','33403','33404','33405','33406','33407','33408','33409','33410','33411','33412','33413','33414','33415','33416'
                          ,'33417','33418','33419','33526','33527','33528','','33530','33531','33560','33561','33562','33563','33586','33587','33588','33589','33590','33591','33636','33643','33644','33654','33660','3369F')
-            AND DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+            AND DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
       GROUP BY 
             t.org_no
            ,x.org_dscr
@@ -14991,7 +14977,7 @@ UNION ALL
            
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15007,9 +14993,9 @@ UNION ALL
             ELSE m.dim_desc END 
            ,'CS03'
            ,'小型企业贷款'
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
     LEFT JOIN dmcode.t_org_biz_lvl X
           ON t.org_no = x.org_id
@@ -15017,7 +15003,7 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
      WHERE KPI_CODE IN ('33420','33421','33422','33423','33424','33425','33426','33427','33428','33429','33430','33431','33432','33433','33434','33435','33436','33437','33438','33439','33440','33441'
                        ,'33442','33443','33444','33532','33533','33534','33535','33536','33537','33564','33565','33566','33567','33592','33593','33594','33595','33596','33597','33637','33645','33646','33655','33661','33665')
-        AND DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+        AND DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
       GROUP BY 
             t.org_no
            ,x.org_dscr
@@ -15028,7 +15014,7 @@ UNION ALL
            
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15044,9 +15030,9 @@ UNION ALL
             ELSE m.dim_desc END 
            ,'CS04'
            ,'其中：单户授信总额500万元以下的小型企业贷款'
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
       LEFT JOIN dmcode.t_org_biz_lvl X
            ON t.org_no = x.org_id
@@ -15054,7 +15040,7 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
       WHERE KPI_CODE IN ('33445','33446','33447','33448','33449','33450','33451','33452','33453','33454','33455','33456','33457','33458','33459','33460','33461','33462','33463','33464','33465','33466'
                          ,'33467','33468','33469','33538','33539','33540','33541','33542','33543','33568','33569','33570','33571','33598','33599','33600','33620','33621','33622','33638','33647','33648','33656','33662','33666')
-       AND DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+       AND DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
      GROUP BY 
             t.org_no
            ,x.org_dscr
@@ -15065,7 +15051,7 @@ UNION ALL
            
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15081,9 +15067,9 @@ UNION ALL
             ELSE m.dim_desc END 
            ,'CS05'
            ,'微型企业贷款'
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
    LEFT JOIN dmcode.t_org_biz_lvl X
          ON t.org_no = x.org_id
@@ -15091,7 +15077,7 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
    WHERE KPI_CODE IN ('33470','33471','33472','33473','33474','33475','33476','33477','33478','33479','33480','33481','33482','33483','33484','33485','33486','33487','33488','33489','33490','33491'
                       ,'33492','33493','33494','33544','33545','33546','33547','33548','33549','33572','33573','33574','33575','33623','33624','33625','33626','33627','33628','33639','33649','33650','33657','33663','33667')
-         AND DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+         AND DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
       GROUP BY 
             t.org_no
            ,x.org_dscr
@@ -15102,7 +15088,7 @@ UNION ALL
            
        (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15118,9 +15104,9 @@ UNION ALL
             ELSE m.dim_desc END 
            ,'CS06'
            ,'其中：单户授信总额500万元以下的微型企业贷款'
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
        FROM edw.glr_mpa_cbrc_3302 t
   LEFT JOIN dmcode.t_org_biz_lvl X
          ON t.org_no = x.org_id
@@ -15128,7 +15114,7 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
      WHERE KPI_CODE IN ('33495','33496','33497','33498','33499','33500','33501','33502','33503','33504','33505','33506','33507','33508','33509','33510','33511','33512','33513','33514','33515','33516'
                         ,'33517','33518','33519','33550','33551','33552','33553','33554','33555','33576','33577','33578','33579','33629','33630','33631','33632','33633','33634','33640','33651','33652','33658','33664','33668')
-       AND DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+       AND DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
      GROUP BY 
             t.org_no
            ,x.org_dscr
@@ -15139,7 +15125,7 @@ UNION ALL
            
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15147,16 +15133,16 @@ UNION ALL
            ,m.dim_desc
            ,'CS07'
            ,'小微企业主经营性贷款'
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
    LEFT JOIN dmcode.t_org_biz_lvl X
           ON t.org_no = x.org_id
       LEFT JOIN edw.rpt_indust_guarn_mas_mapping M
            ON m.mapping_id = t.kpi_code
       WHERE KPI_CODE = '33670'
-        AND DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+        AND DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
        GROUP BY 
             t.org_no
            ,x.org_dscr
@@ -15167,7 +15153,7 @@ UNION ALL
            
      (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15175,16 +15161,16 @@ UNION ALL
            ,m.dim_desc
            ,'CS08'
            ,'个体工商户经营性贷款'
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END )/10000 - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END )/10000 AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
  LEFT JOIN dmcode.t_org_biz_lvl X
         ON t.org_no = x.org_id
        LEFT JOIN edw.rpt_indust_guarn_mas_mapping M
            ON m.mapping_id = t.kpi_code
      WHERE KPI_CODE = '33669'
-       AND DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+       AND DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
      GROUP BY 
             t.org_no
            ,x.org_dscr
@@ -15192,6 +15178,11 @@ UNION ALL
      ORDER BY t.kpi_code)
      ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -15200,6 +15191,17 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_dist_org_proj_bak_20190114;
 CREATE PROCEDURE adm.p_rpt_m_loan_dist_org_proj_bak_20190114(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'p_rpt_m_loan_dist_org_proj.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE_LM VARCHAR(20) ;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH_L VARCHAR(2000);
 BEGIN
     /*
     Author :zhangjiao
@@ -15211,34 +15213,22 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-12-25     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'p_rpt_m_loan_dist_org_proj.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE_LM VARCHAR(20) ;
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
      -- 上季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'))-1,'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'))-1,'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
     
     -- 本年季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
     
         
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_m_loan_dist_org_proj WHERE DATA_DATE = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.rpt_m_loan_dist_org_proj WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     
@@ -15260,7 +15250,7 @@ BEGIN
               )
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15277,8 +15267,8 @@ BEGIN
            ,'CS01'
            ,'大型企业贷款'
            ,SUM(IFNULL(t.balance_cny,0)) AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
    LEFT JOIN dmcode.t_org_biz_lvl X
            ON t.org_no = x.org_id
@@ -15286,9 +15276,9 @@ BEGIN
            ON m.mapping_id = t.kpi_code
    WHERE KPI_CODE IN ('33370','33371','33372','33373','33374','33375','33376','33377','33378','33379','33380','33381','33382','33383','33384','33385','33386','33387','33388','33389','33390','33391'
                       ,'33392','33393','33394','33520','33521','33522','33523','33524','33525','33556','33557','33558','33559','33580','33581','33582','33583','33584','33585','33635','33641','33642','33653','33659')
-        AND DATA_DATE = @V_TEMP_QUA_MONTH
+        AND DATA_DATE = v_at_V_TEMP_QUA_MONTH
        GROUP BY 
-            @V_TEMP_QUA_MONTH
+            v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15298,7 +15288,7 @@ UNION ALL
            
     (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15315,8 +15305,8 @@ UNION ALL
            ,'CS02'
            ,'中型企业贷款'
            ,SUM(IFNULL(t.balance_cny,0)) AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
        FROM edw.glr_mpa_cbrc_3302 t
     LEFT JOIN dmcode.t_org_biz_lvl X
            ON t.org_no = x.org_id
@@ -15324,9 +15314,9 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
       WHERE KPI_CODE IN ('33395','33396','33397','33398','33399','33400','33401','33402','33403','33404','33405','33406','33407','33408','33409','33410','33411','33412','33413','33414','33415','33416'
                          ,'33417','33418','33419','33526','33527','33528','','33530','33531','33560','33561','33562','33563','33586','33587','33588','33589','33590','33591','33636','33643','33644','33654','33660')
-            AND DATA_DATE = @V_TEMP_QUA_MONTH
+            AND DATA_DATE = v_at_V_TEMP_QUA_MONTH
       GROUP BY 
-            @V_TEMP_QUA_MONTH
+            v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15336,7 +15326,7 @@ UNION ALL
            
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15353,8 +15343,8 @@ UNION ALL
            ,'CS03'
            ,'小型企业贷款'
            ,SUM(IFNULL(t.balance_cny,0)) AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
     LEFT JOIN dmcode.t_org_biz_lvl X
           ON t.org_no = x.org_id
@@ -15362,9 +15352,9 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
      WHERE KPI_CODE IN ('33420','33421','33422','33423','33424','33425','33426','33427','33428','33429','33430','33431','33432','33433','33434','33435','33436','33437','33438','33439','33440','33441'
                        ,'33442','33443','33444','33532','33533','33534','33535','33536','33537','33564','33565','33566','33567','33592','33593','33594','33595','33596','33597','33637','33645','33646','33655','33661','33665')
-        AND DATA_DATE = @V_TEMP_QUA_MONTH
+        AND DATA_DATE = v_at_V_TEMP_QUA_MONTH
       GROUP BY 
-            @V_TEMP_QUA_MONTH
+            v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15374,7 +15364,7 @@ UNION ALL
            
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15391,8 +15381,8 @@ UNION ALL
            ,'CS04'
            ,'其中：单户授信总额500万元以下的小型企业贷款'
            ,SUM(IFNULL(t.balance_cny,0)) AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
       LEFT JOIN dmcode.t_org_biz_lvl X
            ON t.org_no = x.org_id
@@ -15400,9 +15390,9 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
       WHERE KPI_CODE IN ('33446','33446','33447','33448','33449','33450','33451','33452','33453','33454','33455','33456','33457','33458','33459','33460','33461','33462','33463','33464','33465','33466'
                          ,'33467','33468','33469','33538','33539','33540','33541','33542','33543','33568','33569','33570','33571','33598','33599','33600','33620','33621','33622','33638','33647','33648','33656','33662','33666')
-       AND DATA_DATE = @V_TEMP_QUA_MONTH
+       AND DATA_DATE = v_at_V_TEMP_QUA_MONTH
      GROUP BY 
-            @V_TEMP_QUA_MONTH
+            v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15412,7 +15402,7 @@ UNION ALL
            
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15429,8 +15419,8 @@ UNION ALL
            ,'CS05'
            ,'微型企业贷款'
            ,SUM(IFNULL(t.balance_cny,0)) AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
    LEFT JOIN dmcode.t_org_biz_lvl X
          ON t.org_no = x.org_id
@@ -15438,9 +15428,9 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
    WHERE KPI_CODE IN ('33470','33471','33472','33473','33474','33475','33476','33477','33478','33479','33480','33481','33482','33483','33484','33485','33486','33487','33488','33489','33490','33491'
                       ,'33492','33493','33494','33544','33545','33546','33547','33548','33549','33572','33573','33574','33575','33623','33624','33625','33626','33627','33628','33639','33649','33650','33657','33663','33667')
-         AND DATA_DATE = @V_TEMP_QUA_MONTH
+         AND DATA_DATE = v_at_V_TEMP_QUA_MONTH
       GROUP BY 
-            @V_TEMP_QUA_MONTH
+            v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15450,7 +15440,7 @@ UNION ALL
            
        (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15467,8 +15457,8 @@ UNION ALL
            ,'CS06'
            ,'其中：单户授信总额500万元以下的微型企业贷款'
            ,SUM(IFNULL(t.balance_cny,0)) AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
        FROM edw.glr_mpa_cbrc_3302 t
   LEFT JOIN dmcode.t_org_biz_lvl X
          ON t.org_no = x.org_id
@@ -15476,9 +15466,9 @@ UNION ALL
            ON m.mapping_id = t.kpi_code
      WHERE KPI_CODE IN ('33495','33496','33497','33498','33499','33500','33501','33502','33503','33504','33505','33506','33507','33508','33509','33510','33511','33512','33513','33514','33515','33516'
                         ,'33517','33518','33519','33550','33551','33552','33553','33554','33555','33576','33577','33578','33579','33629','33630','33631','33632','33633','33634','33640','33651','33652','33658','33664','33668')
-       AND DATA_DATE = @V_TEMP_QUA_MONTH
+       AND DATA_DATE = v_at_V_TEMP_QUA_MONTH
      GROUP BY 
-            @V_TEMP_QUA_MONTH
+            v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15488,7 +15478,7 @@ UNION ALL
            
       (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15497,17 +15487,17 @@ UNION ALL
            ,'CS07'
            ,'小微企业主经营性贷款'
            ,SUM(IFNULL(t.balance_cny,0)) AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
    LEFT JOIN dmcode.t_org_biz_lvl X
           ON t.org_no = x.org_id
       LEFT JOIN edw.rpt_indust_guarn_mas_mapping M
            ON m.mapping_id = t.kpi_code
       WHERE KPI_CODE = '33669'
-        AND DATA_DATE = @V_TEMP_QUA_MONTH
+        AND DATA_DATE = v_at_V_TEMP_QUA_MONTH
        GROUP BY 
-            @V_TEMP_QUA_MONTH
+            v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15517,7 +15507,7 @@ UNION ALL
            
      (SELECT 
             NOW()
-           ,@V_TEMP_QUA_MONTH
+           ,v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
@@ -15526,23 +15516,28 @@ UNION ALL
            ,'CS08'
            ,'个体工商户经营性贷款'
            ,SUM(IFNULL(t.balance_cny,0)) AS BALANCE_CNY
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
-           ,SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=@V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) AS BALANCE_CNY_LM
+           ,SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_CNY,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE=v_at_V_TEMP_QUA_MONTH THEN IFNULL(BALANCE_BEGIN_Y,0) ELSE 0 END ) AS BALANCE_CNY_Y
       FROM edw.glr_mpa_cbrc_3302 t
  LEFT JOIN dmcode.t_org_biz_lvl X
         ON t.org_no = x.org_id
        LEFT JOIN edw.rpt_indust_guarn_mas_mapping M
            ON m.mapping_id = t.kpi_code
      WHERE KPI_CODE = '33670'
-       AND DATA_DATE = @V_TEMP_QUA_MONTH
+       AND DATA_DATE = v_at_V_TEMP_QUA_MONTH
      GROUP BY 
-            @V_TEMP_QUA_MONTH
+            v_at_V_TEMP_QUA_MONTH
            ,t.org_no
            ,x.org_dscr
            ,t.kpi_code
      ORDER BY t.kpi_code)
      ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -15551,6 +15546,12 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_indust_dist;
 CREATE PROCEDURE adm.p_rpt_m_loan_indust_dist(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_indust_dist.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*
     Author :zhangjiao
@@ -15561,21 +15562,10 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2019-01-29     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_indust_dist.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
     
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
     DELETE  FROM adm.rpt_m_loan_indust_dist WHERE DATA_DATE = SUBSTR(P_DATA_DATE,1,6) ;
@@ -15665,6 +15655,11 @@ BEGIN
              ,ORG_NAME
              ;             
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -15673,6 +15668,12 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_indust_org;
 CREATE PROCEDURE adm.p_rpt_m_loan_indust_org(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_indust_org.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*
     Author :zhangjiao
@@ -15683,21 +15684,10 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2019-01-29     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_indust_org.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
     
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
     DELETE  FROM adm.rpt_m_loan_indust_org WHERE DATA_DATE = SUBSTR(P_DATA_DATE,1,6) ;
@@ -15935,12 +15925,30 @@ BEGIN
              ,ORG_NAME
              ;             
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_sum_dist;
 
 CREATE PROCEDURE adm.p_rpt_m_loan_sum_dist(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_sum_dist.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(8) := SUBSTR(P_DATA_DATE,1,6);
+     V_DATA_DATE_L VARCHAR(20);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_instr_l TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH_L VARCHAR(2000);
 BEGIN
 /*
 | Author :YANJINTAO
@@ -15953,179 +15961,162 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2018-11-21     YANJINTAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_sum_dist.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(8) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-     DECLARE V_DATA_DATE_L VARCHAR(20);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
   
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
 	-- 本年季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
     
-    PREPARE smt FROM @instr;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;    
+    EXECUTE IMMEDIATE v_at_instr;
     
     -- 去年同期
-    SET V_DATA_DATE_L = DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -12 MONTH);
+    V_DATA_DATE_L := DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -12 MONTH);
     -- 去年季度
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_L,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr_l = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_L,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr_l := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(V_DATA_DATE_L,1,4));
     
-    PREPARE smt FROM @instr_l;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;    
+    EXECUTE IMMEDIATE v_at_instr_l;
     
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_m_loan_sum_dist WHERE DATA_DATE =@V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.rpt_m_loan_sum_dist WHERE DATA_DATE =v_at_V_TEMP_QUA_MONTH;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     SET V_STEP:='2';
     INSERT INTO adm.rpt_m_loan_sum_dist (
-      BATCH_DATE              #跑批日期
-      ,DATA_DATE              #数据日期，账期
-      ,AREA_NO                #金融机构所在地区编码
-      ,AREA_NAME              #地区名称
-      ,ROWS_ID                #行号
-      ,kpi_value1             #金融精准扶贫贷款(含已脱贫人口贷款)余额
-      ,kpi_value2             #金融精准扶贫贷款(含已脱贫人口贷款)同比增速
-      ,kpi_value3             #金融精准扶贫贷款(含已脱贫人口贷款)当年累放额
-      ,kpi_value4             #金融精准扶贫贷款(含已脱贫人口贷款)比去年同期增减
-      ,kpi_value5             #金融精准扶贫贷款(含已脱贫人口贷款)贷款笔数
-      ,kpi_value6             #金融精准扶贫贷款(含已脱贫人口贷款)贷款加权平均利率
-      ,kpi_value7             #金融精准扶贫贷款(含已脱贫人口贷款)带动服务贫困人口数
-      ,kpi_value8             #金融精准扶贫贷款余额
-      ,kpi_value9             #金融精准扶贫贷款同比增速
-      ,kpi_value10            #金融精准扶贫贷款当年累放额
-      ,kpi_value11            #金融精准扶贫贷款比去年同期增减
-      ,kpi_value12            #金融精准扶贫贷款贷款笔数
-      ,kpi_value13            #金融精准扶贫贷款贷款加权平均利率
-      ,kpi_value14            #金融精准扶贫贷款带动服务贫困人口数
-      ,kpi_value15            #一、个人精准扶贫贷款余额
-      ,kpi_value16            #一、个人精准扶贫贷款增速
-      ,kpi_value17            #一、个人精准扶贫贷款累放额
-      ,kpi_value18            #一、个人精准扶贫贷款比去年同期增减
-      ,kpi_value19            #一、个人精准扶贫贷款贷款笔数
-      ,kpi_value20            #一、个人精准扶贫贷款贷款加权平均利率
-      ,kpi_value21            #一、个人精准扶贫贷款带动服务贫困人口数
-      ,kpi_value22            #建档立卡贫困人口贷款余额
-      ,kpi_value23            #建档立卡贫困人口贷款增速
-      ,kpi_value24            #建档立卡贫困人口贷款累放额
-      ,kpi_value25            #建档立卡贫困人口贷款比去年同期增减
-      ,kpi_value26            #建档立卡贫困人口贷款贷款笔数
-      ,kpi_value27            #建档立卡贫困人口贷款贷款加权平均利率
-      ,kpi_value28            #建档立卡贫困人口贷款带动服务贫困人口数
-      ,kpi_value29            #其中：扶贫小额信贷 （建档立卡贫困人口）余额
-      ,kpi_value30            #其中：扶贫小额信贷 （建档立卡贫困人口）增速
-      ,kpi_value31            #其中：扶贫小额信贷 （建档立卡贫困人口）累放额
-      ,kpi_value32            #其中：扶贫小额信贷 （建档立卡贫困人口）比去年同期增减
-      ,kpi_value33            #其中：扶贫小额信贷 （建档立卡贫困人口）贷款笔数
-      ,kpi_value34            #其中：扶贫小额信贷 （建档立卡贫困人口）贷款加权平均利率
-      ,kpi_value35            #其中：扶贫小额信贷 （建档立卡贫困人口）带动服务贫困人口
-      ,kpi_value36            #二、产业精准扶贫贷款余额
-      ,kpi_value37            #二、产业精准扶贫贷款增速
-      ,kpi_value38            #二、产业精准扶贫贷款累放额
-      ,kpi_value39            #二、产业精准扶贫贷款比去年同期增减
-      ,kpi_value40            #二、产业精准扶贫贷款贷款笔数
-      ,kpi_value41            #二、产业精准扶贫贷款贷款加权平均利率
-      ,kpi_value42            #二、产业精准扶贫贷款带动服务贫困人口数
-      ,kpi_value43            #三、项目精准扶贫贷款余额
-      ,kpi_value44            #三、项目精准扶贫贷款增速
-      ,kpi_value45            #三、项目精准扶贫贷款累放额
-      ,kpi_value46            #三、项目精准扶贫贷款比去年同期增减
-      ,kpi_value47            #三、项目精准扶贫贷款贷款笔数
-      ,kpi_value48            #三、项目精准扶贫贷款贷款加权平均利率
-      ,kpi_value49            #三、项目精准扶贫贷款带动服务贫困人口数
-      ,kpi_value50            #其中：易地扶贫搬迁贷款余额
-      ,kpi_value51            #其中：易地扶贫搬迁贷款增速
-      ,kpi_value52            #其中：易地扶贫搬迁贷款累放额
-      ,kpi_value53            #其中：易地扶贫搬迁贷款比去年同期增减
-      ,kpi_value54            #其中：易地扶贫搬迁贷款贷款笔数
-      ,kpi_value55            #其中：易地扶贫搬迁贷款贷款加权平均利率
-      ,kpi_value56            #其中：易地扶贫搬迁贷款带动服务贫困人口数
-      ,kpi_value57            #农田基本建设贷款余额
-      ,kpi_value58            #农田基本建设贷款增速
-      ,kpi_value59            #农田基本建设贷款累放额
-      ,kpi_value60            #农田基本建设贷款比去年同期增减
-      ,kpi_value61            #农田基本建设贷款贷款笔数
-      ,kpi_value62            #农田基本建设贷款贷款加权平均利率
-      ,kpi_value63            #农田基本建设贷款带动服务贫困人口数
-      ,kpi_value64            #生态环境改造贷款余额
-      ,kpi_value65            #生态环境改造贷款增速
-      ,kpi_value66            #生态环境改造贷款累放额
-      ,kpi_value67            #生态环境改造贷款比去年同期增减
-      ,kpi_value68            #生态环境改造贷款贷款笔数
-      ,kpi_value69            #生态环境改造贷款贷款加权平均利率
-      ,kpi_value70            #生态环境改造贷款带动服务贫困人口数
-      ,kpi_value71            #农村基础设施贷款余额
-      ,kpi_value72            #农村基础设施贷款增速
-      ,kpi_value73            #农村基础设施贷款累放额
-      ,kpi_value74            #农村基础设施贷款比去年同期增减
-      ,kpi_value75            #农村基础设施贷款贷款笔数
-      ,kpi_value76            #农村基础设施贷款贷款加权平均利率
-      ,kpi_value77            #农村基础设施贷款带动服务贫困人口数
-      ,kpi_value78            #专项1：已脱贫人口贷款余额
-      ,kpi_value79            #专项1：已脱贫人口贷款增速
-      ,kpi_value80            #专项1：已脱贫人口贷款累放额
-      ,kpi_value81            #专项1：已脱贫人口贷款比去年同期增减
-      ,kpi_value82            #专项1：已脱贫人口贷款贷款笔数
-      ,kpi_value83            #专项1：已脱贫人口贷款贷款加权平均利率
-      ,kpi_value84            #专项1：已脱贫人口贷款带动服务贫困人口数
-      ,kpi_value85            #其中：扶贫小额信贷 （已脱贫人口）贷款余额
-      ,kpi_value86            #其中：扶贫小额信贷 （已脱贫人口）贷款增速
-      ,kpi_value87            #其中：扶贫小额信贷 （已脱贫人口）贷款累放额
-      ,kpi_value88            #其中：扶贫小额信贷 （已脱贫人口）贷款比去年同期增减
-      ,kpi_value89            #其中：扶贫小额信贷 （已脱贫人口）贷款贷款笔数
-      ,kpi_value90            #其中：扶贫小额信贷 （已脱贫人口）贷款贷款加权平均利率
-      ,kpi_value91            #其中：扶贫小额信贷 （已脱贫人口）贷款带动服务贫困人口数
-      ,kpi_value92            #专项2：易地扶贫搬迁随迁户贷款贷款余额
-      ,kpi_value93            #专项2：易地扶贫搬迁随迁户贷款贷款增速
-      ,kpi_value94            #专项2：易地扶贫搬迁随迁户贷款贷款累放额
-      ,kpi_value95            #专项2：易地扶贫搬迁随迁户贷款贷款比去年同期增减
-      ,kpi_value96            #专项2：易地扶贫搬迁随迁户贷款贷款贷款笔数
-      ,kpi_value97            #专项2：易地扶贫搬迁随迁户贷款贷款贷款加权平均利率
-      ,kpi_value98            #专项2：易地扶贫搬迁随迁户贷款贷款带动服务贫困人口数
-      ,kpi_value99            #专项3：新型农业经营主体 精准扶贫贷款余额
-      ,kpi_value100           #专项3：新型农业经营主体 精准扶贫贷款增速
-      ,kpi_value101           #专项3：新型农业经营主体 精准扶贫贷款累放额
-      ,kpi_value102           #专项3：新型农业经营主体 精准扶贫贷款比去年同期增减
-      ,kpi_value103           #专项3：新型农业经营主体 精准扶贫贷款贷款笔数
-      ,kpi_value104           #专项3：新型农业经营主体 精准扶贫贷款贷款加权平均利率
-      ,kpi_value105           #专项3：新型农业经营主体 精准扶贫贷款带动服务贫困人口数
-      ,kpi_value106           #其中：家庭农场及农业专业大户贷款余额
-      ,kpi_value107           #其中：家庭农场及农业专业大户贷款增速
-      ,kpi_value108           #其中：家庭农场及农业专业大户贷款累放额
-      ,kpi_value109           #其中：家庭农场及农业专业大户贷款比去年同期增减
-      ,kpi_value110           #其中：家庭农场及农业专业大户贷款贷款笔数
-      ,kpi_value111           #其中：家庭农场及农业专业大户贷款贷款加权平均利率
-      ,kpi_value112           #其中：家庭农场及农业专业大户贷款带动服务贫困人口数
-      ,kpi_value113           #农民专业合作社贷款余额
-      ,kpi_value114           #农民专业合作社贷款增速
-      ,kpi_value115           #农民专业合作社贷款累放额
-      ,kpi_value116           #农民专业合作社贷款比去年同期增减
-      ,kpi_value117           #农民专业合作社贷款贷款笔数
-      ,kpi_value118           #农民专业合作社贷款贷款加权平均利率
-      ,kpi_value119           #农民专业合作社贷款带动服务贫困人口数
-      ,kpi_value120           #农业产业化龙头企业贷款余额
-      ,kpi_value121           #农业产业化龙头企业贷款增速
-      ,kpi_value122           #农业产业化龙头企业贷款累放额
-      ,kpi_value123           #农业产业化龙头企业贷款比去年同期增减
-      ,kpi_value124           #农业产业化龙头企业贷款贷款笔数
-      ,kpi_value125           #农业产业化龙头企业贷款贷款加权平均利率
-      ,kpi_value126           #农业产业化龙头企业贷款带动服务贫困人口数
+      BATCH_DATE              -- 跑批日期
+      ,DATA_DATE              -- 数据日期，账期
+      ,AREA_NO                -- 金融机构所在地区编码
+      ,AREA_NAME              -- 地区名称
+      ,ROWS_ID                -- 行号
+      ,kpi_value1             -- 金融精准扶贫贷款(含已脱贫人口贷款)余额
+      ,kpi_value2             -- 金融精准扶贫贷款(含已脱贫人口贷款)同比增速
+      ,kpi_value3             -- 金融精准扶贫贷款(含已脱贫人口贷款)当年累放额
+      ,kpi_value4             -- 金融精准扶贫贷款(含已脱贫人口贷款)比去年同期增减
+      ,kpi_value5             -- 金融精准扶贫贷款(含已脱贫人口贷款)贷款笔数
+      ,kpi_value6             -- 金融精准扶贫贷款(含已脱贫人口贷款)贷款加权平均利率
+      ,kpi_value7             -- 金融精准扶贫贷款(含已脱贫人口贷款)带动服务贫困人口数
+      ,kpi_value8             -- 金融精准扶贫贷款余额
+      ,kpi_value9             -- 金融精准扶贫贷款同比增速
+      ,kpi_value10            -- 金融精准扶贫贷款当年累放额
+      ,kpi_value11            -- 金融精准扶贫贷款比去年同期增减
+      ,kpi_value12            -- 金融精准扶贫贷款贷款笔数
+      ,kpi_value13            -- 金融精准扶贫贷款贷款加权平均利率
+      ,kpi_value14            -- 金融精准扶贫贷款带动服务贫困人口数
+      ,kpi_value15            -- 一、个人精准扶贫贷款余额
+      ,kpi_value16            -- 一、个人精准扶贫贷款增速
+      ,kpi_value17            -- 一、个人精准扶贫贷款累放额
+      ,kpi_value18            -- 一、个人精准扶贫贷款比去年同期增减
+      ,kpi_value19            -- 一、个人精准扶贫贷款贷款笔数
+      ,kpi_value20            -- 一、个人精准扶贫贷款贷款加权平均利率
+      ,kpi_value21            -- 一、个人精准扶贫贷款带动服务贫困人口数
+      ,kpi_value22            -- 建档立卡贫困人口贷款余额
+      ,kpi_value23            -- 建档立卡贫困人口贷款增速
+      ,kpi_value24            -- 建档立卡贫困人口贷款累放额
+      ,kpi_value25            -- 建档立卡贫困人口贷款比去年同期增减
+      ,kpi_value26            -- 建档立卡贫困人口贷款贷款笔数
+      ,kpi_value27            -- 建档立卡贫困人口贷款贷款加权平均利率
+      ,kpi_value28            -- 建档立卡贫困人口贷款带动服务贫困人口数
+      ,kpi_value29            -- 其中：扶贫小额信贷 （建档立卡贫困人口）余额
+      ,kpi_value30            -- 其中：扶贫小额信贷 （建档立卡贫困人口）增速
+      ,kpi_value31            -- 其中：扶贫小额信贷 （建档立卡贫困人口）累放额
+      ,kpi_value32            -- 其中：扶贫小额信贷 （建档立卡贫困人口）比去年同期增减
+      ,kpi_value33            -- 其中：扶贫小额信贷 （建档立卡贫困人口）贷款笔数
+      ,kpi_value34            -- 其中：扶贫小额信贷 （建档立卡贫困人口）贷款加权平均利率
+      ,kpi_value35            -- 其中：扶贫小额信贷 （建档立卡贫困人口）带动服务贫困人口
+      ,kpi_value36            -- 二、产业精准扶贫贷款余额
+      ,kpi_value37            -- 二、产业精准扶贫贷款增速
+      ,kpi_value38            -- 二、产业精准扶贫贷款累放额
+      ,kpi_value39            -- 二、产业精准扶贫贷款比去年同期增减
+      ,kpi_value40            -- 二、产业精准扶贫贷款贷款笔数
+      ,kpi_value41            -- 二、产业精准扶贫贷款贷款加权平均利率
+      ,kpi_value42            -- 二、产业精准扶贫贷款带动服务贫困人口数
+      ,kpi_value43            -- 三、项目精准扶贫贷款余额
+      ,kpi_value44            -- 三、项目精准扶贫贷款增速
+      ,kpi_value45            -- 三、项目精准扶贫贷款累放额
+      ,kpi_value46            -- 三、项目精准扶贫贷款比去年同期增减
+      ,kpi_value47            -- 三、项目精准扶贫贷款贷款笔数
+      ,kpi_value48            -- 三、项目精准扶贫贷款贷款加权平均利率
+      ,kpi_value49            -- 三、项目精准扶贫贷款带动服务贫困人口数
+      ,kpi_value50            -- 其中：易地扶贫搬迁贷款余额
+      ,kpi_value51            -- 其中：易地扶贫搬迁贷款增速
+      ,kpi_value52            -- 其中：易地扶贫搬迁贷款累放额
+      ,kpi_value53            -- 其中：易地扶贫搬迁贷款比去年同期增减
+      ,kpi_value54            -- 其中：易地扶贫搬迁贷款贷款笔数
+      ,kpi_value55            -- 其中：易地扶贫搬迁贷款贷款加权平均利率
+      ,kpi_value56            -- 其中：易地扶贫搬迁贷款带动服务贫困人口数
+      ,kpi_value57            -- 农田基本建设贷款余额
+      ,kpi_value58            -- 农田基本建设贷款增速
+      ,kpi_value59            -- 农田基本建设贷款累放额
+      ,kpi_value60            -- 农田基本建设贷款比去年同期增减
+      ,kpi_value61            -- 农田基本建设贷款贷款笔数
+      ,kpi_value62            -- 农田基本建设贷款贷款加权平均利率
+      ,kpi_value63            -- 农田基本建设贷款带动服务贫困人口数
+      ,kpi_value64            -- 生态环境改造贷款余额
+      ,kpi_value65            -- 生态环境改造贷款增速
+      ,kpi_value66            -- 生态环境改造贷款累放额
+      ,kpi_value67            -- 生态环境改造贷款比去年同期增减
+      ,kpi_value68            -- 生态环境改造贷款贷款笔数
+      ,kpi_value69            -- 生态环境改造贷款贷款加权平均利率
+      ,kpi_value70            -- 生态环境改造贷款带动服务贫困人口数
+      ,kpi_value71            -- 农村基础设施贷款余额
+      ,kpi_value72            -- 农村基础设施贷款增速
+      ,kpi_value73            -- 农村基础设施贷款累放额
+      ,kpi_value74            -- 农村基础设施贷款比去年同期增减
+      ,kpi_value75            -- 农村基础设施贷款贷款笔数
+      ,kpi_value76            -- 农村基础设施贷款贷款加权平均利率
+      ,kpi_value77            -- 农村基础设施贷款带动服务贫困人口数
+      ,kpi_value78            -- 专项1：已脱贫人口贷款余额
+      ,kpi_value79            -- 专项1：已脱贫人口贷款增速
+      ,kpi_value80            -- 专项1：已脱贫人口贷款累放额
+      ,kpi_value81            -- 专项1：已脱贫人口贷款比去年同期增减
+      ,kpi_value82            -- 专项1：已脱贫人口贷款贷款笔数
+      ,kpi_value83            -- 专项1：已脱贫人口贷款贷款加权平均利率
+      ,kpi_value84            -- 专项1：已脱贫人口贷款带动服务贫困人口数
+      ,kpi_value85            -- 其中：扶贫小额信贷 （已脱贫人口）贷款余额
+      ,kpi_value86            -- 其中：扶贫小额信贷 （已脱贫人口）贷款增速
+      ,kpi_value87            -- 其中：扶贫小额信贷 （已脱贫人口）贷款累放额
+      ,kpi_value88            -- 其中：扶贫小额信贷 （已脱贫人口）贷款比去年同期增减
+      ,kpi_value89            -- 其中：扶贫小额信贷 （已脱贫人口）贷款贷款笔数
+      ,kpi_value90            -- 其中：扶贫小额信贷 （已脱贫人口）贷款贷款加权平均利率
+      ,kpi_value91            -- 其中：扶贫小额信贷 （已脱贫人口）贷款带动服务贫困人口数
+      ,kpi_value92            -- 专项2：易地扶贫搬迁随迁户贷款贷款余额
+      ,kpi_value93            -- 专项2：易地扶贫搬迁随迁户贷款贷款增速
+      ,kpi_value94            -- 专项2：易地扶贫搬迁随迁户贷款贷款累放额
+      ,kpi_value95            -- 专项2：易地扶贫搬迁随迁户贷款贷款比去年同期增减
+      ,kpi_value96            -- 专项2：易地扶贫搬迁随迁户贷款贷款贷款笔数
+      ,kpi_value97            -- 专项2：易地扶贫搬迁随迁户贷款贷款贷款加权平均利率
+      ,kpi_value98            -- 专项2：易地扶贫搬迁随迁户贷款贷款带动服务贫困人口数
+      ,kpi_value99            -- 专项3：新型农业经营主体 精准扶贫贷款余额
+      ,kpi_value100           -- 专项3：新型农业经营主体 精准扶贫贷款增速
+      ,kpi_value101           -- 专项3：新型农业经营主体 精准扶贫贷款累放额
+      ,kpi_value102           -- 专项3：新型农业经营主体 精准扶贫贷款比去年同期增减
+      ,kpi_value103           -- 专项3：新型农业经营主体 精准扶贫贷款贷款笔数
+      ,kpi_value104           -- 专项3：新型农业经营主体 精准扶贫贷款贷款加权平均利率
+      ,kpi_value105           -- 专项3：新型农业经营主体 精准扶贫贷款带动服务贫困人口数
+      ,kpi_value106           -- 其中：家庭农场及农业专业大户贷款余额
+      ,kpi_value107           -- 其中：家庭农场及农业专业大户贷款增速
+      ,kpi_value108           -- 其中：家庭农场及农业专业大户贷款累放额
+      ,kpi_value109           -- 其中：家庭农场及农业专业大户贷款比去年同期增减
+      ,kpi_value110           -- 其中：家庭农场及农业专业大户贷款贷款笔数
+      ,kpi_value111           -- 其中：家庭农场及农业专业大户贷款贷款加权平均利率
+      ,kpi_value112           -- 其中：家庭农场及农业专业大户贷款带动服务贫困人口数
+      ,kpi_value113           -- 农民专业合作社贷款余额
+      ,kpi_value114           -- 农民专业合作社贷款增速
+      ,kpi_value115           -- 农民专业合作社贷款累放额
+      ,kpi_value116           -- 农民专业合作社贷款比去年同期增减
+      ,kpi_value117           -- 农民专业合作社贷款贷款笔数
+      ,kpi_value118           -- 农民专业合作社贷款贷款加权平均利率
+      ,kpi_value119           -- 农民专业合作社贷款带动服务贫困人口数
+      ,kpi_value120           -- 农业产业化龙头企业贷款余额
+      ,kpi_value121           -- 农业产业化龙头企业贷款增速
+      ,kpi_value122           -- 农业产业化龙头企业贷款累放额
+      ,kpi_value123           -- 农业产业化龙头企业贷款比去年同期增减
+      ,kpi_value124           -- 农业产业化龙头企业贷款贷款笔数
+      ,kpi_value125           -- 农业产业化龙头企业贷款贷款加权平均利率
+      ,kpi_value126           -- 农业产业化龙头企业贷款带动服务贫困人口数
 )
 SELECT 
       NOW()
@@ -16134,212 +16125,217 @@ SELECT
      ,t.dist_name
      ,t.rows_id
      -- 1.金融精准扶贫贷款(含已脱贫人口贷款) 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END )             AS KPI_VALUE1
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END ) * 100  END        AS KPI_VALUE2
-     ,SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y,0)+IFNULL(t.loan_bal_add_y_2,0) ELSE 0 END ) AS KPI_VALUE3
-     ,SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END)
+     ,SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END )             AS KPI_VALUE1
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END ) * 100  END        AS KPI_VALUE2
+     ,SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y,0)+IFNULL(t.loan_bal_add_y_2,0) ELSE 0 END ) AS KPI_VALUE3
+     ,SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END)
       - 
-      SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END)            AS KPI_VALUE4
+      SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0)+IFNULL(t.loan_bal_2,0) ELSE 0 END)            AS KPI_VALUE4
       
      -- 贷款笔数:(一、个人精准扶贫贷款【其他个人精准扶贫笔数（不存在）+建档立卡贫困人口贷款笔数】+ 二、产业精准扶贫贷款【产业精准扶贫贷款笔数 】+三、项目精准扶贫贷款【项目精准扶贫贷款笔数 】)笔数 + 已脱贫人口贷款笔数
-     ,SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_17,0) + IFNULL(LOAN_COUNT_38,0) + IFNULL(LOAN_COUNT_57,0) + IFNULL(LOAN_COUNT_19,0) ELSE 0 END) AS kpi_value5
+     ,SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_17,0) + IFNULL(LOAN_COUNT_38,0) + IFNULL(LOAN_COUNT_57,0) + IFNULL(LOAN_COUNT_19,0) ELSE 0 END) AS kpi_value5
      ,0 AS KPI_VALUE6
      -- 带动服务贫困人口数:（一、个人精准扶贫贷款【其他个人精准扶贫贷款带动人数+建档立卡贫困人口贷款人数余额】+二、产业精准扶贫贷款【产业精准扶贫贷款带动人数】 +三、项目精准扶贫贷款【项目精准扶贫贷款服务人数】）人数+已脱贫人口贷款人数 
-     ,SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_30,0) + IFNULL(t.loan_bal_18,0) + IFNULL(LOAN_COUNT_39,0) + IFNULL(LOAN_COUNT_58,0) + IFNULL(LOAN_COUNT_20,0) ELSE 0 END ) AS kpi_value7
+     ,SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_30,0) + IFNULL(t.loan_bal_18,0) + IFNULL(LOAN_COUNT_39,0) + IFNULL(LOAN_COUNT_58,0) + IFNULL(LOAN_COUNT_20,0) ELSE 0 END ) AS kpi_value7
      
      
      
      -- 2.金融精准扶贫贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0) ELSE 0 END )             AS KPI_VALUE8
+     ,SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0) ELSE 0 END )             AS KPI_VALUE8
      
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0) ELSE 0 END ) * 100  END   AS KPI_VALUE9
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0) ELSE 0 END ) * 100  END   AS KPI_VALUE9
       
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y,0) ELSE 0 END ) AS KPI_VALUE10
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0) ELSE 0 END ) AS KPI_VALUE11
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_17,0) + IFNULL(LOAN_COUNT_38,0) + IFNULL(LOAN_COUNT_57,0)  ELSE 0 END)  AS kpi_value12
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y,0) ELSE 0 END ) AS KPI_VALUE10
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal,0) ELSE 0 END ) AS KPI_VALUE11
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_17,0) + IFNULL(LOAN_COUNT_38,0) + IFNULL(LOAN_COUNT_57,0)  ELSE 0 END)  AS kpi_value12
      ,0 AS kpi_value13
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_30,0) + IFNULL(t.loan_bal_18,0) + IFNULL(LOAN_COUNT_39,0) + IFNULL(LOAN_COUNT_58,0) ELSE 0 END ) AS kpi_value14
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_30,0) + IFNULL(t.loan_bal_18,0) + IFNULL(LOAN_COUNT_39,0) + IFNULL(LOAN_COUNT_58,0) ELSE 0 END ) AS kpi_value14
      
      
      -- 3.一、个人精准扶贫贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS kpi_value15
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END )*100 END AS kpi_value16
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS kpi_value15
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END )*100 END AS kpi_value16
      
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0) + IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS kpi_value17
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE =@V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS kpi_value18
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0) + IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS kpi_value17
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE =v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) + IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS kpi_value18
      
-     -- , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(0,0) + IFNULL(LOAN_COUNT_17,0) ELSE 0 END) AS kpi_value19
+     -- , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(0,0) + IFNULL(LOAN_COUNT_17,0) ELSE 0 END) AS kpi_value19
      ,0 AS kpi_value20
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_30,0) + IFNULL(t.loan_bal_18,0) ELSE 0 END ) AS kpi_value21
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_30,0) + IFNULL(t.loan_bal_18,0) ELSE 0 END ) AS kpi_value21
      
      -- 4.建档立卡贫困人口贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|支持贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) AS kpi_value22
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) * 100 END AS kpi_value23
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) AS kpi_value22
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) * 100 END AS kpi_value23
      
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0) ELSE 0 END ) AS kpi_value24
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) AS kpi_value25
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_17,0) ELSE 0 END ) AS KPI_VALUE26
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0) ELSE 0 END ) AS kpi_value24
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) AS kpi_value25
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_17,0) ELSE 0 END ) AS KPI_VALUE26
      ,0 AS KPI_VALUE27
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_18,0) ELSE 0 END ) AS KPI_VALUE28
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_18,0) ELSE 0 END ) AS KPI_VALUE28
      
      
      -- 5.其中：扶贫小额信贷(建档立卡贫困人口) 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|支持贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) AS KPI_VALUE29
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ))
-       /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) *100 END AS KPI_VALUE30
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_16,0) ELSE 0 END ) AS KPI_VALUE31
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) AS KPI_VALUE32
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) AS KPI_VALUE29
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ))
+       /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) *100 END AS KPI_VALUE30
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_16,0) ELSE 0 END ) AS KPI_VALUE31
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) AS KPI_VALUE32
      , 0 AS KPI_VALUE33
      , 0 AS KPI_VALUE34
      , 0 AS KPI_VALUE35
      
      -- 6.二、产业精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS KPI_VALUE36
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_4,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_4,0) ELSE 0 END )*100 END AS KPI_VALUE37
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_4,0) ELSE 0 END ) AS KPI_VALUE38
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS KPI_VALUE39
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_38,0) ELSE 0 END ) AS KPI_VALUE40
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS KPI_VALUE36
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_4,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_4,0) ELSE 0 END )*100 END AS KPI_VALUE37
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_4,0) ELSE 0 END ) AS KPI_VALUE38
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS KPI_VALUE39
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_38,0) ELSE 0 END ) AS KPI_VALUE40
      ,0 AS KPI_VALUE41
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_39,0) ELSE 0 END ) AS KPI_VALUE42
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_39,0) ELSE 0 END ) AS KPI_VALUE42
      
      
      -- 7.三、项目精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE43
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )*100 END AS KPI_VALUE44
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_5,0) ELSE 0 END ) AS KPI_VALUE45
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE46
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_57,0) ELSE 0 END ) AS KPI_VALUE47
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE43
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )*100 END AS KPI_VALUE44
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_5,0) ELSE 0 END ) AS KPI_VALUE45
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE46
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_57,0) ELSE 0 END ) AS KPI_VALUE47
      ,0 AS KPI_VALUE48
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_58,0) ELSE 0 END ) AS KPI_VALUE49
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_58,0) ELSE 0 END ) AS KPI_VALUE49
      
      
      -- 8.其中：易地扶贫搬迁贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ) AS KPI_VALUE50
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_40,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_40,0) ELSE 0 END )*100 END AS KPI_VALUE51
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_40,0) ELSE 0 END ) AS KPI_VALUE52
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ) AS KPI_VALUE53
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ) AS KPI_VALUE50
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_40,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_40,0) ELSE 0 END )*100 END AS KPI_VALUE51
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_40,0) ELSE 0 END ) AS KPI_VALUE52
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_40,0) ELSE 0 END ) AS KPI_VALUE53
      ,0 AS KPI_VALUE54
      ,0 AS KPI_VALUE55
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_59,0) ELSE 0 END ) AS KPI_VALUE56
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_59,0) ELSE 0 END ) AS KPI_VALUE56
      
      -- 9.农田基本建设贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE57
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )*100 END AS KPI_VALUE58
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_42,0) ELSE 0 END ) AS KPI_VALUE59
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE60
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE57
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )*100 END AS KPI_VALUE58
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_42,0) ELSE 0 END ) AS KPI_VALUE59
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE60
      ,0 AS KPI_VALUE61
      ,0 AS KPI_VALUE62
      ,0 AS KPI_VALUE63
      
      -- 10.生态环境改造贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) AS KPI_VALUE64
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_43,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) )
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) *100 END AS KPI_VALUE65
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_43,0) ELSE 0 END ) AS KPI_VALUE66
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) AS KPI_VALUE67
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) AS KPI_VALUE64
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_43,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) )
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) *100 END AS KPI_VALUE65
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_43,0) ELSE 0 END ) AS KPI_VALUE66
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_43,0) ELSE 0 END ) AS KPI_VALUE67
      ,0 AS  KPI_VALUE68
      ,0 AS  KPI_VALUE69
      ,0 AS  KPI_VALUE70
      
      -- 11.农村基础设施贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE71
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )*100 END AS KPI_VALUE72
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_44,0) ELSE 0 END ) AS KPI_VALUE73
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE74
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE71
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )*100 END AS KPI_VALUE72
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_44,0) ELSE 0 END ) AS KPI_VALUE73
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE74
      ,0 AS  KPI_VALUE75
      ,0 AS  KPI_VALUE76
      ,0 AS  KPI_VALUE77
      
      -- 12.专项1：已脱贫人口贷款余额 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |支持贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS KPI_VALUE78
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END )*100 END AS KPI_VALUE79
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) ELSE 0 END ) AS KPI_VALUE80
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS KPI_VALUE81
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS KPI_VALUE78
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END )*100 END AS KPI_VALUE79
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) ELSE 0 END ) AS KPI_VALUE80
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS KPI_VALUE81
      ,0 AS  KPI_VALUE82
      ,0 AS  KPI_VALUE83
      ,0 AS  KPI_VALUE84
      
      -- 13.其中：扶贫小额信(已脱贫人口)  |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |支持贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) AS KPI_VALUE85
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ))
-       /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) *100 END AS KPI_VALUE86
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_16,0) ELSE 0 END ) AS KPI_VALUE87
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) AS KPI_VALUE88
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) AS KPI_VALUE85
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ))
+       /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) *100 END AS KPI_VALUE86
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_16,0) ELSE 0 END ) AS KPI_VALUE87
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_16,0) ELSE 0 END ) AS KPI_VALUE88
      ,0 AS KPI_VALUE89
      ,0 AS KPI_VALUE90
      ,0 AS KPI_VALUE91
      
      
      -- 14.专项2：易地扶贫搬迁随迁户贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_61,0) ELSE 0 END ) AS KPI_VALUE92
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_61,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )*100 END AS KPI_VALUE93
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_61,0) ELSE 0 END ) AS KPI_VALUE94
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )AS KPI_VALUE95
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_61,0) ELSE 0 END ) AS KPI_VALUE92
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_61,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )*100 END AS KPI_VALUE93
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_61,0) ELSE 0 END ) AS KPI_VALUE94
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_61,0) ELSE 0 END )AS KPI_VALUE95
      ,0 AS  KPI_VALUE96
      ,0 AS  KPI_VALUE97
      ,0 AS  KPI_VALUE98
      
      -- 15.专项3：新型农业经营主体精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) AS KPI_VALUE99
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) )
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) *100 END AS KPI_VALUE100 
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_62,0) ELSE 0 END ) AS KPI_VALUE101
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) AS KPI_VALUE102
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) AS KPI_VALUE99
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) )
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) *100 END AS KPI_VALUE100 
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_62,0) ELSE 0 END ) AS KPI_VALUE101
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_62,0) ELSE 0 END ) AS KPI_VALUE102
      ,0 AS  KPI_VALUE103
      ,0 AS  KPI_VALUE104
      ,0 AS  KPI_VALUE105
      
      
      -- 16.其中：家庭农场及农业专业大户贷款   |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) AS KPI_VALUE106
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ))
-     /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) * 100 END AS KPI_VALUE107
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_63,0) ELSE 0 END ) AS KPI_VALUE108
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) AS KPI_VALUE109
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) AS KPI_VALUE106
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ))
+     /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) * 100 END AS KPI_VALUE107
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_63,0) ELSE 0 END ) AS KPI_VALUE108
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) AS KPI_VALUE109
      ,0 AS  KPI_VALUE110
      ,0 AS  KPI_VALUE111
      ,0 AS  KPI_VALUE112
      
      
      -- 17.农民专业合作社贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ) AS KPI_VALUE113
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_64,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_64,0) ELSE 0 END )*100 END AS KPI_VALUE114
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_64,0) ELSE 0 END ) AS KPI_VALUE115
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ) AS KPI_VALUE116
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ) AS KPI_VALUE113
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_64,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_64,0) ELSE 0 END )*100 END AS KPI_VALUE114
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_64,0) ELSE 0 END ) AS KPI_VALUE115
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_64,0) ELSE 0 END ) AS KPI_VALUE116
      
      ,0 AS  KPI_VALUE117
      ,0 AS  KPI_VALUE118
      ,0 AS  KPI_VALUE119
      
      -- 18.农业产业化龙头企业贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE120
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) * 100 END AS KPI_VALUE121
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_65,0) ELSE 0 END ) AS KPI_VALUE122
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE123
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE120
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) * 100 END AS KPI_VALUE121
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_65,0) ELSE 0 END ) AS KPI_VALUE122
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE123
      
      ,0 AS  KPI_VALUE124
      ,0 AS  KPI_VALUE125
      ,0 AS  KPI_VALUE126
 FROM edw.glr_tpa_dist_loan t
-WHERE data_date IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+WHERE data_date IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
 GROUP BY  
           t.area_no  
          ,t.dist_name
 ;
 CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -16348,6 +16344,17 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_sum_indus;
 CREATE PROCEDURE adm.p_rpt_m_loan_sum_indus(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_sum_indus.PRC';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(20) := SUBSTR(P_DATA_DATE,1,6);
+    V_DATA_DATE_L VARCHAR(20) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);                             -- 上月
+    V_DATA_DATE_BGY VARCHAR(20) := CONCAT(SUBSTR(P_DATA_DATE,1,4),'01');                                                                 -- 年初
+    V_DATA_DATE_E VARCHAR(20) := CONCAT(SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,4),'12');               -- 去年末
+    V_DATA_DATE_P VARCHAR(8) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);                             -- 去年同期
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*
     Author :zhangjiao
@@ -16358,25 +16365,9 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2019-01-25    ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_sum_indus.PRC';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(20) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-    DECLARE V_DATA_DATE_L VARCHAR(20) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);                             -- 上月
-    DECLARE V_DATA_DATE_BGY VARCHAR(20) DEFAULT CONCAT(SUBSTR(P_DATA_DATE,1,4),'01');                                                                 -- 年初
-    DECLARE V_DATA_DATE_E VARCHAR(20) DEFAULT CONCAT(SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,4),'12');               -- 去年末
-    DECLARE V_DATA_DATE_P VARCHAR(8) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);                             -- 去年同期
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
         
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
     DELETE  FROM adm.rpt_m_loan_sum_indus WHERE DATA_DATE = SUBSTR(P_DATA_DATE,1,6);
@@ -16415,6 +16406,11 @@ BEGIN
               ,ROWS_ID
               ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -16423,6 +16419,15 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_sum_insti;
 CREATE PROCEDURE adm.p_rpt_m_loan_sum_insti(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_sum_insti.PRC';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(20) := SUBSTR(P_DATA_DATE,1,6);
+    V_DATA_DATE_P VARCHAR(20) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);                             -- 上月
+    V_DATA_DATE_TB VARCHAR(20) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);                             -- 去年同期
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*
     Author :zhangjiao
@@ -16433,23 +16438,9 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2019-01-29    ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_sum_insti.PRC';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(20) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-    DECLARE V_DATA_DATE_P VARCHAR(20) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);                             -- 上月
-    DECLARE V_DATA_DATE_TB VARCHAR(20) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);                             -- 去年同期
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
         
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
     DELETE  FROM adm.rpt_m_loan_sum_insti WHERE DATA_DATE = SUBSTR(P_DATA_DATE,1,6);
@@ -16791,12 +16782,30 @@ UNION ALL
                 ,t.org_name
                 ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_sum_org;
 
 CREATE PROCEDURE adm.p_rpt_m_loan_sum_org(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_sum_org.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(8) := SUBSTR(P_DATA_DATE,1,6);
+    V_DATA_DATE_L VARCHAR(20);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_instr_l TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH_L VARCHAR(2000);
 BEGIN
 /*
 | Author :zhangjiao
@@ -16809,390 +16818,373 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2018-12-25     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_sum_org.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(8) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-    DECLARE V_DATA_DATE_L VARCHAR(20);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
   
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
     -- 本年季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
     
-    PREPARE smt FROM @instr;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;    
+    EXECUTE IMMEDIATE v_at_instr;
     
     -- 去年同期
-    SET V_DATA_DATE_L = DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -12 MONTH);
+    V_DATA_DATE_L := DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -12 MONTH);
     -- 去年季度
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_L,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr_l = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_L,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr_l := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(V_DATA_DATE_L,1,4));
     
-    PREPARE smt FROM @instr_l;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;    
+    EXECUTE IMMEDIATE v_at_instr_l;
     
     
     
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_m_loan_sum_org WHERE DATA_DATE = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.rpt_m_loan_sum_org WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     SET V_STEP:='2';
     INSERT INTO adm.rpt_m_loan_sum_org (
-       BATCH_DATE            #跑批日期
-      ,DATA_DATE              #数据日期，账期
-      ,ORG_NO                 #上报机构/上报用户
-      ,ORG_NAME               #机构名称
-      ,ROWS_ID                #行号
-      ,kpi_value1             #金融精准扶贫贷款(含已脱贫人口贷款)余额
-      ,kpi_value2             #金融精准扶贫贷款(含已脱贫人口贷款)同比增速
-      ,kpi_value3             #金融精准扶贫贷款(含已脱贫人口贷款)当年累放额
-      ,kpi_value4             #金融精准扶贫贷款(含已脱贫人口贷款)比去年同期增减
-      ,kpi_value5             #金融精准扶贫贷款(含已脱贫人口贷款)贷款笔数
-      ,kpi_value6             #金融精准扶贫贷款(含已脱贫人口贷款)贷款加权平均利率
-      ,kpi_value7             #金融精准扶贫贷款(含已脱贫人口贷款)带动服务贫困人口数
-      ,kpi_value8             #金融精准扶贫贷款余额
-      ,kpi_value9             #金融精准扶贫贷款同比增速
-      ,kpi_value10            #金融精准扶贫贷款当年累放额
-      ,kpi_value11            #金融精准扶贫贷款比去年同期增减
-      ,kpi_value12            #金融精准扶贫贷款贷款笔数
-      ,kpi_value13            #金融精准扶贫贷款贷款加权平均利率
-      ,kpi_value14            #金融精准扶贫贷款带动服务贫困人口数
-      ,kpi_value15            #一、个人精准扶贫贷款余额
-      ,kpi_value16            #一、个人精准扶贫贷款增速
-      ,kpi_value17            #一、个人精准扶贫贷款累放额
-      ,kpi_value18            #一、个人精准扶贫贷款比去年同期增减
-      ,kpi_value19            #一、个人精准扶贫贷款贷款笔数
-      ,kpi_value20            #一、个人精准扶贫贷款贷款加权平均利率
-      ,kpi_value21            #一、个人精准扶贫贷款带动服务贫困人口数
-      ,kpi_value22            #建档立卡贫困人口贷款余额
-      ,kpi_value23            #建档立卡贫困人口贷款增速
-      ,kpi_value24            #建档立卡贫困人口贷款累放额
-      ,kpi_value25            #建档立卡贫困人口贷款比去年同期增减
-      ,kpi_value26            #建档立卡贫困人口贷款贷款笔数
-      ,kpi_value27            #建档立卡贫困人口贷款贷款加权平均利率
-      ,kpi_value28            #建档立卡贫困人口贷款带动服务贫困人口数
-      ,kpi_value29            #其中：扶贫小额信贷 （建档立卡贫困人口）余额
-      ,kpi_value30            #其中：扶贫小额信贷 （建档立卡贫困人口）增速
-      ,kpi_value31            #其中：扶贫小额信贷 （建档立卡贫困人口）累放额
-      ,kpi_value32            #其中：扶贫小额信贷 （建档立卡贫困人口）比去年同期增减
-      ,kpi_value33            #其中：扶贫小额信贷 （建档立卡贫困人口）贷款笔数
-      ,kpi_value34            #其中：扶贫小额信贷 （建档立卡贫困人口）贷款加权平均利率
-      ,kpi_value35            #其中：扶贫小额信贷 （建档立卡贫困人口）带动服务贫困人口
-      ,kpi_value36            #二、产业精准扶贫贷款余额
-      ,kpi_value37            #二、产业精准扶贫贷款增速
-      ,kpi_value38            #二、产业精准扶贫贷款累放额
-      ,kpi_value39            #二、产业精准扶贫贷款比去年同期增减
-      ,kpi_value40            #二、产业精准扶贫贷款贷款笔数
-      ,kpi_value41            #二、产业精准扶贫贷款贷款加权平均利率
-      ,kpi_value42            #二、产业精准扶贫贷款带动服务贫困人口数
-      ,kpi_value43            #三、项目精准扶贫贷款余额
-      ,kpi_value44            #三、项目精准扶贫贷款增速
-      ,kpi_value45            #三、项目精准扶贫贷款累放额
-      ,kpi_value46            #三、项目精准扶贫贷款比去年同期增减
-      ,kpi_value47            #三、项目精准扶贫贷款贷款笔数
-      ,kpi_value48            #三、项目精准扶贫贷款贷款加权平均利率
-      ,kpi_value49            #三、项目精准扶贫贷款带动服务贫困人口数
-      ,kpi_value50            #其中：易地扶贫搬迁贷款余额
-      ,kpi_value51            #其中：易地扶贫搬迁贷款增速
-      ,kpi_value52            #其中：易地扶贫搬迁贷款累放额
-      ,kpi_value53            #其中：易地扶贫搬迁贷款比去年同期增减
-      ,kpi_value54            #其中：易地扶贫搬迁贷款贷款笔数
-      ,kpi_value55            #其中：易地扶贫搬迁贷款贷款加权平均利率
-      ,kpi_value56            #其中：易地扶贫搬迁贷款带动服务贫困人口数
-      ,kpi_value57            #农田基本建设贷款余额
-      ,kpi_value58            #农田基本建设贷款增速
-      ,kpi_value59            #农田基本建设贷款累放额
-      ,kpi_value60            #农田基本建设贷款比去年同期增减
-      ,kpi_value61            #农田基本建设贷款贷款笔数
-      ,kpi_value62            #农田基本建设贷款贷款加权平均利率
-      ,kpi_value63            #农田基本建设贷款带动服务贫困人口数
-      ,kpi_value64            #生态环境改造贷款余额
-      ,kpi_value65            #生态环境改造贷款增速
-      ,kpi_value66            #生态环境改造贷款累放额
-      ,kpi_value67            #生态环境改造贷款比去年同期增减
-      ,kpi_value68            #生态环境改造贷款贷款笔数
-      ,kpi_value69            #生态环境改造贷款贷款加权平均利率
-      ,kpi_value70            #生态环境改造贷款带动服务贫困人口数
-      ,kpi_value71            #农村基础设施贷款余额
-      ,kpi_value72            #农村基础设施贷款增速
-      ,kpi_value73            #农村基础设施贷款累放额
-      ,kpi_value74            #农村基础设施贷款比去年同期增减
-      ,kpi_value75            #农村基础设施贷款贷款笔数
-      ,kpi_value76            #农村基础设施贷款贷款加权平均利率
-      ,kpi_value77            #农村基础设施贷款带动服务贫困人口数
-      ,kpi_value78            #专项1：已脱贫人口贷款余额
-      ,kpi_value79            #专项1：已脱贫人口贷款增速
-      ,kpi_value80            #专项1：已脱贫人口贷款累放额
-      ,kpi_value81            #专项1：已脱贫人口贷款比去年同期增减
-      ,kpi_value82            #专项1：已脱贫人口贷款贷款笔数
-      ,kpi_value83            #专项1：已脱贫人口贷款贷款加权平均利率
-      ,kpi_value84            #专项1：已脱贫人口贷款带动服务贫困人口数
-      ,kpi_value85            #其中：扶贫小额信贷 （已脱贫人口）贷款余额
-      ,kpi_value86            #其中：扶贫小额信贷 （已脱贫人口）贷款增速
-      ,kpi_value87            #其中：扶贫小额信贷 （已脱贫人口）贷款累放额
-      ,kpi_value88            #其中：扶贫小额信贷 （已脱贫人口）贷款比去年同期增减
-      ,kpi_value89            #其中：扶贫小额信贷 （已脱贫人口）贷款贷款笔数
-      ,kpi_value90            #其中：扶贫小额信贷 （已脱贫人口）贷款贷款加权平均利率
-      ,kpi_value91            #其中：扶贫小额信贷 （已脱贫人口）贷款带动服务贫困人口数
-      ,kpi_value92            #专项2：易地扶贫搬迁随迁户贷款贷款余额
-      ,kpi_value93            #专项2：易地扶贫搬迁随迁户贷款贷款增速
-      ,kpi_value94            #专项2：易地扶贫搬迁随迁户贷款贷款累放额
-      ,kpi_value95            #专项2：易地扶贫搬迁随迁户贷款贷款比去年同期增减
-      ,kpi_value96            #专项2：易地扶贫搬迁随迁户贷款贷款贷款笔数
-      ,kpi_value97            #专项2：易地扶贫搬迁随迁户贷款贷款贷款加权平均利率
-      ,kpi_value98            #专项2：易地扶贫搬迁随迁户贷款贷款带动服务贫困人口数
-      ,kpi_value99            #专项3：新型农业经营主体 精准扶贫贷款余额
-      ,kpi_value100           #专项3：新型农业经营主体 精准扶贫贷款增速
-      ,kpi_value101           #专项3：新型农业经营主体 精准扶贫贷款累放额
-      ,kpi_value102           #专项3：新型农业经营主体 精准扶贫贷款比去年同期增减
-      ,kpi_value103           #专项3：新型农业经营主体 精准扶贫贷款贷款笔数
-      ,kpi_value104           #专项3：新型农业经营主体 精准扶贫贷款贷款加权平均利率
-      ,kpi_value105           #专项3：新型农业经营主体 精准扶贫贷款带动服务贫困人口数
-      ,kpi_value106           #其中：家庭农场及农业专业大户贷款余额
-      ,kpi_value107           #其中：家庭农场及农业专业大户贷款增速
-      ,kpi_value108           #其中：家庭农场及农业专业大户贷款累放额
-      ,kpi_value109           #其中：家庭农场及农业专业大户贷款比去年同期增减
-      ,kpi_value110           #其中：家庭农场及农业专业大户贷款贷款笔数
-      ,kpi_value111           #其中：家庭农场及农业专业大户贷款贷款加权平均利率
-      ,kpi_value112           #其中：家庭农场及农业专业大户贷款带动服务贫困人口数
-      ,kpi_value113           #农民专业合作社贷款余额
-      ,kpi_value114           #农民专业合作社贷款增速
-      ,kpi_value115           #农民专业合作社贷款累放额
-      ,kpi_value116           #农民专业合作社贷款比去年同期增减
-      ,kpi_value117           #农民专业合作社贷款贷款笔数
-      ,kpi_value118           #农民专业合作社贷款贷款加权平均利率
-      ,kpi_value119           #农民专业合作社贷款带动服务贫困人口数
-      ,kpi_value120           #农业产业化龙头企业贷款余额
-      ,kpi_value121           #农业产业化龙头企业贷款增速
-      ,kpi_value122           #农业产业化龙头企业贷款累放额
-      ,kpi_value123           #农业产业化龙头企业贷款比去年同期增减
-      ,kpi_value124           #农业产业化龙头企业贷款贷款笔数
-      ,kpi_value125           #农业产业化龙头企业贷款贷款加权平均利率
-      ,kpi_value126           #农业产业化龙头企业贷款带动服务贫困人口数
+       BATCH_DATE            -- 跑批日期
+      ,DATA_DATE              -- 数据日期，账期
+      ,ORG_NO                 -- 上报机构/上报用户
+      ,ORG_NAME               -- 机构名称
+      ,ROWS_ID                -- 行号
+      ,kpi_value1             -- 金融精准扶贫贷款(含已脱贫人口贷款)余额
+      ,kpi_value2             -- 金融精准扶贫贷款(含已脱贫人口贷款)同比增速
+      ,kpi_value3             -- 金融精准扶贫贷款(含已脱贫人口贷款)当年累放额
+      ,kpi_value4             -- 金融精准扶贫贷款(含已脱贫人口贷款)比去年同期增减
+      ,kpi_value5             -- 金融精准扶贫贷款(含已脱贫人口贷款)贷款笔数
+      ,kpi_value6             -- 金融精准扶贫贷款(含已脱贫人口贷款)贷款加权平均利率
+      ,kpi_value7             -- 金融精准扶贫贷款(含已脱贫人口贷款)带动服务贫困人口数
+      ,kpi_value8             -- 金融精准扶贫贷款余额
+      ,kpi_value9             -- 金融精准扶贫贷款同比增速
+      ,kpi_value10            -- 金融精准扶贫贷款当年累放额
+      ,kpi_value11            -- 金融精准扶贫贷款比去年同期增减
+      ,kpi_value12            -- 金融精准扶贫贷款贷款笔数
+      ,kpi_value13            -- 金融精准扶贫贷款贷款加权平均利率
+      ,kpi_value14            -- 金融精准扶贫贷款带动服务贫困人口数
+      ,kpi_value15            -- 一、个人精准扶贫贷款余额
+      ,kpi_value16            -- 一、个人精准扶贫贷款增速
+      ,kpi_value17            -- 一、个人精准扶贫贷款累放额
+      ,kpi_value18            -- 一、个人精准扶贫贷款比去年同期增减
+      ,kpi_value19            -- 一、个人精准扶贫贷款贷款笔数
+      ,kpi_value20            -- 一、个人精准扶贫贷款贷款加权平均利率
+      ,kpi_value21            -- 一、个人精准扶贫贷款带动服务贫困人口数
+      ,kpi_value22            -- 建档立卡贫困人口贷款余额
+      ,kpi_value23            -- 建档立卡贫困人口贷款增速
+      ,kpi_value24            -- 建档立卡贫困人口贷款累放额
+      ,kpi_value25            -- 建档立卡贫困人口贷款比去年同期增减
+      ,kpi_value26            -- 建档立卡贫困人口贷款贷款笔数
+      ,kpi_value27            -- 建档立卡贫困人口贷款贷款加权平均利率
+      ,kpi_value28            -- 建档立卡贫困人口贷款带动服务贫困人口数
+      ,kpi_value29            -- 其中：扶贫小额信贷 （建档立卡贫困人口）余额
+      ,kpi_value30            -- 其中：扶贫小额信贷 （建档立卡贫困人口）增速
+      ,kpi_value31            -- 其中：扶贫小额信贷 （建档立卡贫困人口）累放额
+      ,kpi_value32            -- 其中：扶贫小额信贷 （建档立卡贫困人口）比去年同期增减
+      ,kpi_value33            -- 其中：扶贫小额信贷 （建档立卡贫困人口）贷款笔数
+      ,kpi_value34            -- 其中：扶贫小额信贷 （建档立卡贫困人口）贷款加权平均利率
+      ,kpi_value35            -- 其中：扶贫小额信贷 （建档立卡贫困人口）带动服务贫困人口
+      ,kpi_value36            -- 二、产业精准扶贫贷款余额
+      ,kpi_value37            -- 二、产业精准扶贫贷款增速
+      ,kpi_value38            -- 二、产业精准扶贫贷款累放额
+      ,kpi_value39            -- 二、产业精准扶贫贷款比去年同期增减
+      ,kpi_value40            -- 二、产业精准扶贫贷款贷款笔数
+      ,kpi_value41            -- 二、产业精准扶贫贷款贷款加权平均利率
+      ,kpi_value42            -- 二、产业精准扶贫贷款带动服务贫困人口数
+      ,kpi_value43            -- 三、项目精准扶贫贷款余额
+      ,kpi_value44            -- 三、项目精准扶贫贷款增速
+      ,kpi_value45            -- 三、项目精准扶贫贷款累放额
+      ,kpi_value46            -- 三、项目精准扶贫贷款比去年同期增减
+      ,kpi_value47            -- 三、项目精准扶贫贷款贷款笔数
+      ,kpi_value48            -- 三、项目精准扶贫贷款贷款加权平均利率
+      ,kpi_value49            -- 三、项目精准扶贫贷款带动服务贫困人口数
+      ,kpi_value50            -- 其中：易地扶贫搬迁贷款余额
+      ,kpi_value51            -- 其中：易地扶贫搬迁贷款增速
+      ,kpi_value52            -- 其中：易地扶贫搬迁贷款累放额
+      ,kpi_value53            -- 其中：易地扶贫搬迁贷款比去年同期增减
+      ,kpi_value54            -- 其中：易地扶贫搬迁贷款贷款笔数
+      ,kpi_value55            -- 其中：易地扶贫搬迁贷款贷款加权平均利率
+      ,kpi_value56            -- 其中：易地扶贫搬迁贷款带动服务贫困人口数
+      ,kpi_value57            -- 农田基本建设贷款余额
+      ,kpi_value58            -- 农田基本建设贷款增速
+      ,kpi_value59            -- 农田基本建设贷款累放额
+      ,kpi_value60            -- 农田基本建设贷款比去年同期增减
+      ,kpi_value61            -- 农田基本建设贷款贷款笔数
+      ,kpi_value62            -- 农田基本建设贷款贷款加权平均利率
+      ,kpi_value63            -- 农田基本建设贷款带动服务贫困人口数
+      ,kpi_value64            -- 生态环境改造贷款余额
+      ,kpi_value65            -- 生态环境改造贷款增速
+      ,kpi_value66            -- 生态环境改造贷款累放额
+      ,kpi_value67            -- 生态环境改造贷款比去年同期增减
+      ,kpi_value68            -- 生态环境改造贷款贷款笔数
+      ,kpi_value69            -- 生态环境改造贷款贷款加权平均利率
+      ,kpi_value70            -- 生态环境改造贷款带动服务贫困人口数
+      ,kpi_value71            -- 农村基础设施贷款余额
+      ,kpi_value72            -- 农村基础设施贷款增速
+      ,kpi_value73            -- 农村基础设施贷款累放额
+      ,kpi_value74            -- 农村基础设施贷款比去年同期增减
+      ,kpi_value75            -- 农村基础设施贷款贷款笔数
+      ,kpi_value76            -- 农村基础设施贷款贷款加权平均利率
+      ,kpi_value77            -- 农村基础设施贷款带动服务贫困人口数
+      ,kpi_value78            -- 专项1：已脱贫人口贷款余额
+      ,kpi_value79            -- 专项1：已脱贫人口贷款增速
+      ,kpi_value80            -- 专项1：已脱贫人口贷款累放额
+      ,kpi_value81            -- 专项1：已脱贫人口贷款比去年同期增减
+      ,kpi_value82            -- 专项1：已脱贫人口贷款贷款笔数
+      ,kpi_value83            -- 专项1：已脱贫人口贷款贷款加权平均利率
+      ,kpi_value84            -- 专项1：已脱贫人口贷款带动服务贫困人口数
+      ,kpi_value85            -- 其中：扶贫小额信贷 （已脱贫人口）贷款余额
+      ,kpi_value86            -- 其中：扶贫小额信贷 （已脱贫人口）贷款增速
+      ,kpi_value87            -- 其中：扶贫小额信贷 （已脱贫人口）贷款累放额
+      ,kpi_value88            -- 其中：扶贫小额信贷 （已脱贫人口）贷款比去年同期增减
+      ,kpi_value89            -- 其中：扶贫小额信贷 （已脱贫人口）贷款贷款笔数
+      ,kpi_value90            -- 其中：扶贫小额信贷 （已脱贫人口）贷款贷款加权平均利率
+      ,kpi_value91            -- 其中：扶贫小额信贷 （已脱贫人口）贷款带动服务贫困人口数
+      ,kpi_value92            -- 专项2：易地扶贫搬迁随迁户贷款贷款余额
+      ,kpi_value93            -- 专项2：易地扶贫搬迁随迁户贷款贷款增速
+      ,kpi_value94            -- 专项2：易地扶贫搬迁随迁户贷款贷款累放额
+      ,kpi_value95            -- 专项2：易地扶贫搬迁随迁户贷款贷款比去年同期增减
+      ,kpi_value96            -- 专项2：易地扶贫搬迁随迁户贷款贷款贷款笔数
+      ,kpi_value97            -- 专项2：易地扶贫搬迁随迁户贷款贷款贷款加权平均利率
+      ,kpi_value98            -- 专项2：易地扶贫搬迁随迁户贷款贷款带动服务贫困人口数
+      ,kpi_value99            -- 专项3：新型农业经营主体 精准扶贫贷款余额
+      ,kpi_value100           -- 专项3：新型农业经营主体 精准扶贫贷款增速
+      ,kpi_value101           -- 专项3：新型农业经营主体 精准扶贫贷款累放额
+      ,kpi_value102           -- 专项3：新型农业经营主体 精准扶贫贷款比去年同期增减
+      ,kpi_value103           -- 专项3：新型农业经营主体 精准扶贫贷款贷款笔数
+      ,kpi_value104           -- 专项3：新型农业经营主体 精准扶贫贷款贷款加权平均利率
+      ,kpi_value105           -- 专项3：新型农业经营主体 精准扶贫贷款带动服务贫困人口数
+      ,kpi_value106           -- 其中：家庭农场及农业专业大户贷款余额
+      ,kpi_value107           -- 其中：家庭农场及农业专业大户贷款增速
+      ,kpi_value108           -- 其中：家庭农场及农业专业大户贷款累放额
+      ,kpi_value109           -- 其中：家庭农场及农业专业大户贷款比去年同期增减
+      ,kpi_value110           -- 其中：家庭农场及农业专业大户贷款贷款笔数
+      ,kpi_value111           -- 其中：家庭农场及农业专业大户贷款贷款加权平均利率
+      ,kpi_value112           -- 其中：家庭农场及农业专业大户贷款带动服务贫困人口数
+      ,kpi_value113           -- 农民专业合作社贷款余额
+      ,kpi_value114           -- 农民专业合作社贷款增速
+      ,kpi_value115           -- 农民专业合作社贷款累放额
+      ,kpi_value116           -- 农民专业合作社贷款比去年同期增减
+      ,kpi_value117           -- 农民专业合作社贷款贷款笔数
+      ,kpi_value118           -- 农民专业合作社贷款贷款加权平均利率
+      ,kpi_value119           -- 农民专业合作社贷款带动服务贫困人口数
+      ,kpi_value120           -- 农业产业化龙头企业贷款余额
+      ,kpi_value121           -- 农业产业化龙头企业贷款增速
+      ,kpi_value122           -- 农业产业化龙头企业贷款累放额
+      ,kpi_value123           -- 农业产业化龙头企业贷款比去年同期增减
+      ,kpi_value124           -- 农业产业化龙头企业贷款贷款笔数
+      ,kpi_value125           -- 农业产业化龙头企业贷款贷款加权平均利率
+      ,kpi_value126           -- 农业产业化龙头企业贷款带动服务贫困人口数
 )
 SELECT 
       NOW()
-     ,@V_TEMP_QUA_MONTH
+     ,v_at_V_TEMP_QUA_MONTH
      ,t.org_no
      ,t.org_name
      ,t.rows_id
      -- 1.金融精准扶贫贷款(含已脱贫人口贷款) 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END )             
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END )*100  END  AS KPI_VALUE2
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0)+IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS KPI_VALUE3
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END)
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END )             
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END )*100  END  AS KPI_VALUE2
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0)+IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS KPI_VALUE3
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END)
       - 
-      SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END)            AS KPI_VALUE4
+      SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END)            AS KPI_VALUE4
       
      -- 贷款笔数:(一、个人精准扶贫贷款【其他个人精准扶贫笔数（不存在）+建档立卡贫困人口贷款笔数】+ 二、产业精准扶贫贷款【产业精准扶贫贷款笔数 】+三、项目精准扶贫贷款【项目精准扶贫贷款笔数 】)笔数+已脱贫人口贷款笔数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) + IFNULL(LOAN_COUNT_40,0) + IFNULL(LOAN_COUNT_59,0) + IFNULL(LOAN_COUNT_18,0) ELSE 0 END) AS kpi_value5
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) + IFNULL(LOAN_COUNT_40,0) + IFNULL(LOAN_COUNT_59,0) + IFNULL(LOAN_COUNT_18,0) ELSE 0 END) AS kpi_value5
      ,0 AS KPI_VALUE6
      -- 带动服务贫困人口数:（一、个人精准扶贫贷款【其他个人精准扶贫贷款带动人数+建档立卡贫困人口贷款人数余额】+二、产业精准扶贫贷款【产业精准扶贫贷款带动人数】 +三、项目精准扶贫贷款【项目精准扶贫贷款服务人数】）人数+已脱贫人口贷款人数 
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_41,0) + IFNULL(LOAN_COUNT_60,0) + IFNULL(LOAN_COUNT_21,0) ELSE 0 END ) AS kpi_value7
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_41,0) + IFNULL(LOAN_COUNT_60,0) + IFNULL(LOAN_COUNT_21,0) ELSE 0 END ) AS kpi_value7
      
      
      
      -- 2.金融精准扶贫贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )             AS KPI_VALUE8
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )             AS KPI_VALUE8
      
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) * 100 END   AS KPI_VALUE9
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) * 100 END   AS KPI_VALUE9
       
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0) ELSE 0 END ) AS KPI_VALUE10
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) AS KPI_VALUE11
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) + IFNULL(LOAN_COUNT_40,0) + IFNULL(LOAN_COUNT_59,0)  ELSE 0 END)  AS kpi_value12
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0) ELSE 0 END ) AS KPI_VALUE10
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) AS KPI_VALUE11
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) + IFNULL(LOAN_COUNT_40,0) + IFNULL(LOAN_COUNT_59,0)  ELSE 0 END)  AS kpi_value12
      ,0 AS kpi_value13
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_41,0) + IFNULL(LOAN_COUNT_60,0) ELSE 0 END ) AS kpi_value14
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_41,0) + IFNULL(LOAN_COUNT_60,0) ELSE 0 END ) AS kpi_value14
      
      
      -- 3.一、个人精准扶贫贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS kpi_value15
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END )*100 END AS kpi_value16
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS kpi_value15
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END )*100 END AS kpi_value16
      
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) + IFNULL(t.loan_bal_add_y_4,0) ELSE 0 END ) AS kpi_value17
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS kpi_value18
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) + IFNULL(t.loan_bal_add_y_4,0) ELSE 0 END ) AS kpi_value17
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS kpi_value18
      
-     -- , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(0,0) + IFNULL(LOAN_COUNT_18,0) ELSE 0 END) AS kpi_value19
+     -- , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(0,0) + IFNULL(LOAN_COUNT_18,0) ELSE 0 END) AS kpi_value19
      ,0 AS kpi_value20
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) ELSE 0 END ) AS kpi_value21
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) ELSE 0 END ) AS kpi_value21
      
      -- 4.建档立卡贫困人口贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|支持贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS kpi_value22
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) * 100 END AS kpi_value23
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS kpi_value22
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) * 100 END AS kpi_value23
      
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) ELSE 0 END ) AS kpi_value24
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS kpi_value25
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) ELSE 0 END ) AS KPI_VALUE26
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) ELSE 0 END ) AS kpi_value24
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS kpi_value25
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) ELSE 0 END ) AS KPI_VALUE26
      ,0 AS KPI_VALUE27
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_19,0) ELSE 0 END ) AS KPI_VALUE28
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_19,0) ELSE 0 END ) AS KPI_VALUE28
      
      
      -- 5.其中：扶贫小额信贷(建档立卡贫困人口) 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|支持贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE29
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ))
-       /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) *100 END AS KPI_VALUE30
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_17,0) ELSE 0 END ) AS KPI_VALUE31
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE32
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE29
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ))
+       /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) *100 END AS KPI_VALUE30
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_17,0) ELSE 0 END ) AS KPI_VALUE31
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE32
      , 0 AS KPI_VALUE33
      , 0 AS KPI_VALUE34
      , 0 AS KPI_VALUE35
      
      -- 6.二、产业精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE36
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )*100 END AS KPI_VALUE37
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_5,0) ELSE 0 END ) AS KPI_VALUE38
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE39
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_40,0) ELSE 0 END ) AS KPI_VALUE40
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE36
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )*100 END AS KPI_VALUE37
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_5,0) ELSE 0 END ) AS KPI_VALUE38
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE39
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_40,0) ELSE 0 END ) AS KPI_VALUE40
      ,0 AS KPI_VALUE41
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_41,0) ELSE 0 END ) AS KPI_VALUE42
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_41,0) ELSE 0 END ) AS KPI_VALUE42
      
      
      -- 7.三、项目精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) AS KPI_VALUE43
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END )*100 END AS KPI_VALUE44
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_6,0) ELSE 0 END ) AS KPI_VALUE45
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) AS KPI_VALUE46
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_59,0) ELSE 0 END ) AS KPI_VALUE47
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) AS KPI_VALUE43
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END )*100 END AS KPI_VALUE44
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_6,0) ELSE 0 END ) AS KPI_VALUE45
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) AS KPI_VALUE46
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_59,0) ELSE 0 END ) AS KPI_VALUE47
      ,0 AS KPI_VALUE48
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_60,0) ELSE 0 END ) AS KPI_VALUE49
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_60,0) ELSE 0 END ) AS KPI_VALUE49
      
      
      -- 8.其中：易地扶贫搬迁贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE50
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )*100 END AS KPI_VALUE51
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_42,0) ELSE 0 END ) AS KPI_VALUE52
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE53
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE50
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )*100 END AS KPI_VALUE51
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_42,0) ELSE 0 END ) AS KPI_VALUE52
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE53
      ,0 AS KPI_VALUE54
      ,0 AS KPI_VALUE55
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_61,0) ELSE 0 END ) AS KPI_VALUE56
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_61,0) ELSE 0 END ) AS KPI_VALUE56
      
      -- 9.农田基本建设贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE57
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )*100 END AS KPI_VALUE58
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_44,0) ELSE 0 END ) AS KPI_VALUE59
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE60
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE57
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )*100 END AS KPI_VALUE58
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_44,0) ELSE 0 END ) AS KPI_VALUE59
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE60
      ,0 AS KPI_VALUE61
      ,0 AS KPI_VALUE62
      ,0 AS KPI_VALUE63
      
      -- 10.生态环境改造贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) AS KPI_VALUE64
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) )
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) *100 END AS KPI_VALUE65
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_45,0) ELSE 0 END ) AS KPI_VALUE66
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) AS KPI_VALUE67
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) AS KPI_VALUE64
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) )
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) *100 END AS KPI_VALUE65
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_45,0) ELSE 0 END ) AS KPI_VALUE66
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) AS KPI_VALUE67
      ,0 AS  KPI_VALUE68
      ,0 AS  KPI_VALUE69
      ,0 AS  KPI_VALUE70
      
      -- 11.农村基础设施贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) AS KPI_VALUE71
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END )*100 END AS KPI_VALUE72
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_46,0) ELSE 0 END ) AS KPI_VALUE73
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) AS KPI_VALUE74
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) AS KPI_VALUE71
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END )*100 END AS KPI_VALUE72
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_46,0) ELSE 0 END ) AS KPI_VALUE73
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) AS KPI_VALUE74
      ,0 AS  KPI_VALUE75
      ,0 AS  KPI_VALUE76
      ,0 AS  KPI_VALUE77
      
      -- 12.专项1：已脱贫人口贷款余额 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |支持贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS KPI_VALUE78
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END )*100 END  AS KPI_VALUE79
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS KPI_VALUE80
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS KPI_VALUE81
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS KPI_VALUE78
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END )*100 END  AS KPI_VALUE79
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS KPI_VALUE80
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS KPI_VALUE81
      ,0 AS  KPI_VALUE82
      ,0 AS  KPI_VALUE83
      ,0 AS  KPI_VALUE84
      
      -- 13.其中：扶贫小额信(已脱贫人口)  |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |支持贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE85
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ))
-       /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) *100 END  AS KPI_VALUE86
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_17,0) ELSE 0 END ) AS KPI_VALUE87
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE88
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE85
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ))
+       /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) *100 END  AS KPI_VALUE86
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_17,0) ELSE 0 END ) AS KPI_VALUE87
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE88
      ,0 AS KPI_VALUE89
      ,0 AS KPI_VALUE90
      ,0 AS KPI_VALUE91
      
      
      -- 14.专项2：易地扶贫搬迁随迁户贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) AS KPI_VALUE92
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )*100 END AS KPI_VALUE93
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_63,0) ELSE 0 END ) AS KPI_VALUE94
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )AS KPI_VALUE95
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) AS KPI_VALUE92
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )*100 END AS KPI_VALUE93
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_63,0) ELSE 0 END ) AS KPI_VALUE94
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )AS KPI_VALUE95
      ,0 AS  KPI_VALUE96
      ,0 AS  KPI_VALUE97
      ,0 AS  KPI_VALUE98
      
      -- 15.专项3：新型农业经营主体精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) AS KPI_VALUE99
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) )
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) *100 END AS KPI_VALUE100
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_64,0) ELSE 0 END ) AS KPI_VALUE101
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) AS KPI_VALUE102
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) AS KPI_VALUE99
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) )
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) *100 END AS KPI_VALUE100
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_64,0) ELSE 0 END ) AS KPI_VALUE101
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) AS KPI_VALUE102
      ,0 AS  KPI_VALUE103
      ,0 AS  KPI_VALUE104
      ,0 AS  KPI_VALUE105
      
      
      -- 16.其中：家庭农场及农业专业大户贷款   |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE106
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ))
-     /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) * 100 END AS KPI_VALUE107
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_65,0) ELSE 0 END ) AS KPI_VALUE108
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE109
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE106
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ))
+     /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) * 100 END AS KPI_VALUE107
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_65,0) ELSE 0 END ) AS KPI_VALUE108
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE109
      ,0 AS  KPI_VALUE110
      ,0 AS  KPI_VALUE111
      ,0 AS  KPI_VALUE112
      
      
      -- 17.农民专业合作社贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) AS KPI_VALUE113
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END )*100 END AS KPI_VALUE114
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_66,0) ELSE 0 END ) AS KPI_VALUE115
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) AS KPI_VALUE116
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) AS KPI_VALUE113
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END )*100 END AS KPI_VALUE114
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_66,0) ELSE 0 END ) AS KPI_VALUE115
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) AS KPI_VALUE116
      
      ,0 AS  KPI_VALUE117
      ,0 AS  KPI_VALUE118
      ,0 AS  KPI_VALUE119
      
      -- 18.农业产业化龙头企业贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) AS KPI_VALUE120
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) * 100 END AS KPI_VALUE121
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_67,0) ELSE 0 END ) AS KPI_VALUE122
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) AS KPI_VALUE123
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) AS KPI_VALUE120
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) * 100 END AS KPI_VALUE121
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_67,0) ELSE 0 END ) AS KPI_VALUE122
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) AS KPI_VALUE123
      
      ,0 AS  KPI_VALUE124
      ,0 AS  KPI_VALUE125
      ,0 AS  KPI_VALUE126
 FROM edw.glr_tpa_org_loan t
-WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
 GROUP BY 
           t.org_no
          ,t.org_name
@@ -17201,218 +17193,223 @@ GROUP BY
 UNION ALL 
 SELECT 
       NOW()
-     ,@V_TEMP_QUA_MONTH
+     ,v_at_V_TEMP_QUA_MONTH
      ,t.org_no
      ,'汇总'
      ,1
      -- 1.金融精准扶贫贷款(含已脱贫人口贷款) 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END )             
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END )*100  END  AS KPI_VALUE2
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0)+IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS KPI_VALUE3
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END)
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END )             
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN (IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0)) ELSE 0 END )*100  END  AS KPI_VALUE2
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0)+IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS KPI_VALUE3
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END)
       - 
-      SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END)            AS KPI_VALUE4
+      SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0)+IFNULL(t.loan_bal_3,0) ELSE 0 END)            AS KPI_VALUE4
       
      -- 贷款笔数:(一、个人精准扶贫贷款【其他个人精准扶贫笔数（不存在）+建档立卡贫困人口贷款笔数】+ 二、产业精准扶贫贷款【产业精准扶贫贷款笔数 】+三、项目精准扶贫贷款【项目精准扶贫贷款笔数 】)笔数+已脱贫人口贷款笔数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) + IFNULL(LOAN_COUNT_40,0) + IFNULL(LOAN_COUNT_59,0) + IFNULL(LOAN_COUNT_18,0) ELSE 0 END) AS kpi_value5
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) + IFNULL(LOAN_COUNT_40,0) + IFNULL(LOAN_COUNT_59,0) + IFNULL(LOAN_COUNT_18,0) ELSE 0 END) AS kpi_value5
      ,0 AS KPI_VALUE6
      -- 带动服务贫困人口数:（一、个人精准扶贫贷款【其他个人精准扶贫贷款带动人数+建档立卡贫困人口贷款人数余额】+二、产业精准扶贫贷款【产业精准扶贫贷款带动人数】 +三、项目精准扶贫贷款【项目精准扶贫贷款服务人数】）人数+已脱贫人口贷款人数 
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_41,0) + IFNULL(LOAN_COUNT_60,0) + IFNULL(LOAN_COUNT_21,0) ELSE 0 END ) AS kpi_value7
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_41,0) + IFNULL(LOAN_COUNT_60,0) + IFNULL(LOAN_COUNT_21,0) ELSE 0 END ) AS kpi_value7
      
      
      
      -- 2.金融精准扶贫贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )             AS KPI_VALUE8
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )             AS KPI_VALUE8
      
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) * 100 END   AS KPI_VALUE9
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) * 100 END   AS KPI_VALUE9
       
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0) ELSE 0 END ) AS KPI_VALUE10
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) AS KPI_VALUE11
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) + IFNULL(LOAN_COUNT_40,0) + IFNULL(LOAN_COUNT_59,0)  ELSE 0 END)  AS kpi_value12
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_1,0) ELSE 0 END ) AS KPI_VALUE10
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_1,0) ELSE 0 END )-SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_1,0) ELSE 0 END ) AS KPI_VALUE11
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) + IFNULL(LOAN_COUNT_40,0) + IFNULL(LOAN_COUNT_59,0)  ELSE 0 END)  AS kpi_value12
      ,0 AS kpi_value13
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_41,0) + IFNULL(LOAN_COUNT_60,0) ELSE 0 END ) AS kpi_value14
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) + IFNULL(LOAN_COUNT_41,0) + IFNULL(LOAN_COUNT_60,0) ELSE 0 END ) AS kpi_value14
      
      
      -- 3.一、个人精准扶贫贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|带动服务贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS kpi_value15
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END )*100 END AS kpi_value16
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS kpi_value15
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END )*100 END AS kpi_value16
      
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) + IFNULL(t.loan_bal_add_y_4,0) ELSE 0 END ) AS kpi_value17
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS kpi_value18
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) + IFNULL(t.loan_bal_add_y_4,0) ELSE 0 END ) AS kpi_value17
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) + IFNULL(t.loan_bal_4,0) ELSE 0 END ) AS kpi_value18
      
-     -- , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(0,0) + IFNULL(LOAN_COUNT_18,0) ELSE 0 END) AS kpi_value19
+     -- , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(0,0) + IFNULL(LOAN_COUNT_18,0) ELSE 0 END) AS kpi_value19
      ,0 AS kpi_value20
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) ELSE 0 END ) AS kpi_value21
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_31,0) + IFNULL(LOAN_COUNT_19,0) ELSE 0 END ) AS kpi_value21
      
      -- 4.建档立卡贫困人口贷款 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|支持贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS kpi_value22
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) * 100 END AS kpi_value23
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS kpi_value22
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) * 100 END AS kpi_value23
      
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) ELSE 0 END ) AS kpi_value24
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS kpi_value25
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) ELSE 0 END ) AS KPI_VALUE26
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_2,0) ELSE 0 END ) AS kpi_value24
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_2,0) ELSE 0 END ) AS kpi_value25
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_18,0) ELSE 0 END ) AS KPI_VALUE26
      ,0 AS KPI_VALUE27
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_19,0) ELSE 0 END ) AS KPI_VALUE28
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_19,0) ELSE 0 END ) AS KPI_VALUE28
      
      
      -- 5.其中：扶贫小额信贷(建档立卡贫困人口) 余额|同比增速|当年累放额(取新增)|比去年同期增减|贷款笔数|贷款加权平均利率|支持贫困人口数
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE29
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ))
-       /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) *100 END AS KPI_VALUE30
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_17,0) ELSE 0 END ) AS KPI_VALUE31
-     , SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE32
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE29
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ))
+       /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) *100 END AS KPI_VALUE30
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_17,0) ELSE 0 END ) AS KPI_VALUE31
+     , SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE32
      , 0 AS KPI_VALUE33
      , 0 AS KPI_VALUE34
      , 0 AS KPI_VALUE35
      
      -- 6.二、产业精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE36
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )*100 END AS KPI_VALUE37
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_5,0) ELSE 0 END ) AS KPI_VALUE38
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE39
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_40,0) ELSE 0 END ) AS KPI_VALUE40
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE36
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END )*100 END AS KPI_VALUE37
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_5,0) ELSE 0 END ) AS KPI_VALUE38
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_5,0) ELSE 0 END ) AS KPI_VALUE39
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_40,0) ELSE 0 END ) AS KPI_VALUE40
      ,0 AS KPI_VALUE41
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_41,0) ELSE 0 END ) AS KPI_VALUE42
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_41,0) ELSE 0 END ) AS KPI_VALUE42
      
      
      -- 7.三、项目精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) AS KPI_VALUE43
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END )*100 END AS KPI_VALUE44
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_6,0) ELSE 0 END ) AS KPI_VALUE45
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) AS KPI_VALUE46
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_59,0) ELSE 0 END ) AS KPI_VALUE47
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) AS KPI_VALUE43
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END )*100 END AS KPI_VALUE44
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_6,0) ELSE 0 END ) AS KPI_VALUE45
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_6,0) ELSE 0 END ) AS KPI_VALUE46
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_59,0) ELSE 0 END ) AS KPI_VALUE47
      ,0 AS KPI_VALUE48
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_60,0) ELSE 0 END ) AS KPI_VALUE49
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_60,0) ELSE 0 END ) AS KPI_VALUE49
      
      
      -- 8.其中：易地扶贫搬迁贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE50
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )*100 END AS KPI_VALUE51
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_42,0) ELSE 0 END ) AS KPI_VALUE52
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE53
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE50
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END )*100 END AS KPI_VALUE51
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_42,0) ELSE 0 END ) AS KPI_VALUE52
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_42,0) ELSE 0 END ) AS KPI_VALUE53
      ,0 AS KPI_VALUE54
      ,0 AS KPI_VALUE55
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_61,0) ELSE 0 END ) AS KPI_VALUE56
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(LOAN_COUNT_61,0) ELSE 0 END ) AS KPI_VALUE56
      
      -- 9.农田基本建设贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE57
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )*100 END AS KPI_VALUE58
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_44,0) ELSE 0 END ) AS KPI_VALUE59
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE60
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE57
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END )*100 END AS KPI_VALUE58
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_44,0) ELSE 0 END ) AS KPI_VALUE59
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_44,0) ELSE 0 END ) AS KPI_VALUE60
      ,0 AS KPI_VALUE61
      ,0 AS KPI_VALUE62
      ,0 AS KPI_VALUE63
      
      -- 10.生态环境改造贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) AS KPI_VALUE64
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) )
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) *100 END AS KPI_VALUE65
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_45,0) ELSE 0 END ) AS KPI_VALUE66
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) AS KPI_VALUE67
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) AS KPI_VALUE64
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) )
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) *100 END AS KPI_VALUE65
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_45,0) ELSE 0 END ) AS KPI_VALUE66
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_45,0) ELSE 0 END ) AS KPI_VALUE67
      ,0 AS  KPI_VALUE68
      ,0 AS  KPI_VALUE69
      ,0 AS  KPI_VALUE70
      
      -- 11.农村基础设施贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) AS KPI_VALUE71
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END )*100 END AS KPI_VALUE72
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_46,0) ELSE 0 END ) AS KPI_VALUE73
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) AS KPI_VALUE74
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) AS KPI_VALUE71
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END )*100 END AS KPI_VALUE72
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_46,0) ELSE 0 END ) AS KPI_VALUE73
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_46,0) ELSE 0 END ) AS KPI_VALUE74
      ,0 AS  KPI_VALUE75
      ,0 AS  KPI_VALUE76
      ,0 AS  KPI_VALUE77
      
      -- 12.专项1：已脱贫人口贷款余额 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |支持贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS KPI_VALUE78
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END )*100 END  AS KPI_VALUE79
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS KPI_VALUE80
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS KPI_VALUE81
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS KPI_VALUE78
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END )*100 END  AS KPI_VALUE79
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_3,0) ELSE 0 END ) AS KPI_VALUE80
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_3,0) ELSE 0 END ) AS KPI_VALUE81
      ,0 AS  KPI_VALUE82
      ,0 AS  KPI_VALUE83
      ,0 AS  KPI_VALUE84
      
      -- 13.其中：扶贫小额信(已脱贫人口)  |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |支持贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE85
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ))
-       /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) *100 END  AS KPI_VALUE86
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_17,0) ELSE 0 END ) AS KPI_VALUE87
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE88
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE85
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ))
+       /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) *100 END  AS KPI_VALUE86
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_17,0) ELSE 0 END ) AS KPI_VALUE87
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_17,0) ELSE 0 END ) AS KPI_VALUE88
      ,0 AS KPI_VALUE89
      ,0 AS KPI_VALUE90
      ,0 AS KPI_VALUE91
      
      
      -- 14.专项2：易地扶贫搬迁随迁户贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |服务贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) AS KPI_VALUE92
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )*100 END AS KPI_VALUE93
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_63,0) ELSE 0 END ) AS KPI_VALUE94
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )AS KPI_VALUE95
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ) AS KPI_VALUE92
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )*100 END AS KPI_VALUE93
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_63,0) ELSE 0 END ) AS KPI_VALUE94
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )- SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_63,0) ELSE 0 END )AS KPI_VALUE95
      ,0 AS  KPI_VALUE96
      ,0 AS  KPI_VALUE97
      ,0 AS  KPI_VALUE98
      
      -- 15.专项3：新型农业经营主体精准扶贫贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) AS KPI_VALUE99
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) )
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) *100 END AS KPI_VALUE100
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_64,0) ELSE 0 END ) AS KPI_VALUE101
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) AS KPI_VALUE102
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) AS KPI_VALUE99
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) )
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) *100 END AS KPI_VALUE100
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_64,0) ELSE 0 END ) AS KPI_VALUE101
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_tb_64,0) ELSE 0 END ) AS KPI_VALUE102
      ,0 AS  KPI_VALUE103
      ,0 AS  KPI_VALUE104
      ,0 AS  KPI_VALUE105
      
      
      -- 16.其中：家庭农场及农业专业大户贷款   |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE106
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ))
-     /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) * 100 END AS KPI_VALUE107
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_65,0) ELSE 0 END ) AS KPI_VALUE108
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE109
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE106
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ))
+     /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) * 100 END AS KPI_VALUE107
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_65,0) ELSE 0 END ) AS KPI_VALUE108
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_65,0) ELSE 0 END ) AS KPI_VALUE109
      ,0 AS  KPI_VALUE110
      ,0 AS  KPI_VALUE111
      ,0 AS  KPI_VALUE112
      
      
      -- 17.农民专业合作社贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) AS KPI_VALUE113
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END )*100 END AS KPI_VALUE114
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_66,0) ELSE 0 END ) AS KPI_VALUE115
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) AS KPI_VALUE116
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) AS KPI_VALUE113
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END )*100 END AS KPI_VALUE114
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_66,0) ELSE 0 END ) AS KPI_VALUE115
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_66,0) ELSE 0 END ) AS KPI_VALUE116
      
      ,0 AS  KPI_VALUE117
      ,0 AS  KPI_VALUE118
      ,0 AS  KPI_VALUE119
      
      -- 18.农业产业化龙头企业贷款 |余额 |同比增速 |当年累放额 |比去年同期增减 |贷款笔数 |贷款加权平均利率 |带动贫困人口数
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) AS KPI_VALUE120
-     ,CASE WHEN SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ))
-      /SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) * 100 END AS KPI_VALUE121
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_67,0) ELSE 0 END ) AS KPI_VALUE122
-     ,SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = @V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) AS KPI_VALUE123
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) AS KPI_VALUE120
+     ,CASE WHEN SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END )=0 THEN 0 ELSE (SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ))
+      /SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) * 100 END AS KPI_VALUE121
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_add_y_67,0) ELSE 0 END ) AS KPI_VALUE122
+     ,SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) - SUM(CASE WHEN DATA_DATE = v_at_V_TEMP_QUA_MONTH_L THEN IFNULL(t.loan_bal_67,0) ELSE 0 END ) AS KPI_VALUE123
      
      ,0 AS  KPI_VALUE124
      ,0 AS  KPI_VALUE125
      ,0 AS  KPI_VALUE126
 FROM edw.glr_tpa_org_loan t
-WHERE DATA_DATE IN (@V_TEMP_QUA_MONTH,@V_TEMP_QUA_MONTH_L)
+WHERE DATA_DATE IN (v_at_V_TEMP_QUA_MONTH,v_at_V_TEMP_QUA_MONTH_L)
 GROUP BY 
       t.org_no
      ,'汇总'
      ,1
 ;
 CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -17421,6 +17418,15 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_sum_proj;
 CREATE PROCEDURE adm.p_rpt_m_loan_sum_proj(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_sum_proj.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
 BEGIN
     /*
     Author :zhangjiao
@@ -17431,32 +17437,19 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-12-19     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_sum_proj.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
         -- 季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-        SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+        v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
         AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
         
-    PREPARE smt FROM @instr;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;
+    EXECUTE IMMEDIATE v_at_instr;
         
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_m_loan_sum_proj WHERE DATA_DATE = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.rpt_m_loan_sum_proj WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH;
     -- 业务逻辑处理
     SET V_STEP:='2' ;   
     INSERT INTO adm.rpt_m_loan_sum_proj(
@@ -17493,13 +17486,18 @@ BEGIN
           ,'0'
           ,'0'
      FROM edw.glr_tpa_type_loan
-     WHERE DATA_DATE = @V_TEMP_QUA_MONTH
+     WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH
        GROUP BY  DATA_DATE
                 ,AREA_NO
                 ,ORG_NO
                 ,PROJECT
                 ,ROWS_ID;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -17508,6 +17506,15 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_m_loan_sum_scale_indus;
 CREATE PROCEDURE adm.p_rpt_m_loan_sum_scale_indus(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_loan_sum_scale_indus.PRC';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE VARCHAR(20) := SUBSTR(P_DATA_DATE,1,6);
+    V_DATA_DATE_P VARCHAR(20) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);                             -- 上月
+    V_DATA_DATE_TB VARCHAR(8) := SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);                             -- 去年同期
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
     /*
     Author :zhangjiao
@@ -17518,23 +17525,9 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2019-01-25    ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_loan_sum_scale_indus.PRC';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE VARCHAR(20) DEFAULT SUBSTR(P_DATA_DATE,1,6);
-    DECLARE V_DATA_DATE_P VARCHAR(20) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 1 MONTH),'%Y%m%d'),1,6);                             -- 上月
-    DECLARE V_DATA_DATE_TB VARCHAR(8) DEFAULT SUBSTR(DATE_FORMAT(DATE_SUB(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'),INTERVAL 12 MONTH),'%Y%m%d'),1,6);                             -- 去年同期
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
         
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
     DELETE  FROM adm.rpt_m_loan_sum_scale_indus WHERE DATA_DATE =V_DATA_DATE;
@@ -17686,12 +17679,29 @@ UNION ALL
                      ELSE t.dim_desc END 
       ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_rpt_m_mpa;
 
 CREATE PROCEDURE adm.p_rpt_m_mpa(IN P_DATA_DATE VARCHAR(8) ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_m_mpa.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_DATA_DATE_L VARCHAR(20) ;
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_instr_l TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH_L VARCHAR(2000);
 BEGIN
 /*
 | Author :YANJINTAO
@@ -17702,111 +17712,95 @@ BEGIN
 | ---------  ----------  ---------------  ------------------------------------
 | 1.0        2018-11-20     YANJINTAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_m_mpa.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
-    DECLARE V_DATA_DATE_L VARCHAR(20) ;
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
   
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 去年同期
-    SET V_DATA_DATE_L = DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -12 MONTH);
+    V_DATA_DATE_L := DATE_ADD(DATE_FORMAT(P_DATA_DATE,'%Y%m%d'), INTERVAL -12 MONTH);
     -- 本年季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
     
-    PREPARE smt FROM @instr;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;    
+    EXECUTE IMMEDIATE v_at_instr;
     
     
     -- 去年季度
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_L,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr_l = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(V_DATA_DATE_L,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr_l := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH_L  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(V_DATA_DATE_L,1,4));
     
-    PREPARE smt FROM @instr_l;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;    
+    EXECUTE IMMEDIATE v_at_instr_l;
     
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_m_mpa WHERE DATA_DATE = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.rpt_m_mpa WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     
     SET V_STEP:='2';
     INSERT INTO adm.rpt_m_mpa (
-       batch_date               #跑批日期
-      ,data_date                #数据日期(季度末月份)
-      ,fin_org_no               #机构代码
-      ,fin_org_name             #机构简称
-      ,total_asset              #总资产
-      ,total_indebt             #总负债
-      ,kpi_value1               #上年度季度末贷款余额
-      ,kpi_value2               #上年度季度末债券投资余额
-      ,kpi_value3               #上年度季度末股权及其他投资余额
-      ,kpi_value4               #上年度季度末买入返售资产余额
-      ,kpi_value5               #上年度季度末买入反售资产_从境内银行业存款类金融机构买入_买入返售债券
-      ,kpi_value6               #上年度季度末存放非存款类金融机构款项余额
-      ,kpi_value7               #上年度季度末表外理财总资产
-      ,kpi_value8               #上年度季度末表外理财现金余额
-      ,kpi_value9               #上年度季度末表外理财存款余额
-      ,kpi_value10              #上年度季度末应收及预付款余额
-      ,kpi_value11              #上年度季度末本外币贷款余额
-      ,kpi_value12              #本年度季度末贷款余额
-      ,kpi_value13              #本年度季度末债券投资余额
-      ,kpi_value14              #本年度季度末股权及其他投资余额
-      ,kpi_value15              #本年度季度末买入返售资产余额
-      ,kpi_value16              #本年度季度末买入反售资产_从境内银行业存款类金融机构买入_买入返售债券
-      ,kpi_value17              #本年度季度末存放非存款类金融机构款项余额
-      ,kpi_value18              #本年度季度末表外理财总资产
-      ,kpi_value19              #本年度季度末表外理财现金余额
-      ,kpi_value20              #本年度季度末表外理财存款余额
-      ,kpi_value21              #本年度季度末应收及预付款余额
-      ,kpi_value22              #本年度季度末本外币贷款余额
-      ,kpi_value23              #"资本充足率（%）"
-      ,kpi_value24              #资本金
-      ,kpi_value25              #杠杆率（%）
-      ,kpi_value26              #上年度季度末委托贷款余额
-      ,kpi_value27              #本年度季度末委托贷款余额
-      ,kpi_value28              #同业拆入
-      ,kpi_value29              #同业存放
-      ,kpi_value30              #同业借款
-      ,kpi_value31              #委托方同业代付
-      ,kpi_value32              #卖出回购
-      ,kpi_value33              #一年期以内同业存单发行余额
-      ,kpi_value34              #结算性同业存款
-      ,kpi_value35              #"流动性覆盖率（%）"
-      ,kpi_value36              #净稳定资金比例（%）
-      ,kpi_value37              #流动性比例（%）
-      ,kpi_value38              #不良贷款率（%）
-      ,kpi_value39              #不良贷款率（%，逾期90天以上贷款全部纳入口径）
-      ,kpi_value40              #"拨备覆盖率（%）"
-      ,kpi_value41              #净资本
-      ,kpi_value42              #跨境融资风险加权余额
-      ,kpi_value43              #本币外债占比（%）
-      ,kpi_value44              #中长期外债占比（%）
-      ,kpi_value45              #贷款减值准备余额
-      ,kpi_value46              #不良贷款余额
-      ,kpi_value47              #县域存款余额
-      ,kpi_value48              #县域贷款余额
-      ,kpi_value49              #个体工商户经营性贷款
-      ,kpi_value50              #小微企业主经营性贷款
-      ,kpi_value51              #小微企业贷款余额
-      ,kpi_value52              #其中：单户授信在500万以下的小微企业贷款余额
-      ,kpi_value53              #小微企业不良贷款余额
+       batch_date               -- 跑批日期
+      ,data_date                -- 数据日期(季度末月份)
+      ,fin_org_no               -- 机构代码
+      ,fin_org_name             -- 机构简称
+      ,total_asset              -- 总资产
+      ,total_indebt             -- 总负债
+      ,kpi_value1               -- 上年度季度末贷款余额
+      ,kpi_value2               -- 上年度季度末债券投资余额
+      ,kpi_value3               -- 上年度季度末股权及其他投资余额
+      ,kpi_value4               -- 上年度季度末买入返售资产余额
+      ,kpi_value5               -- 上年度季度末买入反售资产_从境内银行业存款类金融机构买入_买入返售债券
+      ,kpi_value6               -- 上年度季度末存放非存款类金融机构款项余额
+      ,kpi_value7               -- 上年度季度末表外理财总资产
+      ,kpi_value8               -- 上年度季度末表外理财现金余额
+      ,kpi_value9               -- 上年度季度末表外理财存款余额
+      ,kpi_value10              -- 上年度季度末应收及预付款余额
+      ,kpi_value11              -- 上年度季度末本外币贷款余额
+      ,kpi_value12              -- 本年度季度末贷款余额
+      ,kpi_value13              -- 本年度季度末债券投资余额
+      ,kpi_value14              -- 本年度季度末股权及其他投资余额
+      ,kpi_value15              -- 本年度季度末买入返售资产余额
+      ,kpi_value16              -- 本年度季度末买入反售资产_从境内银行业存款类金融机构买入_买入返售债券
+      ,kpi_value17              -- 本年度季度末存放非存款类金融机构款项余额
+      ,kpi_value18              -- 本年度季度末表外理财总资产
+      ,kpi_value19              -- 本年度季度末表外理财现金余额
+      ,kpi_value20              -- 本年度季度末表外理财存款余额
+      ,kpi_value21              -- 本年度季度末应收及预付款余额
+      ,kpi_value22              -- 本年度季度末本外币贷款余额
+      ,kpi_value23              -- "资本充足率（%）"
+      ,kpi_value24              -- 资本金
+      ,kpi_value25              -- 杠杆率（%）
+      ,kpi_value26              -- 上年度季度末委托贷款余额
+      ,kpi_value27              -- 本年度季度末委托贷款余额
+      ,kpi_value28              -- 同业拆入
+      ,kpi_value29              -- 同业存放
+      ,kpi_value30              -- 同业借款
+      ,kpi_value31              -- 委托方同业代付
+      ,kpi_value32              -- 卖出回购
+      ,kpi_value33              -- 一年期以内同业存单发行余额
+      ,kpi_value34              -- 结算性同业存款
+      ,kpi_value35              -- "流动性覆盖率（%）"
+      ,kpi_value36              -- 净稳定资金比例（%）
+      ,kpi_value37              -- 流动性比例（%）
+      ,kpi_value38              -- 不良贷款率（%）
+      ,kpi_value39              -- 不良贷款率（%，逾期90天以上贷款全部纳入口径）
+      ,kpi_value40              -- "拨备覆盖率（%）"
+      ,kpi_value41              -- 净资本
+      ,kpi_value42              -- 跨境融资风险加权余额
+      ,kpi_value43              -- 本币外债占比（%）
+      ,kpi_value44              -- 中长期外债占比（%）
+      ,kpi_value45              -- 贷款减值准备余额
+      ,kpi_value46              -- 不良贷款余额
+      ,kpi_value47              -- 县域存款余额
+      ,kpi_value48              -- 县域贷款余额
+      ,kpi_value49              -- 个体工商户经营性贷款
+      ,kpi_value50              -- 小微企业主经营性贷款
+      ,kpi_value51              -- 小微企业贷款余额
+      ,kpi_value52              -- 其中：单户授信在500万以下的小微企业贷款余额
+      ,kpi_value53              -- 小微企业不良贷款余额
 )
 SELECT 
   NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,SUM(CASE WHEN rows_id=62 THEN IFNULL(debt_balance_total,0) ELSE 0 END )/10000 AS total_asset
@@ -17814,7 +17808,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g01 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -17826,7 +17820,7 @@ UNION ALL
 */
 SELECT 
   NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0,0
@@ -17838,7 +17832,7 @@ SELECT
   
 FROM edw.glr_mpa_cny_income_pay t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH_L  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH_L  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -17846,7 +17840,7 @@ kpi_value5:上年度季度末买入反售资产_从境内银行业存款类金�
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 
@@ -17855,7 +17849,7 @@ SELECT
   
 FROM edw.glr_mpa_1411 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH_L  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH_L  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -17863,7 +17857,7 @@ UNION ALL
 */
 SELECT 
   NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0,0,0,0,0,0,0
@@ -17871,7 +17865,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cny_income_pay  t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH_L  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH_L  
 GROUP BY org_no ,x.org_dscr
 UNION ALL 
 /*
@@ -17881,7 +17875,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0,0,0,0,0,0,0,0
@@ -17891,7 +17885,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_sheet_finance t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH_L  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH_L  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -17899,7 +17893,7 @@ UNION ALL
 */
 SELECT 
   NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -17908,7 +17902,7 @@ SELECT
   
 FROM edw.glr_mpa_cny_income_pay t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH_L  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH_L  
 GROUP BY org_no ,x.org_dscr
 UNION ALL 
 /*
@@ -17916,7 +17910,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0,0,0
@@ -17925,7 +17919,7 @@ SELECT
   
 FROM edw.glr_mpa_fc_income_pay t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH_L  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH_L  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*本年度*/
@@ -17937,7 +17931,7 @@ UNION ALL
 */
 SELECT 
   NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -17949,7 +17943,7 @@ SELECT
   
 FROM edw.glr_mpa_cny_income_pay  t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -17957,7 +17951,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -17965,7 +17959,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_1411 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -17973,7 +17967,7 @@ UNION ALL
 */
 SELECT 
   NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -17982,7 +17976,7 @@ SELECT
   
 FROM edw.glr_mpa_cny_income_pay  t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH  
 GROUP BY org_no ,x.org_dscr
 /*
 本年度季度末表外理财总资产  |kpi_value18|表外理财资产负债表-资产合计
@@ -17992,7 +17986,7 @@ GROUP BY org_no ,x.org_dscr
 UNION ALL
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18003,7 +17997,7 @@ SELECT
   
 FROM edw.glr_mpa_sheet_finance t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH 
+WHERE data_date = v_at_V_TEMP_QUA_MONTH 
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18011,7 +18005,7 @@ UNION ALL
 */
 SELECT 
   NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18019,7 +18013,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cny_income_pay t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no =  x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH 
+WHERE data_date = v_at_V_TEMP_QUA_MONTH 
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18027,7 +18021,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18035,7 +18029,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_fc_income_pay t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18044,7 +18038,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0,0
@@ -18053,7 +18047,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g40 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18061,7 +18055,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18069,7 +18063,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g44 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH  
+WHERE data_date = v_at_V_TEMP_QUA_MONTH  
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18078,12 +18072,12 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
-  ,SUM(CASE WHEN data_date =  @V_TEMP_QUA_MONTH_L AND rows_id = 4 THEN IFNULL(balance_cny,0) ELSE 0 END )/10000   AS kpi_value26
-  ,SUM(CASE WHEN data_date =  @V_TEMP_QUA_MONTH AND rows_id = 4 THEN IFNULL(balance_cny,0) ELSE 0 END )/10000     AS kpi_value27
+  ,SUM(CASE WHEN data_date =  v_at_V_TEMP_QUA_MONTH_L AND rows_id = 4 THEN IFNULL(balance_cny,0) ELSE 0 END )/10000   AS kpi_value26
+  ,SUM(CASE WHEN data_date =  v_at_V_TEMP_QUA_MONTH AND rows_id = 4 THEN IFNULL(balance_cny,0) ELSE 0 END )/10000     AS kpi_value27
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
   
 FROM edw.glr_mpa_entrust_loan t
@@ -18096,7 +18090,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18105,7 +18099,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g01 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18114,7 +18108,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18123,7 +18117,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g24 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18132,7 +18126,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18141,7 +18135,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g01 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18149,7 +18143,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18157,7 +18151,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g24 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18165,7 +18159,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18173,7 +18167,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g251_1 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18181,7 +18175,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18189,7 +18183,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g252 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18197,7 +18191,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18205,7 +18199,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 
 FROM edw.glr_mpa_cbrc_1104_g22 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18214,7 +18208,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18225,7 +18219,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g0102 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18233,7 +18227,7 @@ UNION ALL
 */
 SELECT 
     NOW()
-   ,@V_TEMP_QUA_MONTH 
+   ,v_at_V_TEMP_QUA_MONTH 
    ,ds.org_no
    ,ds.org_dscr
    ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18250,7 +18244,7 @@ FROM (
 	  ,SUM(CASE WHEN  rows_id IN(7,8,9) THEN IFNULL(BALANCE_END,0) ELSE 0 END )/10000  AS val
 	FROM edw.glr_mpa_cbrc_1104_g03 t
 	LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-	WHERE data_date = @V_TEMP_QUA_MONTH
+	WHERE data_date = v_at_V_TEMP_QUA_MONTH
 	GROUP BY org_no ,x.org_dscr
 	UNION ALL 
 	SELECT 
@@ -18261,7 +18255,7 @@ FROM (
 	  ,SUM(CASE WHEN  rows_id IN(11,12,13) THEN IFNULL(BALANCE_SUM,0) ELSE 0 END )/10000  AS val
 	FROM edw.glr_mpa_cbrc_1104_g0102 t
 	LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-	WHERE data_date = @V_TEMP_QUA_MONTH
+	WHERE data_date = v_at_V_TEMP_QUA_MONTH
 	GROUP BY org_no ,x.org_dscr
 )ds
 /*-------------------------------------------------------------------------------------------------------------------------------------------------------*/
@@ -18271,7 +18265,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18279,7 +18273,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g40 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18291,7 +18285,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_code
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18304,7 +18298,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 
 FROM edw.glr_mpa_cbrc_1104_ratio t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_code = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL 
 /*
@@ -18312,7 +18306,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18320,7 +18314,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g03 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18328,7 +18322,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18336,7 +18330,7 @@ SELECT
   ,0 ,0 ,0 ,0 ,0 ,0 ,0
 FROM edw.glr_mpa_cbrc_1104_g0102 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 UNION ALL
 /*
@@ -18348,7 +18342,7 @@ UNION ALL
 */
 SELECT 
    NOW()
-  ,@V_TEMP_QUA_MONTH  
+  ,v_at_V_TEMP_QUA_MONTH  
   ,org_no
   ,x.org_dscr
   ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 ,0
@@ -18360,9 +18354,14 @@ SELECT
   
 FROM edw.glr_mpa_cbrc_3302 t
 LEFT JOIN dmcode.t_org_biz_lvl X ON t.org_no = x.org_id
-WHERE data_date = @V_TEMP_QUA_MONTH
+WHERE data_date = v_at_V_TEMP_QUA_MONTH
 GROUP BY org_no ,x.org_dscr
 ;
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
@@ -18371,6 +18370,15 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_q_farm_loan_all;
 CREATE PROCEDURE adm.p_rpt_q_farm_loan_all(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_q_farm_loan_all.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
 BEGIN
     /*
     Author :zhangjiao
@@ -18381,33 +18389,20 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-12-19     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_q_farm_loan_all.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
     -- 季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-        SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+        v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
         AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
  
-        PREPARE smt FROM @instr;
-        EXECUTE smt;
-        DEALLOCATE PREPARE smt;
+        EXECUTE IMMEDIATE v_at_instr;
     
     
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_q_farm_loan_all WHERE DATA_DATE = @V_TEMP_QUA_MONTH ;
+    DELETE  FROM adm.rpt_q_farm_loan_all WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH ;
     -- 业务逻辑处理
     SET V_STEP:='2' ;   
     INSERT INTO adm.rpt_q_farm_loan_all(
@@ -18422,20 +18417,25 @@ BEGIN
      SELECT
            NOW()
           ,AREA_NO
-          ,@V_TEMP_QUA_MONTH
+          ,v_at_V_TEMP_QUA_MONTH
           ,ORG_NO
           ,KPI_CODE
           ,KPI_NAME
           ,SUM(IFNULL(LOAN_BALANCE,0))
      FROM edw.glr_agl_farm_bad_loan_cny
-     WHERE DATA_DATE = @V_TEMP_QUA_MONTH
-     group by @V_TEMP_QUA_MONTH
+     WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH
+     group by v_at_V_TEMP_QUA_MONTH
               ,AREA_NO
               ,ORG_NO
               ,KPI_CODE
               ,KPI_NAME
               ;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
@@ -18444,6 +18444,15 @@ DROP PROCEDURE IF EXISTS adm.p_rpt_q_farm_loan_org;
 CREATE PROCEDURE adm.p_rpt_q_farm_loan_org(
     IN P_DATA_DATE VARCHAR(8)
     ,OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_q_farm_loan_org.prc';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    v_at_instr TEXT;
+    v_at_v_temp_qua VARCHAR(2000);
+    v_at_V_TEMP_QUA_MONTH VARCHAR(2000);
 BEGIN
     /*
     Author :zhangjiao
@@ -18454,32 +18463,19 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2018-12-19     ZHANGJIAO        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_q_farm_loan_org.prc';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
     
     -- 季度日期处理
-    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO @v_temp_qua;
-    SET @instr = CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',@v_temp_qua,'
+    SELECT CONCAT('\'',CONCAT(QUARTER(DATE_FORMAT(P_DATA_DATE,'%Y%m%d')),'Q'),'\'') INTO v_at_v_temp_qua;
+    v_at_instr := CONCAT('SELECT MAX(t.month) AS MONTH  INTO @V_TEMP_QUA_MONTH  FROM edw.dim_date t WHERE t.quarter=',v_at_v_temp_qua,'
     AND t.year = ',SUBSTR(P_DATA_DATE,1,4));
         
-    PREPARE smt FROM @instr;
-    EXECUTE smt;
-    DEALLOCATE PREPARE smt;
+    EXECUTE IMMEDIATE v_at_instr;
     
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     -- 支持数据重跑
     SET V_STEP:='1';
-    DELETE  FROM adm.rpt_q_farm_loan_org WHERE DATA_DATE = @V_TEMP_QUA_MONTH;
+    DELETE  FROM adm.rpt_q_farm_loan_org WHERE DATA_DATE = v_at_V_TEMP_QUA_MONTH;
     -- 业务逻辑处理
     SET V_STEP:='2' ;   
     INSERT INTO adm.rpt_q_farm_loan_org(
@@ -18499,7 +18495,7 @@ BEGIN
      SELECT
            NOW()
           ,x.area_no
-          ,@V_TEMP_QUA_MONTH
+          ,v_at_V_TEMP_QUA_MONTH
           ,x.org_no
           ,org.org_dscr
           ,x.project
@@ -18516,20 +18512,31 @@ BEGIN
            ON  x.data_date = t.data_date
 	   AND x.org_no = t.org_no
 	   AND x.area_no = t.area_no
-     WHERE x.data_date =@V_TEMP_QUA_MONTH
+     WHERE x.data_date =v_at_V_TEMP_QUA_MONTH
          AND x.rows_id NOT IN ('5','6')
-       GROUP BY @V_TEMP_QUA_MONTH
+       GROUP BY v_at_V_TEMP_QUA_MONTH
                  ,x.area_no
                  ,x.org_no
                  ,x.project
                  ,x.rows_id;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
     END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_rpt_technolo_finance_mth;
 
 CREATE PROCEDURE adm.p_rpt_technolo_finance_mth(IN P_DATA_DATE VARCHAR(8),OUT P_RESULT   INT)
+AS
+    V_PROC_NAME VARCHAR(200) := 'adm.p_rpt_technolo_finance_mth.PRC';
+    V_STEP INT := 0;
+    V_START_TIME VARCHAR(20) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
  /*
     Author :yanjintao
@@ -18540,35 +18547,24 @@ BEGIN
     ---------  ----------  ---------------  ------------------------------------
     1.0        2019-02-26     yanjintao        1.CREATES THE PROCEDURE
 */     
-    DECLARE V_PROC_NAME VARCHAR(200) DEFAULT 'adm.p_rpt_technolo_finance_mth.PRC';
-    DECLARE V_STEP INT DEFAULT 0;
-    DECLARE V_START_TIME VARCHAR(20) DEFAULT NOW();
     /* EXCEPTION HANDLER  异常处理*/
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     SET V_STEP:='1';
     DELETE  FROM adm.rpt_technolo_finance_mth WHERE DATA_DATE = P_DATA_DATE;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
     SET V_STEP:='2';
     INSERT INTO adm.rpt_technolo_finance_mth (
-	 BATCH_DATE      #跑批日期               
-	,AREA_NO         #上报地区               
-	,DATA_DATE       #数据日期，账期         
-	,ORG_NO          #上报机构/上报用户      
-	,ROWS_ID         #行号                   
-	,KPI_NAME        #指标名称               
-	,LOAN_BAL        #贷款余额               
-	,LOAN_BAL_P      #上期贷款余额           
-	,LOAN_BAL_BGY    #结转贷款余额
-	,VERITY_VAL      #校验项                 
+	 BATCH_DATE      -- 跑批日期               
+	,AREA_NO         -- 上报地区               
+	,DATA_DATE       -- 数据日期，账期         
+	,ORG_NO          -- 上报机构/上报用户      
+	,ROWS_ID         -- 行号                   
+	,KPI_NAME        -- 指标名称               
+	,LOAN_BAL        -- 贷款余额               
+	,LOAN_BAL_P      -- 上期贷款余额           
+	,LOAN_BAL_BGY    -- 结转贷款余额
+	,VERITY_VAL      -- 校验项                 
 	)
 	SELECT 
 	 NOW()
@@ -18586,14 +18582,20 @@ BEGIN
 	;
     CALL etl.edw_proc_trace_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,ROW_COUNT());
     
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_sust_sk_funds_application;
 
 CREATE PROCEDURE adm.p_sust_sk_funds_application()
+AS
+v_data_date CHAR(8) := DATE_FORMAT(NOW(), '%Y%m%d');
 BEGIN
-DECLARE v_data_date CHAR(8) DEFAULT DATE_FORMAT(NOW(), '%Y%m%d');
   DELETE FROM adm.sust_sk_funds_application
   WHERE DATA_DATE IN
     (SELECT
@@ -19062,8 +19064,9 @@ END;
 DROP PROCEDURE IF EXISTS adm.p_sust_sk_funds_source;
 
 CREATE PROCEDURE adm.p_sust_sk_funds_source()
+AS
+v_data_date char(8) := date_format(now(), '%Y%m%d');
 BEGIN
-declare v_data_date char(8) default date_format(now(), '%Y%m%d');
   DELETE FROM adm.sust_sk_funds_source
   WHERE DATA_DATE in
     (SELECT
@@ -19273,18 +19276,19 @@ END;
 DROP PROCEDURE IF EXISTS adm.p_trs_budget_payout_cq;
 
 CREATE PROCEDURE adm.p_trs_budget_payout_cq(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.p_trs_budget_payout_cq.PRC';
+  V_STEP_ID       INT := 0;
 BEGIN
   -- DECLARE  s_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.p_trs_budget_payout_cq.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
   -- SET s_date =  '2018-01-01';
   
   
   
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
 INSERT INTO adm.trs_budget_function_payout_daily
 (
 D_REPORTDATE,
@@ -19389,31 +19393,27 @@ ON aa.s_budgetsubjectcode = dt1.subject_code_4
  
  
  
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_comprehensive_income_month;
 
 CREATE PROCEDURE adm.p_trs_comprehensive_income_month(IN V_DATA_DATE VARCHAR(10))
+AS
+v_proc_name VARCHAR(50) := 'adm.p_trs_comprehensive_income_month';
+V_STEP_ID   INT := '0';
+P_DATA_DATE VARCHAR(50) := DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+V_START_TIME VARCHAR(50) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*综合查询收入月表*/
-DECLARE v_proc_name VARCHAR(50)   DEFAULT 'adm.p_trs_comprehensive_income_month';
-DECLARE V_STEP_ID   INT 	  DEFAULT '0';
-DECLARE P_DATA_DATE VARCHAR(50)     DEFAULT DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-DECLARE V_START_TIME VARCHAR(50)    DEFAULT NOW();
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-BEGIN
-       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-END;
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_comprehensive_income_month WHERE D_ACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 INSERT INTO adm.trs_comprehensive_income_month
 SELECT
   aa.d_acct,
@@ -19489,28 +19489,28 @@ SELECT
   
   
   
+EXCEPTION
+    WHEN OTHERS THEN
+       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_comprehensive_income_month_incomemm;
 
 CREATE PROCEDURE adm.p_trs_comprehensive_income_month_incomemm(IN V_DATA_DATE VARCHAR(10))
+AS
+v_proc_name VARCHAR(50) := 'adm.p_trs_comprehensive_income_month_incomemm';
+V_STEP_ID   INT := '0';
+P_DATA_DATE VARCHAR(50) := DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+V_START_TIME VARCHAR(50) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*综合查询收入月表*/
-DECLARE v_proc_name VARCHAR(50)   DEFAULT 'adm.p_trs_comprehensive_income_month_incomemm';
-DECLARE V_STEP_ID   INT 	  DEFAULT '0';
-DECLARE P_DATA_DATE VARCHAR(50)     DEFAULT DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-DECLARE V_START_TIME VARCHAR(50)    DEFAULT NOW();
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-BEGIN
-       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-END;
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_comprehensive_income_month_incomemm WHERE D_ACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 INSERT INTO adm.trs_comprehensive_income_month_incomemm
 SELECT
   aa.d_acct,
@@ -19611,28 +19611,28 @@ GROUP BY
   ON aa.d_acct=bb.d_acct
   AND aa.trecode=bb.trecode;
   
+EXCEPTION
+    WHEN OTHERS THEN
+       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_comprehensive_income_quarter;
 
 CREATE PROCEDURE adm.p_trs_comprehensive_income_quarter(IN V_DATA_DATE VARCHAR(10))
+AS
+v_proc_name VARCHAR(50) := 'adm.p_trs_comprehensive_income_quarter';
+V_STEP_ID   INT := '0';
+P_DATA_DATE VARCHAR(50) := DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+V_START_TIME VARCHAR(50) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*综合查询收入月表*/
-DECLARE v_proc_name VARCHAR(50)   DEFAULT 'adm.p_trs_comprehensive_income_quarter';
-DECLARE V_STEP_ID   INT 	  DEFAULT '0';
-DECLARE P_DATA_DATE VARCHAR(50)     DEFAULT DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-DECLARE V_START_TIME VARCHAR(50)    DEFAULT NOW();
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-BEGIN
-       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-END;
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_comprehensive_income_quarter WHERE D_ACCT = CONCAT(YEAR(V_DATA_DATE),'Q',QUARTER(V_DATA_DATE));
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 INSERT INTO adm.trs_comprehensive_income_quarter
 SELECT 
  D_ACCT,
@@ -19773,28 +19773,28 @@ GROUP BY
 	aa.s_trecode,
 	aa.subject_code	;
 	
+EXCEPTION
+    WHEN OTHERS THEN
+       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_comprehensive_income_quarter_incomeqq;
 
 CREATE PROCEDURE adm.p_trs_comprehensive_income_quarter_incomeqq(IN V_DATA_DATE VARCHAR(10))
+AS
+v_proc_name VARCHAR(50) := 'adm.p_trs_comprehensive_income_quarter_incomeqq';
+V_STEP_ID   INT := '0';
+P_DATA_DATE VARCHAR(50) := DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+V_START_TIME VARCHAR(50) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*综合查询收入季表*/
-DECLARE v_proc_name VARCHAR(50)   DEFAULT 'adm.p_trs_comprehensive_income_quarter_incomeqq';
-DECLARE V_STEP_ID   INT 	  DEFAULT '0';
-DECLARE P_DATA_DATE VARCHAR(50)     DEFAULT DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-DECLARE V_START_TIME VARCHAR(50)    DEFAULT NOW();
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-BEGIN
-       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-END;
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_comprehensive_income_quarter_incomeqq WHERE D_ACCT = CONCAT(YEAR(V_DATA_DATE),'Q',QUARTER(V_DATA_DATE));
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 INSERT INTO adm.trs_comprehensive_income_quarter_incomeqq
 SELECT
 	aa.d_acct, 		
@@ -19890,28 +19890,28 @@ LEFT JOIN (
 )  BB -- 国库收入
 	ON aa.d_acct = bb.d_acct
 	AND aa.s_trecode = bb.trecode;
+EXCEPTION
+    WHEN OTHERS THEN
+       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_comprehensive_payout_month;
 
 CREATE PROCEDURE adm.p_trs_comprehensive_payout_month(IN V_DATA_DATE VARCHAR(10))
+AS
+v_proc_name VARCHAR(50) := 'adm.p_trs_comprehensive_payout_month';
+V_STEP_ID   INT := '0';
+P_DATA_DATE VARCHAR(50) := DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+V_START_TIME VARCHAR(50) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*综合查询支出月表*/
-DECLARE v_proc_name VARCHAR(50)   DEFAULT 'adm.p_trs_comprehensive_payout_month';
-DECLARE V_STEP_ID   INT 	  DEFAULT '0';
-DECLARE P_DATA_DATE VARCHAR(50)     DEFAULT DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-DECLARE V_START_TIME VARCHAR(50)    DEFAULT NOW();
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-BEGIN
-       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-END;
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_comprehensive_payout_month WHERE D_ACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 INSERT INTO adm.trs_comprehensive_payout_month
 SELECT
 	a1.d_acct,
@@ -19978,28 +19978,28 @@ FROM
   AND a1.trecode=a2.trecode;
   
   
+EXCEPTION
+    WHEN OTHERS THEN
+       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_comprehensive_payout_month_payoutmm;
 
 CREATE PROCEDURE adm.p_trs_comprehensive_payout_month_payoutmm(IN V_DATA_DATE VARCHAR(10))
+AS
+v_proc_name VARCHAR(50) := 'adm.p_trs_comprehensive_payout_month_payoutmm';
+V_STEP_ID   INT := '0';
+P_DATA_DATE VARCHAR(50) := DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+V_START_TIME VARCHAR(50) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*综合查询收入季表*/
-DECLARE v_proc_name VARCHAR(50)   DEFAULT 'adm.p_trs_comprehensive_payout_month_payoutmm';
-DECLARE V_STEP_ID   INT 	  DEFAULT '0';
-DECLARE P_DATA_DATE VARCHAR(50)     DEFAULT DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-DECLARE V_START_TIME VARCHAR(50)    DEFAULT NOW();
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-BEGIN
-       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-END;
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_comprehensive_payout_month_payoutmm WHERE D_ACCT = CONCAT(YEAR(V_DATA_DATE),'Q',QUARTER(V_DATA_DATE));
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 INSERT INTO adm.trs_comprehensive_payout_month_payoutmm
 SELECT       
 	a1.d_acct,
@@ -20100,31 +20100,31 @@ FROM
   AND a1.trecode=a2.trecode;
   
   
+EXCEPTION
+    WHEN OTHERS THEN
+       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_comprehensive_payout_quarter;
 
 CREATE PROCEDURE adm.p_trs_comprehensive_payout_quarter(IN V_DATA_DATE  VARCHAR(10))
+AS
+    V_PROC_NAME     VARCHAR(255) := 'adm.p_trs_comprehensive_payout_quarter.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    P_RESULT        INT := 0;
+    V_DATES         VARCHAR(20) := 0;
+    V_STATE CHAR(1);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
-    DECLARE V_PROC_NAME     VARCHAR(255)   DEFAULT 'adm.p_trs_comprehensive_payout_quarter.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE P_RESULT        INT           DEFAULT 0;
-    DECLARE V_DATES         VARCHAR(20)   DEFAULT 0;
-    DECLARE V_STATE CHAR(1);
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-        CALL etl.edw_proc_error_log(date_format(V_DATA_DATE,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-    END;
     
-SET V_STEP_ID = 1;    
+V_STEP_ID := 1;    
 DELETE FROM adm.trs_comprehensive_payout_quarter WHERE D_ACCT=CONCAT(YEAR(V_DATA_DATE),'Q',QUARTER(V_DATA_DATE));
 	
-SET V_STEP_ID = 2;   	
+V_STEP_ID := 2;   	
 INSERT INTO adm.trs_comprehensive_payout_quarter
 SELECT 
  D_ACCT,
@@ -20260,28 +20260,28 @@ LEFT JOIN
             a.subject_code;
 CALL etl.edw_proc_trace_log(V_DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+        CALL etl.edw_proc_error_log(date_format(V_DATA_DATE,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_comprehensive_payout_quarter_payoutqq;
 
 CREATE PROCEDURE adm.p_trs_comprehensive_payout_quarter_payoutqq(IN V_DATA_DATE VARCHAR(10))
+AS
+v_proc_name VARCHAR(50) := 'adm.p_trs_comprehensive_payout_quarter_payoutqq';
+V_STEP_ID   INT := '0';
+P_DATA_DATE VARCHAR(50) := DATE_FORMAT(V_DATA_DATE,'%Y-%m');
+V_START_TIME VARCHAR(50) := NOW();
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 /*综合查询收入季表*/
-DECLARE v_proc_name VARCHAR(50)   DEFAULT 'adm.p_trs_comprehensive_payout_quarter_payoutqq';
-DECLARE V_STEP_ID   INT 	  DEFAULT '0';
-DECLARE P_DATA_DATE VARCHAR(50)     DEFAULT DATE_FORMAT(V_DATA_DATE,'%Y-%m');
-DECLARE V_START_TIME VARCHAR(50)    DEFAULT NOW();
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-DECLARE EXIT HANDLER FOR SQLEXCEPTION
-BEGIN
-       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-END;
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_comprehensive_payout_quarter_payoutqq WHERE D_ACCT = CONCAT(YEAR(V_DATA_DATE),'Q',QUARTER(V_DATA_DATE));
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 INSERT INTO adm.trs_comprehensive_payout_quarter_payoutqq
 SELECT       
 	a1.d_acct,
@@ -20381,12 +20381,17 @@ FROM
   ON a1.d_acct=a2.d_acct
   AND a1.trecode=a2.trecode;
   
+EXCEPTION
+    WHEN OTHERS THEN
+       GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+       CALL etl.edw_proc_error_log(P_DATA_DATE,V_START_TIME,NOW(),v_proc_name,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_kyd_enterprise;
 
 CREATE PROCEDURE adm.p_trs_kyd_enterprise(IN V_DATA_DATE VARCHAR(10))
+AS
 BEGIN
 /*分企业-当期and累计（凯盈达）*/
 DELETE FROM adm.trs_kyd_enterprise WHERE D_ACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m') and mark = '0';
@@ -20544,6 +20549,7 @@ COMMIT;
 DROP PROCEDURE IF EXISTS adm.p_trs_kyd_enterprise_rank;
 
 CREATE PROCEDURE adm.p_trs_kyd_enterprise_rank(IN V_DATA_DATE VARCHAR(10))
+AS
 BEGIN
 /*企业排名（凯盈达）*/
 DELETE FROM adm.trs_kyd_enterprise_rank WHERE D_ACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
@@ -20646,6 +20652,7 @@ GROUP BY
 DROP PROCEDURE IF EXISTS adm.p_trs_kyd_industry;
 
 CREATE PROCEDURE adm.p_trs_kyd_industry(in V_DATA_DATE VARCHAR(10))
+AS
 BEGIN
 /*凯盈达-分行业*/
 DELETE FROM adm.trs_kyd_industry WHERE D_ACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m')  AND mark = '0';
@@ -21149,6 +21156,7 @@ GROUP BY
 DROP PROCEDURE IF EXISTS adm.p_trs_kyd_industry_comprehensive;
 
 CREATE PROCEDURE adm.p_trs_kyd_industry_comprehensive(IN V_DATA_DATE VARCHAR(10))
+AS
 BEGIN
 /*凯盈达-分行业--综合查询*/
 DELETE FROM adm.trs_kyd_industry_comprehensive WHERE D_ACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
@@ -21189,6 +21197,7 @@ group by
 DROP PROCEDURE IF EXISTS adm.p_trs_mth_income_industry;
 
 CREATE PROCEDURE adm.p_trs_mth_income_industry(in V_DATA_DATE VARCHAR(10))
+AS
 BEGIN
 /*税收收入分行业分税种月报总表*/
 DELETE FROM adm.trs_mth_income_industry WHERE D_ACCT = DATE_FORMAT(V_DATA_DATE,'%Y-%m');
@@ -26631,64 +26640,71 @@ WHERE a.d_acct = DATE_FORMAT(V_DATA_DATE,'%Y-%m')
 DROP PROCEDURE IF EXISTS adm.p_trs_sk_agentbankpay_back_detail;
 
 CREATE PROCEDURE adm.p_trs_sk_agentbankpay_back_detail(IN v_data_date VARCHAR(10))
+AS
+V_STEP_ID       INT := 0; 
+V_PROC_NAME     VARCHAR(80) := 'adm.p_trs_sk_agentbankpay_back_detail.prc';
+V_START_TIME    CHAR(19) := NOW();
+v_log_date      CHAR(10);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 --     AUTHOR     : yeqian
 --     NAME       : adm.p_trs_sk_agentbankpay_back_detail.HQL 
 --     FUNCTIONS  : 
 --     PURPOSE    : MONTHLY SAVING THE VARIATION DATA FROM stg
---     DATASOURCE : stg.trs_stat_agentbankpay_detail  -- ###集中支付退款业务多维度分析
+--     DATASOURCE : stg.trs_stat_agentbankpay_detail  -- -- ##集中支付退款业务多维度分析
 --                : 
 --     REVISIONS OR COMMENTS
 --     VER        DATE       DEVELOPER       TESTER         DESCRIPTION
 --   --------  ----------  -------------  -------------  ---------------------
 --     1.0     2018-11-29   yeqian                      1.CREATE THE PROCEDURE
 --
-DECLARE V_STEP_ID       INT              DEFAULT 0; 
-DECLARE V_PROC_NAME     VARCHAR(80)      DEFAULT 'adm.p_trs_sk_agentbankpay_back_detail.prc';
-DECLARE V_START_TIME    CHAR(19)         DEFAULT NOW();
-DECLARE v_log_date      CHAR(10);
     /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-         CALL etl.edw_proc_error_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-         CALL etl.edw_proc_trace_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    END;
 	
-   SET v_log_date  = DATE_FORMAT(v_data_date,'%Y-%m-%d');
-   SET v_data_date = DATE_FORMAT(v_data_date,'%Y-%m-%d');
+   v_log_date := DATE_FORMAT(v_data_date,'%Y-%m-%d');
+   v_data_date := DATE_FORMAT(v_data_date,'%Y-%m-%d');
    
    
 -- 删除当期的数据
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_sk_agentbankpay_back_detail where DATE_FORMAT(S_ENTRUSTDATE,'%Y-%m-%d') = v_data_date;
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
   
 -- 集中支付退款业务多维度分析
 INSERT INTO adm.trs_sk_agentbankpay_back_detail
 SELECT 
-  SUBSTR(S_ENTRUSTDATE,1,4)      AS S_ENTRUSTYRAR,      ###委托时间-年
-  SUBSTR(S_ENTRUSTDATE,1,6)      AS S_ENTRUSTMOTH,      ###委托时间-月
-  S_ENTRUSTDATE                  AS S_ENTRUSTDATE,      ###委托时间-日
-  S_TRECODE                      AS S_TRECODE,          ###国库代码
-  S_PAYMODE                      AS S_PAYMODE,          ###支付方式
-  S_AGENTBANKCLASS               AS S_AGENTBANKCLASS,   ###代理银行行别
-  CONCAT(S_TRECODE,S_BDGORGCODE) AS S_BDGORGTRECODE,    ###预算单位国库编码
-  S_EXPFUNCCODE                  AS S_EXPFUNCCODE,      ###支出功能科目编码
-  F_PAYAMT                       AS F_PAYAMT,           ###支付金额
-  '1'                            AS F_AMOUNT            ###支付笔数
+  SUBSTR(S_ENTRUSTDATE,1,4)      AS S_ENTRUSTYRAR,      -- -- #委托时间-年
+  SUBSTR(S_ENTRUSTDATE,1,6)      AS S_ENTRUSTMOTH,      -- -- #委托时间-月
+  S_ENTRUSTDATE                  AS S_ENTRUSTDATE,      -- -- #委托时间-日
+  S_TRECODE                      AS S_TRECODE,          -- -- #国库代码
+  S_PAYMODE                      AS S_PAYMODE,          -- -- #支付方式
+  S_AGENTBANKCLASS               AS S_AGENTBANKCLASS,   -- -- #代理银行行别
+  CONCAT(S_TRECODE,S_BDGORGCODE) AS S_BDGORGTRECODE,    -- -- #预算单位国库编码
+  S_EXPFUNCCODE                  AS S_EXPFUNCCODE,      -- -- #支出功能科目编码
+  F_PAYAMT                       AS F_PAYAMT,           -- -- #支付金额
+  '1'                            AS F_AMOUNT            -- -- #支付笔数
 FROM 
   ods.trs_stat_agentbankpay_back_detail WHERE DATE_FORMAT(S_ENTRUSTDATE,'%Y-%m-%d') = v_data_date;
 COMMIT;
   CALL etl.edw_proc_trace_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+         CALL etl.edw_proc_error_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+         CALL etl.edw_proc_trace_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_sk_agentbankpay_detail;
 
 CREATE PROCEDURE adm.p_trs_sk_agentbankpay_detail(IN v_data_date VARCHAR(10))
+AS
+V_STEP_ID       INT := 0; 
+V_PROC_NAME     VARCHAR(80) := 'adm.p_trs_sk_agentbankpay_detail.prc';
+V_START_TIME    CHAR(19) := NOW();
+v_log_date      CHAR(10);
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
 BEGIN
 --     AUTHOR     : yeqian
 --     NAME       : adm.p_trs_sk_agentbankpay_detail.HQL 
@@ -26701,53 +26717,52 @@ BEGIN
 --   --------  ----------  -------------  -------------  ---------------------
 --     1.0     2018-11-29   yeqian                      1.CREATE THE PROCEDURE
 --
-DECLARE V_STEP_ID       INT              DEFAULT 0; 
-DECLARE V_PROC_NAME     VARCHAR(80)      DEFAULT 'adm.p_trs_sk_agentbankpay_detail.prc';
-DECLARE V_START_TIME    CHAR(19)         DEFAULT NOW();
-DECLARE v_log_date      CHAR(10);
      /* EXCEPTION HANDLER  */
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
-         CALL etl.edw_proc_error_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-         CALL etl.edw_proc_trace_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
-    END;
 	
-   SET v_log_date  = DATE_FORMAT(v_data_date,'%Y-%m-%d');
-   SET v_data_date = DATE_FORMAT(v_data_date,'%Y-%m-%d');
+   v_log_date := DATE_FORMAT(v_data_date,'%Y-%m-%d');
+   v_data_date := DATE_FORMAT(v_data_date,'%Y-%m-%d');
    
 -- 删除当期的数据
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_sk_agentbankpay_detail WHERE DATE_FORMAT(S_ENTRUSTDATE,'%Y-%m-%d') = v_data_date;
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 -- 集中支付业务多维度分析
 INSERT INTO adm.trs_sk_agentbankpay_detail
 SELECT 
-  SUBSTR(S_ENTRUSTDATE,1,4)      AS S_ENTRUSTYRAR,      ###委托时间-年
-  SUBSTR(S_ENTRUSTDATE,1,6)      AS S_ENTRUSTMOTH,      ###委托时间-月
-  S_ENTRUSTDATE                  AS S_ENTRUSTDATE,      ###委托时间-日
-  S_TRECODE                      AS S_TRECODE,          ###国库代码
-  S_PAYMODE                      AS S_PAYMODE,          ###支付方式
-  S_AGENTBANKCLASS               AS S_AGENTBANKCLASS,   ###代理银行行别
-  CONCAT(S_TRECODE,S_BDGORGCODE) AS S_BDGORGTRECODE,    ###预算单位国库编码
-  S_EXPFUNCCODE                  AS S_EXPFUNCCODE,      ###支出功能科目编码
-  C_AUTOAUDITSTATE               AS C_AUTOAUDITSTATE,   ###第一次审核状态
-  C_HANDAUDITSTATE               AS C_HANDAUDITSTATE,   ###第二次审核状态
-  S_AUDITREASON                  AS S_AUDITREASON,      ###审核不通过原因
-  F_PAYAMT                       AS F_PAYAMT,           ###支付金额
-  '1'                            AS F_AMOUNT            ###支付笔数
+  SUBSTR(S_ENTRUSTDATE,1,4)      AS S_ENTRUSTYRAR,      -- -- #委托时间-年
+  SUBSTR(S_ENTRUSTDATE,1,6)      AS S_ENTRUSTMOTH,      -- -- #委托时间-月
+  S_ENTRUSTDATE                  AS S_ENTRUSTDATE,      -- -- #委托时间-日
+  S_TRECODE                      AS S_TRECODE,          -- -- #国库代码
+  S_PAYMODE                      AS S_PAYMODE,          -- -- #支付方式
+  S_AGENTBANKCLASS               AS S_AGENTBANKCLASS,   -- -- #代理银行行别
+  CONCAT(S_TRECODE,S_BDGORGCODE) AS S_BDGORGTRECODE,    -- -- #预算单位国库编码
+  S_EXPFUNCCODE                  AS S_EXPFUNCCODE,      -- -- #支出功能科目编码
+  C_AUTOAUDITSTATE               AS C_AUTOAUDITSTATE,   -- -- #第一次审核状态
+  C_HANDAUDITSTATE               AS C_HANDAUDITSTATE,   -- -- #第二次审核状态
+  S_AUDITREASON                  AS S_AUDITREASON,      -- -- #审核不通过原因
+  F_PAYAMT                       AS F_PAYAMT,           -- -- #支付金额
+  '1'                            AS F_AMOUNT            -- -- #支付笔数
 FROM 
   ods.trs_stat_agentbankpay_detail WHERE DATE_FORMAT(S_ENTRUSTDATE,'%Y-%m-%d') = v_data_date;
 COMMIT;
   CALL etl.edw_proc_trace_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE ,V_ERROR_MSG = MESSAGE_TEXT;
+         CALL etl.edw_proc_error_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+         CALL etl.edw_proc_trace_log(DATE_FORMAT(v_log_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	END;
 /
 
 DROP PROCEDURE IF EXISTS adm.p_trs_stat_agentbankpay_back_detail;
 
 CREATE PROCEDURE adm.p_trs_stat_agentbankpay_back_detail()
+AS
+V_STEP_ID       INT := 0; 
+V_PROC_NAME     VARCHAR(80) := 'adm.p_trs_stat_agentbankpay_back_detail.prc';
+V_START_TIME    CHAR(19) := NOW();
+v_log_date      CHAR(10);
+v_data_date     VARCHAR(10) := CURDATE();
 BEGIN
 --     AUTHOR     : yeqian
 --     NAME       : adm.p_trs_stat_agentbankpay_back_detail.HQL 
@@ -26760,11 +26775,6 @@ BEGIN
 --   --------  ----------  -------------  -------------  ---------------------
 --     1.0     2018-11-29   yeqian                      1.CREATE THE PROCEDURE
 --
-DECLARE V_STEP_ID       INT              DEFAULT 0; 
-DECLARE V_PROC_NAME     VARCHAR(80)      DEFAULT 'adm.p_trs_stat_agentbankpay_back_detail.prc';
-DECLARE V_START_TIME    CHAR(19)         DEFAULT NOW();
-DECLARE v_log_date      CHAR(10);
-DECLARE v_data_date     VARCHAR(10)      DEFAULT CURDATE();
     /* EXCEPTION HANDLER  
     DECLARE V_RETURN_CODE TEXT;
     DECLARE V_ERROR_MSG TEXT;
@@ -26776,13 +26786,13 @@ DECLARE v_data_date     VARCHAR(10)      DEFAULT CURDATE();
     END;
 	*/
 -- SET v_log_date  = DATE_FORMAT(v_data_date,'%Y-%m-%d');
-   SET v_data_date = DATE_FORMAT(DATE_SUB(v_data_date,INTERVAL 2 MONTH),'%Y-%m');
+   v_data_date := DATE_FORMAT(DATE_SUB(v_data_date,INTERVAL 2 MONTH),'%Y-%m');
    
    
 -- 删除当期的数据
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_stat_agentbankpay_back_detail WHERE DATE_FORMAT(S_ENTRUSTDATE,'%Y-%m') = v_data_date;
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 -- 从源表取数到目标表
 INSERT INTO adm.trs_stat_agentbankpay_back_detail 
 (
@@ -26906,6 +26916,12 @@ COMMIT;
 DROP PROCEDURE IF EXISTS adm.p_trs_stat_agentbankpay_detail;
 
 CREATE PROCEDURE adm.p_trs_stat_agentbankpay_detail()
+AS
+V_STEP_ID       INT := 0; 
+V_PROC_NAME     VARCHAR(80) := 'adm.p_trs_stat_agentbankpay_detail.prc';
+V_START_TIME    CHAR(19) := NOW();
+v_log_date      CHAR(10);
+v_data_date     VARCHAR(10) := CURDATE();
 BEGIN
 --     AUTHOR     : yeqian
 --     NAME       : adm.p_trs_stat_agentbankpay_detail.HQL 
@@ -26918,11 +26934,6 @@ BEGIN
 --   --------  ----------  -------------  -------------  ---------------------
 --     1.0     2018-11-29   yeqian                      1.CREATE THE PROCEDURE
 --
-DECLARE V_STEP_ID       INT              DEFAULT 0; 
-DECLARE V_PROC_NAME     VARCHAR(80)      DEFAULT 'adm.p_trs_stat_agentbankpay_detail.prc';
-DECLARE V_START_TIME    CHAR(19)         DEFAULT NOW();
-DECLARE v_log_date      CHAR(10);
-DECLARE v_data_date     VARCHAR(10)      DEFAULT CURDATE();
     /* EXCEPTION HANDLER  
     DECLARE V_RETURN_CODE TEXT;
     DECLARE V_ERROR_MSG TEXT;
@@ -26934,13 +26945,13 @@ DECLARE v_data_date     VARCHAR(10)      DEFAULT CURDATE();
     END;
 	*/
 -- SET v_log_date  = DATE_FORMAT(v_data_date,'%Y-%m-%d');
-   SET v_data_date = DATE_FORMAT(DATE_SUB(v_data_date,INTERVAL 1 MONTH),'%Y-%m');
+   v_data_date := DATE_FORMAT(DATE_SUB(v_data_date,INTERVAL 1 MONTH),'%Y-%m');
    
    
 -- 删除当期的数据
-SET V_STEP_ID = 1;
+V_STEP_ID := 1;
 DELETE FROM adm.trs_stat_agentbankpay_detail WHERE DATE_FORMAT(S_ENTRUSTDATE,'%Y-%m') = v_data_date;
-SET V_STEP_ID = 2;
+V_STEP_ID := 2;
 -- 从源表取数到目标表
 INSERT INTO adm.trs_stat_agentbankpay_detail (
  S_SEQNO            -- 序号
@@ -27059,14 +27070,15 @@ COMMIT;
 DROP PROCEDURE IF EXISTS adm.test_loop;
 
 CREATE PROCEDURE adm.test_loop(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop.PRC';
+  V_STEP_ID       INT := 0;
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
+  LOOP
   
 --     SET s_date = DATE_FORMAT(s_date,'%Y%m%d');
   
@@ -27086,25 +27098,26 @@ CALL adm.p_trs_kyd_industry_comprehensive(s_date);
 --  CALL etl.edw_proc_trace_log(DATE_FORMAT(s_date,'%Y%m%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 month);
+  s_date := DATE_ADD(s_date,INTERVAL 1 month);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop1;
 
 CREATE PROCEDURE adm.test_loop1(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop.PRC';
+  V_STEP_ID       INT := 0;
+  V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+  V_SQLTXT        LONGTEXT := ''; -- 执行SQL
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
-  DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-  DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
+  LOOP
   
   SELECT s_date;
 -- 功能分类预算收入-日
@@ -27247,28 +27260,29 @@ ON aa.s_budgetsubjectcode = dt1.subject_code_4
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop2;
 
 CREATE PROCEDURE adm.test_loop2(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop2.PRC';
+  V_STEP_ID       INT := 0;
+  V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+  V_SQLTXT        LONGTEXT := ''; -- 执行SQL
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop2.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
-  DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-  DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
 	  delete from  adm.trs_sk_subject_income where  REPORTDATE=s_date;  
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 	  INSERT INTO adm.trs_sk_subject_income
 	SELECT
 	 a.d_expfile                         AS REPORTDATE        -- 时间（日）
@@ -27335,29 +27349,30 @@ BEGIN
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop3;
 
 CREATE PROCEDURE adm.test_loop3(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop3.PRC';
+  V_STEP_ID       INT := 0;
+  V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+  V_SQLTXT        LONGTEXT := ''; -- 执行SQL
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop3.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
-  DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-  DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
 	  delete from  adm.trs_sk_subject_payout where  REPORTDATE=s_date;
   
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 	  -- (多维)支出分科目统计表
 	-- 2018年3月30日之后取(含30日)
 	INSERT INTO adm.trs_sk_subject_payout
@@ -27392,25 +27407,26 @@ BEGIN
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop4;
 
 CREATE PROCEDURE adm.test_loop4(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop4.PRC';
+  V_STEP_ID       INT := 0;
+  V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+  V_SQLTXT        LONGTEXT := ''; -- 执行SQL
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop4.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
-  DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-  DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
+  LOOP
 	 
 -- 限额税收统计表-日
 -- DROP TABLE adm.trs_budget_limit_income_daily
@@ -27500,29 +27516,30 @@ ON aa.s_aimtrecode = dt3.guoku_id
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop5;
 
 CREATE PROCEDURE adm.test_loop5(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop5.PRC';
+  V_STEP_ID       INT := 0;
+  V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+  V_SQLTXT        LONGTEXT := ''; -- 执行SQL
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop5.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
-  DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-  DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
 	  delete from  adm.trs_sk_acct_stock where  REPORTDATE=s_date;
   
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 		-- (多维)库存分账户统计表
 	-- 2018年3月30日之后取(含30日)
 	INSERT INTO adm.trs_sk_acct_stock
@@ -27552,26 +27569,27 @@ BEGIN
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop6;
 
 CREATE PROCEDURE adm.test_loop6(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop6.PRC';
+  V_STEP_ID       INT := 0;
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop6.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
     DELETE FROM adm.ana_trs_income_subject_struct WHERE D_DATE = s_date;
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 -- 2018年3月30日之后（含30日）
 INSERT INTO adm.ana_trs_income_subject_struct
 -- 全辖
@@ -27694,26 +27712,27 @@ GROUP BY a.s_trecode,a.sub_lvl_code;
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop7;
 
 CREATE PROCEDURE adm.test_loop7(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop7.PRC';
+  V_STEP_ID       INT := 0;
 BEGIN
   -- DECLARE  s_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop7.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
   -- SET s_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
     DELETE FROM adm.trs_stock_change_monthly WHERE D_REPORTDATE = DATE_FORMAT(s_date,'%Y-%m');
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 -- 2018年3月30日之后（含30日）
 INSERT INTO adm.trs_stock_change_monthly
 -- 全辖
@@ -27818,26 +27837,27 @@ FROM
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop8;
 
 CREATE PROCEDURE adm.test_loop8(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop8.PRC';
+  V_STEP_ID       INT := 0;
 BEGIN
   -- DECLARE  s_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop8.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
   -- SET s_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
  -- DELETE FROM adm.trs_budget_function_income_daily WHERE D_REPORTDATE = DATE_FORMAT(s_date,'%Y-%m');
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 -- 2018年3月30日之后（含30日）
 INSERT INTO adm.trs_budget_function_income_daily
 -- 功能分类预算收入-日
@@ -28118,26 +28138,27 @@ ON aa.s_budgetsubjectcode = dt1.subject_code_4;
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop9;
 
 CREATE PROCEDURE adm.test_loop9(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop9.PRC';
+  V_STEP_ID       INT := 0;
 BEGIN
   -- DECLARE  s_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop9.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
   -- SET s_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
  DELETE FROM adm.trs_budget_function_income_daily WHERE D_REPORTDATE = DATE_FORMAT(s_date,'%Y-%m-%d');
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 -- 2018年3月30日之后（含30日）
 INSERT INTO adm.trs_budget_function_income_daily
 -- 功能分类预算收入-日
@@ -28281,25 +28302,26 @@ ON aa.s_budgetsubjectcode = dt1.subject_code_4;
   CALL etl.edw_proc_trace_log(DATE_FORMAT(s_date,'%Y-%m-%d'),V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop_income_all;
 
 CREATE PROCEDURE adm.test_loop_income_all(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop_income_all.PRC';
+  V_STEP_ID       INT := 0;
+  V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+  V_SQLTXT        LONGTEXT := ''; -- 执行SQL
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop_income_all.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
-  DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-  DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
+  LOOP
   
   SELECT s_date;
 -- 功能分类预算收入-日
@@ -28422,32 +28444,33 @@ ON aa.s_budgetsubjectcode = dt1.subject_code_4
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP PROCEDURE IF EXISTS adm.test_loop_stock;
 
 CREATE PROCEDURE adm.test_loop_stock(IN s_date DATE,IN edate DATE)
+AS
+  V_START_TIME    CHAR(19) := NOW();
+  V_PROC_NAME     VARCHAR(80) := 'adm.test_loop_stock.PRC';
+  V_STEP_ID       INT := 0;
+  V_SQL_INSERT    LONGTEXT := ''; -- 插数语句SQL
+  V_SQLTXT        LONGTEXT := ''; -- 执行SQL
 BEGIN
   -- DECLARE  data_date DATE ;  -- 数据日期
-  DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-  DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'adm.test_loop_stock.PRC';
-  DECLARE V_STEP_ID       INT           DEFAULT 0;
-  DECLARE V_SQL_INSERT    LONGTEXT        DEFAULT ''; -- 插数语句SQL
-  DECLARE V_SQLTXT        LONGTEXT        DEFAULT ''; -- 执行SQL
   -- SET data_date =  '2018-01-01';
   WHILE s_date <= edate
-  DO
-	  SET V_STEP_ID =1;
+  LOOP
+	  V_STEP_ID := 1;
 	  DELETE FROM  adm.trs_stock_change_daily WHERE  D_REPORTDATE=s_date;  
-	  SET V_STEP_ID =2;
+	  V_STEP_ID := 2;
 	-- 库存变动情况-日
 -- drop table adm.trs_stock_change_daily
 -- CREATE TABLE adm.trs_stock_change_daily AS
--- insert into adm.trs_stock_change_daily
+INSERT INTO adm.trs_stock_change_daily
  (
 D_REPORTDATE,
 S_TRECODE,
@@ -28545,42 +28568,50 @@ ON aa.s_trecode = dt1.guoku_id
  
  
   -- SET  s_date = DATE_FORMAT(s_date,'%Y-%m-01');
-  SET s_date = DATE_ADD(s_date,INTERVAL 1 DAY);
+  s_date := DATE_ADD(s_date,INTERVAL 1 DAY);
   COMMIT;
-  END WHILE;
+  END LOOP;
 END;
 /
 
 DROP FUNCTION IF EXISTS adm.num_char;
 
-CREATE FUNCTION adm.num_char(Varstring VARCHAR(1000)CHARSET utf8) RETURNS varchar(500)
+CREATE FUNCTION adm.num_char(Varstring VARCHAR(1000)) RETURNS varchar(500)
+AS $function$
+DECLARE
+    len INT := 0;
+    Tmp VARCHAR(1000) := '';
 BEGIN
-  DECLARE len INT DEFAULT 0;
-  DECLARE Tmp VARCHAR(1000) DEFAULT '';
-  SET len=CHAR_LENGTH(Varstring);
-    WHILE len > 0 DO
-    IF NOT (MID(Varstring,len,1)REGEXP '^[u0391-uFFE5]')
-    THEN
-    SET Tmp=CONCAT(Tmp,MID(Varstring,len,1));
-    END IF;
-    SET len = len - 1;
-    END WHILE;
+    len := CHAR_LENGTH(Varstring);
+    WHILE len > 0 LOOP
+        IF NOT (MID(Varstring, len, 1) REGEXP '^[u0391-uFFE5]') THEN
+            Tmp := CONCAT(Tmp, MID(Varstring, len, 1));
+        END IF;
+        len := len - 1;
+    END LOOP;
     RETURN REVERSE(Tmp);
-    END;
-/
-
+END;
+$function$
+LANGUAGE plpgsql;
 DROP FUNCTION IF EXISTS adm.py_cx_getchildorglistbypid;
 
 CREATE FUNCTION adm.py_cx_getchildorglistbypid(rootId VARCHAR(50)) RETURNS varchar(20000)
+AS $function$
+DECLARE
+    sTemp VARCHAR(20000);
+    sTempChd VARCHAR(20000);
 BEGIN
-DECLARE sTemp VARCHAR(20000);
-DECLARE sTempChd VARCHAR(20000);
-SET sTemp = '$';
-SET sTempChd =rootId;
-WHILE sTempChd !='' DO
-SET sTemp = CONCAT(sTemp,',',sTempChd);
-SELECT GROUP_CONCAT(org_id) INTO sTempChd FROM dmcode.t_org_biz_lvl WHERE PARENT_ORG_ID<>org_id AND FIND_IN_SET(PARENT_ORG_ID,sTempChd)>0;
-END WHILE;
-RETURN sTemp;
+    sTemp := '$';
+    sTempChd := rootId;
+    WHILE sTempChd != '' LOOP
+        sTemp := CONCAT(sTemp, ',', sTempChd);
+        SELECT GROUP_CONCAT(org_id)
+          INTO sTempChd
+          FROM dmcode.t_org_biz_lvl
+         WHERE PARENT_ORG_ID <> org_id
+           AND FIND_IN_SET(PARENT_ORG_ID, sTempChd) > 0;
+    END LOOP;
+    RETURN sTemp;
 END;
-/
+$function$
+LANGUAGE plpgsql;

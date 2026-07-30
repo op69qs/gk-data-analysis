@@ -26,6 +26,7 @@ CREATE PROCEDURE etl.edw_proc_trace_log(
     IN p_step_id INT,
     IN p_row_count BIGINT
 )
+AS
 BEGIN
     INSERT INTO etl.proc_log_stub (
         log_type,
@@ -57,6 +58,7 @@ CREATE PROCEDURE etl.edw_proc_error_log(
     IN p_return_code TEXT,
     IN p_error_msg TEXT
 )
+AS
 BEGIN
     INSERT INTO etl.proc_log_stub (
         log_type,

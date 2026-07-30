@@ -7,16 +7,17 @@ SET search_path TO report, public;
 -- PROCEDURE report.P_MONTH_REPORT_TEXT
 DROP PROCEDURE IF EXISTS report.P_MONTH_REPORT_TEXT;
 CREATE PROCEDURE report.P_MONTH_REPORT_TEXT(IN v_data_date VARCHAR(20))
+AS
+    V_PROC_NAME     VARCHAR(80) := 'REPORT.P_MONTH_REPORT_TEXT.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0; 
 BEGIN
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'REPORT.P_MONTH_REPORT_TEXT.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0; 
 	
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM REPORT.REPORT_TEXT WHERE ACCOUNT_PERIOD = v_data_date;
     CALL ETL.EDW_PROC_TRACE_LOG(v_data_date,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
     insert into   report.report_text  
     (
                 ACCOUNT_PERIOD,
@@ -1178,16 +1179,17 @@ END
 -- PROCEDURE report.P_NEWS_FLASH_MONTH_REPORT_TEXT
 DROP PROCEDURE IF EXISTS report.P_NEWS_FLASH_MONTH_REPORT_TEXT;
 CREATE PROCEDURE report.P_NEWS_FLASH_MONTH_REPORT_TEXT(IN v_data_date VARCHAR(20))
+AS
+    V_PROC_NAME     VARCHAR(80) := 'REPORT.P_NEWS_FLASH_MONTH_REPORT_TEXT.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0; 
 BEGIN
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'REPORT.P_NEWS_FLASH_MONTH_REPORT_TEXT.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0; 
 	
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM REPORT.NEWS_FLASH_MONTH_TEXT WHERE ACCOUNT_PERIOD = v_data_date;
     CALL ETL.EDW_PROC_TRACE_LOG(v_data_date,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
 INSERT INTO   report.NEWS_FLASH_MONTH_TEXT  
     (
 	ACCOUNT_PERIOD,
@@ -1579,19 +1581,20 @@ SET search_path TO report, public;
 
 DROP PROCEDURE IF EXISTS report.P_NEWS_FLASH_MONTH_TEXT_NUMBER;
 CREATE PROCEDURE report.P_NEWS_FLASH_MONTH_TEXT_NUMBER(IN v_data_date VARCHAR(10))
+AS
+    con INT := 0;
+    conn INT := 0;
+    num1 INT := 0;
+    num2 INT := 0;
+    lib56 INT := 0;
+    lib13 INT := 0;
+    lib423 INT := 0;
+    lib345 INT := 0;
+    lib31802 INT := 0;
+    qlib178 INT := 0;
 BEGIN
-    DECLARE con INT DEFAULT 0;
-    DECLARE conn INT DEFAULT 0;
-    DECLARE num1 INT DEFAULT 0;
-    DECLARE num2 INT DEFAULT 0;
-    DECLARE lib56 INT DEFAULT 0;
-    DECLARE lib13 INT DEFAULT 0;
-    DECLARE lib423 INT DEFAULT 0;
-    DECLARE lib345 INT DEFAULT 0;
-    DECLARE lib31802 INT DEFAULT 0;
-    DECLARE qlib178 INT DEFAULT 0;
 
-    SET con = COALESCE((
+    con := COALESCE((
         SELECT MAX(prefix_len)
         FROM (
             SELECT
@@ -1633,7 +1636,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (DATE_FORMAT(v_data_date, '%Y-%m'), 'lib_000009', con);
 
-    SET conn = COALESCE((
+    conn := COALESCE((
         SELECT MAX(prefix_len)
         FROM (
             SELECT
@@ -1675,7 +1678,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (DATE_FORMAT(v_data_date, '%Y-%m'), 'lib_000188', conn);
 
-    SET num1 = COALESCE((
+    num1 := COALESCE((
         SELECT MAX(PERIOD_DIFF(DATE_FORMAT(v_data_date, '%Y%m'), REPLACE(ACCOUNT_PERIOD, '-', '')))
         FROM (
             SELECT
@@ -1700,7 +1703,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (DATE_FORMAT(v_data_date, '%Y-%m'), 'lib_000056', num1);
 
-    SET num2 = COALESCE((
+    num2 := COALESCE((
         SELECT MAX(FLOOR(PERIOD_DIFF(DATE_FORMAT(v_data_date, '%Y%m'), REPLACE(ACCOUNT_PERIOD, '-', '')) / 12))
         FROM (
             SELECT
@@ -1725,7 +1728,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (DATE_FORMAT(v_data_date, '%Y-%m'), 'lib_000178', num2);
 
-    SET lib56 = COALESCE((
+    lib56 := COALESCE((
         SELECT COUNT(*)
         FROM (
             SELECT
@@ -1775,7 +1778,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (CONCAT(YEAR(v_data_date), 'Q', QUARTER(v_data_date)), 'lib_000056', lib56);
 
-    SET lib13 = COALESCE((
+    lib13 := COALESCE((
         SELECT COUNT(*)
         FROM (
             SELECT ACCOUNT_PERIOD,
@@ -1823,7 +1826,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (CONCAT(YEAR(v_data_date), 'Q', QUARTER(v_data_date)), 'lib_000013', lib13);
 
-    SET lib423 = COALESCE((
+    lib423 := COALESCE((
         SELECT COUNT(*)
         FROM (
             SELECT ACCOUNT_PERIOD,
@@ -1871,7 +1874,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (CONCAT(YEAR(v_data_date), 'Q', QUARTER(v_data_date)), 'lib_423', lib423);
 
-    SET lib345 = COALESCE((
+    lib345 := COALESCE((
         SELECT COUNT(*)
         FROM (
             SELECT ACCOUNT_PERIOD,
@@ -1919,7 +1922,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (CONCAT(YEAR(v_data_date), 'Q', QUARTER(v_data_date)), 'lib_345', lib345);
 
-    SET lib31802 = COALESCE((
+    lib31802 := COALESCE((
         SELECT COUNT(*)
         FROM (
             SELECT ACCOUNT_PERIOD,
@@ -1967,7 +1970,7 @@ BEGIN
     INSERT INTO report.news_flash_month_text_number
     VALUES (CONCAT(YEAR(v_data_date), 'Q', QUARTER(v_data_date)), 'lib_31802', lib31802);
 
-    SET qlib178 = COALESCE((
+    qlib178 := COALESCE((
         SELECT MAX(
             FLOOR(
                 PERIOD_DIFF(
@@ -2011,16 +2014,17 @@ END
 /
 
 CREATE PROCEDURE report.P_NEWS_FLASH_QUARTER_REPORT_TEXT(IN v_data_date VARCHAR(20))
+AS
+    V_PROC_NAME     VARCHAR(80) := 'REPORT.P_NEWS_FLASH_QUARTER_REPORT_TEXT.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0; 
 BEGIN
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'REPORT.P_NEWS_FLASH_QUARTER_REPORT_TEXT.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0; 
 	
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM REPORT.NEWS_FLASH_QUARTER_REPORT_TEXT WHERE ACCOUNT_PERIOD = v_data_date;
     CALL ETL.EDW_PROC_TRACE_LOG(v_data_date,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
 INSERT INTO   report.NEWS_FLASH_QUARTER_REPORT_TEXT  
     (
 	ACCOUNT_PERIOD,
@@ -3235,16 +3239,17 @@ END
 -- PROCEDURE report.P_QUARTER_REPORT_TEXT
 DROP PROCEDURE IF EXISTS report.P_QUARTER_REPORT_TEXT;
 CREATE PROCEDURE report.P_QUARTER_REPORT_TEXT(IN v_data_date VARCHAR(20))
+AS
+    V_PROC_NAME     VARCHAR(80) := 'REPORT.P_QUARTER_REPORT_TEXT.PRC';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0; 
 BEGIN
-    DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'REPORT.P_QUARTER_REPORT_TEXT.PRC';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0; 
 	
-    SET V_STEP_ID = 1;
+    V_STEP_ID := 1;
     DELETE FROM REPORT.quarter_report_text  WHERE ACCOUNT_PERIOD = v_data_date;
     CALL ETL.EDW_PROC_TRACE_LOG(v_data_date,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
 	
-    SET V_STEP_ID = 2;
+    V_STEP_ID := 2;
 INSERT INTO report.quarter_report_text  
     (
 	ACCOUNT_PERIOD,

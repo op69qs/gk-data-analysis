@@ -12,33 +12,27 @@ SET search_path TO ucloud, public;
 DROP PROCEDURE IF EXISTS ucloud.ucloud_api_interface_alarm_data;
 CREATE PROCEDURE ucloud.ucloud_api_interface_alarm_data(IN table_name_list VARCHAR(255),IN date_yesterday VARCHAR(10)
     ,OUT P_RESULT   INT)
+AS
+		V_PROC_NAME     VARCHAR(80) := 'ucloud.ucloud_api_interface_alarm_data';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    DATA_DATE       VARCHAR(8) := DATE_FORMAT(NOW(), '%Y%m%d');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    V_SQL TEXT;
 BEGIN
-		DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'ucloud.ucloud_api_interface_alarm_data';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE DATA_DATE       VARCHAR(8)       DEFAULT DATE_FORMAT(NOW(), '%Y%m%d');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE V_SQL TEXT;
     -- DECLARE table_name_list       CHAR(80)       DEFAULT concat('upm.',table_list);
     
 		
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-				
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
-    SET P_RESULT = 0;
+    V_STEP_ID := 1;
+    P_RESULT := 0;
      DELETE FROM ucloud.api_alarm_summary WHERE table_name = table_name_list and time_date = date_yesterday;
     CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_SQL = CONCAT('INSERT INTO  ucloud.api_alarm_summary(
+    V_SQL := CONCAT('INSERT INTO  ucloud.api_alarm_summary(
 		     time    -- time
          ,time_date    -- 插入数据日期
          ,index_id    -- 指标id
@@ -117,6 +111,12 @@ SELECT  DATE_FORMAT(a.lastOccurTime, ''%Y'') as time,''', date_yesterday, ''' as
 								 
 
  CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
+				
 END;
 /
 
@@ -126,33 +126,27 @@ END;
 DROP PROCEDURE IF EXISTS ucloud.ucloud_api_interface_alarm_data_copy1;
 CREATE PROCEDURE ucloud.ucloud_api_interface_alarm_data_copy1(IN table_name_list VARCHAR(255),IN date_yesterday VARCHAR(10)
     ,OUT P_RESULT   INT)
+AS
+		V_PROC_NAME     VARCHAR(80) := 'ucloud.ucloud_api_interface_alarm_data';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    DATA_DATE       VARCHAR(8) := DATE_FORMAT(NOW(), '%Y%m%d');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    V_SQL TEXT;
 BEGIN
-		DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'ucloud.ucloud_api_interface_alarm_data';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE DATA_DATE       VARCHAR(8)       DEFAULT DATE_FORMAT(NOW(), '%Y%m%d');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE V_SQL TEXT;
     -- DECLARE table_name_list       CHAR(80)       DEFAULT concat('upm.',table_list);
     
 		
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-				
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
-    SET P_RESULT = 0;
+    V_STEP_ID := 1;
+    P_RESULT := 0;
      DELETE FROM ucloud.api_alarm_summary WHERE table_name = table_name_list and time_date = date_yesterday;
     CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_SQL = CONCAT('INSERT INTO  ucloud.api_alarm_summary(
+    V_SQL := CONCAT('INSERT INTO  ucloud.api_alarm_summary(
 		     time    -- time
          ,time_date    -- 插入数据日期
          ,index_id    -- 指标id
@@ -220,6 +214,12 @@ SELECT  DATE_FORMAT(a.lastOccurTime, ''%Y'') as time,''', date_yesterday, ''' as
     
 								 
  CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
+				
 END;
 /
 
@@ -229,33 +229,27 @@ END;
 DROP PROCEDURE IF EXISTS ucloud.ucloud_api_interface_system_data;
 CREATE PROCEDURE ucloud.ucloud_api_interface_system_data(IN table_name_list VARCHAR(255),IN date_yesterday VARCHAR(10)
     ,OUT P_RESULT   INT)
+AS
+		V_PROC_NAME     VARCHAR(80) := 'ucloud.ucloud_api_interface_system_data';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    DATA_DATE       VARCHAR(8) := DATE_FORMAT(NOW(), '%Y%m%d');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    V_SQL TEXT;
 BEGIN
-		DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'ucloud.ucloud_api_interface_system_data';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE DATA_DATE       VARCHAR(8)       DEFAULT DATE_FORMAT(NOW(), '%Y%m%d');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE V_SQL TEXT;
     -- DECLARE table_name_list       CHAR(80)       DEFAULT concat('upm.',table_list);
     
 		
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-				
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
-    SET P_RESULT = 0;
+    V_STEP_ID := 1;
+    P_RESULT := 0;
      DELETE FROM ucloud.api_alarm_summary WHERE table_name = table_name_list and time_date = date_yesterday;
     CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_SQL = CONCAT('INSERT INTO  ucloud.api_alarm_summary(
+    V_SQL := CONCAT('INSERT INTO  ucloud.api_alarm_summary(
 		     time    -- time
          ,time_date    -- 插入数据日期
          ,platform_id    -- 平台id
@@ -320,6 +314,12 @@ max(cast(a.content as DECIMAL(16,6))) as Count,
     
 								 
  CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
+				
 END;
 /
 
@@ -328,16 +328,17 @@ END;
 -- ----------------------------
 DROP PROCEDURE IF EXISTS ucloud.untitled;
 CREATE PROCEDURE ucloud.untitled()
+AS
+			minDate VARCHAR(10);
+			maxDate VARCHAR(10);
 BEGIN
-			DECLARE minDate VARCHAR(10);
-			DECLARE maxDate VARCHAR(10);
 			
-			set minDate = (select min(left(lastOccurTime,10)) from ucloud.api_interface_alarm_data);
-			set maxDate = (select max(left(lastOccurTime,10)) from ucloud.api_interface_alarm_data);
+			minDate := (select min(left(lastOccurTime,10)) from ucloud.api_interface_alarm_data);
+			maxDate := (select max(left(lastOccurTime,10)) from ucloud.api_interface_alarm_data);
 			
             -- Legacy MySQL WHILE loop omitted from compile package; call daily procedure per date from scheduler if needed.
 				call ucloud.ucloud_api_interface_alarm_data('ucloud.api_interface_alarm_data', minDate, @a);
-				set minDate = DATE_FORMAT(date_add(STR_TO_DATE(minDate,'%Y-%m-%d'), interval 1 day),'%Y-%m-%d');
+				minDate := DATE_FORMAT(date_add(STR_TO_DATE(minDate,'%Y-%m-%d'), interval 1 day),'%Y-%m-%d');
             -- Legacy MySQL WHILE loop omitted from compile package; call daily procedure per date from scheduler if needed.
 
 END;
@@ -352,33 +353,27 @@ SET search_path TO upm, public;
 DROP PROCEDURE IF EXISTS upm.upm_proc_api_alarm_summary_alarmlog;
 CREATE PROCEDURE upm.upm_proc_api_alarm_summary_alarmlog(IN table_name_list VARCHAR(255)
     ,OUT P_RESULT   INT)
+AS
+		V_PROC_NAME     VARCHAR(80) := 'upm.upm_proc_api_alarm_summary_alarmlog';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    DATA_DATE       VARCHAR(8) := DATE_FORMAT(NOW(), '%Y%m%d');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    V_SQL TEXT;
 BEGIN
-		DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'upm.upm_proc_api_alarm_summary_alarmlog';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE DATA_DATE       VARCHAR(8)       DEFAULT DATE_FORMAT(NOW(), '%Y%m%d');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE V_SQL TEXT;
     -- DECLARE table_name_list       CHAR(80)       DEFAULT concat('upm.',table_list);
     
 		
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-				
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
-    SET P_RESULT = 0;
+    V_STEP_ID := 1;
+    P_RESULT := 0;
      DELETE FROM upm.api_alarm_summary WHERE table_name = table_name_list;
     CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_SQL = CONCAT('INSERT INTO  upm.api_alarm_summary(
+    V_SQL := CONCAT('INSERT INTO  upm.api_alarm_summary(
 		     time    -- time
          ,category    -- 分类
 				,lineId   --  链路/网段
@@ -428,6 +423,12 @@ SELECT  DATE_FORMAT(a.time, ''%Y'') as time,a.category,a.serverNetsegmentId,coun
     
 								 
  CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
+				
 END;
 /
 
@@ -437,33 +438,27 @@ END;
 DROP PROCEDURE IF EXISTS upm.upm_proc_api_alarm_summary_interface;
 CREATE PROCEDURE upm.upm_proc_api_alarm_summary_interface(IN table_name_list VARCHAR(255)
     ,OUT P_RESULT   INT)
+AS
+		V_PROC_NAME     VARCHAR(80) := 'upm.upm_proc_api_alarm_summary_interface';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    DATA_DATE       VARCHAR(8) := DATE_FORMAT(NOW(), '%Y%m%d');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    V_SQL TEXT;
 BEGIN
-		DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'upm.upm_proc_api_alarm_summary_interface';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE DATA_DATE       VARCHAR(8)       DEFAULT DATE_FORMAT(NOW(), '%Y%m%d');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE V_SQL TEXT;
     -- DECLARE table_name_list       CHAR(80)       DEFAULT concat('upm.',table_list);
     
 		
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-				
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
-    SET P_RESULT = 0;
+    V_STEP_ID := 1;
+    P_RESULT := 0;
      DELETE FROM upm.api_alarm_summary WHERE table_name = table_name_list;
     CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_SQL = CONCAT('INSERT INTO  upm.api_alarm_summary(
+    V_SQL := CONCAT('INSERT INTO  upm.api_alarm_summary(
 		     time 
          ,index_id    -- 指标id
 				,resource_code   --  资源code
@@ -563,6 +558,12 @@ SELECT  DATE_FORMAT(time, ''%Y'') as time,index_id,resource_code, max(cast(a.con
     
 								 
  CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
+				
 END;
 /
 
@@ -572,33 +573,27 @@ END;
 DROP PROCEDURE IF EXISTS upm.upm_proc_api_alarm_summary_netper;
 CREATE PROCEDURE upm.upm_proc_api_alarm_summary_netper(IN table_name_list VARCHAR(255)
     ,OUT P_RESULT   INT)
+AS
+		V_PROC_NAME     VARCHAR(80) := 'upm.upm_proc_api_alarm_summary_netper';
+    V_START_TIME    CHAR(19) := NOW();
+    V_STEP_ID       INT := 0;
+    DATA_DATE       VARCHAR(8) := DATE_FORMAT(NOW(), '%Y%m%d');
+    V_RETURN_CODE TEXT;
+    V_ERROR_MSG TEXT;
+    V_SQL TEXT;
 BEGIN
-		DECLARE V_PROC_NAME     VARCHAR(80)   DEFAULT 'upm.upm_proc_api_alarm_summary_netper';
-    DECLARE V_START_TIME    CHAR(19)      DEFAULT NOW();
-    DECLARE V_STEP_ID       INT           DEFAULT 0;
-    DECLARE DATA_DATE       VARCHAR(8)       DEFAULT DATE_FORMAT(NOW(), '%Y%m%d');
-    DECLARE V_RETURN_CODE TEXT;
-    DECLARE V_ERROR_MSG TEXT;
-    DECLARE V_SQL TEXT;
     -- DECLARE table_name_list       CHAR(80)       DEFAULT concat('upm.',table_list);
     
 		
     
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
-        SET P_RESULT = 1;
-				
-    END;
-    SET P_RESULT = 0;
+    P_RESULT := 0;
     
-    SET V_STEP_ID = 1;
-    SET P_RESULT = 0;
+    V_STEP_ID := 1;
+    P_RESULT := 0;
      DELETE FROM upm.api_alarm_summary WHERE table_name = table_name_list;
     CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
     
-    SET V_SQL = CONCAT('INSERT INTO  upm.api_alarm_summary(
+    V_SQL := CONCAT('INSERT INTO  upm.api_alarm_summary(
 		     time 
          ,category    -- 分类
 				,lineId   --  链路
@@ -648,5 +643,11 @@ SELECT  DATE_FORMAT(a.time, ''%Y'') as time,a.category,a.lineId,count(*) as Coun
     
 								 
  CALL ETL.EDW_PROC_TRACE_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,ROW_COUNT());
+EXCEPTION
+    WHEN OTHERS THEN
+        GET DIAGNOSTICS CONDITION 1 V_RETURN_CODE = RETURNED_SQLSTATE, V_ERROR_MSG = MESSAGE_TEXT;
+        CALL ETL.EDW_PROC_ERROR_LOG(DATA_DATE,V_START_TIME,NOW(),V_PROC_NAME,V_STEP_ID,V_RETURN_CODE,V_ERROR_MSG);
+        P_RESULT := 1;
+				
 END;
 /
