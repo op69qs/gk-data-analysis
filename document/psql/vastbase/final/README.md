@@ -89,6 +89,52 @@ printf '%s\n' 'BEGIN;' '\ir 000_run_all.sql' 'ROLLBACK;' | \
 这只验证建表和过程/Event 的解析、依赖及创建，不会提交对象，也不会用生产数据
 实际跑 15 条业务任务。上线后仍须按下文逐个手工调用并核查业务结果和日志。
 
+## Event 行为回归（仅隔离测试库）
+
+除生产初始化脚本外，仓库提供两类开发测试工具：
+
+- `../../tests/event_runtime_fixtures.sql`：2026-07 测试快照的最小业务数据，包含
+  ODS 消费、国库维度、指标同比、文件路径、企业调查、代理银行和可持续金融数据。
+- `../../tools/verify_event_runtime.sh`：每个 Event 前重新加载夹具，逐一手工执行
+  15 个 `DO CALL`，检查调用退出码、过程内部错误日志和目标表确定值。
+
+夹具会删除/重建部分测试源表并写入带 `EVT-` 标记的数据，**严禁在生产库执行**。
+只允许在从目标环境复制出来的独立验证库运行：
+
+```bash
+cd <document/psql目录>
+tools/verify_event_runtime.sh \
+  <独立验证数据库> \
+  tests/event_runtime_fixtures.sql \
+  /tmp/gk_event_runtime_verify
+```
+
+2026-07-30 在 `cui02-t` / `g100` 的独立数据库
+`gk_event_validation_20260730a` 完整执行结果为 15/15 PASS：
+
+| Event | 业务断言 |
+| --- | --- |
+| `etl_evt_etl_dimnsn_data` | 分表 2 行、维度视图 2 行 |
+| `etl_evt_etl_ods_to_dm` | 临时源被消费并删除、月表金额 66.66、stamp 清除、维度补入、无错误日志 |
+| `edw_evt_trs_call_edw_budget_data` | 复合预算单位键为 `500001EV01`，无 CHAR 填充空格 |
+| `edw_evt_trs_call_edw_cp` | 前一日支付 123.45、退款 23.45 各 1 行 |
+| `indicators_lib_p_init_report01` | 535 条公式全部执行，内部错误 0 |
+| `indicators_lib_p_init_report02` | 两个维度指标合计 246.90，内部错误 0 |
+| `indicators_lib_p_init_report03` | 收入同比均为 0.2、排名均为 1，内部错误 0 |
+| `indicators_lib_p_xunhuan_formula` | 命中 batch 数据，日期规范为 `2026-06-01`，535 条公式及报告链完成，内部错误 0 |
+| `ods_pt_gy_files_task` | FastDFS 路径转换为 `/usr/data/fdfs/storage/170/data2/data/...` |
+| `visual_screen_p_task_vs` | 大屏目标表产生当期数据，内部错误 0 |
+| `adm_enterprise_survey_1` | 企业调查临时表和最终表各 1 行、金额 1 |
+| `adm_enterprise_survey_2` | 按 22:00/23:00 调度前后依赖串联后最终表保持 1 行 |
+| `adm_e_sust_update` | 连续执行两次后仍只有 1 行、贷款余额 321.45 |
+| `adm_p_trs_stat_agentbankpay_back_detail` | 前两个月退款 18.88、1 行 |
+| `adm_p_trs_stat_agentbankpay_detail` | 前一个月支付 88.88、1 行 |
+
+此次一致性基线是现场提供的 `all_event.sql` 中 MySQL Event/routine 定义，并对
+Vastbase 目标结果做了确定值验证。由于没有使用现场 MySQL 运行账号，本次不包含
+“同一夹具同时写入 MySQL 和 Vastbase”的在线双库差分；如需在线差分，必须使用
+经授权的独立 MySQL 测试库，不能在生产源库造数。
+
 ## Event 全局和单独控制
 
 `enable_prevent_job_task_startup` 的含义是“阻止任务启动”，所以值与启停语义相反：
@@ -180,6 +226,16 @@ SELECT *
 5. 源 `edw.p_trs_budget_income_compare` 异常分支引用了未声明的 `TABLE_NAME`；
    目标记录实际过程名，避免错误处理器自身再次报错。
 6. MySQL 的 `EVERY 1 WEEK` 在 Vastbase 不被接受，等价改写为 `EVERY 7 DAY`。
+7. 指标公式目录中 MySQL 的数字字符串参数、`@变量 :=` 排名、错拼占位符和两处
+   源公式字段/`WHERE` 缺失已在公式执行器中做定向转换；排名改为等价的
+   `ROW_NUMBER()`。执行器逐条调用并记录总数，防止批量动态 SQL 中途结束却无法发现。
+8. 公式依赖但旧脚本遗漏的 `lib_indicators_000527` 已补建；全量 535 条公式执行时
+   `etl.edw_proc_error_log` 为 0。
+9. ADM 企业调查动态 SQL 的双引号已改为字符串单引号；7 张 DATE 类型目标表的月度
+   删除条件改为 `YYYY-MM-01`，避免删除失效后每次 Event 重复累加。
+10. EDW 预算单位复合键拼接前对 CHAR 字段执行 `RTRIM`，与 MySQL 默认读取 CHAR
+    时去掉右侧填充的表现一致。
+11. `003_report_init.sql` 为季度快报过程补齐 `DROP PROCEDURE`，生产入口可重复执行。
 
 ## 可重复闭包审计
 
@@ -199,9 +255,13 @@ python3 ../../tools/audit_event_closure.py \
 
 - 静态基线：15 Event、361 源 routine、76 个 Event 可达 routine；缺失 0，
   未解释差异 0，审计退出码 0。
-- 环境：`cui02-t` 的 `g100` Vastbase 容器，数据库 `gk_data_analysis`。
-- 方式：同一连接执行 `BEGIN -> \ir 000_run_all.sql -> ROLLBACK`，并设置
-  `ON_ERROR_STOP=1`。
-- 结果：18/18 脚本完成，日志无 `ERROR/FATAL`，最终正常 `ROLLBACK`，
-  总耗时 33666 ms（2026-07-29）。
-- 测试事务已回滚，测试库未保留本次 dry-run 对象变更。
+- 环境：`cui02-t` 的 `g100` Vastbase 容器；源业务库未改动，行为测试使用独立克隆
+  `gk_event_validation_20260730a`。
+- 最新生产入口 dry-run：同一连接执行
+  `BEGIN -> \ir 000_run_all.sql -> ROLLBACK`，`ON_ERROR_STOP=1`；18/18 脚本完成，
+  `ERROR/FATAL/PANIC` 为 0，最终正常 `ROLLBACK`（2026-07-30）。
+- 行为回归：15/15 Event PASS，断言失败 0；详细日志位于测试容器
+  `/tmp/gk_event_validation_20260730a.verify_final/`。
+- 静态闭包审计再次退出 0：Event 缺失 0、routine 缺失 0、未解释调用边/DML 差异 0。
+- 测试期间全局调度被暂停；完成后已恢复测试前配置
+  `enable_prevent_job_task_startup=off` 并由新连接确认。

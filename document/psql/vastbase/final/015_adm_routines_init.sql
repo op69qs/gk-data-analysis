@@ -8,7 +8,7 @@ CREATE PROCEDURE adm.p_ana_sust_mth_credit_rece_pay_area(in V_DATA_DATE varchar(
 AS
 BEGIN
 /*信贷收支总览   地图*/
-delete FROM adm.ana_sust_mth_credit_rece_pay_area WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
+delete FROM adm.ana_sust_mth_credit_rece_pay_area WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y-%m-01');
 insert into adm.ana_sust_mth_credit_rece_pay_area
 SELECT
 	DATE_FORMAT(CONCAT(a.data_date,'01'),'%Y-%m-01')      AS DATA_DATE,
@@ -32,7 +32,7 @@ CREATE PROCEDURE adm.p_ana_sust_mth_credit_rece_pay_struc(in v_data_date varchar
 AS
 BEGIN
 /*存贷主要项目在各期余额*/
-DELETE FROM adm.ana_sust_mth_credit_rece_pay_struc WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
+DELETE FROM adm.ana_sust_mth_credit_rece_pay_struc WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y-%m-01');
 insert into adm.ana_sust_mth_credit_rece_pay_struc
 SELECT
 DATE_FORMAT(CONCAT(a.data_date,'01'),'%Y-%m-01')      AS DATA_DATE,
@@ -105,7 +105,7 @@ CREATE PROCEDURE adm.p_ana_sust_mth_credit_rece_pay_times(in v_data_date varchar
 AS
 BEGIN
 /*信贷总览  收支时序表*/
-DELETE FROM adm.ana_sust_mth_credit_rece_pay_times WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
+DELETE FROM adm.ana_sust_mth_credit_rece_pay_times WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y-%m-01');
 insert into adm.ana_sust_mth_credit_rece_pay_times
 SELECT
 	DATE_FORMAT(CONCAT(c.data_date,'01'),'%Y-%m-01') 	 AS  data_date,        -- 数据账期
@@ -175,13 +175,13 @@ BEGIN
 	DROP VIEW IF EXISTS adm.sust_enterprise_view;
 
 	V_STEP_ID := 2;
-	v_at_SQLSTR := "CREATE VIEW adm.sust_enterprise_view AS ";
+	v_at_SQLSTR := 'CREATE VIEW adm.sust_enterprise_view AS ';
 
 	IF E_ID = ''
 	THEN
-	v_at_SQLSTR := CONCAT(v_at_SQLSTR,"SELECT DISTINCT ENTERPRISE_ID,ENTERPRISE_name FROM adm.ana_sust_mth_enterprise_survey_temp "," WHERE DATA_DATE = ",V_DATA_DATE,";");
+	v_at_SQLSTR := CONCAT(v_at_SQLSTR,'SELECT DISTINCT ENTERPRISE_ID,ENTERPRISE_name FROM adm.ana_sust_mth_enterprise_survey_temp ',' WHERE DATA_DATE = ',V_DATA_DATE,';');
 	ELSE
-	v_at_SQLSTR := CONCAT(v_at_SQLSTR,"SELECT DISTINCT ENTERPRISE_ID,ENTERPRISE_name FROM adm.ana_sust_mth_enterprise_survey_temp WHERE ENTERPRISE_ID = '",E_ID,"';");
+	v_at_SQLSTR := CONCAT(v_at_SQLSTR,'SELECT DISTINCT ENTERPRISE_ID,ENTERPRISE_name FROM adm.ana_sust_mth_enterprise_survey_temp WHERE ENTERPRISE_ID = ''',E_ID,''';');
 	END IF;
 
 	EXECUTE IMMEDIATE v_at_SQLSTR;
@@ -193,12 +193,12 @@ BEGIN
 	DROP VIEW IF EXISTS adm.sust_standard_norm_view;
 
 	V_STEP_ID := 4;
-	v_at_SQLTXT := "CREATE VIEW adm.sust_standard_norm_view AS ";
+	v_at_SQLTXT := 'CREATE VIEW adm.sust_standard_norm_view AS ';
 	IF N_ID = ''
 	THEN
-	v_at_SQLTXT := CONCAT(v_at_SQLTXT,"SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm ORDER BY ID;");
+	v_at_SQLTXT := CONCAT(v_at_SQLTXT,'SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm ORDER BY ID;');
 	ELSE
-	v_at_SQLTXT := CONCAT(v_at_SQLTXT,"SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm WHERE NORM_ID = '",N_ID,"'ORDER BY ID;");
+	v_at_SQLTXT := CONCAT(v_at_SQLTXT,'SELECT NORM_ID,NORM_NAME FROM adm.sust_standard_norm WHERE NORM_ID = ''',N_ID,''' ORDER BY ID;');
 	END IF;
 
 	EXECUTE IMMEDIATE v_at_SQLTXT;
@@ -349,7 +349,7 @@ DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_special_struc_agricu;
 CREATE PROCEDURE adm.p_ana_sust_mth_special_struc_agricu(in v_data_date varchar(10))
 AS
 BEGIN
-DELETE FROM adm.ana_sust_mth_special_struc_agricu WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
+DELETE FROM adm.ana_sust_mth_special_struc_agricu WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y-%m-01');
 insert into adm.ana_sust_mth_special_struc_agricu
 SELECT
 DATE_FORMAT(CONCAT(a.data_date,'01'),'%Y-%m-01')      AS DATA_DATE,
@@ -375,7 +375,7 @@ DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_special_struc_enter_scale;
 CREATE PROCEDURE adm.p_ana_sust_mth_special_struc_enter_scale(in v_data_date varchar(10))
 AS
 BEGIN
-DELETE FROM adm.ana_sust_mth_special_struc_enter_scale WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
+DELETE FROM adm.ana_sust_mth_special_struc_enter_scale WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y-%m-01');
 insert into adm.ana_sust_mth_special_struc_enter_scale
 SELECT
 DATE_FORMAT(CONCAT(a.data_date,'01'),'%Y-%m-01')      AS DATA_DATE,
@@ -402,7 +402,7 @@ DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_special_struc_realty;
 CREATE PROCEDURE adm.p_ana_sust_mth_special_struc_realty(in v_data_date varchar(10))
 AS
 BEGIN
-DELETE FROM adm.ana_sust_mth_special_struc_realty WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
+DELETE FROM adm.ana_sust_mth_special_struc_realty WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y-%m-01');
 INSERT INTO adm.ana_sust_mth_special_struc_realty
 SELECT
 	DATE_FORMAT(CONCAT(a.data_date,'01'),'%Y-%m-01')      AS DATA_DATE,
@@ -422,7 +422,7 @@ DROP PROCEDURE IF EXISTS adm.p_ana_sust_mth_special_times;
 CREATE PROCEDURE adm.p_ana_sust_mth_special_times(in v_data_date varchar(10))
 AS
 BEGIN
-DELETE FROM adm.ana_sust_mth_special_times WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y%m');
+DELETE FROM adm.ana_sust_mth_special_times WHERE DATA_DATE=DATE_FORMAT(V_DATA_DATE,'%Y-%m-01');
 insert into adm.ana_sust_mth_special_times
 SELECT
 	DATA_DATE,
@@ -439,8 +439,8 @@ SELECT
 	DATE_FORMAT(CONCAT(a.data_date,'01'),'%Y%m')          AS DATA_MTH,
 	(a.loan_balance)*10000 				      AS REALTY_LOAN_BAL,
 	(a.loan_balance-b.loan_balance)/b.loan_balance        AS REALTY_LOAN_BAL_TB,
-	''						      AS AGRICU_LOAN_BAL,
-	''						      AS AGRICU_LOAN_BAL_TB
+	CAST(0 AS NUMERIC)				      AS AGRICU_LOAN_BAL,
+	CAST(0 AS NUMERIC)				      AS AGRICU_LOAN_BAL_TB
 FROM ods.glr_rel_estate_loan_monitor_dtl1 a
 LEFT JOIN ods.glr_rel_estate_loan_monitor_dtl1 b
 ON a.data_date = CONCAT(LEFT(b.data_date,4)-1,RIGHT(b.data_date,2))
@@ -452,15 +452,15 @@ UNION ALL
 SELECT
 	DATE_FORMAT(v_data_date,'%Y-%m-01')      	      AS DATA_DATE,
 	DATE_FORMAT(v_data_date,'%Y%m')          	      AS DATA_MTH,
-	'' 					              AS REALTY_LOAN_BAL,
-	''                       			      AS REALTY_LOAN_BAL_TB,
+	CAST(0 AS NUMERIC) 		              AS REALTY_LOAN_BAL,
+	CAST(0 AS NUMERIC)                       AS REALTY_LOAN_BAL_TB,
 	(SUM(a.bal_cur))*10000			              AS AGRICU_LOAN_BAL,
-	(a.yoy_growth)/100			              AS AGRICU_LOAN_BAL_TB
+	MAX(a.yoy_growth)/100			              AS AGRICU_LOAN_BAL_TB
 FROM ods.glr_lfc_spe_data_agri_dtl1 a
 WHERE a.data_date = DATE_FORMAT(v_data_date,'%Y%m')
 AND a.project = '涉农贷款'
 ) s
-GROUP BY s.data_date;
+GROUP BY s.data_date, s.data_mth;
 	END;
 /
 
@@ -475,7 +475,7 @@ CALL edw.p_cm_sust_update();
 CALL edw.p_transdatafromodstoedw_main();
 CALL edw.p_sust_source_of_funds_detailed_a01();
 CALL edw.p_sust_source_of_funds_detailed_a02();
-call edw.p_sust_science_technology_and_finance(data_format(v_DATA_DATE,'%Y%m%d'));
+call edw.p_sust_science_technology_and_finance(date_format(v_DATA_DATE,'%Y%m%d'));
 -- ADM层
 CALL adm.p_ana_sust_mth_credit_rece_pay_area(V_DATA_DATE);
 CALL adm.p_ana_sust_mth_credit_rece_pay_struc(V_DATA_DATE);

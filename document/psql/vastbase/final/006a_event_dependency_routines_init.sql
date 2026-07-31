@@ -16,7 +16,10 @@ BEGIN
         S_BDGORGNAME
     )
     SELECT DISTINCT
-        CONCAT(S_TRECODE, S_BDGORGCODE),
+        -- MySQL reads CHAR values without right-padding by default. Vastbase
+        -- preserves the padding here, so trim before building the composite
+        -- treasury/budget-organization key.
+        CONCAT(RTRIM(S_TRECODE), RTRIM(S_BDGORGCODE)),
         S_TRECODE,
         S_BDGORGCODE,
         S_BDGORGNAME

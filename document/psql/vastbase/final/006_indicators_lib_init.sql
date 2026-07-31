@@ -1,11 +1,30 @@
 -- Vastbase source-port script for indicators_lib.init_report02
 -- Strategy: keep MySQL B-compatible body first, then validate and narrow incompatibilities.
 
+-- Formula dbd7e0ffdbc043e9b3bd634dc3a7d96c writes this indicator table.
+-- It exists in the MySQL formula dependency set but was absent from the old
+-- Vastbase initialization scripts.  Keep the structure aligned with the
+-- adjacent 000525/000526 indicator tables.
+CREATE TABLE IF NOT EXISTS indicators_lib.lib_indicators_000527 (
+    index_id TEXT,
+    account_period TEXT,
+    index_dim_code TEXT,
+    index_dim_descr TEXT,
+    dimension_flag TEXT,
+    period_flag TEXT,
+    c_bdglevel TEXT DEFAULT '',
+    jurisdiction TEXT,
+    index_value NUMERIC(28, 4),
+    add_userid TEXT,
+    add_date TEXT,
+    modify_userid TEXT,
+    modify_date TEXT
+);
+
 DROP PROCEDURE IF EXISTS indicators_lib.init_report02;
 CREATE PROCEDURE indicators_lib.init_report02(IN v_data_date VARCHAR(10))
 AS
 BEGIN
-
 	DELETE FROM indicators_lib.lib_indicators_000204 
 WHERE (ACCOUNT_PERIOD = DATE_FORMAT(v_data_date, '%Y-%m') 
  OR ACCOUNT_PERIOD = CONCAT(
@@ -46,13 +65,14 @@ FROM
     OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
       ))b
   ON a.`TRECODE`=b.CID
-WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+WHERE LEFT(REPLACE(a.D_ACCT,'-',''),6)=DATE_FORMAT(v_data_date,'%Y%m')
   AND a.SUBJECT_CODE = '11002'
   AND a.`LEVEL`=b.LEVEL
   AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
 GROUP BY 
-  DATE_FORMAT(a.D_ACCT,'%Y-%m'),
-  b.PID
+  LEFT(REPLACE(a.D_ACCT,'-',''),6),
+  b.PID,
+  b.GUOKU_DSCR
   
 UNION ALL
 
@@ -87,20 +107,21 @@ FROM
     OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
       )) b
   ON a.`TRECODE`=b.CID
-WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+WHERE LEFT(REPLACE(a.D_ACCT,'-',''),6)=DATE_FORMAT(v_data_date,'%Y%m')
   AND a.SUBJECT_CODE = '11002'
   AND a.`LEVEL`=b.LEVEL
   AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
 GROUP BY 
-  DATE_FORMAT(a.D_ACCT,'%Y-%m'),
-  b.AREA_NO_ID
+  LEFT(REPLACE(a.D_ACCT,'-',''),6),
+  b.AREA_NO_ID,
+  b.AREA_DSCR
   
   UNION ALL 
   
   
 SELECT
  'cbed93e8b23a11ea8bc1000c29587404',
-  CONCAT(YEAR(A.D_ACCT),'Q',QUARTER(A.D_ACCT)),
+  CONCAT(YEAR(v_data_date),'Q',QUARTER(v_data_date)),
   b.PID,
   b.GUOKU_DSCR,
   '1',
@@ -126,23 +147,25 @@ FROM
     OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
       ))b
   ON a.`TRECODE`=b.CID
-WHERE A.D_ACCT =  CASE WHEN MONTH(v_data_date) IN ('1','2','3') THEN CONCAT(YEAR(v_data_date),'-03-01')
-		       WHEN MONTH(v_data_date) IN ('4','5','6') THEN CONCAT(YEAR(v_data_date),'-06-01')
-		       WHEN MONTH(v_data_date) IN ('7','8','9') THEN CONCAT(YEAR(v_data_date),'-09-01')
-		       ELSE CONCAT(YEAR(v_data_date),'-12-01')  END
+WHERE LEFT(REPLACE(A.D_ACCT,'-',''),6) =
+      CASE WHEN MONTH(v_data_date) IN ('1','2','3') THEN CONCAT(YEAR(v_data_date),'03')
+		   WHEN MONTH(v_data_date) IN ('4','5','6') THEN CONCAT(YEAR(v_data_date),'06')
+		   WHEN MONTH(v_data_date) IN ('7','8','9') THEN CONCAT(YEAR(v_data_date),'09')
+		   ELSE CONCAT(YEAR(v_data_date),'12') END
   AND a.SUBJECT_CODE IN ('11002')
   AND a.`LEVEL`=b.LEVEL
   AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
 GROUP BY 
-  A.D_ACCT,
-  b.PID
+  LEFT(REPLACE(A.D_ACCT,'-',''),6),
+  b.PID,
+  b.GUOKU_DSCR
   
 UNION ALL
 
 
  SELECT
  'cbed93e8b23a11ea8bc1000c29587404',
-  CONCAT(YEAR(A.D_ACCT),'Q',QUARTER(A.D_ACCT)),
+  CONCAT(YEAR(v_data_date),'Q',QUARTER(v_data_date)),
   b.AREA_NO_ID,
   b.AREA_DSCR,
   '2',
@@ -170,16 +193,18 @@ FROM
     OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
       )) b
   ON a.`TRECODE`=b.CID
-WHERE A.D_ACCT =  CASE WHEN MONTH(v_data_date) IN ('1','2','3') THEN CONCAT(YEAR(v_data_date),'-03-01')
-		       WHEN MONTH(v_data_date) IN ('4','5','6') THEN CONCAT(YEAR(v_data_date),'-06-01')
-		       WHEN MONTH(v_data_date) IN ('7','8','9') THEN CONCAT(YEAR(v_data_date),'-09-01')
-		       ELSE CONCAT(YEAR(v_data_date),'-12-01')  END
+WHERE LEFT(REPLACE(A.D_ACCT,'-',''),6) =
+      CASE WHEN MONTH(v_data_date) IN ('1','2','3') THEN CONCAT(YEAR(v_data_date),'03')
+		   WHEN MONTH(v_data_date) IN ('4','5','6') THEN CONCAT(YEAR(v_data_date),'06')
+		   WHEN MONTH(v_data_date) IN ('7','8','9') THEN CONCAT(YEAR(v_data_date),'09')
+		   ELSE CONCAT(YEAR(v_data_date),'12') END
   AND a.SUBJECT_CODE IN ('11002')
   AND a.`LEVEL`=b.LEVEL
   AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
 GROUP BY 
-  A.D_ACCT,
-  b.AREA_NO_ID;
+  LEFT(REPLACE(A.D_ACCT,'-',''),6),
+  b.AREA_NO_ID,
+  b.AREA_DSCR;
   
   DELETE FROM indicators_lib.lib_indicators_000205 
 WHERE (ACCOUNT_PERIOD = DATE_FORMAT(v_data_date, '%Y-%m') 
@@ -279,13 +304,14 @@ FROM
     OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
       ))b
   ON a.`TRECODE`=b.CID
-WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+WHERE LEFT(REPLACE(a.D_ACCT,'-',''),6)=DATE_FORMAT(v_data_date,'%Y%m')
   AND a.SUBJECT_CODE IN ('T0103','T0105')
   AND a.`LEVEL`>=b.LEVEL
   AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
 GROUP BY 
-  DATE_FORMAT(a.D_ACCT,'%Y-%m'),
-  b.PID
+  LEFT(REPLACE(a.D_ACCT,'-',''),6),
+  b.PID,
+  b.GUOKU_DSCR
   
 UNION ALL
 
@@ -320,13 +346,14 @@ FROM
     OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
       )) b
   ON a.`TRECODE`=b.CID
-WHERE DATE_FORMAT(a.D_ACCT,'%Y-%m')=DATE_FORMAT(v_data_date,'%Y-%m')
+WHERE LEFT(REPLACE(a.D_ACCT,'-',''),6)=DATE_FORMAT(v_data_date,'%Y%m')
   AND a.SUBJECT_CODE IN ('T0103','T0105')
   AND a.`LEVEL`>=b.LEVEL
   AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
 GROUP BY 
-  DATE_FORMAT(a.D_ACCT,'%Y-%m'),
-  b.AREA_NO_ID
+  LEFT(REPLACE(a.D_ACCT,'-',''),6),
+  b.AREA_NO_ID,
+  b.AREA_DSCR
   
   
   UNION ALL
@@ -334,7 +361,7 @@ GROUP BY
   
 SELECT
  'd52a325cb23c11ea8bc1000c29587404',
-  CONCAT(YEAR(a.d_acct),'Q',QUARTER(A.D_ACCT)),
+  CONCAT(YEAR(v_data_date),'Q',QUARTER(v_data_date)),
   b.PID,
   b.GUOKU_DSCR,
   '1',
@@ -360,23 +387,25 @@ FROM
     OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
       ))b
   ON a.`TRECODE`=b.CID
-WHERE A.D_ACCT =  CASE WHEN MONTH(v_data_date) IN ('1','2','3') THEN CONCAT(YEAR(v_data_date),'-03-01')
-		       WHEN MONTH(v_data_date) IN ('4','5','6') THEN CONCAT(YEAR(v_data_date),'-06-01')
-		       WHEN MONTH(v_data_date) IN ('7','8','9') THEN CONCAT(YEAR(v_data_date),'-09-01')
-		       ELSE CONCAT(YEAR(v_data_date),'-12-01')  END
+WHERE LEFT(REPLACE(A.D_ACCT,'-',''),6) =
+      CASE WHEN MONTH(v_data_date) IN ('1','2','3') THEN CONCAT(YEAR(v_data_date),'03')
+		   WHEN MONTH(v_data_date) IN ('4','5','6') THEN CONCAT(YEAR(v_data_date),'06')
+		   WHEN MONTH(v_data_date) IN ('7','8','9') THEN CONCAT(YEAR(v_data_date),'09')
+		   ELSE CONCAT(YEAR(v_data_date),'12') END
   AND a.SUBJECT_CODE IN ('T0103','T0105')
   AND a.`LEVEL`>=b.LEVEL
   AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
 GROUP BY 
-  A.D_ACCT,
-  b.PID
+  LEFT(REPLACE(A.D_ACCT,'-',''),6),
+  b.PID,
+  b.GUOKU_DSCR
   
 UNION ALL
 
 
  SELECT
  'd52a325cb23c11ea8bc1000c29587404',
-  CONCAT(YEAR(A.D_ACCT),'Q',QUARTER(A.D_ACCT)),
+  CONCAT(YEAR(v_data_date),'Q',QUARTER(v_data_date)),
   b.AREA_NO_ID,
   b.AREA_DSCR,
   '2',
@@ -404,16 +433,18 @@ FROM
     OR  p.`GUOKU_ID` = c.`GUOKU_LVL_ID_3`
       )) b
   ON a.`TRECODE`=b.CID
-WHERE A.D_ACCT =  CASE WHEN MONTH(v_data_date) IN ('1','2','3') THEN CONCAT(YEAR(v_data_date),'-03-01')
-		       WHEN MONTH(v_data_date) IN ('4','5','6') THEN CONCAT(YEAR(v_data_date),'-06-01')
-		       WHEN MONTH(v_data_date) IN ('7','8','9') THEN CONCAT(YEAR(v_data_date),'-09-01')
-		       ELSE CONCAT(YEAR(v_data_date),'-12-01')  END
+WHERE LEFT(REPLACE(A.D_ACCT,'-',''),6) =
+      CASE WHEN MONTH(v_data_date) IN ('1','2','3') THEN CONCAT(YEAR(v_data_date),'03')
+		   WHEN MONTH(v_data_date) IN ('4','5','6') THEN CONCAT(YEAR(v_data_date),'06')
+		   WHEN MONTH(v_data_date) IN ('7','8','9') THEN CONCAT(YEAR(v_data_date),'09')
+		   ELSE CONCAT(YEAR(v_data_date),'12') END
   AND a.SUBJECT_CODE IN ('T0103','T0105')
   AND a.`LEVEL`>=b.LEVEL
   AND a.`TRECODE` NOT IN('2231000000','2232000000','2233000000','2230000000')
 GROUP BY 
-  A.D_ACCT,
-  b.AREA_NO_ID;
+  LEFT(REPLACE(A.D_ACCT,'-',''),6),
+  b.AREA_NO_ID,
+  b.AREA_DSCR;
 	
 	
 	DELETE FROM indicators_lib.lib_indicators_000228 
@@ -941,7 +972,10 @@ AS
     v_return_code TEXT;
     v_error_msg TEXT;
 BEGIN
-
+    -- Formula SQL was authored under MySQL's non-strict mode. Keep the
+    -- compatibility scope on this Event worker session; trace logging commits
+    -- between delete and insert, so SET LOCAL would be reset too early.
+    SET vastbase_sql_mode = 'ANSI_QUOTES,pipes_as_concat,pad_char_to_full_length';
 
     SELECT
         id,
@@ -968,8 +1002,81 @@ BEGIN
     insert_exec := COALESCE(CONCAT_WS('', insert_str, sesin, where_str), 'SELECT 1');
     insert_exec := REPLACE(insert_exec, '@LAST_DATE', quoted_last_date);
     insert_exec := REPLACE(insert_exec, '@DATA_DATE', quoted_data_date);
+    insert_exec := REPLACE(insert_exec, '@DATE_DATA', quoted_data_date);
     insert_exec := REPLACE(insert_exec, '@data_date', quoted_data_date);
     insert_exec := REPLACE(insert_exec, '@ID', quoted_id);
+
+    -- MySQL coerces the quoted numeric arguments in ROUND(IFNULL(...,'0'),'2')
+    -- to numbers.  Vastbase B-mode may resolve those literals as timestamps,
+    -- which then makes INDEX_VALUE a timestamp.  Only normalize the two exact
+    -- closing-argument forms used by the formula catalogue.
+    insert_exec := REPLACE(insert_exec, ',''0'')', ',0)');
+    insert_exec := REPLACE(insert_exec, ', ''0'')', ', 0)');
+    insert_exec := REPLACE(insert_exec, ',''2'')', ',2)');
+    insert_exec := REPLACE(insert_exec, ', ''2'')', ', 2)');
+
+    -- Three catalogue formulas implement top-N ranking with MySQL session
+    -- variables.  ROW_NUMBER has the same reset-per-dimension/rank-by-value
+    -- semantics and is deterministic on Vastbase.
+    IF v_index_id IN (
+        'ef14b65598ce11eab404000c298a21af',
+        '41231e80d31411eaa45f000c29587404',
+        'afb20841d33211ea8109000c29587404'
+    ) THEN
+        insert_exec := REGEXP_REPLACE(
+            insert_exec,
+            'IF[[:space:]]*[(][[:space:]]*@p[[:space:]]*=[[:space:]]*DD[.]INDEX_DIM_CODE[[:space:]]*,[[:space:]]*@RANK[[:space:]]*:=[[:space:]]*@RANK[[:space:]]*[+][[:space:]]*1[[:space:]]*,[[:space:]]*@RANK[[:space:]]*:=[[:space:]]*1[[:space:]]*[)][[:space:]]+AS[[:space:]]+rank[[:space:]]*,[[:space:]]*@p[[:space:]]*:=[[:space:]]*DD[.]INDEX_DIM_CODE',
+            'ROW_NUMBER() OVER (PARTITION BY DD.INDEX_DIM_CODE ORDER BY DD.INDEX_VALUE DESC) AS rank',
+            'gi'
+        );
+        insert_exec := REGEXP_REPLACE(
+            insert_exec,
+            ',[[:space:]]*[(][[:space:]]*SELECT[[:space:]]+@p[[:space:]]*:=[[:space:]]*NULL[[:space:]]*,[[:space:]]*@rank[[:space:]]*:=[[:space:]]*0[[:space:]]*[)][[:space:]]+rank',
+            '',
+            'gi'
+        );
+
+        -- Two of the three formulas use alias "a" instead of "DD".
+        insert_exec := REGEXP_REPLACE(
+            insert_exec,
+            'IF[[:space:]]*[(][[:space:]]*@p[[:space:]]*=[[:space:]]*a[.]INDEX_DIM_CODE[[:space:]]*,[[:space:]]*@RANK[[:space:]]*:=[[:space:]]*@RANK[[:space:]]*[+][[:space:]]*1[[:space:]]*,[[:space:]]*@RANK[[:space:]]*:=[[:space:]]*1[[:space:]]*[)][[:space:]]+AS[[:space:]]+rank[[:space:]]*,[[:space:]]*@p[[:space:]]*:=[[:space:]]*a[.]INDEX_DIM_CODE',
+            'ROW_NUMBER() OVER (PARTITION BY a.INDEX_DIM_CODE ORDER BY a.INDEX_VALUE DESC) AS rank',
+            'gi'
+        );
+    END IF;
+
+    -- Correct two source-catalogue defects exposed by strict name resolution.
+    -- MySQL intended filters were written as "FROM table AND ...", and the
+    -- yearly comparison derived table omitted two columns used by its JOIN.
+    IF v_index_id = 'dbd7e0ffdbc043e9b3bd634dc3a7d96c' THEN
+        insert_exec := REGEXP_REPLACE(
+            insert_exec,
+            'FROM[[:space:]]+indicators_lib[.]lib_indicators_000232[[:space:]]+AND',
+            'FROM indicators_lib.lib_indicators_000232 WHERE',
+            'gi'
+        );
+        insert_exec := REGEXP_REPLACE(
+            insert_exec,
+            'FROM[[:space:]]+indicators_lib[.]lib_indicators_000234[[:space:]]+AND',
+            'FROM indicators_lib.lib_indicators_000234 WHERE',
+            'gi'
+        );
+        insert_exec := REGEXP_REPLACE(
+            insert_exec,
+            'GROUP[[:space:]]+BY[[:space:]]+ACCOUNT_PERIOD[[:space:]]*,[[:space:]]*INDEX_DIM_CODE',
+            'GROUP BY a0.ACCOUNT_PERIOD, a0.INDEX_DIM_CODE',
+            'gi'
+        );
+    END IF;
+
+    IF v_index_id = 'd7523171776f11eba5aa000c29587404' THEN
+        insert_exec := REGEXP_REPLACE(
+            insert_exec,
+            'SELECT[[:space:]]+INDEX_DIM_CODE[[:space:]]*,[[:space:]]*INDEX_VALUE[[:space:]]+FROM[[:space:]]+indicators_lib[.]lib_indicators_000490',
+            'SELECT INDEX_DIM_CODE, INDEX_VALUE, DIMENSION_FLAG, PERIOD_FLAG FROM indicators_lib.lib_indicators_000490',
+            'i'
+        );
+    END IF;
 
     v_step_id := 1;
     EXECUTE IMMEDIATE delete_exec;
@@ -981,7 +1088,15 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         GET DIAGNOSTICS CONDITION 1 v_return_code = RETURNED_SQLSTATE, v_error_msg = MESSAGE_TEXT;
-        CALL ETL.EDW_PROC_ERROR_LOG(p_data_date, v_start_time, NOW(), v_proc_name, v_step_id, v_return_code, v_error_msg);
+        CALL ETL.EDW_PROC_ERROR_LOG(
+            p_data_date,
+            v_start_time,
+            NOW(),
+            v_proc_name,
+            v_step_id,
+            v_return_code,
+            LEFT(CONCAT('index_id=', v_index_id, '; ', v_error_msg), 2000)
+        );
 END
 ;
 /
@@ -989,25 +1104,33 @@ END
 DROP PROCEDURE IF EXISTS indicators_lib.p_exe_formula;
 CREATE PROCEDURE indicators_lib.p_exe_formula(IN V_DATA_DATE VARCHAR(20))
 AS
-    v_sql TEXT := '';
+    v_formula_id VARCHAR(32);
+    v_formula_count BIGINT := 0;
+    v_start_time VARCHAR := NOW();
 BEGIN
+    -- Execute one formula per CALL.  Building 535 CALL statements into one
+    -- dynamic string makes transaction boundaries and completion impossible
+    -- to audit because each formula trace commits independently.
+    FOR v_formula_id IN
+        SELECT id
+          FROM indicators_lib.lib_index_formula
+         ORDER BY identity_property, id
+    LOOP
+        CALL indicators_lib.p_exe_formula_hand(
+            DATE_FORMAT(V_DATA_DATE, '%Y-%m-%d'),
+            v_formula_id
+        );
+        v_formula_count := v_formula_count + 1;
+    END LOOP;
 
-    v_sql := COALESCE((
-        SELECT string_agg(stmt, ' ')
-        FROM (
-            SELECT CONCAT(
-                'CALL indicators_lib.p_exe_formula_hand(''',
-                DATE_FORMAT(V_DATA_DATE, '%Y-%m-%d'),
-                ''',''',
-                id,
-                ''');'
-            ) AS stmt
-            FROM indicators_lib.lib_index_formula
-            ORDER BY identity_property
-        ) call_queue
-    ), 'SELECT 1');
-
-    EXECUTE IMMEDIATE v_sql;
+    CALL etl.edw_proc_trace_log(
+        DATE_FORMAT(V_DATA_DATE, '%Y-%m'),
+        v_start_time,
+        NOW(),
+        'INDICATORS_LIB.P_EXE_FORMULA.PRC',
+        1,
+        v_formula_count
+    );
 END
 ;
 /

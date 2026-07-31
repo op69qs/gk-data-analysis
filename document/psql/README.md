@@ -19,3 +19,9 @@ ADM routine 和 5 个 EDW 依赖过程。
   `final/` 比较签名、调用边和 DML 目标。
 - `tools/filter_event_closure_bundle.py`：按审计闭包机械裁剪迁移脚本，仅供重新生成
   候选包，不用于现场执行。
+- `tools/run_event_runtime_smoke.sh`：逐个调用 15 个 Event 入口，只检查调用层错误。
+- `tools/verify_event_runtime.sh`：在独立测试库加载 `tests/event_runtime_fixtures.sql`，
+  同时检查内部错误日志和目标表确定值；夹具会造数和重建测试源表，严禁用于生产库。
+
+2026-07-30 的隔离 Vastbase 行为回归为 15/15 PASS，最新 18 脚本事务 dry-run
+也已通过。逐 Event 的断言和本轮发现的语义修复见 `vastbase/final/README.md`。
