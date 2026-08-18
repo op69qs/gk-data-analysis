@@ -17,8 +17,8 @@
       ></a-icon>
       <a-icon v-else class="trigger" :type="collapsed ? 'menu-unfold' : 'menu-fold'" @click="toggle" />
 
-      <span v-if="device === 'desktop'">欢迎进入 国库数据分析与综合应用平台</span>
-      <span v-else>Jeecg-Boot</span>
+      <span v-if="device === 'desktop'">欢迎进入 大数据可视化平台</span>
+      <span v-else>大数据可视化平台</span>
 
       <user-menu :theme="theme" />
     </div>
@@ -175,13 +175,29 @@ $portalTitleFont: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", Arial, san
 
       .header-index-left {
         .logo.top-nav-header {
+          display: flex;
+          align-items: center;
+          line-height: normal;
+
           h1 {
             color: #ffffff;
             font-family: $portalTitleFont;
+            font-size: inherit;
+            font-weight: inherit;
+            letter-spacing: normal;
+            text-shadow: 0 1px 8px rgba(10, 53, 122, 0.2);
+          }
+
+          .sys-name {
             font-size: 18px;
             font-weight: 700;
             letter-spacing: 0.08em;
-            text-shadow: 0 1px 8px rgba(10, 53, 122, 0.2);
+          }
+
+          .sys-abbr {
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 0.16em;
           }
         }
       }

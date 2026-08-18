@@ -478,7 +478,9 @@
             width: 165px;
             height: 64px;
             position: relative;
-            line-height: 64px;
+            line-height: normal;
+            display: flex;
+            align-items: center;
             transition: all .3s;
             overflow: hidden;
 
@@ -490,11 +492,14 @@
 
             h1 {
               color: #fff;
-              display: inline-block;
-              vertical-align: top;
-              font-size: 16px;
-              margin: 0 0 0 12px;
-              font-weight: 400;
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              justify-content: center;
+              margin: 0;
+              font-size: inherit;
+              font-weight: inherit;
+              line-height: 1.15;
             }
           }
         }
@@ -788,28 +793,28 @@
     .logo {
       height: 64px;
       position: relative;
-      line-height: 64px;
+      line-height: normal;
+      display: flex;
+      align-items: center;
       padding-left: 24px;
       -webkit-transition: all .3s;
       transition: all .3s;
       background: #002140;
       overflow: hidden;
 
-      img, h1 {
-        display: inline-block;
-        vertical-align: middle;
-      }
-
       img {
         height: 32px;
+        margin-right: 8px;
       }
 
       h1 {
         color: #fff;
-        font-size: 18px;
-        margin: 0 0 0 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        margin: 0;
         font-family: "Chinese Quote", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        font-weight: 600;
       }
     }
 

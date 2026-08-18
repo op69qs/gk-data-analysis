@@ -10,7 +10,7 @@ import { recordMenuEntry } from '@/api/audit'
 
 NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
-const whiteList = ['/user/login', '/user/register', '/user/register-result', '/user/alteration', '/vis/preview', '/oauth/callback'] // no redirect whitelist
+const whiteList = ['/user/login', '/user/register', '/user/register-result', '/user/alteration', '/user/closed', '/vis/preview', '/oauth/callback'] // no redirect whitelist
 
 router.beforeEach((to, from, next) => {
   NProgress.start() // start progress bar
@@ -77,6 +77,7 @@ router.beforeEach((to, from, next) => {
 })
 
 router.afterEach((to) => {
+  document.title = '大数据可视化平台'
   const token = Vue.ls.get(ACCESS_TOKEN)
   const menuId = to && to.meta ? to.meta.menuId : null
   if (token && menuId) {

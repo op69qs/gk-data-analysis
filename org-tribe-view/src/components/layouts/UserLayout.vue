@@ -1,7 +1,7 @@
 <template>
   <div id="userLayout" :class="['user-layout-wrapper', device]">
     <div class="container">
-      <div style="padding:30px 0;text-align: center;font-size: 30px;font-weight: bold;color:#fff;">国库数据分析与综合应用平台
+      <div style="padding:30px 0;text-align: center;font-size: 30px;font-weight: bold;color:#fff;">大数据可视化平台
       </div>
       <route-view></route-view>
      

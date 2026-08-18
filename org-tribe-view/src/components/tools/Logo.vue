@@ -7,7 +7,10 @@
       <img v-else src="~@/assets/logo.svg" alt="logo">-->
       <!-- update-begin- author:sunjianlei --- date:20190814 --- for: logo颜色根据主题颜色变化 -->
 
-      <h1 v-if="showTitle">{{ title }}</h1>
+      <h1 v-if="showTitle">
+        <span class="sys-name">大数据可视化</span>
+        <span class="sys-abbr">DVP</span>
+      </h1>
     </router-link>
   </div>
 </template>
@@ -21,7 +24,7 @@
     props: {
       title: {
         type: String,
-        default: 'National Treasury',
+        default: '大数据可视化',
         required: false
       },
       showTitle: {
@@ -36,11 +39,44 @@
   /*缩小首页布 局顶部的高度*/
   $height: 59px;
 
+  .logo {
+    a {
+      display: flex;
+      align-items: center;
+      height: 100%;
+    }
+
+    h1 {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      margin: 0;
+      line-height: 1.15;
+    }
+
+    .sys-name {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .sys-abbr {
+      margin-top: 1px;
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.16em;
+      opacity: 0.82;
+      white-space: nowrap;
+    }
+  }
+
   .sider {
     box-shadow: none !important;
     .logo {
       height: $height !important;
-      line-height: $height !important;
+      line-height: normal !important;
       box-shadow: none !important;
       transition: background 300ms;
 

@@ -68,6 +68,7 @@
   import DepartSelect from './DepartSelect'
   import { mapActions, mapGetters } from 'vuex'
   import { mixinDevice } from '@/utils/mixin.js'
+  import { closeOrHintWindow } from '@/utils/closeWindow'
 
   export default {
     name: "UserMenu",
@@ -100,8 +101,7 @@
           content: '真的要注销登录吗 ?',
           onOk() {
             return that.Logout({}).then(() => {
-                window.location.href="/";
-              //window.location.reload()
+                closeOrHintWindow('/user/closed')
             }).catch(err => {
               that.$message.error({
                 title: '错误',
