@@ -172,3 +172,365 @@ mvn -pl org-tribe-system \
 - [ ] 在 GK-Nexus 精确登记所有合法 `oauth_redirect_uri`。
 - [ ] 补齐直连、可信代理、非可信转发头和非法地址测试。
 - [ ] 现场验证四类来源网域的授权请求和换票请求。
+
+## 8. 交付清单对应样例代码
+
+下面的代码以 Java + Spring Boot 下游系统为例。其他语言或框架必须保持相同的安全规则：直连不信任转发头，只有可信代理可以提供外部协议和 Host，最终回调地址必须通过 GK-Nexus 白名单校验。
+
+### 8.1 动态回调地址解析器
+
+对应清单：
+
+```text
+[ ] 增加动态回调地址解析器
+```
+
+下游系统可以直接复制数据分析平台的完整实现：
+
+```text
+org-tribe-system/src/main/java/org/jeecg/modules/oauth/NexusOAuthRedirectUriResolver.java
+```
+
+核心调用样例：
+
+```java
+@Component
+public class NexusOAuthRedirectUriResolver {
+
+    private static final String CALLBACK_PATH = "/oauth/callback";
+
+    public String resolve(HttpServletRequest request, String trustedProxyCidrs) {
+        String scheme = request.getScheme();
+        String authority = authority(request.getServerName(), request.getServerPort(), scheme);
+
+        // 只有当前 TCP 对端是可信代理时，才读取 X-Forwarded-*。
+        if (isTrustedProxy(request.getRemoteAddr(), trustedProxyCidrs)) {
+            String forwardedProto = firstHeader(request.getHeader("X-Forwarded-Proto"));
+            String forwardedHost = firstHeader(request.getHeader("X-Forwarded-Host"));
+            if (isHttpScheme(forwardedProto) && isSafeAuthority(forwardedHost)) {
+                scheme = forwardedProto;
+                authority = forwardedHost;
+                String forwardedPort = firstHeader(request.getHeader("X-Forwarded-Port"));
+                if (!hasExplicitPort(authority) && isPort(forwardedPort)) {
+                    authority = authority + ":" + forwardedPort;
+                }
+            }
+        }
+
+        if (!isHttpScheme(scheme) || !isSafeAuthority(authority)) {
+            throw new IllegalArgumentException("OAuth callback request address is invalid");
+        }
+
+        String contextPath = request.getContextPath();
+        String callbackPath = (contextPath == null || contextPath.isEmpty()
+                || "/".equals(contextPath))
+                ? CALLBACK_PATH
+                : contextPath + CALLBACK_PATH;
+        return new URI(scheme.toLowerCase(), authority, callbackPath, null, null).toString();
+    }
+
+    // isTrustedProxy 必须按 IP/CIDR 做真实匹配，不能只判断配置是否非空。
+    // authority、isSafeAuthority、isPort 等校验方法应一并保留，参见本仓库完整实现。
+}
+```
+
+不要把下面这种写法作为实现：
+
+```java
+// 错误：客户端可以伪造 X-Forwarded-Host，导致回调地址被任意篡改。
+String redirectUri = request.getHeader("X-Forwarded-Proto")
+        + "://" + request.getHeader("X-Forwarded-Host") + "/oauth/callback";
+```
+
+### 8.2 后端换票使用动态结果
+
+对应清单：
+
+```text
+[ ] 后端换票使用当前请求解析结果
+```
+
+控制器样例：
+
+```java
+@RestController
+@RequestMapping("/sys/oauth")
+public class OAuthCallbackController {
+
+    @Autowired
+    private NexusOAuthRedirectUriResolver redirectUriResolver;
+
+    @Value("${gk-nexus.oauth.trusted-proxy-cidrs:127.0.0.1/32,::1/128}")
+    private String trustedProxyCidrs;
+
+    @GetMapping("/callback")
+    public Object callback(@RequestParam("code") String code,
+                           HttpServletRequest request) {
+        String redirectUri = redirectUriResolver.resolve(request, trustedProxyCidrs);
+        return exchangeCodeForToken(code, redirectUri);
+    }
+
+    private Object exchangeCodeForToken(String code, String redirectUri) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("grant_type", "authorization_code");
+        params.add("code", code);
+        params.add("client_id", clientId);
+        params.add("client_secret", clientSecret);
+        params.add("redirect_uri", redirectUri);
+        return restTemplate.postForObject(tokenUrl, new HttpEntity<>(params), JSONObject.class);
+    }
+}
+```
+
+数据分析平台实际代码在换票前执行：
+
+```java
+String callbackRedirectUri = resolveCallbackRedirectUri(request);
+accessToken = exchangeCodeForToken(normalizedCode, callbackRedirectUri);
+```
+
+### 8.3 删除固定回调配置
+
+对应清单：
+
+```text
+[ ] 删除固定 redirect-uri、redirect-uris、redirect-uri-mode 和 NEXUS_REDIRECT_URIS 配置
+```
+
+修改前：
+
+```yaml
+gk-nexus:
+  oauth:
+    redirect-uri: http://localhost:9090/oauth/callback
+```
+
+修改后：
+
+```yaml
+gk-nexus:
+  oauth:
+    token-url: http://gk-nexus/auth/oauth/token
+    client-id: GK_DATA_ANALYSIS
+    client-secret: ${NEXUS_CLIENT_SECRET}
+    # 不再配置 redirect-uri
+```
+
+同时检查环境变量和部署脚本：
+
+```bash
+rg -n "redirect-uri|redirect-uris|redirect-uri-mode|NEXUS_REDIRECT_URIS" \
+  src deploy-package bin service.sh
+```
+
+命令没有输出固定回调配置才算清理完成。GK-Nexus 的 `oauth_client.redirect_uris` 不属于下游固定配置，仍必须保留。
+
+### 8.4 增加可信代理配置
+
+对应清单：
+
+```text
+[ ] 增加 trusted-proxy-cidrs，默认只信任本机
+```
+
+`application.yml` 样例：
+
+```yaml
+gk-nexus:
+  oauth:
+    trusted-proxy-cidrs: "${NEXUS_TRUSTED_PROXY_CIDRS:127.0.0.1/32,::1/128}"
+```
+
+无代理时不需要设置环境变量：
+
+```bash
+unset NEXUS_TRUSTED_PROXY_CIDRS
+```
+
+有代理时只填写代理源地址：
+
+```bash
+export NEXUS_TRUSTED_PROXY_CIDRS="127.0.0.1/32,::1/128,192.168.10.10/32"
+```
+
+不要把客户端来源网段写入此配置：
+
+```bash
+# 错误：这些是客户端来源网段，不是可信代理地址
+NEXUS_TRUSTED_PROXY_CIDRS="9.0.0.0/8,11.0.0.0/8"
+```
+
+### 8.5 代理转发头配置
+
+对应清单：
+
+```text
+[ ] 只在确有代理时配置代理源地址，并同步配置代理转发头
+```
+
+Nginx 样例：
+
+```nginx
+location / {
+    proxy_pass http://data-analysis-backend;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Port $server_port;
+}
+```
+
+没有 Nginx 时，不需要增加任何代理配置，应用直接使用：
+
+```java
+request.getScheme();
+request.getServerName();
+request.getServerPort();
+```
+
+同时，代理的实际连接地址必须与 `NEXUS_TRUSTED_PROXY_CIDRS` 中的地址一致；否则应用会忽略转发头并使用内部地址，最终换票会因回调地址不一致而失败。
+
+### 8.6 GK-Nexus 端点和回调白名单
+
+对应清单：
+
+```text
+[ ] 在 GK-Nexus 精确登记所有合法 oauth_redirect_uri
+```
+
+现场配置 SQL 样例：
+
+```sql
+BEGIN;
+
+INSERT INTO gk_nexus.sso_target_endpoint
+    (sys_code, endpoint_name, source_cidr, base_url,
+     oauth_redirect_uri, priority, is_active)
+VALUES
+    ('GK_DATA_ANALYSIS', 'DMZ-9.16.20', '9.16.20.0/24',
+     'https://<DMZ入口1>:9090',
+     'https://<DMZ入口1>:9090/oauth/callback', 24, 1),
+    ('GK_DATA_ANALYSIS', 'DMZ-9.17.20', '9.17.20.0/24',
+     'https://<DMZ入口2>:9090',
+     'https://<DMZ入口2>:9090/oauth/callback', 24, 1),
+    ('GK_DATA_ANALYSIS', '金融机构', '9.0.0.0/8',
+     'https://<金融入口>:9090',
+     'https://<金融入口>:9090/oauth/callback', 8, 1),
+    ('GK_DATA_ANALYSIS', '人行全辖', '11.0.0.0/8',
+     'https://<人行入口>:9090',
+     'https://<人行入口>:9090/oauth/callback', 8, 1)
+ON CONFLICT (sys_code, source_cidr) DO UPDATE
+SET endpoint_name = EXCLUDED.endpoint_name,
+    base_url = EXCLUDED.base_url,
+    oauth_redirect_uri = EXCLUDED.oauth_redirect_uri,
+    priority = EXCLUDED.priority,
+    is_active = EXCLUDED.is_active,
+    updated_at = CURRENT_TIMESTAMP;
+
+UPDATE gk_nexus.oauth_client
+SET redirect_uris = concat_ws(',',
+    'https://<DMZ入口1>:9090/oauth/callback',
+    'https://<DMZ入口2>:9090/oauth/callback',
+    'https://<金融入口>:9090/oauth/callback',
+    'https://<人行入口>:9090/oauth/callback')
+WHERE client_id = 'GK_DATA_ANALYSIS';
+
+COMMIT;
+```
+
+`<DMZ入口1>` 等占位符必须替换成现场实际地址。不要将本 SQL 直接带占位符执行。
+
+### 8.7 测试样例
+
+对应清单：
+
+```text
+[ ] 补齐直连、可信代理、非可信转发头和非法地址测试
+```
+
+JUnit 样例：
+
+```java
+@Test
+public void ignoresForwardedHostFromUntrustedClient() {
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setScheme("http");
+    request.setServerName("10.20.8.20");
+    request.setServerPort(9090);
+    request.setRemoteAddr("192.168.1.20");
+    request.addHeader("X-Forwarded-Proto", "https");
+    request.addHeader("X-Forwarded-Host", "attacker.example.test:443");
+
+    assertEquals(
+        "http://10.20.8.20:9090/oauth/callback",
+        resolver.resolve(request, "10.0.0.0/8"));
+}
+
+@Test
+public void usesForwardedAddressFromTrustedProxy() {
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setScheme("http");
+    request.setServerName("127.0.0.1");
+    request.setServerPort(8080);
+    request.setRemoteAddr("10.0.0.5");
+    request.addHeader("X-Forwarded-Proto", "https");
+    request.addHeader("X-Forwarded-Host", "10.20.8.20:9443");
+
+    assertEquals(
+        "https://10.20.8.20:9443/oauth/callback",
+        resolver.resolve(request, "10.0.0.0/8"));
+}
+```
+
+换票请求也必须校验 `redirect_uri`：
+
+```java
+server.expect(requestTo(tokenUrl))
+    .andExpect(content().string(containsString(
+        "redirect_uri=https%3A%2F%2F10.20.8.20%3A9443%2Foauth%2Fcallback")))
+    .andRespond(withSuccess("{\"access_token\":\"token\"}",
+        MediaType.APPLICATION_JSON));
+```
+
+### 8.8 现场验收样例
+
+对应清单：
+
+```text
+[ ] 现场验证四类来源网域的授权请求和换票请求
+```
+
+可在下游日志中临时增加以下脱敏日志，不记录授权码和客户端密钥：
+
+```java
+log.info("OAuth callback route={}, remotePeer={}, selectedRedirectUri={}",
+        request.getRequestURI(), request.getRemoteAddr(), callbackRedirectUri);
+```
+
+分别从四类网域访问并检查日志：
+
+```text
+9.16.20.*  -> https://<DMZ入口1>:9090/oauth/callback
+9.17.20.*  -> https://<DMZ入口2>:9090/oauth/callback
+其他 9.*   -> https://<金融入口>:9090/oauth/callback
+11.*       -> https://<人行入口>:9090/oauth/callback
+```
+
+GK-Nexus 和下游日志查询样例：
+
+```bash
+# GK-Nexus：查看授权请求中的 redirect_uri
+rg -n "authorize.*redirect_uri|redirect_uri" logs/gk-nexus/*.log
+
+# 下游：查看换票时最终采用的 redirect_uri
+rg -n "selectedRedirectUri|redirectUri" logs/org-tribe-system/*.log
+```
+
+自动化测试命令：
+
+```bash
+mvn -pl org-tribe-system \
+  -Dskip.frontend.build=true \
+  -Dtest=NexusOAuthRedirectUriResolverTest,NexusOAuthControllerTest \
+  -Dsurefire.failIfNoSpecifiedTests=false test
+```
