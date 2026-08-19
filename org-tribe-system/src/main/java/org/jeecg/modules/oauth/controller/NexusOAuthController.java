@@ -9,6 +9,8 @@ import org.jeecg.common.api.vo.Result;
 import org.jeecg.common.constant.CommonConstant;
 import org.jeecg.common.system.util.JwtUtil;
 import org.jeecg.common.util.RedisUtil;
+import org.jeecg.modules.audit.service.IDataAnalysisBizAuditService;
+import org.jeecg.modules.oauth.NexusOAuthRedirectUriResolver;
 import org.jeecg.modules.system.entity.SysDepart;
 import org.jeecg.modules.system.entity.SysUser;
 import org.jeecg.modules.system.service.ISysDepartService;
@@ -28,9 +30,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
-import org.jeecg.modules.audit.service.IDataAnalysisBizAuditService;
+import java.util.List;
 
 /**
  * GK-Nexus OAuth2.0 authorization code callback handler.
@@ -61,6 +62,9 @@ public class NexusOAuthController {
     @Autowired
     private IDataAnalysisBizAuditService bizAuditService;
 
+    @Autowired
+    private NexusOAuthRedirectUriResolver redirectUriResolver;
+
     @Value("${gk-nexus.oauth.token-url}")
     private String tokenUrl;
 
@@ -70,8 +74,8 @@ public class NexusOAuthController {
     @Value("${gk-nexus.oauth.client-secret}")
     private String clientSecret;
 
-    @Value("${gk-nexus.oauth.redirect-uri}")
-    private String redirectUri;
+    @Value("${gk-nexus.oauth.trusted-proxy-cidrs:127.0.0.1/32,::1/128}")
+    private String trustedProxyCidrs;
 
     /**
      * OAuth2.0 authorization code callback.
@@ -94,8 +98,9 @@ public class NexusOAuthController {
             if (StringUtils.isEmpty(normalizedCode)) {
                 throw new Exception("授权码不能为空，请重新发起单点登录");
             }
+            String callbackRedirectUri = resolveCallbackRedirectUri(request);
             // 1. Exchange authorization code for access_token
-            accessToken = exchangeCodeForToken(normalizedCode);
+            accessToken = exchangeCodeForToken(normalizedCode, callbackRedirectUri);
 
             // 2. Decode JWT to extract username claim (no sig verification needed:
             //    token comes directly from a trusted server-to-server call over HTTPS)
@@ -189,7 +194,11 @@ public class NexusOAuthController {
     /**
      * Exchanges an OAuth2.0 authorization code for an access_token from GK-Nexus.
      */
-    private String exchangeCodeForToken(String code) throws Exception {
+    private String resolveCallbackRedirectUri(HttpServletRequest request) {
+        return redirectUriResolver.resolve(request, trustedProxyCidrs);
+    }
+
+    private String exchangeCodeForToken(String code, String callbackRedirectUri) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -198,7 +207,7 @@ public class NexusOAuthController {
         params.add("code", code);
         params.add("client_id", clientId);
         params.add("client_secret", clientSecret);
-        params.add("redirect_uri", redirectUri);
+        params.add("redirect_uri", callbackRedirectUri);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
         ResponseEntity<JSONObject> response;
@@ -210,7 +219,7 @@ public class NexusOAuthController {
                 responseBody = responseBody.substring(0, 500);
             }
                 log.error("Nexus token exchange failed, status={}, clientId={}, redirectUri={}, responseBody={}",
-                    e.getStatusCode(), clientId, redirectUri, responseBody);
+                    e.getStatusCode(), clientId, callbackRedirectUri, responseBody);
                 throw new Exception("授权码换取令牌失败: " + responseBody, e);
         }
 
