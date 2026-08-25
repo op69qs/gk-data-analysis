@@ -123,6 +123,23 @@ public class VastbaseDataSourceMapperContractTest {
     }
 
     @Test
+    public void dataTableMaintenanceReturnsConfiguredSchemaWithoutChangingDatabaseLabels() throws Exception {
+        String databaseSelectionSql = normalize(boundSql(
+                "mybatis/seo/DataAuxiliaryMapper.xml",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataBaseSelection",
+                values()).getSql());
+        String relationDataSql = normalize(boundSql(
+                "mybatis/seo/DataTableMapper.xml",
+                "org.seo.dao.mapper.DataTableMapper.getRelationData",
+                values()).getSql());
+
+        assertTrue(databaseSelectionSql.contains("b.DBNAME AS name"));
+        assertTrue(databaseSelectionSql.contains("b.SCHEMA_NAME AS \"SCHEMA_NAME\""));
+        assertTrue(relationDataSql.contains("b.DBNAME AS \"DBNAME\""));
+        assertTrue(relationDataSql.contains("b.SCHEMA_NAME AS \"SCHEMA_NAME\""));
+    }
+
+    @Test
     public void mappersResolveVastbaseSchemaInternallyByDatabaseId() throws Exception {
         String auxiliarySql = normalize(boundSql(
                 "mybatis/seo/DataAuxiliaryMapper.xml",

@@ -58,7 +58,8 @@
 
     <!--    查询数据源关系表数据-->
     <select id="getRelationData" resultType="hashmap">
-        SELECT r.*,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS "DATASOURCE_NAME",b.DBNAME AS "DBNAME"
+        SELECT r.*,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS "DATASOURCE_NAME",
+               b.DBNAME AS "DBNAME",b.SCHEMA_NAME AS "SCHEMA_NAME"
         FROM edw.fm_trs_guoku_base_table r
         LEFT JOIN seo.seo_datasource a ON a.ID = r.SOURCE_ID
         LEFT JOIN seo.seo_datasource_database b ON b.ID = r.DATABASE_ID
