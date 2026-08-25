@@ -51,9 +51,15 @@
                            :label="label.name1" :labelCol="{span: 7}" :wrapperCol="{span: 17}" required>
                 <span slot="help">{{ validateStatus2=='error'?'请选择数据库':'&nbsp;&nbsp;' }}</span>
                 <a-select @change="findtablesign" v-model="queryParam.DATABASE_ID" placeholder="请选择数据库" labelInValue>
-                  <a-select-option :value="d.id" v-for="d in DATABASE_ID_OPTION" :key="d.id">{{d.name}}
+                  <a-select-option :value="d.id" v-for="d in DATABASE_ID_OPTION" :key="d.id">{{ databaseOptionLabel(BASE_TYPE, d) }}
                   </a-select-option>
                 </a-select>
+              </a-form-item>
+            </a-col>
+            <a-col v-if="isVastbase" :md="12" :sm="12">
+              <a-form-item style="width:100%;margin-bottom:12px;" label="Schema"
+                           :labelCol="{span: 7}" :wrapperCol="{span: 17}" required>
+                <a-input v-model="SCHEMA_NAME" placeholder="由数据源维护配置" disabled/>
               </a-form-item>
             </a-col>
             <a-col :md="24" :sm="24">
@@ -162,6 +168,11 @@
     getFirstClassifySelection,
     getSecondClassifySelection
   } from '@/api/nationalTreasury'
+  import {
+    databaseOptionLabel,
+    isVastbaseType,
+    schemaForDatabaseSelection
+  } from './dataSourceSchemaSupport.mjs'
 
   export default {
     name: 'DataTableModal',
@@ -226,6 +237,7 @@
         BASE_ID: '',
         DATA_BASE_ID: '',
         DATA_BASE_NAME: '',
+        SCHEMA_NAME: '',
         TABLE_SIGN: '',
         TABLE_NAME: '',
         TABLE_SIGNS: '',
@@ -244,6 +256,11 @@
                 }],
         SECOND_CLASSIFY_OPTION: [],//二级分类下拉值
         PRIMARY_OPTION:[]
+      }
+    },
+    computed: {
+      isVastbase() {
+        return isVastbaseType(this.BASE_TYPE)
       }
     },
     mounted() {
@@ -269,6 +286,10 @@
         this.queryParam = {
           isJump:'1'
         };
+        this.BASE_TYPE = '';
+        this.SCHEMA_NAME = '';
+        this.DATABASE_ID_OPTION = [];
+        this.TABLE_SIGN_OPTION = [];
         this.termsDataSource = [];
       },
       findatabase(value, option) {
@@ -277,6 +298,7 @@
         this.model = {};
         this.TABLE_SIGN_OPTION = [];
         this.termsDataSource = [];
+        this.SCHEMA_NAME = '';
         this.form.resetFields()
         console.log(this.form);
         getDataBaseSelection({SOURCE_ID: value.key}).then(res => {
@@ -292,10 +314,12 @@
         //this.TABLE_SIGNS = ''
         this.model = {};
         this.termsDataSource = [];
+        this.SCHEMA_NAME = schemaForDatabaseSelection(this.BASE_TYPE, this.DATABASE_ID_OPTION, value);
         getDataTableSelection({
           SOURCE_ID: value.key,
           BASE_TYPE: this.BASE_TYPE,
-          DATABASE: value.label.replace(/\s+/g, "")
+          DATABASE: value.label.replace(/\s+/g, ""),
+          SCHEMA_NAME: this.SCHEMA_NAME
         }).then(res => {
           if (res.result === 'success') {
             this.TABLE_SIGN_OPTION = res.rows;
@@ -310,6 +334,7 @@
           SOURCE_ID: this.DATA_BASE_ID,
           BASE_TYPE: this.BASE_TYPE,
           DATABASE: this.DATA_BASE_NAME.replace(/\s+/g, ""),
+          SCHEMA_NAME: this.SCHEMA_NAME,
           TABLE_SIGN: value
         }).then(res => {
           if (res.result === 'success') {
@@ -424,7 +449,8 @@
             that.SECOND_CLASSIFY_OPTION = res.rows;
           }
         })
-      }
+      },
+      databaseOptionLabel
     }
   }
 </script>

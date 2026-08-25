@@ -22,3 +22,27 @@ export const duplicateLookup = (type, sourceId, database) => {
   }
   return params
 }
+
+const selectionId = selection => {
+  if (selection && typeof selection === 'object') {
+    return selection.key || selection.value
+  }
+  return selection
+}
+
+export const schemaForDatabaseSelection = (type, databases, selection) => {
+  if (!isVastbaseType(type)) {
+    return ''
+  }
+  const databaseId = selectionId(selection)
+  const database = (databases || []).find(item => String(item.id) === String(databaseId))
+  return schemaPayload(type, database && database.SCHEMA_NAME)
+}
+
+export const databaseOptionLabel = (type, database) => {
+  const schemaName = schemaPayload(type, database && database.SCHEMA_NAME)
+  if (!schemaName) {
+    return database.name
+  }
+  return `${database.name}（Schema：${schemaName}）`
+}

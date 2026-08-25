@@ -89,9 +89,15 @@
                                               placeholder="请选择数据库"
                                               labelInValue>
                                         <a-select-option :value="d.id" v-for="d in DATABASE_ID_OPTION" :key="d.id">
-                                            {{d.name}}
+                                            {{ databaseOptionLabel(BASE_TYPE, d) }}
                                         </a-select-option>
                                     </a-select>
+                                </a-form-item>
+                            </a-col>
+                            <a-col v-if="isVastbase" :md="12" :sm="12">
+                                <a-form-item style="width:100%;margin-bottom:12px;" label="Schema"
+                                             :labelCol="{span: 7}" :wrapperCol="{span: 17}" required>
+                                    <a-input v-model="SCHEMA_NAME" placeholder="由数据源维护配置" disabled/>
                                 </a-form-item>
                             </a-col>
                             <a-col :md="24" :sm="24">
@@ -233,6 +239,11 @@
         getSecondClassifySelection
     } from '@/api/nationalTreasury'
     import DataTableModal from './modules/DataTableModal'
+    import {
+        databaseOptionLabel,
+        isVastbaseType,
+        schemaForDatabaseSelection
+    } from './modules/dataSourceSchemaSupport.mjs'
 
     export default {
         name: "dataTable",
@@ -293,6 +304,7 @@
                 BASE_ID: '',
                 DATA_BASE_ID: '',
                 DATA_BASE_NAME: '',
+                SCHEMA_NAME: '',
                 TABLE_SIGN: '',
                 TABLE_NAME: '',
                 DBTIT_OPTION: [{
@@ -315,6 +327,11 @@
                 SECOND_CLASSIFY_OPTION: [],//二级分类下拉值
                 PRIMARY_OPTION:[],
                 isJump:''
+            }
+        },
+        computed: {
+            isVastbase() {
+                return isVastbaseType(this.BASE_TYPE)
             }
         },
         created() {
@@ -350,6 +367,7 @@
                 }, 1000)
             },
             findatabase(value, option) {
+                this.SCHEMA_NAME = '';
                 getDataBaseSelection({SOURCE_ID: value.key}).then(res => {
                     if (res.result === 'success') {
                         this.DATABASE_ID_OPTION = res.rows;
@@ -360,10 +378,12 @@
                 })
             },
             findtablesign(value, option) {
+                this.SCHEMA_NAME = schemaForDatabaseSelection(this.BASE_TYPE, this.DATABASE_ID_OPTION, value);
                 getDataTableSelection({
                     SOURCE_ID: value.key,
                     BASE_TYPE: this.BASE_TYPE,
-                    DATABASE: value.label
+                    DATABASE: value.label,
+                    SCHEMA_NAME: this.SCHEMA_NAME
                 }).then(res => {
                     if (res.result === 'success') {
                         this.TABLE_SIGN_OPTION = res.rows;
@@ -377,6 +397,7 @@
                     SOURCE_ID: this.DATA_BASE_ID,
                     BASE_TYPE: this.BASE_TYPE,
                     DATABASE: this.DATA_BASE_NAME,
+                    SCHEMA_NAME: this.SCHEMA_NAME,
                     TABLE_SIGN: value
                 }).then(res => {
                     if (res.result === 'success') {
@@ -404,6 +425,7 @@
                             }
                             this.isInfo = true;
                             this.queryParam = res.rows[0];
+                            this.SCHEMA_NAME = res.rows[0].SCHEMA_NAME || '';
                             if(res.rows[0].FOR_SKIP){
                                 this.isJump = '0'
                             }else{
@@ -468,6 +490,7 @@
                         }
                         this.isInfo = true;
                         this.queryParam = res.rows[0]
+                        this.SCHEMA_NAME = res.rows[0].SCHEMA_NAME || '';
                         if(this.queryParam.FOR_SKIP){
                             this.isJump = '0'
                         }else{
@@ -492,9 +515,10 @@
                         })
                         var aa = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(res.rows[0].DATASOURCE_NAME);
                         getDataTableSelection({
-                            SOURCE_ID: res.rows[0].SOURCE_ID.value,
+                            SOURCE_ID: res.rows[0].DATABASE_ID.value,
                             BASE_TYPE: aa[2],
-                            DATABASE: res.rows[0].DBNAME
+                            DATABASE: res.rows[0].DBNAME,
+                            SCHEMA_NAME: this.SCHEMA_NAME
                         }).then(ress => {
                             if (ress.result === 'success') {
                                 this.TABLE_SIGN_OPTION = ress.rows;
@@ -552,7 +576,8 @@
                         this.SECOND_CLASSIFY_OPTION = res.rows;
                     }
                 })
-            }
+            },
+            databaseOptionLabel
         }
     }
 </script>
