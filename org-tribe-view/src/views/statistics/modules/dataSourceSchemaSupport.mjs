@@ -22,3 +22,37 @@ export const duplicateLookup = (type, sourceId, database) => {
   }
   return params
 }
+
+const selectionId = selection => {
+  if (selection && typeof selection === 'object') {
+    return selection.key || selection.value
+  }
+  return selection
+}
+
+export const schemaForDatabaseSelection = (type, databases, selection) => {
+  if (!isVastbaseType(type)) {
+    return ''
+  }
+  const databaseId = selectionId(selection)
+  const database = (databases || []).find(item => String(item.id) === String(databaseId))
+  return schemaPayload(type, database && database.SCHEMA_NAME)
+}
+
+export const databaseOptionLabel = (type, database) => {
+  const schemaName = schemaPayload(type, database && database.SCHEMA_NAME)
+  if (!schemaName) {
+    return database.name
+  }
+  return `${database.name}（Schema：${schemaName}）`
+}
+
+export const dataSourceType = source => {
+  const label = source && typeof source === 'object' ? source.label : source
+  const match = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(label || '')
+  return match ? match[2] : ''
+}
+
+export const nextSelectionRequestToken = currentToken => (currentToken || 0) + 1
+
+export const isCurrentSelectionRequest = (currentToken, requestToken) => currentToken === requestToken

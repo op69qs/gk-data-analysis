@@ -51,9 +51,15 @@
                            :label="label.name1" :labelCol="{span: 7}" :wrapperCol="{span: 17}" required>
                 <span slot="help">{{ validateStatus2=='error'?'请选择数据库':'&nbsp;&nbsp;' }}</span>
                 <a-select @change="findtablesign" v-model="queryParam.DATABASE_ID" placeholder="请选择数据库" labelInValue>
-                  <a-select-option :value="d.id" v-for="d in DATABASE_ID_OPTION" :key="d.id">{{d.name}}
+                  <a-select-option :value="d.id" v-for="d in DATABASE_ID_OPTION" :key="d.id">{{ databaseOptionLabel(BASE_TYPE, d) }}
                   </a-select-option>
                 </a-select>
+              </a-form-item>
+            </a-col>
+            <a-col v-if="isVastbase" :md="12" :sm="12">
+              <a-form-item style="width:100%;margin-bottom:12px;" label="Schema"
+                           :labelCol="{span: 7}" :wrapperCol="{span: 17}" required>
+                <a-input v-model="SCHEMA_NAME" placeholder="由数据源维护配置" disabled/>
               </a-form-item>
             </a-col>
             <a-col :md="24" :sm="24">
@@ -162,6 +168,14 @@
     getFirstClassifySelection,
     getSecondClassifySelection
   } from '@/api/nationalTreasury'
+  import {
+    databaseOptionLabel,
+    dataSourceType,
+    isCurrentSelectionRequest,
+    isVastbaseType,
+    nextSelectionRequestToken,
+    schemaForDatabaseSelection
+  } from './dataSourceSchemaSupport.mjs'
 
   export default {
     name: 'DataTableModal',
@@ -226,6 +240,8 @@
         BASE_ID: '',
         DATA_BASE_ID: '',
         DATA_BASE_NAME: '',
+        selectionRequestToken: 0,
+        SCHEMA_NAME: '',
         TABLE_SIGN: '',
         TABLE_NAME: '',
         TABLE_SIGNS: '',
@@ -244,6 +260,11 @@
                 }],
         SECOND_CLASSIFY_OPTION: [],//二级分类下拉值
         PRIMARY_OPTION:[]
+      }
+    },
+    computed: {
+      isVastbase() {
+        return isVastbaseType(this.BASE_TYPE)
       }
     },
     mounted() {
@@ -269,49 +290,91 @@
         this.queryParam = {
           isJump:'1'
         };
+        this.BASE_TYPE = '';
+        this.BASE_ID = '';
+        this.selectionRequestToken = nextSelectionRequestToken(this.selectionRequestToken);
+        this.DATA_BASE_ID = '';
+        this.DATA_BASE_NAME = '';
+        this.SCHEMA_NAME = '';
+        this.TABLE_SIGN = '';
+        this.TABLE_NAME = '';
+        this.DATABASE_ID_OPTION = [];
+        this.TABLE_SIGN_OPTION = [];
         this.termsDataSource = [];
       },
       findatabase(value, option) {
+        const sourceId = value.key;
+        const requestToken = nextSelectionRequestToken(this.selectionRequestToken);
+        this.selectionRequestToken = requestToken;
         this.queryParam.DATABASE_ID = ''
         //this.form.setFieldsValue({'DATABASE_ID': ''});
         this.model = {};
+        this.BASE_TYPE = dataSourceType(value);
+        this.BASE_ID = sourceId;
+        this.DATA_BASE_ID = '';
+        this.DATA_BASE_NAME = '';
+        this.DATABASE_ID_OPTION = [];
         this.TABLE_SIGN_OPTION = [];
         this.termsDataSource = [];
+        this.SCHEMA_NAME = '';
+        this.TABLE_SIGN = '';
+        this.TABLE_NAME = '';
         this.form.resetFields()
         console.log(this.form);
-        getDataBaseSelection({SOURCE_ID: value.key}).then(res => {
+        getDataBaseSelection({SOURCE_ID: sourceId}).then(res => {
+          if (!isCurrentSelectionRequest(this.selectionRequestToken, requestToken)) {
+            return
+          }
           if (res.result === 'success') {
             this.DATABASE_ID_OPTION = res.rows;
-            var rt = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(value.label);
-            this.BASE_TYPE = rt[2];
-            this.BASE_ID = value.key;
           }
         })
       },
       findtablesign(value, option) {
         //this.TABLE_SIGNS = ''
+        const databaseId = value.key;
+        const databaseName = value.label;
+        const requestToken = nextSelectionRequestToken(this.selectionRequestToken);
+        this.selectionRequestToken = requestToken;
         this.model = {};
         this.termsDataSource = [];
+        this.TABLE_SIGN_OPTION = [];
+        this.DATA_BASE_ID = databaseId;
+        this.DATA_BASE_NAME = databaseName;
+        this.TABLE_SIGN = '';
+        this.TABLE_NAME = '';
+        this.SCHEMA_NAME = schemaForDatabaseSelection(this.BASE_TYPE, this.DATABASE_ID_OPTION, value);
         getDataTableSelection({
-          SOURCE_ID: value.key,
+          SOURCE_ID: databaseId,
           BASE_TYPE: this.BASE_TYPE,
-          DATABASE: value.label.replace(/\s+/g, "")
+          DATABASE: databaseName.replace(/\s+/g, ""),
+          SCHEMA_NAME: this.SCHEMA_NAME
         }).then(res => {
+          if (!isCurrentSelectionRequest(this.selectionRequestToken, requestToken)) {
+            return
+          }
           if (res.result === 'success') {
             this.TABLE_SIGN_OPTION = res.rows;
-            this.DATA_BASE_ID = value.key;
-            this.DATA_BASE_NAME = value.label;
           }
         })
       },
       findcomments(value, option) {
         //this.queryParam.TABLE_SIGN = value;
+        const requestToken = nextSelectionRequestToken(this.selectionRequestToken);
+        this.selectionRequestToken = requestToken;
+        this.termsDataSource = [];
+        this.TABLE_SIGN = '';
+        this.TABLE_NAME = '';
         getDataTableComments({
           SOURCE_ID: this.DATA_BASE_ID,
           BASE_TYPE: this.BASE_TYPE,
           DATABASE: this.DATA_BASE_NAME.replace(/\s+/g, ""),
+          SCHEMA_NAME: this.SCHEMA_NAME,
           TABLE_SIGN: value
         }).then(res => {
+          if (!isCurrentSelectionRequest(this.selectionRequestToken, requestToken)) {
+            return
+          }
           if (res.result === 'success') {
             this.termsDataSource = res.rows;
             this.TABLE_SIGN = value;
@@ -424,7 +487,8 @@
             that.SECOND_CLASSIFY_OPTION = res.rows;
           }
         })
-      }
+      },
+      databaseOptionLabel
     }
   }
 </script>

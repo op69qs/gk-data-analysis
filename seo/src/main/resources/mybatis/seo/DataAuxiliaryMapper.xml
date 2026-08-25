@@ -28,7 +28,7 @@
 
     <!--    根据数据源查询数据源下的数据库下拉选-->
     <select id="getDataBaseSelection" resultType="hashmap">
-        SELECT b.ID AS id,b.DBNAME AS name
+        SELECT b.ID AS id,b.DBNAME AS name,b.SCHEMA_NAME AS "SCHEMA_NAME"
         FROM seo.seo_datasource_database b
         WHERE b.SOURCE_ID = #{params.SOURCE_ID} AND b.STATE = '0'
     </select>

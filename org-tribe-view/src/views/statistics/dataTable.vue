@@ -89,9 +89,15 @@
                                               placeholder="请选择数据库"
                                               labelInValue>
                                         <a-select-option :value="d.id" v-for="d in DATABASE_ID_OPTION" :key="d.id">
-                                            {{d.name}}
+                                            {{ databaseOptionLabel(BASE_TYPE, d) }}
                                         </a-select-option>
                                     </a-select>
+                                </a-form-item>
+                            </a-col>
+                            <a-col v-if="isVastbase" :md="12" :sm="12">
+                                <a-form-item style="width:100%;margin-bottom:12px;" label="Schema"
+                                             :labelCol="{span: 7}" :wrapperCol="{span: 17}" required>
+                                    <a-input v-model="SCHEMA_NAME" placeholder="由数据源维护配置" disabled/>
                                 </a-form-item>
                             </a-col>
                             <a-col :md="24" :sm="24">
@@ -233,6 +239,12 @@
         getSecondClassifySelection
     } from '@/api/nationalTreasury'
     import DataTableModal from './modules/DataTableModal'
+    import {
+        databaseOptionLabel,
+        dataSourceType,
+        isVastbaseType,
+        schemaForDatabaseSelection
+    } from './modules/dataSourceSchemaSupport.mjs'
 
     export default {
         name: "dataTable",
@@ -293,6 +305,8 @@
                 BASE_ID: '',
                 DATA_BASE_ID: '',
                 DATA_BASE_NAME: '',
+                databaseRequestSourceId: '',
+                SCHEMA_NAME: '',
                 TABLE_SIGN: '',
                 TABLE_NAME: '',
                 DBTIT_OPTION: [{
@@ -315,6 +329,11 @@
                 SECOND_CLASSIFY_OPTION: [],//二级分类下拉值
                 PRIMARY_OPTION:[],
                 isJump:''
+            }
+        },
+        computed: {
+            isVastbase() {
+                return isVastbaseType(this.BASE_TYPE)
             }
         },
         created() {
@@ -350,20 +369,29 @@
                 }, 1000)
             },
             findatabase(value, option) {
-                getDataBaseSelection({SOURCE_ID: value.key}).then(res => {
+                const sourceId = value.key;
+                this.BASE_TYPE = dataSourceType(value);
+                this.BASE_ID = sourceId;
+                this.databaseRequestSourceId = sourceId;
+                this.SCHEMA_NAME = '';
+                this.DATABASE_ID_OPTION = [];
+                this.TABLE_SIGN_OPTION = [];
+                getDataBaseSelection({SOURCE_ID: sourceId}).then(res => {
+                    if (this.databaseRequestSourceId !== sourceId) {
+                        return
+                    }
                     if (res.result === 'success') {
                         this.DATABASE_ID_OPTION = res.rows;
-                        var rt = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(value.label);
-                        this.BASE_TYPE = rt[2];
-                        this.BASE_ID = value.key;
                     }
                 })
             },
             findtablesign(value, option) {
+                this.SCHEMA_NAME = schemaForDatabaseSelection(this.BASE_TYPE, this.DATABASE_ID_OPTION, value);
                 getDataTableSelection({
                     SOURCE_ID: value.key,
                     BASE_TYPE: this.BASE_TYPE,
-                    DATABASE: value.label
+                    DATABASE: value.label,
+                    SCHEMA_NAME: this.SCHEMA_NAME
                 }).then(res => {
                     if (res.result === 'success') {
                         this.TABLE_SIGN_OPTION = res.rows;
@@ -377,6 +405,7 @@
                     SOURCE_ID: this.DATA_BASE_ID,
                     BASE_TYPE: this.BASE_TYPE,
                     DATABASE: this.DATA_BASE_NAME,
+                    SCHEMA_NAME: this.SCHEMA_NAME,
                     TABLE_SIGN: value
                 }).then(res => {
                     if (res.result === 'success') {
@@ -395,52 +424,70 @@
                     return;
                 }
                 if (data.parentId !== '' && data.children.length === 0) {
-                    this.TABLE_ID = data.id;
-                    getDataTableData({TABLE_ID: data.id}).then(res => {
+                    const tableId = data.id;
+                    this.TABLE_ID = tableId;
+                    getDataTableData({TABLE_ID: tableId}).then(res => {
+                        if (this.TABLE_ID !== tableId) {
+                            return
+                        }
                         if (res.result === 'success') {
                             if (!res.rows || res.rows.length === 0) {
                                 this.$message.warning('未查询到数据表配置');
                                 return;
                             }
+                            const tableData = res.rows[0];
+                            const sourceId = tableData.SOURCE_ID;
+                            const databaseId = tableData.DATABASE_ID;
+                            const sourceName = tableData.DATASOURCE_NAME;
+                            const baseType = dataSourceType(sourceName);
                             this.isInfo = true;
-                            this.queryParam = res.rows[0];
-                            if(res.rows[0].FOR_SKIP){
+                            this.queryParam = tableData;
+                            this.BASE_TYPE = baseType;
+                            this.SCHEMA_NAME = tableData.SCHEMA_NAME || '';
+                            if(tableData.FOR_SKIP){
                                 this.isJump = '0'
                             }else{
                                 this.isJump = '1' 
                             }
                             this.queryParam.SOURCE_ID = {
-                                value: res.rows[0].SOURCE_ID,
-                                label: res.rows[0].DATASOURCE_NAME
+                                value: sourceId,
+                                label: sourceName
                             };
+                            this.BASE_ID = this.queryParam.SOURCE_ID;
                             //获取二级分类下拉
-                            this.headerChange(res.rows[0].FIRST_CLASSIFY);
+                            this.headerChange(tableData.FIRST_CLASSIFY);
                             this.queryParam.DATABASE_ID = {
-                                value: res.rows[0].DATABASE_ID,
-                                label: res.rows[0].DBNAME
+                                value: databaseId,
+                                label: tableData.DBNAME
                             };
-                            getDataBaseSelection({SOURCE_ID: res.rows[0].SOURCE_ID.value}).then(ress => {
+                            this.DATA_BASE_ID = this.queryParam.DATABASE_ID;
+                            this.DATA_BASE_NAME = tableData.DBNAME;
+                            this.databaseRequestSourceId = sourceId;
+                            this.DATABASE_ID_OPTION = [];
+                            this.TABLE_SIGN_OPTION = [];
+                            getDataBaseSelection({SOURCE_ID: sourceId}).then(ress => {
+                                if (this.TABLE_ID !== tableId || this.databaseRequestSourceId !== sourceId) {
+                                    return
+                                }
                                 if (ress.result === 'success') {
                                     this.DATABASE_ID_OPTION = ress.rows;
-                                    let rt = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(res.rows[0].SOURCE_ID.label);
-                                    this.BASE_TYPE = rt[2];
-                                    this.BASE_ID = res.rows[0].SOURCE_ID;
                                 }
                             });
-                            let aa = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(res.rows[0].DATASOURCE_NAME);
                             getDataTableSelection({
-                                SOURCE_ID: res.rows[0].DATABASE_ID.value,
-                                BASE_TYPE: aa[2],
-                                DATABASE: res.rows[0].DBNAME
+                                SOURCE_ID: databaseId,
+                                BASE_TYPE: baseType,
+                                DATABASE: tableData.DBNAME,
+                                SCHEMA_NAME: this.SCHEMA_NAME
                             }).then(ress => {
+                                if (this.TABLE_ID !== tableId) {
+                                    return
+                                }
                                 if (ress.result === 'success') {
                                     this.TABLE_SIGN_OPTION = ress.rows;
-                                    this.DATA_BASE_ID = res.rows[0].DATABASE_ID;
-                                    this.DATA_BASE_NAME = res.rows[0].DBNAME;
                                 }
                             })
 
-                            this.TABLE_NAME = res.rows[0].TABLE_NAME
+                            this.TABLE_NAME = tableData.TABLE_NAME
                             //this.isShow = true
                             this.termsDataSource = res.columns;
                             this.disabled = true;
@@ -458,52 +505,69 @@
                 this.status1 = true;
             },
             back() {
+                const tableId = this.TABLE_ID;
                 this.status = true;
                 this.status1 = false;
-                getDataTableData({TABLE_ID: this.TABLE_ID}).then(res => {
+                getDataTableData({TABLE_ID: tableId}).then(res => {
+                    if (this.TABLE_ID !== tableId) {
+                        return
+                    }
                     if (res.result === 'success') {
                         if (!res.rows || res.rows.length === 0) {
                             this.$message.warning('未查询到数据表配置');
                             return;
                         }
+                        const tableData = res.rows[0];
+                        const sourceId = tableData.SOURCE_ID;
+                        const databaseId = tableData.DATABASE_ID;
+                        const sourceName = tableData.DATASOURCE_NAME;
+                        const baseType = dataSourceType(sourceName);
                         this.isInfo = true;
-                        this.queryParam = res.rows[0]
+                        this.queryParam = tableData
+                        this.BASE_TYPE = baseType;
+                        this.SCHEMA_NAME = tableData.SCHEMA_NAME || '';
                         if(this.queryParam.FOR_SKIP){
                             this.isJump = '0'
                         }else{
                             this.isJump = '1'
                         }
                         this.queryParam.SOURCE_ID = {
-                            value: res.rows[0].SOURCE_ID,
-                            label: res.rows[0].DATASOURCE_NAME
+                            value: sourceId,
+                            label: sourceName
                         }
+                        this.BASE_ID = this.queryParam.SOURCE_ID;
                         this.queryParam.DATABASE_ID = {
-                            value: res.rows[0].DATABASE_ID,
-                            label: res.rows[0].DBNAME
+                            value: databaseId,
+                            label: tableData.DBNAME
                         }
-                        getDataBaseSelection({SOURCE_ID: res.rows[0].SOURCE_ID.value}).then(ress => {
-                            var oThis = this;
+                        this.DATA_BASE_ID = this.queryParam.DATABASE_ID;
+                        this.DATA_BASE_NAME = tableData.DBNAME;
+                        this.databaseRequestSourceId = sourceId;
+                        this.DATABASE_ID_OPTION = [];
+                        this.TABLE_SIGN_OPTION = [];
+                        getDataBaseSelection({SOURCE_ID: sourceId}).then(ress => {
+                            if (this.TABLE_ID !== tableId || this.databaseRequestSourceId !== sourceId) {
+                                return
+                            }
                             if (ress.result === 'success') {
                                 this.DATABASE_ID_OPTION = ress.rows;
-                                var rt = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(res.rows[0].SOURCE_ID.label);
-                                this.BASE_TYPE = rt[2];
-                                this.BASE_ID = res.rows[0].SOURCE_ID;
                             }
                         })
-                        var aa = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(res.rows[0].DATASOURCE_NAME);
                         getDataTableSelection({
-                            SOURCE_ID: res.rows[0].SOURCE_ID.value,
-                            BASE_TYPE: aa[2],
-                            DATABASE: res.rows[0].DBNAME
+                            SOURCE_ID: databaseId,
+                            BASE_TYPE: baseType,
+                            DATABASE: tableData.DBNAME,
+                            SCHEMA_NAME: this.SCHEMA_NAME
                         }).then(ress => {
+                            if (this.TABLE_ID !== tableId) {
+                                return
+                            }
                             if (ress.result === 'success') {
                                 this.TABLE_SIGN_OPTION = ress.rows;
-                                this.DATA_BASE_ID = res.rows[0].DATABASE_ID;
-                                this.DATA_BASE_NAME = res.rows[0].DBNAME;
                             }
                         })
 
-                        this.TABLE_NAME = res.rows[0].TABLE_NAME
+                        this.TABLE_NAME = tableData.TABLE_NAME
                         this.termsDataSource = res.columns;
                     }
                 })
@@ -552,7 +616,8 @@
                         this.SECOND_CLASSIFY_OPTION = res.rows;
                     }
                 })
-            }
+            },
+            databaseOptionLabel
         }
     }
 </script>

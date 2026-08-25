@@ -1,9 +1,11 @@
-import assert from 'node:assert/strict'
+import assertModule from 'assert'
 import {
   databaseKey,
   duplicateLookup,
   schemaPayload
 } from '../src/views/statistics/modules/dataSourceSchemaSupport.mjs'
+
+const assert = assertModule.strict
 
 const vastbase = {DBNAME: 'gk_data_analysis', SCHEMA_NAME: 'edw'}
 
