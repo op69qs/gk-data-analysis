@@ -1,5 +1,7 @@
-import assert from 'node:assert/strict'
+import assertModule from 'assert'
 import * as schemaSupport from '../src/views/statistics/modules/dataSourceSchemaSupport.mjs'
+
+const assert = assertModule.strict
 
 const databaseOptions = [
   {id: 'database-edw', name: 'gk_data_analysis', SCHEMA_NAME: ' edw '},
