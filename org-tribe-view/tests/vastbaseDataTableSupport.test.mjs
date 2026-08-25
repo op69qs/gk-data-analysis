@@ -9,6 +9,15 @@ const databaseOptions = [
 ]
 
 assert.equal(
+  typeof schemaSupport.dataSourceType,
+  'function',
+  'data table maintenance must update the source type before database options finish loading'
+)
+assert.equal(schemaSupport.dataSourceType({label: '国库数据源(Vastbase)'}), 'Vastbase')
+assert.equal(schemaSupport.dataSourceType('业务数据源(Mysql)'), 'Mysql')
+assert.equal(schemaSupport.dataSourceType('invalid label'), '')
+
+assert.equal(
   typeof schemaSupport.schemaForDatabaseSelection,
   'function',
   'data table maintenance must resolve the configured Schema from the selected database ID'

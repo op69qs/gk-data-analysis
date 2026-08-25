@@ -46,3 +46,9 @@ export const databaseOptionLabel = (type, database) => {
   }
   return `${database.name}（Schema：${schemaName}）`
 }
+
+export const dataSourceType = source => {
+  const label = source && typeof source === 'object' ? source.label : source
+  const match = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(label || '')
+  return match ? match[2] : ''
+}

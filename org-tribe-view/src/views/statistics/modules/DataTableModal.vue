@@ -170,6 +170,7 @@
   } from '@/api/nationalTreasury'
   import {
     databaseOptionLabel,
+    dataSourceType,
     isVastbaseType,
     schemaForDatabaseSelection
   } from './dataSourceSchemaSupport.mjs'
@@ -237,6 +238,7 @@
         BASE_ID: '',
         DATA_BASE_ID: '',
         DATA_BASE_NAME: '',
+        databaseRequestSourceId: '',
         SCHEMA_NAME: '',
         TABLE_SIGN: '',
         TABLE_NAME: '',
@@ -287,26 +289,33 @@
           isJump:'1'
         };
         this.BASE_TYPE = '';
+        this.BASE_ID = '';
+        this.databaseRequestSourceId = '';
         this.SCHEMA_NAME = '';
         this.DATABASE_ID_OPTION = [];
         this.TABLE_SIGN_OPTION = [];
         this.termsDataSource = [];
       },
       findatabase(value, option) {
+        const sourceId = value.key;
         this.queryParam.DATABASE_ID = ''
         //this.form.setFieldsValue({'DATABASE_ID': ''});
         this.model = {};
+        this.BASE_TYPE = dataSourceType(value);
+        this.BASE_ID = sourceId;
+        this.databaseRequestSourceId = sourceId;
+        this.DATABASE_ID_OPTION = [];
         this.TABLE_SIGN_OPTION = [];
         this.termsDataSource = [];
         this.SCHEMA_NAME = '';
         this.form.resetFields()
         console.log(this.form);
-        getDataBaseSelection({SOURCE_ID: value.key}).then(res => {
+        getDataBaseSelection({SOURCE_ID: sourceId}).then(res => {
+          if (this.databaseRequestSourceId !== sourceId) {
+            return
+          }
           if (res.result === 'success') {
             this.DATABASE_ID_OPTION = res.rows;
-            var rt = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(value.label);
-            this.BASE_TYPE = rt[2];
-            this.BASE_ID = value.key;
           }
         })
       },
