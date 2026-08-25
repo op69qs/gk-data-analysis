@@ -9,6 +9,20 @@ const databaseOptions = [
 ]
 
 assert.equal(
+  typeof schemaSupport.nextSelectionRequestToken,
+  'function',
+  'data table maintenance must invalidate older table and field requests when the selection changes'
+)
+assert.equal(schemaSupport.nextSelectionRequestToken(0), 1)
+assert.equal(schemaSupport.nextSelectionRequestToken(3), 4)
+assert.equal(
+  schemaSupport.isCurrentSelectionRequest(4, 3),
+  false,
+  'an older Schema request must not overwrite the current selection'
+)
+assert.equal(schemaSupport.isCurrentSelectionRequest(4, 4), true)
+
+assert.equal(
   typeof schemaSupport.dataSourceType,
   'function',
   'data table maintenance must update the source type before database options finish loading'

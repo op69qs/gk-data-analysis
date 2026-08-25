@@ -52,3 +52,7 @@ export const dataSourceType = source => {
   const match = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(label || '')
   return match ? match[2] : ''
 }
+
+export const nextSelectionRequestToken = currentToken => (currentToken || 0) + 1
+
+export const isCurrentSelectionRequest = (currentToken, requestToken) => currentToken === requestToken
