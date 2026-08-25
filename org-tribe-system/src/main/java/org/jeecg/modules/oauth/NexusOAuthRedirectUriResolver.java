@@ -1,5 +1,6 @@
 package org.jeecg.modules.oauth;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -13,6 +14,7 @@ import java.net.URISyntaxException;
  * downstream system. The OAuth client registration in GK-Nexus remains the
  * authoritative allowlist for the resulting URI.
  */
+@Slf4j
 @Component
 public class NexusOAuthRedirectUriResolver {
 
@@ -27,26 +29,55 @@ public class NexusOAuthRedirectUriResolver {
             throw new IllegalArgumentException("Nexus OAuth callback request is unavailable");
         }
 
-        String scheme = firstHeader(request.getHeader("X-Forwarded-Proto"));
-        String authority = firstHeader(request.getHeader("X-Forwarded-Host"));
-        boolean trustedProxy = isTrustedProxy(request.getRemoteAddr(), trustedProxyCidrs);
+        String remoteAddr = request.getRemoteAddr();
+        String forwardedProtoRaw = request.getHeader("X-Forwarded-Proto");
+        String forwardedHostRaw = request.getHeader("X-Forwarded-Host");
+        String forwardedPortRaw = request.getHeader("X-Forwarded-Port");
+        String scheme = firstHeader(forwardedProtoRaw);
+        String authority = firstHeader(forwardedHostRaw);
+        boolean trustedProxy = isTrustedProxy(remoteAddr, trustedProxyCidrs);
+        boolean schemeOk = isHttpScheme(scheme);
+        boolean authorityOk = isSafeAuthority(authority);
+        String source;
 
-        if (!trustedProxy || !isHttpScheme(scheme) || !isSafeAuthority(authority)) {
+        if (!trustedProxy || !schemeOk || !authorityOk) {
+            source = "servlet-direct"
+                    + (!trustedProxy ? "|untrusted-proxy" : "")
+                    + (!schemeOk ? "|bad-or-missing-forwarded-proto" : "")
+                    + (!authorityOk ? "|bad-or-missing-forwarded-host" : "");
             scheme = request.getScheme();
             authority = authority(request.getServerName(), request.getServerPort(), scheme);
         } else if (!hasExplicitPort(authority)) {
-            String forwardedPort = firstHeader(request.getHeader("X-Forwarded-Port"));
+            source = "forwarded-headers";
+            String forwardedPort = firstHeader(forwardedPortRaw);
             if (isPort(forwardedPort)) {
                 authority = authority + ":" + forwardedPort;
             }
+        } else {
+            source = "forwarded-headers";
         }
 
         if (!isHttpScheme(scheme) || !isSafeAuthority(authority)) {
+            log.warn("Nexus OAuth redirect diagnose FAIL remoteAddr={}, trustedProxy={}, "
+                            + "trustedProxyCidrs={}, xfProto={}, xfHost={}, xfPort={}, "
+                            + "servletScheme={}, servletHost={}, servletPort={}, source={}",
+                    remoteAddr, trustedProxy, trustedProxyCidrs,
+                    forwardedProtoRaw, forwardedHostRaw, forwardedPortRaw,
+                    request.getScheme(), request.getServerName(), request.getServerPort(), source);
             throw new IllegalArgumentException("Nexus OAuth callback request address is invalid");
         }
 
         try {
-            return new URI(scheme.toLowerCase(), authority, callbackPath(request), null, null).toString();
+            String redirectUri = new URI(scheme.toLowerCase(), authority, callbackPath(request), null, null).toString();
+            log.info("Nexus OAuth redirect diagnose OK remoteAddr={}, trustedProxy={}, "
+                            + "trustedProxyCidrs={}, xfProto={}, xfHost={}, xfPort={}, "
+                            + "servletScheme={}, servletHost={}, servletPort={}, "
+                            + "source={}, redirectUri={}",
+                    remoteAddr, trustedProxy, trustedProxyCidrs,
+                    forwardedProtoRaw, forwardedHostRaw, forwardedPortRaw,
+                    request.getScheme(), request.getServerName(), request.getServerPort(),
+                    source, redirectUri);
+            return redirectUri;
         } catch (URISyntaxException exception) {
             throw new IllegalArgumentException("Nexus OAuth callback request address is invalid", exception);
         }

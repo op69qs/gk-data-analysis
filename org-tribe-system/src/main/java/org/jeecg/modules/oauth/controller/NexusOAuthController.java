@@ -195,7 +195,9 @@ public class NexusOAuthController {
      * Exchanges an OAuth2.0 authorization code for an access_token from GK-Nexus.
      */
     private String resolveCallbackRedirectUri(HttpServletRequest request) {
-        return redirectUriResolver.resolve(request, trustedProxyCidrs);
+        String redirectUri = redirectUriResolver.resolve(request, trustedProxyCidrs);
+        log.info("Nexus OAuth token exchange redirect_uri={}", redirectUri);
+        return redirectUri;
     }
 
     private String exchangeCodeForToken(String code, String callbackRedirectUri) throws Exception {
