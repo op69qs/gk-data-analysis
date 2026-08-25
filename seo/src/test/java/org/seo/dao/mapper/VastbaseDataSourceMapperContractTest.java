@@ -118,8 +118,8 @@ public class VastbaseDataSourceMapperContractTest {
 
         assertTrue(databaseSelectionSql.contains("b.DBNAME AS name"));
         assertFalse(databaseSelectionSql.contains("THEN b.SCHEMA_NAME"));
-        assertTrue(treeSql.contains("b.DBNAME AS lable"));
-        assertFalse(treeSql.contains("THEN b.SCHEMA_NAME"));
+        assertTrue(treeSql.contains("WHEN a.TYPE = 'Vastbase'"));
+        assertTrue(treeSql.contains("CONCAT(b.DBNAME, '-', b.SCHEMA_NAME)"));
     }
 
     @Test

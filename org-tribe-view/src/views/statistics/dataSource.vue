@@ -41,6 +41,12 @@
         </el-table-column>
         <el-table-column key='6' prop="DBNAME" min-width="10%" label="数据库" align="center">
         </el-table-column>
+        <el-table-column key='6a' prop="SCHEMA_NAME" min-width="10%" label="Schema" align="center">
+          <template slot-scope="scope">
+            <span v-if="scope.row.TYPE === 'Vastbase'">{{ scope.row.SCHEMA_NAME || '-' }}</span>
+            <span v-else>-</span>
+          </template>
+        </el-table-column>
         <el-table-column key='7' prop="STATE" min-width="10%" align="center" label="状态">
           <template slot-scope="scope">
             <span v-if="scope.row.STATE === '0'">启用</span>

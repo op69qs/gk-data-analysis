@@ -47,6 +47,14 @@ export const databaseOptionLabel = (type, database) => {
   return `${database.name}（Schema：${schemaName}）`
 }
 
+export const databaseTreeLabel = (type, databaseName, schemaName) => {
+  const schema = schemaPayload(type, schemaName)
+  if (!schema) {
+    return databaseName || ''
+  }
+  return `${databaseName}-${schema}`
+}
+
 export const dataSourceType = source => {
   const label = source && typeof source === 'object' ? source.label : source
   const match = /(.+)?(?:\(|（)(.+)(?=\)|）)/.exec(label || '')

@@ -16,7 +16,12 @@
                 </if>
             </where>
             UNION
-            SELECT b.ID AS id,b.DBNAME AS lable,
+            SELECT b.ID AS id,
+                   CASE
+                       WHEN a.TYPE = 'Vastbase' AND b.SCHEMA_NAME IS NOT NULL AND b.SCHEMA_NAME &lt;&gt; ''
+                           THEN CONCAT(b.DBNAME, '-', b.SCHEMA_NAME)
+                       ELSE b.DBNAME
+                   END AS lable,
                    b.SOURCE_ID AS "pId",'database' AS "nodeType"
             FROM seo.seo_datasource_database b
             JOIN seo.seo_datasource a ON a.ID = b.SOURCE_ID

@@ -65,4 +65,19 @@ assert.equal(
   'legacy database labels must remain unchanged'
 )
 
+assert.equal(
+  typeof schemaSupport.databaseTreeLabel,
+  'function',
+  'Vastbase tree nodes must expose database-schema labels when configured'
+)
+assert.equal(
+  schemaSupport.databaseTreeLabel('Vastbase', 'gk_data_analysis', 'edw'),
+  'gk_data_analysis-edw'
+)
+assert.equal(
+  schemaSupport.databaseTreeLabel('Mysql', 'gk_data_analysis', 'edw'),
+  'gk_data_analysis',
+  'non-Vastbase tree labels must remain database-only'
+)
+
 console.log('Vastbase data table frontend behavior passed')

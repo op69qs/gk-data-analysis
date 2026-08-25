@@ -8,6 +8,7 @@
                                     @change="getDatas"></a-input-search>
                     <a-row style="margin:10px 0;">
                         <a-button @click="handleAdd" type="primary">新增</a-button>
+                        <a-button style="margin-left: 8px;" :disabled="!TABLE_ID" @click="handleEdit">修改</a-button>
                     </a-row>
                     <!-- tableTree-->
                     <a-col :sm="24" style="height: 500px;overflow-y: auto;">
@@ -34,6 +35,17 @@
         <a-col :md="15" :sm="24" style="background:#fff;height: 645px;overflow-y: auto;">
             <a-card :bordered="false">
                 <div id="add2" v-if="isInfo" style="min-height: 500px;line-height:30px;">
+                    <a-row style="margin-bottom: 12px;" v-if="status">
+                        <a-col :span="24" style="text-align: right;">
+                            <a-button type="primary" @click="handleEdit">编辑</a-button>
+                        </a-col>
+                    </a-row>
+                    <a-row style="margin-bottom: 12px;" v-if="status1">
+                        <a-col :span="24" style="text-align: right;">
+                            <a-button style="margin-right: 8px;" @click="back">取消</a-button>
+                            <a-button type="primary" @click="handleSubmit">保存</a-button>
+                        </a-col>
+                    </a-row>
                     <a-form layout="inline" :form="form">
                         <a-row :gutter="24">
                             <a-col :md="12" :sm="12">
@@ -200,20 +212,6 @@
                            @change="e => handleChange(e.target.value,record.columnName,'columnComment')"/>
                </span>
                     </a-table>
-                    <a-row style="margin-top:10px;" v-if="status">
-                        <a-col :span="6" :offset="18">
-                            <a-button type="primary" style="float:right;margin-left: 10px;" @click="handleEdit">编辑
-                            </a-button>
-                        </a-col>
-                    </a-row>
-                    <a-row style="margin-top:10px;" v-if="status1">
-                        <a-col :span="6" :offset="18">
-                            <a-button style="float:right;margin-left: 10px;" @click="back">取消</a-button>
-                            <a-button type="primary" :disabled="disabled" style="float:right;" @click="handleSubmit">
-                                确定
-                            </a-button>
-                        </a-col>
-                    </a-row>
                 </div>
                 <div v-else style="text-align: center;padding:100px; color:#bfbfbf;">
                     <img src="~@/assets/noData.png" width="200"/>
@@ -241,6 +239,7 @@
     import DataTableModal from './modules/DataTableModal'
     import {
         databaseOptionLabel,
+        databaseTreeLabel,
         dataSourceType,
         isVastbaseType,
         schemaForDatabaseSelection
@@ -423,10 +422,9 @@
                 if (data.nodeType !== 'table') {
                     return;
                 }
-                if (data.parentId !== '' && data.children.length === 0) {
-                    const tableId = data.id;
-                    this.TABLE_ID = tableId;
-                    getDataTableData({TABLE_ID: tableId}).then(res => {
+                const tableId = data.id;
+                this.TABLE_ID = tableId;
+                getDataTableData({TABLE_ID: tableId}).then(res => {
                         if (this.TABLE_ID !== tableId) {
                             return
                         }
@@ -458,7 +456,7 @@
                             this.headerChange(tableData.FIRST_CLASSIFY);
                             this.queryParam.DATABASE_ID = {
                                 value: databaseId,
-                                label: tableData.DBNAME
+                                label: databaseTreeLabel(baseType, tableData.DBNAME, tableData.SCHEMA_NAME)
                             };
                             this.DATA_BASE_ID = this.queryParam.DATABASE_ID;
                             this.DATA_BASE_NAME = tableData.DBNAME;
@@ -497,7 +495,6 @@
                             //this.$message.error(res.msg);
                         }
                     })
-                }
             },
             handleEdit() {
                 this.disabled = false;
@@ -538,7 +535,7 @@
                         this.BASE_ID = this.queryParam.SOURCE_ID;
                         this.queryParam.DATABASE_ID = {
                             value: databaseId,
-                            label: tableData.DBNAME
+                            label: databaseTreeLabel(baseType, tableData.DBNAME, tableData.SCHEMA_NAME)
                         }
                         this.DATA_BASE_ID = this.queryParam.DATABASE_ID;
                         this.DATA_BASE_NAME = tableData.DBNAME;
@@ -604,8 +601,13 @@
                         this.disabled = true;
                         this.status = true;
                         this.status1 = false;
+                        getDataSourceTree({tableName: this.queryParam.filterText || undefined}).then(treeRes => {
+                            if (treeRes.result === 'success') {
+                                this.treeData = treeRes.rows;
+                            }
+                        });
                     } else {
-                        this.$messagr.error(res.msg);
+                        this.$message.error(res.msg);
                     }
                 })
             },
@@ -617,7 +619,8 @@
                     }
                 })
             },
-            databaseOptionLabel
+            databaseOptionLabel,
+            databaseTreeLabel
         }
     }
 </script>
