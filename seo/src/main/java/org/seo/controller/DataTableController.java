@@ -52,15 +52,19 @@ public class DataTableController extends BaseController {
     @PostMapping(value = "/diagnoseMappings")
     public Map<String, Object> diagnoseMappings() {
         Map<String, Object> jsonMap = new HashMap<>();
-        boolean dataSourceBeanPresent = applicationContext.containsBean("dataSourceController");
-        jsonMap.put("dataSourceControllerBean", dataSourceBeanPresent);
+        jsonMap.put("dataSourceControllerBean", applicationContext.containsBean("dataSourceController"));
         try {
-            applicationContext.getBean("dataSourceController");
-            jsonMap.put("dataSourceControllerBeanLoadable", true);
-        } catch (Exception e) {
-            jsonMap.put("dataSourceControllerBeanLoadable", false);
-            jsonMap.put("dataSourceControllerBeanError", e.getClass().getSimpleName() + ": " + e.getMessage());
+            Class<?> clazz = Class.forName("org.seo.controller.DataSourceController");
+            java.security.CodeSource codeSource = clazz.getProtectionDomain().getCodeSource();
+            jsonMap.put("dataSourceControllerLoadedFrom",
+                    codeSource == null ? "unknown" : String.valueOf(codeSource.getLocation()));
+        } catch (Throwable t) {
+            jsonMap.put("dataSourceControllerLoadedFrom",
+                    "NOT loadable: " + t.getClass().getName() + ": " + t.getMessage());
         }
+        java.security.CodeSource selfSource = getClass().getProtectionDomain().getCodeSource();
+        jsonMap.put("dataTableControllerLoadedFrom",
+                selfSource == null ? "unknown" : String.valueOf(selfSource.getLocation()));
 
         List<String> dataSourceMappings = new ArrayList<>();
         List<String> dataTableMappings = new ArrayList<>();
