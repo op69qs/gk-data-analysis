@@ -67,6 +67,40 @@ routine 导出）为唯一业务过程基线。筛选规则不是“迁移所有
 `017_dynamic_refresh_run_log_init.sql` 只供已有库增量升级；新库所需定义已经合并
 进 `013_adm_tables_init.sql`，因此不在总入口重复执行。
 
+## 是否支持多次执行
+
+当前脚本已按“对象级幂等”改造，可在同一库重复执行 `000_run_all.sql`：
+
+| 对象类型 | 策略 | 说明 |
+| --- | --- | --- |
+| Schema | `CREATE SCHEMA IF NOT EXISTS` | 可重复 |
+| 表 | `CREATE TABLE IF NOT EXISTS` | 可重复；**不会删表、不会改已有列结构、不会清数据** |
+| 索引 | `CREATE INDEX IF NOT EXISTS` | 可重复 |
+| 过程/函数 | `DROP ... IF EXISTS` + `CREATE` | 可重复；每次以脚本定义覆盖 |
+| Event | `DROP EVENT IF EXISTS` + `CREATE EVENT IF NOT EXISTS` | 可重复；若现场不支持 Event，该项需改外部调度 |
+
+注意：
+
+1. 多次执行是“补齐缺失对象 / 覆盖过程定义”，不是“重建空库”。
+2. 若要把表结构改到与脚本完全一致，需要单独的变更脚本或先备份后手工 `DROP` 再跑初始化。
+3. 过程体内的 `DROP TABLE`（如 ETL 临时表）属于运行时逻辑，不影响初始化幂等。
+
+## 执行成功校验
+
+对象级校验使用同目录 `000_verify_init.sql`：
+
+```bash
+cd <final目录>
+vsql -h <host> -p <port> -U <user> -d <database> -W '<password>' \
+  -v ON_ERROR_STOP=1 -f 000_verify_init.sql
+```
+
+也可使用 `000_run_all_full.sql`（先跑 19 个初始化脚本，再自动 `\ir 000_verify_init.sql`）。
+
+校验项包含：12 个 schema、84 个过程分 schema 计数、关键业务入口过程、
+`adm.num_char` 函数、ucloud/upm/adm 表数量、关键日志表、ADM 索引数量、15 个 Event。
+输出列 `pass=Y/N`；最后一节只列出未通过项。
+
 ## 前提与正式执行
 
 - 目标数据库为 Vastbase MySQL 兼容模式：`sql_compatibility = B`。

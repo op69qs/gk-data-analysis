@@ -2,8 +2,7 @@
 CREATE SCHEMA IF NOT EXISTS adm;
 SET search_path TO adm, public;
 
-DROP TABLE IF EXISTS adm.ana_cx_mth_cash_servinfo;
-CREATE TABLE adm.ana_cx_mth_cash_servinfo (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_mth_cash_servinfo (
   data_date date NULL DEFAULT NULL,
   month varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -22,8 +21,7 @@ CREATE TABLE adm.ana_cx_mth_cash_servinfo (
   trade_num int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_mth_cash_servinfo_map;
-CREATE TABLE adm.ana_cx_mth_cash_servinfo_map (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_mth_cash_servinfo_map (
   data_date date NULL DEFAULT NULL,
   month varchar(10) NULL DEFAULT NULL,
   area_code varchar(10) NULL DEFAULT NULL,
@@ -33,8 +31,7 @@ CREATE TABLE adm.ana_cx_mth_cash_servinfo_map (
   trade_ineffict int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_mth_cash_servinfo_tmp;
-CREATE TABLE adm.ana_cx_mth_cash_servinfo_tmp (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_mth_cash_servinfo_tmp (
   trade_date varchar(10) NULL DEFAULT NULL,
   area_code char(6) NULL DEFAULT NULL,
   area_name varchar(30) NULL DEFAULT NULL,
@@ -44,8 +41,7 @@ CREATE TABLE adm.ana_cx_mth_cash_servinfo_tmp (
   trade_ineffict double NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_accts;
-CREATE TABLE adm.ana_cx_qtr_accts (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_accts (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -58,8 +54,7 @@ CREATE TABLE adm.ana_cx_qtr_accts (
   bank decimal(28, 8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_bank_card;
-CREATE TABLE adm.ana_cx_qtr_bank_card (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_bank_card (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -75,8 +70,7 @@ CREATE TABLE adm.ana_cx_qtr_bank_card (
   money_ly decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_bank_cards;
-CREATE TABLE adm.ana_cx_qtr_bank_cards (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_bank_cards (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -88,8 +82,7 @@ CREATE TABLE adm.ana_cx_qtr_bank_cards (
   card decimal(30, 8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_bank_dq_card;
-CREATE TABLE adm.ana_cx_qtr_bank_dq_card (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_bank_dq_card (
   data_date varchar(10) NULL DEFAULT NULL,
   quarter char(8) NULL DEFAULT NULL,
   city_code varchar(20) NULL DEFAULT NULL,
@@ -103,8 +96,7 @@ CREATE TABLE adm.ana_cx_qtr_bank_dq_card (
   money decimal(50, 8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_cash_servinfo;
-CREATE TABLE adm.ana_cx_qtr_cash_servinfo (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_cash_servinfo (
   data_date date NULL DEFAULT NULL,
   month varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -120,8 +112,7 @@ CREATE TABLE adm.ana_cx_qtr_cash_servinfo (
   money_lm decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_cash_servinfo_tmp;
-CREATE TABLE adm.ana_cx_qtr_cash_servinfo_tmp (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_cash_servinfo_tmp (
   data_date date NULL DEFAULT NULL,
   month varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -133,8 +124,7 @@ CREATE TABLE adm.ana_cx_qtr_cash_servinfo_tmp (
   trade_amount decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_cls;
-CREATE TABLE adm.ana_cx_qtr_cls (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_cls (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -150,8 +140,7 @@ CREATE TABLE adm.ana_cx_qtr_cls (
   money_ly decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_country_num;
-CREATE TABLE adm.ana_cx_qtr_country_num (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_country_num (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -163,8 +152,7 @@ CREATE TABLE adm.ana_cx_qtr_country_num (
   country_rate decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_dq_cls;
-CREATE TABLE adm.ana_cx_qtr_dq_cls (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_dq_cls (
   data_date varchar(10) NULL DEFAULT NULL,
   quarter char(8) NULL DEFAULT NULL,
   city_code varchar(20) NULL DEFAULT NULL,
@@ -178,8 +166,7 @@ CREATE TABLE adm.ana_cx_qtr_dq_cls (
   money decimal(50, 8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_non_cash_dq_pay;
-CREATE TABLE adm.ana_cx_qtr_non_cash_dq_pay (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_non_cash_dq_pay (
   data_date varchar(10) NULL DEFAULT NULL,
   quarter char(8) NULL DEFAULT NULL,
   city_code varchar(20) NULL DEFAULT NULL,
@@ -192,8 +179,7 @@ CREATE TABLE adm.ana_cx_qtr_non_cash_dq_pay (
   money decimal(50, 8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_non_cash_pay;
-CREATE TABLE adm.ana_cx_qtr_non_cash_pay (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_non_cash_pay (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -208,8 +194,7 @@ CREATE TABLE adm.ana_cx_qtr_non_cash_pay (
   money_ly decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_non_cash_pay_kh;
-CREATE TABLE adm.ana_cx_qtr_non_cash_pay_kh (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_non_cash_pay_kh (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -221,8 +206,7 @@ CREATE TABLE adm.ana_cx_qtr_non_cash_pay_kh (
   account_number int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_static;
-CREATE TABLE adm.ana_cx_qtr_static (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_static (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -237,8 +221,7 @@ CREATE TABLE adm.ana_cx_qtr_static (
   outlets_num_country int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_cx_qtr_trade_all;
-CREATE TABLE adm.ana_cx_qtr_trade_all (
+CREATE TABLE IF NOT EXISTS adm.ana_cx_qtr_trade_all (
   data_date date NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
   city_code varchar(10) NULL DEFAULT NULL,
@@ -253,8 +236,7 @@ CREATE TABLE adm.ana_cx_qtr_trade_all (
   money_ly decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_bad_org_top5;
-CREATE TABLE adm.ana_glr_mth_bad_org_top5 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_bad_org_top5 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(20) NULL DEFAULT NULL,
@@ -264,8 +246,7 @@ CREATE TABLE adm.ana_glr_mth_bad_org_top5 (
   rank_dscr varchar(15) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_begin_increase_dtop5;
-CREATE TABLE adm.ana_glr_mth_begin_increase_dtop5 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_begin_increase_dtop5 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(25) NULL DEFAULT NULL,
@@ -275,8 +256,7 @@ CREATE TABLE adm.ana_glr_mth_begin_increase_dtop5 (
   rank_dscr varchar(15) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_begin_increase_top5;
-CREATE TABLE adm.ana_glr_mth_begin_increase_top5 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_begin_increase_top5 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(25) NULL DEFAULT NULL,
@@ -286,8 +266,7 @@ CREATE TABLE adm.ana_glr_mth_begin_increase_top5 (
   rank_dscr varchar(15) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_credit;
-CREATE TABLE adm.ana_glr_mth_credit (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_credit (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   city_id varchar(10) NULL DEFAULT NULL,
@@ -310,8 +289,7 @@ CREATE TABLE adm.ana_glr_mth_credit (
   bad_loan_remain_dm_ly decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_credit_map;
-CREATE TABLE adm.ana_glr_mth_credit_map (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_credit_map (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   iso_id varchar(20) NULL DEFAULT NULL,
@@ -321,8 +299,7 @@ CREATE TABLE adm.ana_glr_mth_credit_map (
   bad_loan_remain_ly decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_credit_monitor;
-CREATE TABLE adm.ana_glr_mth_credit_monitor (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_credit_monitor (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   city_id varchar(10) NULL DEFAULT NULL,
@@ -343,8 +320,7 @@ CREATE TABLE adm.ana_glr_mth_credit_monitor (
   bad_loan_rate decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_deposit_summary;
-CREATE TABLE adm.ana_glr_mth_deposit_summary (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_deposit_summary (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   city_id varchar(10) NULL DEFAULT NULL,
@@ -365,8 +341,7 @@ CREATE TABLE adm.ana_glr_mth_deposit_summary (
   deposit_remain_zbyt_ly decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_dm_increase_top5;
-CREATE TABLE adm.ana_glr_mth_dm_increase_top5 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_dm_increase_top5 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(25) NULL DEFAULT NULL,
@@ -376,8 +351,7 @@ CREATE TABLE adm.ana_glr_mth_dm_increase_top5 (
   rank_dscr varchar(15) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_fina_jzfp;
-CREATE TABLE adm.ana_glr_mth_fina_jzfp (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_fina_jzfp (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   dscr_qua varchar(255) NULL DEFAULT NULL,
@@ -397,8 +371,7 @@ CREATE TABLE adm.ana_glr_mth_fina_jzfp (
   spur_serv_poor_num int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_fina_jzfp_1;
-CREATE TABLE adm.ana_glr_mth_fina_jzfp_1 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_fina_jzfp_1 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   dscr_qua varchar(255) NULL DEFAULT NULL,
@@ -411,8 +384,7 @@ CREATE TABLE adm.ana_glr_mth_fina_jzfp_1 (
   loan_ff_lytb decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_lm_increase_top5;
-CREATE TABLE adm.ana_glr_mth_lm_increase_top5 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_lm_increase_top5 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(25) NULL DEFAULT NULL,
@@ -422,8 +394,7 @@ CREATE TABLE adm.ana_glr_mth_lm_increase_top5 (
   rank_dscr varchar(15) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_loan_summary;
-CREATE TABLE adm.ana_glr_mth_loan_summary (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_loan_summary (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   city_id varchar(10) NULL DEFAULT NULL,
@@ -444,8 +415,7 @@ CREATE TABLE adm.ana_glr_mth_loan_summary (
   loan_remain_zbyt_ly decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_loan_summary_1;
-CREATE TABLE adm.ana_glr_mth_loan_summary_1 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_loan_summary_1 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   city_id varchar(10) NULL DEFAULT NULL,
@@ -464,8 +434,7 @@ CREATE TABLE adm.ana_glr_mth_loan_summary_1 (
   deposit_remain_zbyt_ly decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_pay_increase_top5;
-CREATE TABLE adm.ana_glr_mth_pay_increase_top5 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_pay_increase_top5 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(25) NULL DEFAULT NULL,
@@ -475,8 +444,7 @@ CREATE TABLE adm.ana_glr_mth_pay_increase_top5 (
   rank_dscr varchar(25) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_real_estate_loans;
-CREATE TABLE adm.ana_glr_mth_real_estate_loans (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_real_estate_loans (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   area_no_id varchar(10) NULL DEFAULT NULL,
@@ -488,8 +456,7 @@ CREATE TABLE adm.ana_glr_mth_real_estate_loans (
   loan_amount_ly decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_real_estate_loans_map;
-CREATE TABLE adm.ana_glr_mth_real_estate_loans_map (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_real_estate_loans_map (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   iso_id varchar(20) NULL DEFAULT NULL,
@@ -504,8 +471,7 @@ CREATE TABLE adm.ana_glr_mth_real_estate_loans_map (
   loan_remain_by decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_real_estate_loans_org;
-CREATE TABLE adm.ana_glr_mth_real_estate_loans_org (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_real_estate_loans_org (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(25) NULL DEFAULT NULL,
@@ -514,8 +480,7 @@ CREATE TABLE adm.ana_glr_mth_real_estate_loans_org (
   loan_amount decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_real_estate_loans_rate;
-CREATE TABLE adm.ana_glr_mth_real_estate_loans_rate (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_real_estate_loans_rate (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   service_type varchar(20) NULL DEFAULT NULL,
@@ -525,8 +490,7 @@ CREATE TABLE adm.ana_glr_mth_real_estate_loans_rate (
   loans_total decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_remain_increase_dtop5;
-CREATE TABLE adm.ana_glr_mth_remain_increase_dtop5 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_remain_increase_dtop5 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(25) NULL DEFAULT NULL,
@@ -536,8 +500,7 @@ CREATE TABLE adm.ana_glr_mth_remain_increase_dtop5 (
   rank_dscr varchar(25) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_remain_increase_top5;
-CREATE TABLE adm.ana_glr_mth_remain_increase_top5 (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_remain_increase_top5 (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(25) NULL DEFAULT NULL,
@@ -547,8 +510,7 @@ CREATE TABLE adm.ana_glr_mth_remain_increase_top5 (
   rank_dscr varchar(25) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_small_micro;
-CREATE TABLE adm.ana_glr_mth_small_micro (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_small_micro (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   city_id varchar(10) NULL DEFAULT NULL,
@@ -563,8 +525,7 @@ CREATE TABLE adm.ana_glr_mth_small_micro (
   loan_amount_ly decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_small_micro_bad;
-CREATE TABLE adm.ana_glr_mth_small_micro_bad (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_small_micro_bad (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   org_id varchar(20) NULL DEFAULT NULL,
@@ -574,8 +535,7 @@ CREATE TABLE adm.ana_glr_mth_small_micro_bad (
   rank_dscr varchar(15) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_small_micro_map;
-CREATE TABLE adm.ana_glr_mth_small_micro_map (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_small_micro_map (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   iso_id varchar(20) NULL DEFAULT NULL,
@@ -586,8 +546,7 @@ CREATE TABLE adm.ana_glr_mth_small_micro_map (
   loan_amount_ly decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_small_micro_rate;
-CREATE TABLE adm.ana_glr_mth_small_micro_rate (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_small_micro_rate (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   service_type varchar(20) NULL DEFAULT NULL,
@@ -595,8 +554,7 @@ CREATE TABLE adm.ana_glr_mth_small_micro_rate (
   loans_total decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_summary;
-CREATE TABLE adm.ana_glr_mth_summary (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_summary (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   city_id varchar(10) NULL DEFAULT NULL,
@@ -616,8 +574,7 @@ CREATE TABLE adm.ana_glr_mth_summary (
   stroke_count bigint NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_glr_mth_summary_map;
-CREATE TABLE adm.ana_glr_mth_summary_map (
+CREATE TABLE IF NOT EXISTS adm.ana_glr_mth_summary_map (
   fiscal_date date NULL DEFAULT NULL,
   fiscal_mth varchar(10) NULL DEFAULT NULL,
   iso_id varchar(20) NULL DEFAULT NULL,
@@ -628,15 +585,13 @@ CREATE TABLE adm.ana_glr_mth_summary_map (
   loan_remain_by decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_cm_service_type;
-CREATE TABLE adm.ana_sust_cm_service_type (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_cm_service_type (
   service_type varchar(200) NULL DEFAULT NULL,
   item_category_code varchar(200) NULL DEFAULT NULL,
   item_category varchar(200) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_credit_rece_pay_area;
-CREATE TABLE adm.ana_sust_mth_credit_rece_pay_area (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_credit_rece_pay_area (
   data_date date NULL DEFAULT NULL,
   data_mth char(6) NULL DEFAULT NULL,
   iso_id varchar(6) NULL DEFAULT NULL,
@@ -645,8 +600,7 @@ CREATE TABLE adm.ana_sust_mth_credit_rece_pay_area (
   loan_bal decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_credit_rece_pay_struc;
-CREATE TABLE adm.ana_sust_mth_credit_rece_pay_struc (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_credit_rece_pay_struc (
   data_date date NULL DEFAULT NULL,
   data_mth char(6) NULL DEFAULT NULL,
   service_type varchar(10) NULL DEFAULT NULL,
@@ -655,8 +609,7 @@ CREATE TABLE adm.ana_sust_mth_credit_rece_pay_struc (
   bal decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_credit_rece_pay_times;
-CREATE TABLE adm.ana_sust_mth_credit_rece_pay_times (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_credit_rece_pay_times (
   data_date date NULL DEFAULT NULL,
   data_mth char(6) NULL DEFAULT NULL,
   dep_bal decimal(18, 2) NULL DEFAULT NULL,
@@ -669,8 +622,7 @@ CREATE TABLE adm.ana_sust_mth_credit_rece_pay_times (
   loan_bal_tb_rate decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_enterprise_survey;
-CREATE TABLE adm.ana_sust_mth_enterprise_survey (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_enterprise_survey (
   data_date varchar(100) NULL DEFAULT NULL,
   enterprise_id varchar(100) NULL DEFAULT NULL,
   enterprise_name varchar(100) NULL DEFAULT NULL,
@@ -682,8 +634,7 @@ CREATE TABLE adm.ana_sust_mth_enterprise_survey (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_enterprise_survey_temp;
-CREATE TABLE adm.ana_sust_mth_enterprise_survey_temp (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_enterprise_survey_temp (
   data_date varchar(100) NULL DEFAULT NULL,
   enterprise_id varchar(100) NULL DEFAULT NULL,
   enterprise_name varchar(100) NULL DEFAULT NULL,
@@ -691,39 +642,34 @@ CREATE TABLE adm.ana_sust_mth_enterprise_survey_temp (
   money varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_enterprise_uploaded;
-CREATE TABLE adm.ana_sust_mth_enterprise_uploaded (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_enterprise_uploaded (
   d_acct char(6) NULL DEFAULT NULL,
   e_id char(8) NULL DEFAULT NULL,
   path varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_special_struc_agricu;
-CREATE TABLE adm.ana_sust_mth_special_struc_agricu (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_special_struc_agricu (
   data_date date NULL DEFAULT NULL,
   data_mth char(6) NULL DEFAULT NULL,
   loan_purpose varchar(20) NULL DEFAULT NULL,
   loan_bal decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_special_struc_enter_scale;
-CREATE TABLE adm.ana_sust_mth_special_struc_enter_scale (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_special_struc_enter_scale (
   data_date date NULL DEFAULT NULL,
   data_mth char(6) NULL DEFAULT NULL,
   enter_scale varchar(20) NULL DEFAULT NULL,
   loan_bal decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_special_struc_realty;
-CREATE TABLE adm.ana_sust_mth_special_struc_realty (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_special_struc_realty (
   data_date date NULL DEFAULT NULL,
   data_mth char(6) NULL DEFAULT NULL,
   item_category varchar(20) NULL DEFAULT NULL,
   loan_bal decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_sust_mth_special_times;
-CREATE TABLE adm.ana_sust_mth_special_times (
+CREATE TABLE IF NOT EXISTS adm.ana_sust_mth_special_times (
   data_date date NULL DEFAULT NULL,
   data_mth char(6) NULL DEFAULT NULL,
   realty_loan_bal decimal(18, 2) NULL DEFAULT NULL,
@@ -732,8 +678,7 @@ CREATE TABLE adm.ana_sust_mth_special_times (
   agricu_loan_bal_tb decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_income_functional_type;
-CREATE TABLE adm.ana_trs_income_functional_type (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_income_functional_type (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -745,8 +690,7 @@ CREATE TABLE adm.ana_trs_income_functional_type (
   budget_income decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_income_key_enterprises;
-CREATE TABLE adm.ana_trs_income_key_enterprises (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_income_key_enterprises (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -757,8 +701,7 @@ CREATE TABLE adm.ana_trs_income_key_enterprises (
   tax_income decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_income_payout_comprate_zl;
-CREATE TABLE adm.ana_trs_income_payout_comprate_zl (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_income_payout_comprate_zl (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -774,8 +717,7 @@ CREATE TABLE adm.ana_trs_income_payout_comprate_zl (
   payout_quota decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_income_payout_stock_zl;
-CREATE TABLE adm.ana_trs_income_payout_stock_zl (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_income_payout_stock_zl (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -791,8 +733,7 @@ CREATE TABLE adm.ana_trs_income_payout_stock_zl (
   f_lastyear_amt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_income_subject_struct;
-CREATE TABLE adm.ana_trs_income_subject_struct (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_income_subject_struct (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -804,8 +745,7 @@ CREATE TABLE adm.ana_trs_income_subject_struct (
   budget_income decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_income_subject_struct_industry;
-CREATE TABLE adm.ana_trs_income_subject_struct_industry (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_income_subject_struct_industry (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -817,8 +757,7 @@ CREATE TABLE adm.ana_trs_income_subject_struct_industry (
   budget_income decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_income_tax_category;
-CREATE TABLE adm.ana_trs_income_tax_category (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_income_tax_category (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -830,8 +769,7 @@ CREATE TABLE adm.ana_trs_income_tax_category (
   tax_income decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_income_zk;
-CREATE TABLE adm.ana_trs_income_zk (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_income_zk (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -848,8 +786,7 @@ CREATE TABLE adm.ana_trs_income_zk (
   budget_income_total_lm decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_payout_budget_unit;
-CREATE TABLE adm.ana_trs_payout_budget_unit (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_payout_budget_unit (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -862,8 +799,7 @@ CREATE TABLE adm.ana_trs_payout_budget_unit (
   focus_payout decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_payout_centra_pay;
-CREATE TABLE adm.ana_trs_payout_centra_pay (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_payout_centra_pay (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -875,8 +811,7 @@ CREATE TABLE adm.ana_trs_payout_centra_pay (
   budget_payout decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_payout_functional_type;
-CREATE TABLE adm.ana_trs_payout_functional_type (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_payout_functional_type (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -888,8 +823,7 @@ CREATE TABLE adm.ana_trs_payout_functional_type (
   budget_payout decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_payout_subject_struct;
-CREATE TABLE adm.ana_trs_payout_subject_struct (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_payout_subject_struct (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -901,8 +835,7 @@ CREATE TABLE adm.ana_trs_payout_subject_struct (
   budget_payout decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_payout_zk;
-CREATE TABLE adm.ana_trs_payout_zk (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_payout_zk (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   guoku_id varchar(50) NULL DEFAULT NULL,
@@ -919,8 +852,7 @@ CREATE TABLE adm.ana_trs_payout_zk (
   focus_payout_ly decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.ana_trs_stock;
-CREATE TABLE adm.ana_trs_stock (
+CREATE TABLE IF NOT EXISTS adm.ana_trs_stock (
   d_date date NULL DEFAULT NULL,
   d_year_mth char(7) NULL DEFAULT NULL,
   d_riqi varchar(20) NULL DEFAULT NULL,
@@ -936,8 +868,7 @@ CREATE TABLE adm.ana_trs_stock (
   f_lastyearbalance decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_area;
-CREATE TABLE adm.clr_ana_pay_mth_area (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_area (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   province varchar(20) NULL DEFAULT NULL,
@@ -965,8 +896,7 @@ CREATE TABLE adm.clr_ana_pay_mth_area (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_area_map;
-CREATE TABLE adm.clr_ana_pay_mth_area_map (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_area_map (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   year varchar(20) NULL DEFAULT NULL,
@@ -978,8 +908,7 @@ CREATE TABLE adm.clr_ana_pay_mth_area_map (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_bank_type;
-CREATE TABLE adm.clr_ana_pay_mth_bank_type (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_bank_type (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   org_class varchar(50) NULL DEFAULT NULL,
@@ -1002,8 +931,7 @@ CREATE TABLE adm.clr_ana_pay_mth_bank_type (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_bank_type_his;
-CREATE TABLE adm.clr_ana_pay_mth_bank_type_his (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_bank_type_his (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   org_class varchar(50) NULL DEFAULT NULL,
@@ -1026,8 +954,7 @@ CREATE TABLE adm.clr_ana_pay_mth_bank_type_his (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_busi_type;
-CREATE TABLE adm.clr_ana_pay_mth_busi_type (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_busi_type (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   province varchar(20) NULL DEFAULT NULL,
@@ -1055,8 +982,7 @@ CREATE TABLE adm.clr_ana_pay_mth_busi_type (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_industry;
-CREATE TABLE adm.clr_ana_pay_mth_industry (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_industry (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   industy_first_code varchar(20) NULL DEFAULT NULL,
@@ -1080,8 +1006,7 @@ CREATE TABLE adm.clr_ana_pay_mth_industry (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_industry_bankarea;
-CREATE TABLE adm.clr_ana_pay_mth_industry_bankarea (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_industry_bankarea (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   city_code varchar(20) NULL DEFAULT NULL,
@@ -1093,8 +1018,7 @@ CREATE TABLE adm.clr_ana_pay_mth_industry_bankarea (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_region;
-CREATE TABLE adm.clr_ana_pay_mth_region (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_region (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   system varchar(20) NULL DEFAULT NULL,
@@ -1130,8 +1054,7 @@ CREATE TABLE adm.clr_ana_pay_mth_region (
   data_date varchar(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_region_industry;
-CREATE TABLE adm.clr_ana_pay_mth_region_industry (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_region_industry (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   province varchar(20) NULL DEFAULT NULL,
@@ -1158,8 +1081,7 @@ CREATE TABLE adm.clr_ana_pay_mth_region_industry (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_mth_region_map;
-CREATE TABLE adm.clr_ana_pay_mth_region_map (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_mth_region_map (
   d_date datetime(0) NULL DEFAULT NULL,
   year varchar(20) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
@@ -1171,8 +1093,7 @@ CREATE TABLE adm.clr_ana_pay_mth_region_map (
   data_date varchar(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_overview;
-CREATE TABLE adm.clr_ana_pay_overview (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_overview (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   system varchar(20) NULL DEFAULT NULL,
@@ -1187,8 +1108,7 @@ CREATE TABLE adm.clr_ana_pay_overview (
   data_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_regin_in_area;
-CREATE TABLE adm.clr_ana_pay_regin_in_area (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_regin_in_area (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   province varchar(50) NULL DEFAULT NULL,
@@ -1204,8 +1124,7 @@ CREATE TABLE adm.clr_ana_pay_regin_in_area (
   data_date varchar(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_pay_regin_top10_ind;
-CREATE TABLE adm.clr_ana_pay_regin_top10_ind (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_pay_regin_top10_ind (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   direction varchar(20) NULL DEFAULT NULL,
@@ -1220,8 +1139,7 @@ CREATE TABLE adm.clr_ana_pay_regin_top10_ind (
   data_date varchar(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_regin_com_tend;
-CREATE TABLE adm.clr_ana_regin_com_tend (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_regin_com_tend (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   com_name varchar(20) NULL DEFAULT NULL,
@@ -1241,8 +1159,7 @@ CREATE TABLE adm.clr_ana_regin_com_tend (
   data_date varchar(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_ana_region_com_in_out;
-CREATE TABLE adm.clr_ana_region_com_in_out (
+CREATE TABLE IF NOT EXISTS adm.clr_ana_region_com_in_out (
   d_date datetime(0) NULL DEFAULT NULL,
   month varchar(20) NULL DEFAULT NULL,
   com_name varchar(100) NULL DEFAULT NULL,
@@ -1254,8 +1171,7 @@ CREATE TABLE adm.clr_ana_region_com_in_out (
   data_date varchar(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_form_region_acct_typ_stat;
-CREATE TABLE adm.clr_form_region_acct_typ_stat (
+CREATE TABLE IF NOT EXISTS adm.clr_form_region_acct_typ_stat (
   date_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
   system_sort varchar(1) NULL DEFAULT NULL,
@@ -1277,8 +1193,7 @@ CREATE TABLE adm.clr_form_region_acct_typ_stat (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_form_region_bank_dl_stat;
-CREATE TABLE adm.clr_form_region_bank_dl_stat (
+CREATE TABLE IF NOT EXISTS adm.clr_form_region_bank_dl_stat (
   date_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
   system_sort varchar(1) NULL DEFAULT NULL,
@@ -1300,8 +1215,7 @@ CREATE TABLE adm.clr_form_region_bank_dl_stat (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_form_region_bank_dlm_stat;
-CREATE TABLE adm.clr_form_region_bank_dlm_stat (
+CREATE TABLE IF NOT EXISTS adm.clr_form_region_bank_dlm_stat (
   date_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
   system_sort varchar(1) NULL DEFAULT NULL,
@@ -1325,8 +1239,7 @@ CREATE TABLE adm.clr_form_region_bank_dlm_stat (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_form_region_biz_type_stat;
-CREATE TABLE adm.clr_form_region_biz_type_stat (
+CREATE TABLE IF NOT EXISTS adm.clr_form_region_biz_type_stat (
   date_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
   system_sort varchar(1) NULL DEFAULT NULL,
@@ -1342,8 +1255,7 @@ CREATE TABLE adm.clr_form_region_biz_type_stat (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_form_region_ccpc_stat;
-CREATE TABLE adm.clr_form_region_ccpc_stat (
+CREATE TABLE IF NOT EXISTS adm.clr_form_region_ccpc_stat (
   date_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
   system_sort varchar(1) NULL DEFAULT NULL,
@@ -1359,8 +1271,7 @@ CREATE TABLE adm.clr_form_region_ccpc_stat (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_form_region_count_stat;
-CREATE TABLE adm.clr_form_region_count_stat (
+CREATE TABLE IF NOT EXISTS adm.clr_form_region_count_stat (
   date_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
   system_sort varchar(1) NULL DEFAULT NULL,
@@ -1380,8 +1291,7 @@ CREATE TABLE adm.clr_form_region_count_stat (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_form_region_indus_dmd_stat;
-CREATE TABLE adm.clr_form_region_indus_dmd_stat (
+CREATE TABLE IF NOT EXISTS adm.clr_form_region_indus_dmd_stat (
   date_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
   system_sort varchar(1) NULL DEFAULT NULL,
@@ -1405,8 +1315,7 @@ CREATE TABLE adm.clr_form_region_indus_dmd_stat (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_form_region_inout_stat;
-CREATE TABLE adm.clr_form_region_inout_stat (
+CREATE TABLE IF NOT EXISTS adm.clr_form_region_inout_stat (
   date_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
   system_sort varchar(1) NULL DEFAULT NULL,
@@ -1422,8 +1331,7 @@ CREATE TABLE adm.clr_form_region_inout_stat (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_key_industry_no_inout;
-CREATE TABLE adm.clr_key_industry_no_inout (
+CREATE TABLE IF NOT EXISTS adm.clr_key_industry_no_inout (
   data_date varchar(4) NULL DEFAULT NULL,
   enterprise_name varchar(100) NULL DEFAULT NULL,
   enterprise_type varchar(10) NULL DEFAULT NULL,
@@ -1437,8 +1345,7 @@ CREATE TABLE adm.clr_key_industry_no_inout (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.clr_key_industry_top10;
-CREATE TABLE adm.clr_key_industry_top10 (
+CREATE TABLE IF NOT EXISTS adm.clr_key_industry_top10 (
   date_type varchar(5) NULL DEFAULT NULL,
   inflow_type varchar(5) NULL DEFAULT NULL,
   data_date varchar(6) NULL DEFAULT NULL,
@@ -1450,8 +1357,7 @@ CREATE TABLE adm.clr_key_industry_top10 (
   add_date datetime(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.cm_clr_reflact_countamt;
-CREATE TABLE adm.cm_clr_reflact_countamt (
+CREATE TABLE IF NOT EXISTS adm.cm_clr_reflact_countamt (
   data_date varchar(8) NULL DEFAULT NULL,
   enterprise_name varchar(100) NULL DEFAULT NULL,
   enterprise_code varchar(20) NULL DEFAULT NULL,
@@ -1459,8 +1365,7 @@ CREATE TABLE adm.cm_clr_reflact_countamt (
   count bigint NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.dis_file_process_node;
-CREATE TABLE adm.dis_file_process_node (
+CREATE TABLE IF NOT EXISTS adm.dis_file_process_node (
   f_pnode_id serial NOT NULL,
   file_id int NOT NULL,
   process_id int NULL DEFAULT NULL,
@@ -1477,8 +1382,7 @@ CREATE TABLE adm.dis_file_process_node (
   PRIMARY KEY (f_pnode_id)
 );
 
-DROP TABLE IF EXISTS adm.exec_shell_task;
-CREATE TABLE adm.exec_shell_task (
+CREATE TABLE IF NOT EXISTS adm.exec_shell_task (
   id varchar(40) NOT NULL,
   task_name varchar(255) NULL DEFAULT NULL,
   shell_path varchar(255) NULL DEFAULT NULL,
@@ -1494,8 +1398,7 @@ CREATE TABLE adm.exec_shell_task (
   PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS adm.exec_shell_task_run_log;
-CREATE TABLE adm.exec_shell_task_run_log (
+CREATE TABLE IF NOT EXISTS adm.exec_shell_task_run_log (
   id varchar(40) NOT NULL,
   task_id varchar(40) NOT NULL,
   task_name varchar(255),
@@ -1511,14 +1414,13 @@ CREATE TABLE adm.exec_shell_task_run_log (
   PRIMARY KEY (id)
 );
 
-CREATE INDEX idx_exec_shell_task_run_log_task_time
+CREATE INDEX IF NOT EXISTS idx_exec_shell_task_run_log_task_time
   ON adm.exec_shell_task_run_log (task_id, start_time DESC);
 
-CREATE INDEX idx_exec_shell_task_run_log_status
+CREATE INDEX IF NOT EXISTS idx_exec_shell_task_run_log_status
   ON adm.exec_shell_task_run_log (status);
 
-DROP TABLE IF EXISTS adm.kpi_value;
-CREATE TABLE adm.kpi_value (
+CREATE TABLE IF NOT EXISTS adm.kpi_value (
   data_month varchar(6) NULL DEFAULT NULL,
   fin_org_dist varchar(30) NULL DEFAULT NULL,
   fin_org_code varchar(14) NULL DEFAULT NULL,
@@ -1542,8 +1444,7 @@ CREATE TABLE adm.kpi_value (
   kpi_value6 decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.mth_foreign_exchange_exception_clue;
-CREATE TABLE adm.mth_foreign_exchange_exception_clue (
+CREATE TABLE IF NOT EXISTS adm.mth_foreign_exchange_exception_clue (
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
   table_nature varchar(50) NULL DEFAULT NULL,
@@ -1572,8 +1473,7 @@ CREATE TABLE adm.mth_foreign_exchange_exception_clue (
   obj_num int NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.mth_punish_dtl;
-CREATE TABLE adm.mth_punish_dtl (
+CREATE TABLE IF NOT EXISTS adm.mth_punish_dtl (
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
   table_nature varchar(50) NULL DEFAULT NULL,
@@ -1598,15 +1498,13 @@ CREATE TABLE adm.mth_punish_dtl (
   obj_num int NOT NULL DEFAULT 1
 );
 
-DROP TABLE IF EXISTS adm.mth_punish_dtl_item;
-CREATE TABLE adm.mth_punish_dtl_item (
+CREATE TABLE IF NOT EXISTS adm.mth_punish_dtl_item (
   num int NOT NULL,
   obj_name varchar(100) NOT NULL,
   obj_code varchar(100) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.mth_violation_deal_dtl;
-CREATE TABLE adm.mth_violation_deal_dtl (
+CREATE TABLE IF NOT EXISTS adm.mth_violation_deal_dtl (
   area_no varchar(24) NOT NULL,
   data_date char(24) NOT NULL,
   table_nature varchar(150) NULL DEFAULT NULL,
@@ -1643,14 +1541,12 @@ CREATE TABLE adm.mth_violation_deal_dtl (
   deal_pause_org_crossfe varchar(10) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.mth_violation_deal_item;
-CREATE TABLE adm.mth_violation_deal_item (
+CREATE TABLE IF NOT EXISTS adm.mth_violation_deal_item (
   obj_num tinyint UNSIGNED NOT NULL,
   obj_name varchar(100) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.px_cx_mth_cash_servinfo;
-CREATE TABLE adm.px_cx_mth_cash_servinfo (
+CREATE TABLE IF NOT EXISTS adm.px_cx_mth_cash_servinfo (
   trade_date varchar(10) NULL DEFAULT NULL,
   shop_num varchar(50) NULL DEFAULT NULL,
   village_code varchar(20) NULL DEFAULT NULL,
@@ -1658,8 +1554,7 @@ CREATE TABLE adm.px_cx_mth_cash_servinfo (
   trade_type varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_advt_train;
-CREATE TABLE adm.py_cx_advt_train (
+CREATE TABLE IF NOT EXISTS adm.py_cx_advt_train (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -1685,14 +1580,12 @@ CREATE TABLE adm.py_cx_advt_train (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_area_code11;
-CREATE TABLE adm.py_cx_area_code11 (
+CREATE TABLE IF NOT EXISTS adm.py_cx_area_code11 (
   city_code char(6) NULL DEFAULT NULL,
   city_name varchar(30) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_area_tradeinfo;
-CREATE TABLE adm.py_cx_area_tradeinfo (
+CREATE TABLE IF NOT EXISTS adm.py_cx_area_tradeinfo (
   data_date varchar(6) NULL DEFAULT NULL,
   area_code char(8) NULL DEFAULT NULL,
   area_name varchar(512) NULL DEFAULT NULL,
@@ -1702,8 +1595,7 @@ CREATE TABLE adm.py_cx_area_tradeinfo (
   trade_count decimal(42, 0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_basic_info;
-CREATE TABLE adm.py_cx_basic_info (
+CREATE TABLE IF NOT EXISTS adm.py_cx_basic_info (
   data_date char(8) NULL DEFAULT NULL,
   qtr_date varchar(20) NULL DEFAULT NULL,
   city_area_name varchar(100) NULL DEFAULT NULL,
@@ -1720,8 +1612,7 @@ CREATE TABLE adm.py_cx_basic_info (
   vil_gdp_rec decimal(20, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_bd_shop;
-CREATE TABLE adm.py_cx_bd_shop (
+CREATE TABLE IF NOT EXISTS adm.py_cx_bd_shop (
   data_date char(8) NULL DEFAULT NULL,
   order_num int NULL DEFAULT NULL,
   org_name varchar(100) NULL DEFAULT NULL,
@@ -1729,8 +1620,7 @@ CREATE TABLE adm.py_cx_bd_shop (
   tot_bd_user varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_cash_servinfo;
-CREATE TABLE adm.py_cx_cash_servinfo (
+CREATE TABLE IF NOT EXISTS adm.py_cx_cash_servinfo (
   data_date char(8) NULL DEFAULT NULL,
   org_num varchar(14) NULL DEFAULT NULL,
   city_name varchar(100) NULL DEFAULT NULL,
@@ -1750,8 +1640,7 @@ CREATE TABLE adm.py_cx_cash_servinfo (
   shop_tel varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_cash_trade_thb;
-CREATE TABLE adm.py_cx_cash_trade_thb (
+CREATE TABLE IF NOT EXISTS adm.py_cx_cash_trade_thb (
   data_date varchar(6) NULL DEFAULT NULL,
   org_name varchar(200) NULL DEFAULT NULL,
   city_code varchar(8) NULL DEFAULT NULL,
@@ -1766,8 +1655,7 @@ CREATE TABLE adm.py_cx_cash_trade_thb (
   trade_count_tq decimal(42, 0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_cash_tradeinfo;
-CREATE TABLE adm.py_cx_cash_tradeinfo (
+CREATE TABLE IF NOT EXISTS adm.py_cx_cash_tradeinfo (
   data_date varchar(6) NULL DEFAULT NULL,
   put_org_name varchar(200) NULL DEFAULT NULL,
   village_code varchar(20) NULL DEFAULT NULL,
@@ -1784,8 +1672,7 @@ CREATE TABLE adm.py_cx_cash_tradeinfo (
   trade_count bigint NOT NULL DEFAULT 0
 );
 
-DROP TABLE IF EXISTS adm.py_cx_cash_tradelog;
-CREATE TABLE adm.py_cx_cash_tradelog (
+CREATE TABLE IF NOT EXISTS adm.py_cx_cash_tradelog (
   col_org_num varchar(100) NULL DEFAULT NULL,
   shop_name varchar(100) NULL DEFAULT NULL,
   shop_num varchar(50) NULL DEFAULT NULL,
@@ -1801,8 +1688,7 @@ CREATE TABLE adm.py_cx_cash_tradelog (
   trade_region varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_dw_cash_servinfo;
-CREATE TABLE adm.py_cx_dw_cash_servinfo (
+CREATE TABLE IF NOT EXISTS adm.py_cx_dw_cash_servinfo (
   data_date varchar(8) NULL DEFAULT NULL,
   area_no varchar(20) NULL DEFAULT NULL,
   org_no varchar(20) NULL DEFAULT NULL,
@@ -1813,8 +1699,7 @@ CREATE TABLE adm.py_cx_dw_cash_servinfo (
   sq_wd_num decimal(20, 0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_dw_cash_servinfo_tmp;
-CREATE TABLE adm.py_cx_dw_cash_servinfo_tmp (
+CREATE TABLE IF NOT EXISTS adm.py_cx_dw_cash_servinfo_tmp (
   data_date varchar(6) NULL DEFAULT NULL,
   area_no varchar(14) NULL DEFAULT NULL,
   org_no varchar(20) NULL DEFAULT NULL,
@@ -1823,8 +1708,7 @@ CREATE TABLE adm.py_cx_dw_cash_servinfo_tmp (
   wd_num bigint NOT NULL DEFAULT 0
 );
 
-DROP TABLE IF EXISTS adm.py_cx_dw_cash_tradelog;
-CREATE TABLE adm.py_cx_dw_cash_tradelog (
+CREATE TABLE IF NOT EXISTS adm.py_cx_dw_cash_tradelog (
   data_date varchar(8) NULL DEFAULT NULL,
   area_no varchar(20) NULL DEFAULT NULL,
   org_no varchar(20) NULL DEFAULT NULL,
@@ -1838,8 +1722,7 @@ CREATE TABLE adm.py_cx_dw_cash_tradelog (
   sq_trade_num decimal(20, 0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_dw_cash_tradelog_tmp;
-CREATE TABLE adm.py_cx_dw_cash_tradelog_tmp (
+CREATE TABLE IF NOT EXISTS adm.py_cx_dw_cash_tradelog_tmp (
   data_date varchar(6) NULL DEFAULT NULL,
   area_no varchar(14) NULL DEFAULT NULL,
   org_no varchar(14) NULL DEFAULT NULL,
@@ -1849,8 +1732,7 @@ CREATE TABLE adm.py_cx_dw_cash_tradelog_tmp (
   trade_type varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_dw_envbld_hf_wd;
-CREATE TABLE adm.py_cx_dw_envbld_hf_wd (
+CREATE TABLE IF NOT EXISTS adm.py_cx_dw_envbld_hf_wd (
   data_date varchar(8) NULL DEFAULT NULL,
   area_no varchar(20) NULL DEFAULT NULL,
   org_no varchar(20) NULL DEFAULT NULL,
@@ -1861,8 +1743,7 @@ CREATE TABLE adm.py_cx_dw_envbld_hf_wd (
   sq_wd_num decimal(20, 0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_dw_envbld_hf_wd_tmp;
-CREATE TABLE adm.py_cx_dw_envbld_hf_wd_tmp (
+CREATE TABLE IF NOT EXISTS adm.py_cx_dw_envbld_hf_wd_tmp (
   data_date varchar(6) NULL DEFAULT NULL,
   area_no varchar(20) NULL DEFAULT NULL,
   org_no varchar(200) NULL DEFAULT NULL,
@@ -1871,8 +1752,7 @@ CREATE TABLE adm.py_cx_dw_envbld_hf_wd_tmp (
   wd_num bigint NOT NULL DEFAULT 0
 );
 
-DROP TABLE IF EXISTS adm.py_cx_env_support;
-CREATE TABLE adm.py_cx_env_support (
+CREATE TABLE IF NOT EXISTS adm.py_cx_env_support (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -1892,8 +1772,7 @@ CREATE TABLE adm.py_cx_env_support (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_agent_issue;
-CREATE TABLE adm.py_cx_envbld_agent_issue (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_agent_issue (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -1922,8 +1801,7 @@ CREATE TABLE adm.py_cx_envbld_agent_issue (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_hf_wd;
-CREATE TABLE adm.py_cx_envbld_hf_wd (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_hf_wd (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -1947,8 +1825,7 @@ CREATE TABLE adm.py_cx_envbld_hf_wd (
   remarks varchar(2000) NULL DEFAULT '0'
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_hf_wd_mid;
-CREATE TABLE adm.py_cx_envbld_hf_wd_mid (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_hf_wd_mid (
   data_date varchar(11) NULL DEFAULT NULL,
   city_name varchar(6) NULL DEFAULT NULL,
   village_count int NULL DEFAULT NULL,
@@ -1961,8 +1838,7 @@ CREATE TABLE adm.py_cx_envbld_hf_wd_mid (
   xj_bank decimal(28, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_hf_wd_mid_cs;
-CREATE TABLE adm.py_cx_envbld_hf_wd_mid_cs (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_hf_wd_mid_cs (
   data_date varchar(20) NULL DEFAULT NULL,
   city_name varchar(50) NULL DEFAULT NULL,
   service_point_count varchar(100) NULL DEFAULT NULL,
@@ -1974,15 +1850,13 @@ CREATE TABLE adm.py_cx_envbld_hf_wd_mid_cs (
   xj_bank decimal(28, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_hf_wd_mid_order;
-CREATE TABLE adm.py_cx_envbld_hf_wd_mid_order (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_hf_wd_mid_order (
   order_num varchar(2) NULL DEFAULT NULL,
   area_no varchar(10) NULL DEFAULT NULL,
   model_area varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_nonbnk_innet_pay;
-CREATE TABLE adm.py_cx_envbld_nonbnk_innet_pay (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_nonbnk_innet_pay (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2011,8 +1885,7 @@ CREATE TABLE adm.py_cx_envbld_nonbnk_innet_pay (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_rural_bnk_accts;
-CREATE TABLE adm.py_cx_envbld_rural_bnk_accts (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_rural_bnk_accts (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2035,8 +1908,7 @@ CREATE TABLE adm.py_cx_envbld_rural_bnk_accts (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_rural_bnk_acctsbk;
-CREATE TABLE adm.py_cx_envbld_rural_bnk_acctsbk (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_rural_bnk_acctsbk (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2055,8 +1927,7 @@ CREATE TABLE adm.py_cx_envbld_rural_bnk_acctsbk (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_rural_bnk_cards;
-CREATE TABLE adm.py_cx_envbld_rural_bnk_cards (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_rural_bnk_cards (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2079,8 +1950,7 @@ CREATE TABLE adm.py_cx_envbld_rural_bnk_cards (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_rural_cards_mkt;
-CREATE TABLE adm.py_cx_envbld_rural_cards_mkt (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_rural_cards_mkt (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2107,8 +1977,7 @@ CREATE TABLE adm.py_cx_envbld_rural_cards_mkt (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_rural_cards_mktbk;
-CREATE TABLE adm.py_cx_envbld_rural_cards_mktbk (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_rural_cards_mktbk (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2130,8 +1999,7 @@ CREATE TABLE adm.py_cx_envbld_rural_cards_mktbk (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_rural_cls;
-CREATE TABLE adm.py_cx_envbld_rural_cls (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_rural_cls (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2157,8 +2025,7 @@ CREATE TABLE adm.py_cx_envbld_rural_cls (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_rural_ncpi_tltyp;
-CREATE TABLE adm.py_cx_envbld_rural_ncpi_tltyp (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_rural_ncpi_tltyp (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2180,8 +2047,7 @@ CREATE TABLE adm.py_cx_envbld_rural_ncpi_tltyp (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_envbld_rural_static;
-CREATE TABLE adm.py_cx_envbld_rural_static (
+CREATE TABLE IF NOT EXISTS adm.py_cx_envbld_rural_static (
   data_date char(8) NULL DEFAULT NULL,
   area_id varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2202,8 +2068,7 @@ CREATE TABLE adm.py_cx_envbld_rural_static (
   remarks varchar(2000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_error_trade;
-CREATE TABLE adm.py_cx_error_trade (
+CREATE TABLE IF NOT EXISTS adm.py_cx_error_trade (
   org_num varchar(14) NULL DEFAULT NULL,
   area_num varchar(14) NULL DEFAULT NULL,
   city_name varchar(100) NULL DEFAULT NULL,
@@ -2225,8 +2090,7 @@ CREATE TABLE adm.py_cx_error_trade (
   remarks varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_map_fwdcity;
-CREATE TABLE adm.py_cx_map_fwdcity (
+CREATE TABLE IF NOT EXISTS adm.py_cx_map_fwdcity (
   data_date varchar(14) NULL DEFAULT NULL,
   area_id varchar(14) NULL DEFAULT NULL,
   area_name varchar(30) NULL DEFAULT NULL,
@@ -2249,8 +2113,7 @@ CREATE TABLE adm.py_cx_map_fwdcity (
   debit_credit decimal(20, 8) NULL DEFAULT 0.00000000
 );
 
-DROP TABLE IF EXISTS adm.py_cx_map_zlarea;
-CREATE TABLE adm.py_cx_map_zlarea (
+CREATE TABLE IF NOT EXISTS adm.py_cx_map_zlarea (
   trade_date varchar(20) NULL DEFAULT NULL,
   area_code varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2262,8 +2125,7 @@ CREATE TABLE adm.py_cx_map_zlarea (
   org_name varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_map_zlarea_ycdq;
-CREATE TABLE adm.py_cx_map_zlarea_ycdq (
+CREATE TABLE IF NOT EXISTS adm.py_cx_map_zlarea_ycdq (
   trade_date varchar(20) NULL DEFAULT NULL,
   nbh_code char(14) NULL DEFAULT NULL,
   village_code varchar(14) NULL DEFAULT NULL,
@@ -2272,8 +2134,7 @@ CREATE TABLE adm.py_cx_map_zlarea_ycdq (
   trade_type varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_map_zlareabk;
-CREATE TABLE adm.py_cx_map_zlareabk (
+CREATE TABLE IF NOT EXISTS adm.py_cx_map_zlareabk (
   trade_date varchar(20) NULL DEFAULT NULL,
   area_code varchar(20) NULL DEFAULT NULL,
   area_name varchar(100) NULL DEFAULT NULL,
@@ -2284,8 +2145,7 @@ CREATE TABLE adm.py_cx_map_zlareabk (
   trade_type varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_map_zlcity;
-CREATE TABLE adm.py_cx_map_zlcity (
+CREATE TABLE IF NOT EXISTS adm.py_cx_map_zlcity (
   trade_date varchar(20) NULL DEFAULT NULL,
   city_code char(6) NULL DEFAULT NULL,
   city_name varchar(30) NULL DEFAULT NULL,
@@ -2295,8 +2155,7 @@ CREATE TABLE adm.py_cx_map_zlcity (
   org_name varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_map_zlcityacc;
-CREATE TABLE adm.py_cx_map_zlcityacc (
+CREATE TABLE IF NOT EXISTS adm.py_cx_map_zlcityacc (
   trade_date varchar(20) NULL DEFAULT NULL,
   shop_num varchar(50) NULL DEFAULT NULL,
   termina_num varchar(50) NULL DEFAULT NULL,
@@ -2309,8 +2168,7 @@ CREATE TABLE adm.py_cx_map_zlcityacc (
   trade_type varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_map_zlcityaccbk;
-CREATE TABLE adm.py_cx_map_zlcityaccbk (
+CREATE TABLE IF NOT EXISTS adm.py_cx_map_zlcityaccbk (
   trade_date varchar(20) NULL DEFAULT NULL,
   shop_num varchar(50) NULL DEFAULT NULL,
   shop_num1 varchar(50) NULL DEFAULT NULL,
@@ -2325,8 +2183,7 @@ CREATE TABLE adm.py_cx_map_zlcityaccbk (
   trade_type varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_map_zlcitybk;
-CREATE TABLE adm.py_cx_map_zlcitybk (
+CREATE TABLE IF NOT EXISTS adm.py_cx_map_zlcitybk (
   trade_date varchar(20) NULL DEFAULT NULL,
   city_code char(6) NULL DEFAULT NULL,
   city_name varchar(30) NULL DEFAULT NULL,
@@ -2335,16 +2192,14 @@ CREATE TABLE adm.py_cx_map_zlcitybk (
   trade_type varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_menu_zt;
-CREATE TABLE adm.py_cx_menu_zt (
+CREATE TABLE IF NOT EXISTS adm.py_cx_menu_zt (
   menu_id varchar(50) NULL DEFAULT NULL,
   url varchar(2000) NULL DEFAULT NULL,
   url_type varchar(20) NULL DEFAULT NULL,
   url_pro varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_mod_change_tj;
-CREATE TABLE adm.py_cx_mod_change_tj (
+CREATE TABLE IF NOT EXISTS adm.py_cx_mod_change_tj (
   data_date char(8) NULL DEFAULT NULL,
   order_num varchar(3) NULL DEFAULT NULL,
   model_area varchar(100) NULL DEFAULT NULL,
@@ -2355,8 +2210,7 @@ CREATE TABLE adm.py_cx_mod_change_tj (
   curr_sup_rate varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_mod_trade;
-CREATE TABLE adm.py_cx_mod_trade (
+CREATE TABLE IF NOT EXISTS adm.py_cx_mod_trade (
   data_date char(8) NULL DEFAULT NULL,
   order_num varchar(2) NULL DEFAULT NULL,
   model_area varchar(100) NULL DEFAULT NULL,
@@ -2367,8 +2221,7 @@ CREATE TABLE adm.py_cx_mod_trade (
   tot_trade_amout decimal(20, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_mth_cash_active_area;
-CREATE TABLE adm.py_cx_mth_cash_active_area (
+CREATE TABLE IF NOT EXISTS adm.py_cx_mth_cash_active_area (
   trade_date varchar(10) NULL DEFAULT NULL,
   area_code char(6) NULL DEFAULT NULL,
   city_code char(6) NULL DEFAULT NULL,
@@ -2377,8 +2230,7 @@ CREATE TABLE adm.py_cx_mth_cash_active_area (
   no_act_num varchar(10) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_mth_cash_servinfo_active;
-CREATE TABLE adm.py_cx_mth_cash_servinfo_active (
+CREATE TABLE IF NOT EXISTS adm.py_cx_mth_cash_servinfo_active (
   trade_date varchar(10) NULL DEFAULT NULL,
   shop_num varchar(50) NULL DEFAULT NULL,
   city_name varchar(50) NULL DEFAULT NULL,
@@ -2392,13 +2244,11 @@ CREATE TABLE adm.py_cx_mth_cash_servinfo_active (
   active_type varchar(10) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_nomatch_areacode;
-CREATE TABLE adm.py_cx_nomatch_areacode (
+CREATE TABLE IF NOT EXISTS adm.py_cx_nomatch_areacode (
   village_code varchar(14) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_pay_change_tj;
-CREATE TABLE adm.py_cx_pay_change_tj (
+CREATE TABLE IF NOT EXISTS adm.py_cx_pay_change_tj (
   data_date varchar(20) NULL DEFAULT NULL,
   area_code varchar(20) NULL DEFAULT NULL,
   model_area varchar(100) NULL DEFAULT NULL,
@@ -2412,8 +2262,7 @@ CREATE TABLE adm.py_cx_pay_change_tj (
   tot_trade_amount decimal(20, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_pay_info;
-CREATE TABLE adm.py_cx_pay_info (
+CREATE TABLE IF NOT EXISTS adm.py_cx_pay_info (
   data_date char(8) NULL DEFAULT NULL,
   order_num char(5) NULL DEFAULT NULL,
   trade_date varchar(20) NULL DEFAULT NULL,
@@ -2430,8 +2279,7 @@ CREATE TABLE adm.py_cx_pay_info (
   remarks varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_reg_shop;
-CREATE TABLE adm.py_cx_reg_shop (
+CREATE TABLE IF NOT EXISTS adm.py_cx_reg_shop (
   data_date char(8) NULL DEFAULT NULL,
   order_num int NULL DEFAULT NULL,
   city_name varchar(100) NULL DEFAULT NULL,
@@ -2439,8 +2287,7 @@ CREATE TABLE adm.py_cx_reg_shop (
   tot_reg_user int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_trade_check_info;
-CREATE TABLE adm.py_cx_trade_check_info (
+CREATE TABLE IF NOT EXISTS adm.py_cx_trade_check_info (
   data_date varchar(10) NULL DEFAULT NULL,
   area_code varchar(10) NULL DEFAULT NULL,
   area_name varchar(50) NULL DEFAULT NULL,
@@ -2455,8 +2302,7 @@ CREATE TABLE adm.py_cx_trade_check_info (
   data_type varchar(1) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_warning_analysis;
-CREATE TABLE adm.py_cx_warning_analysis (
+CREATE TABLE IF NOT EXISTS adm.py_cx_warning_analysis (
   data_date char(8) NULL DEFAULT NULL,
   tyade_type varchar(10) NULL DEFAULT NULL,
   trade_pen int NULL DEFAULT NULL,
@@ -2465,8 +2311,7 @@ CREATE TABLE adm.py_cx_warning_analysis (
   little_error_type varchar(10) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_website_info_offline;
-CREATE TABLE adm.py_cx_website_info_offline (
+CREATE TABLE IF NOT EXISTS adm.py_cx_website_info_offline (
   data_date char(8) NULL DEFAULT NULL,
   org_id varchar(20) NULL DEFAULT NULL,
   org_name varchar(200) NULL DEFAULT NULL,
@@ -2500,8 +2345,7 @@ CREATE TABLE adm.py_cx_website_info_offline (
   xczl_count int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_yc_check_big;
-CREATE TABLE adm.py_cx_yc_check_big (
+CREATE TABLE IF NOT EXISTS adm.py_cx_yc_check_big (
   data_date varchar(10) NULL DEFAULT NULL,
   yc_big varchar(50) NULL DEFAULT NULL,
   city_name varchar(100) NULL DEFAULT NULL,
@@ -2517,8 +2361,7 @@ CREATE TABLE adm.py_cx_yc_check_big (
   trade_amount decimal(20, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_yc_check_detail;
-CREATE TABLE adm.py_cx_yc_check_detail (
+CREATE TABLE IF NOT EXISTS adm.py_cx_yc_check_detail (
   trade_date varchar(20) NULL DEFAULT NULL,
   yc_big varchar(30) NULL DEFAULT NULL,
   yc_detail varchar(50) NULL DEFAULT NULL,
@@ -2544,8 +2387,7 @@ CREATE TABLE adm.py_cx_yc_check_detail (
   remarks varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_yc_check_tjb;
-CREATE TABLE adm.py_cx_yc_check_tjb (
+CREATE TABLE IF NOT EXISTS adm.py_cx_yc_check_tjb (
   data_date varchar(6) NULL DEFAULT NULL,
   org_type_dscr_2 varchar(512) NULL DEFAULT NULL,
   area_code varchar(14) NULL DEFAULT NULL,
@@ -2559,16 +2401,14 @@ CREATE TABLE adm.py_cx_yc_check_tjb (
   remarks varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.py_cx_ydfx;
-CREATE TABLE adm.py_cx_ydfx (
+CREATE TABLE IF NOT EXISTS adm.py_cx_ydfx (
   data_date char(8) NULL DEFAULT NULL,
   "table" varchar(100) NULL DEFAULT NULL,
   table_name varchar(100) NULL DEFAULT NULL,
   order_num int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_half_premium_cardinal;
-CREATE TABLE adm.rpt_half_premium_cardinal (
+CREATE TABLE IF NOT EXISTS adm.rpt_half_premium_cardinal (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -2589,8 +2429,7 @@ CREATE TABLE adm.rpt_half_premium_cardinal (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_half_premium_pay_info;
-CREATE TABLE adm.rpt_half_premium_pay_info (
+CREATE TABLE IF NOT EXISTS adm.rpt_half_premium_pay_info (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -2610,8 +2449,7 @@ CREATE TABLE adm.rpt_half_premium_pay_info (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_half_risk_diff_rate_revise;
-CREATE TABLE adm.rpt_half_risk_diff_rate_revise (
+CREATE TABLE IF NOT EXISTS adm.rpt_half_risk_diff_rate_revise (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -2635,8 +2473,7 @@ CREATE TABLE adm.rpt_half_risk_diff_rate_revise (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_estate_stat;
-CREATE TABLE adm.rpt_m_estate_stat (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_estate_stat (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -2646,8 +2483,7 @@ CREATE TABLE adm.rpt_m_estate_stat (
   loan_balance decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_farm_loan_stat;
-CREATE TABLE adm.rpt_m_farm_loan_stat (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_farm_loan_stat (
   bach_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -2661,8 +2497,7 @@ CREATE TABLE adm.rpt_m_farm_loan_stat (
   loan_bal_tb decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_dist_org_proj;
-CREATE TABLE adm.rpt_m_loan_dist_org_proj (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_dist_org_proj (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   data_date char(8) NULL DEFAULT NULL,
   org_no varchar(53) NULL DEFAULT NULL,
@@ -2677,8 +2512,7 @@ CREATE TABLE adm.rpt_m_loan_dist_org_proj (
   balance_cny_y decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_indust_dist;
-CREATE TABLE adm.rpt_m_loan_indust_dist (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_indust_dist (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -2717,8 +2551,7 @@ CREATE TABLE adm.rpt_m_loan_indust_dist (
   loan_bal_dev_esta_hb decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_indust_org;
-CREATE TABLE adm.rpt_m_loan_indust_org (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_indust_org (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -2831,8 +2664,7 @@ CREATE TABLE adm.rpt_m_loan_indust_org (
   loan_bal_dev_hous_tb111 decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_sum_dist;
-CREATE TABLE adm.rpt_m_loan_sum_dist (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_sum_dist (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   data_date char(8) NULL DEFAULT NULL,
   area_no varchar(8) NULL DEFAULT NULL,
@@ -2966,8 +2798,7 @@ CREATE TABLE adm.rpt_m_loan_sum_dist (
   kpi_value126 decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_sum_indus;
-CREATE TABLE adm.rpt_m_loan_sum_indus (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_sum_indus (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -2980,8 +2811,7 @@ CREATE TABLE adm.rpt_m_loan_sum_indus (
   loan_bal_tb decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_sum_insti;
-CREATE TABLE adm.rpt_m_loan_sum_insti (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_sum_insti (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -3001,8 +2831,7 @@ CREATE TABLE adm.rpt_m_loan_sum_insti (
   unnor_bal_rate_tb decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_sum_org;
-CREATE TABLE adm.rpt_m_loan_sum_org (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_sum_org (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   data_date char(8) NULL DEFAULT NULL,
   org_no varchar(30) NULL DEFAULT NULL,
@@ -3136,8 +2965,7 @@ CREATE TABLE adm.rpt_m_loan_sum_org (
   kpi_value126 decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_sum_proj;
-CREATE TABLE adm.rpt_m_loan_sum_proj (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_sum_proj (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -3155,8 +2983,7 @@ CREATE TABLE adm.rpt_m_loan_sum_proj (
   loan_fund decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_loan_sum_scale_indus;
-CREATE TABLE adm.rpt_m_loan_sum_scale_indus (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_loan_sum_scale_indus (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -3170,8 +2997,7 @@ CREATE TABLE adm.rpt_m_loan_sum_scale_indus (
   loan_bal_tb decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_m_mpa;
-CREATE TABLE adm.rpt_m_mpa (
+CREATE TABLE IF NOT EXISTS adm.rpt_m_mpa (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   data_date varchar(6) NULL DEFAULT NULL,
   fin_org_no varchar(14) NULL DEFAULT NULL,
@@ -3233,8 +3059,7 @@ CREATE TABLE adm.rpt_m_mpa (
   kpi_value53 decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_bank_org_data_statis;
-CREATE TABLE adm.rpt_mth_bank_org_data_statis (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_bank_org_data_statis (
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(10) NULL DEFAULT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -3360,8 +3185,7 @@ CREATE TABLE adm.rpt_mth_bank_org_data_statis (
   remakes varchar(200) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_cabk_compare_templet;
-CREATE TABLE adm.rpt_mth_cabk_compare_templet (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_cabk_compare_templet (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -3380,8 +3204,7 @@ CREATE TABLE adm.rpt_mth_cabk_compare_templet (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_czbk_compare_templet;
-CREATE TABLE adm.rpt_mth_czbk_compare_templet (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_czbk_compare_templet (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -3395,8 +3218,7 @@ CREATE TABLE adm.rpt_mth_czbk_compare_templet (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_dffr_finorg_class_kpi;
-CREATE TABLE adm.rpt_mth_dffr_finorg_class_kpi (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_dffr_finorg_class_kpi (
   area_no varchar(8) NOT NULL,
   data_date char(10) NOT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -3495,8 +3317,7 @@ CREATE TABLE adm.rpt_mth_dffr_finorg_class_kpi (
   PRIMARY KEY (org_no, data_date, area_no)
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_dffr_finorg_subtotal_kpi;
-CREATE TABLE adm.rpt_mth_dffr_finorg_subtotal_kpi (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_dffr_finorg_subtotal_kpi (
   area_no varchar(8) NULL DEFAULT NULL,
   fiscal_term char(8) NULL DEFAULT NULL,
   table_nature varchar(50) NULL DEFAULT NULL,
@@ -3535,8 +3356,7 @@ CREATE TABLE adm.rpt_mth_dffr_finorg_subtotal_kpi (
   unit varchar(30) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_dffr_finorg_total_kpi;
-CREATE TABLE adm.rpt_mth_dffr_finorg_total_kpi (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_dffr_finorg_total_kpi (
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(10) NULL DEFAULT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -3613,8 +3433,7 @@ CREATE TABLE adm.rpt_mth_dffr_finorg_total_kpi (
   f_dlr_res varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_fxsgzck_finorg_monitor;
-CREATE TABLE adm.rpt_mth_fxsgzck_finorg_monitor (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_fxsgzck_finorg_monitor (
   area_no_id char(8) NOT NULL,
   fiscal_term char(10) NOT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -3718,8 +3537,7 @@ CREATE TABLE adm.rpt_mth_fxsgzck_finorg_monitor (
   PRIMARY KEY (org_id, fiscal_term, area_no_id)
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_fxsgzck_finorg_monitor_20180816;
-CREATE TABLE adm.rpt_mth_fxsgzck_finorg_monitor_20180816 (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_fxsgzck_finorg_monitor_20180816 (
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(10) NULL DEFAULT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -3828,8 +3646,7 @@ CREATE TABLE adm.rpt_mth_fxsgzck_finorg_monitor_20180816 (
   f_fcr_res varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_high_risk_bank_org;
-CREATE TABLE adm.rpt_mth_high_risk_bank_org (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_high_risk_bank_org (
   area_no varchar(8) NOT NULL,
   data_date char(10) NOT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -3867,8 +3684,7 @@ CREATE TABLE adm.rpt_mth_high_risk_bank_org (
   PRIMARY KEY (org_no, data_date, area_no)
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_insur_declare_attach;
-CREATE TABLE adm.rpt_mth_insur_declare_attach (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_insur_declare_attach (
   serialno varchar(50) NULL DEFAULT NULL,
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
@@ -3881,8 +3697,7 @@ CREATE TABLE adm.rpt_mth_insur_declare_attach (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_insur_org_info;
-CREATE TABLE adm.rpt_mth_insur_org_info (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_insur_org_info (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -3945,8 +3760,7 @@ CREATE TABLE adm.rpt_mth_insur_org_info (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_insur_org_oper_monitor;
-CREATE TABLE adm.rpt_mth_insur_org_oper_monitor (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_insur_org_oper_monitor (
   area_no varchar(8) NOT NULL,
   data_date char(10) NOT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -4107,8 +3921,7 @@ CREATE TABLE adm.rpt_mth_insur_org_oper_monitor (
   PRIMARY KEY (org_no, data_date, area_no)
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_insur_tbjg_list;
-CREATE TABLE adm.rpt_mth_insur_tbjg_list (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_insur_tbjg_list (
   area_no varchar(8) NULL DEFAULT NULL,
   fiscal_term char(8) NULL DEFAULT NULL,
   table_nature varchar(50) NULL DEFAULT NULL,
@@ -4133,8 +3946,7 @@ CREATE TABLE adm.rpt_mth_insur_tbjg_list (
   whether_insured varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_kpiover_org_num_prop;
-CREATE TABLE adm.rpt_mth_kpiover_org_num_prop (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_kpiover_org_num_prop (
   fiscal_term char(10) NULL DEFAULT NULL,
   item char(200) NULL DEFAULT NULL,
   cs_overproof_num int NULL DEFAULT NULL,
@@ -4152,8 +3964,7 @@ CREATE TABLE adm.rpt_mth_kpiover_org_num_prop (
   batch_date char(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_qnbk_compare_templet;
-CREATE TABLE adm.rpt_mth_qnbk_compare_templet (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_qnbk_compare_templet (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -4169,8 +3980,7 @@ CREATE TABLE adm.rpt_mth_qnbk_compare_templet (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_qtnchz_compare_templet;
-CREATE TABLE adm.rpt_mth_qtnchz_compare_templet (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_qtnchz_compare_templet (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -4186,8 +3996,7 @@ CREATE TABLE adm.rpt_mth_qtnchz_compare_templet (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_mth_xabk_compare_templet;
-CREATE TABLE adm.rpt_mth_xabk_compare_templet (
+CREATE TABLE IF NOT EXISTS adm.rpt_mth_xabk_compare_templet (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -4206,8 +4015,7 @@ CREATE TABLE adm.rpt_mth_xabk_compare_templet (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_q_farm_loan_all;
-CREATE TABLE adm.rpt_q_farm_loan_all (
+CREATE TABLE IF NOT EXISTS adm.rpt_q_farm_loan_all (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -4217,8 +4025,7 @@ CREATE TABLE adm.rpt_q_farm_loan_all (
   loan_balance decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_q_farm_loan_org;
-CREATE TABLE adm.rpt_q_farm_loan_org (
+CREATE TABLE IF NOT EXISTS adm.rpt_q_farm_loan_org (
   batch_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
@@ -4233,8 +4040,7 @@ CREATE TABLE adm.rpt_q_farm_loan_org (
   loan_bal_tb decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_qtr_asset_quality_class;
-CREATE TABLE adm.rpt_qtr_asset_quality_class (
+CREATE TABLE IF NOT EXISTS adm.rpt_qtr_asset_quality_class (
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(10) NULL DEFAULT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -4247,8 +4053,7 @@ CREATE TABLE adm.rpt_qtr_asset_quality_class (
   bad_loan varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_qtr_bank_finorg_basic_data;
-CREATE TABLE adm.rpt_qtr_bank_finorg_basic_data (
+CREATE TABLE IF NOT EXISTS adm.rpt_qtr_bank_finorg_basic_data (
   area_no varchar(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -4291,8 +4096,7 @@ CREATE TABLE adm.rpt_qtr_bank_finorg_basic_data (
   f_dlr_inc varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_qtr_bank_org_data_statis;
-CREATE TABLE adm.rpt_qtr_bank_org_data_statis (
+CREATE TABLE IF NOT EXISTS adm.rpt_qtr_bank_org_data_statis (
   area_no varchar(8) NOT NULL,
   data_date char(10) NOT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -4418,8 +4222,7 @@ CREATE TABLE adm.rpt_qtr_bank_org_data_statis (
   PRIMARY KEY (org_no, data_date, area_no)
 );
 
-DROP TABLE IF EXISTS adm.rpt_qtr_insur_org_dept_acct;
-CREATE TABLE adm.rpt_qtr_insur_org_dept_acct (
+CREATE TABLE IF NOT EXISTS adm.rpt_qtr_insur_org_dept_acct (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -4441,8 +4244,7 @@ CREATE TABLE adm.rpt_qtr_insur_org_dept_acct (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_qtr_insur_org_dept_struct;
-CREATE TABLE adm.rpt_qtr_insur_org_dept_struct (
+CREATE TABLE IF NOT EXISTS adm.rpt_qtr_insur_org_dept_struct (
   area_no_id char(8) NULL DEFAULT NULL,
   fiscal_term char(10) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -4477,8 +4279,7 @@ CREATE TABLE adm.rpt_qtr_insur_org_dept_struct (
   batch_date timestamp(0) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.rpt_qtr_insur_org_oper_monitor;
-CREATE TABLE adm.rpt_qtr_insur_org_oper_monitor (
+CREATE TABLE IF NOT EXISTS adm.rpt_qtr_insur_org_oper_monitor (
   area_no varchar(8) NOT NULL,
   data_date char(10) NOT NULL,
   table_nature varchar(14) NULL DEFAULT NULL,
@@ -4650,8 +4451,7 @@ CREATE TABLE adm.rpt_qtr_insur_org_oper_monitor (
   PRIMARY KEY (org_no, data_date, area_no)
 );
 
-DROP TABLE IF EXISTS adm.rpt_v_area_dimnsn_code;
-CREATE TABLE adm.rpt_v_area_dimnsn_code (
+CREATE TABLE IF NOT EXISTS adm.rpt_v_area_dimnsn_code (
   area_no_1 char(8) NULL DEFAULT NULL,
   area_dscr_1 varchar(512) NULL DEFAULT NULL,
   area_no_2 char(8) NULL DEFAULT NULL,
@@ -4665,8 +4465,7 @@ CREATE TABLE adm.rpt_v_area_dimnsn_code (
   end_date char(8) NULL DEFAULT '99991230'
 );
 
-DROP TABLE IF EXISTS adm.rpt_v_half_dimnsn_code;
-CREATE TABLE adm.rpt_v_half_dimnsn_code (
+CREATE TABLE IF NOT EXISTS adm.rpt_v_half_dimnsn_code (
   fiscal_id int NOT NULL,
   fiscal_half_year smallint NULL DEFAULT NULL,
   fiscal_half_year_name varchar(16) NULL DEFAULT NULL,
@@ -4676,8 +4475,7 @@ CREATE TABLE adm.rpt_v_half_dimnsn_code (
   start_date timestamp(0) NOT NULL DEFAULT '1980-01-01 00:00:00'
 );
 
-DROP TABLE IF EXISTS adm.rpt_v_mth_dimnsn_code;
-CREATE TABLE adm.rpt_v_mth_dimnsn_code (
+CREATE TABLE IF NOT EXISTS adm.rpt_v_mth_dimnsn_code (
   fiscal_id int NOT NULL,
   fiscal_mth int NOT NULL,
   fiscal_mth_name varchar(15) NULL DEFAULT NULL,
@@ -4691,8 +4489,7 @@ CREATE TABLE adm.rpt_v_mth_dimnsn_code (
   start_date timestamp(0) NOT NULL DEFAULT '1980-01-01 00:00:00'
 );
 
-DROP TABLE IF EXISTS adm.rpt_v_org_dimnsn_code;
-CREATE TABLE adm.rpt_v_org_dimnsn_code (
+CREATE TABLE IF NOT EXISTS adm.rpt_v_org_dimnsn_code (
   org_type_id_1 varchar(14) NULL DEFAULT NULL,
   org_type_dscr_1 varchar(512) NULL DEFAULT NULL,
   org_type_id_2 varchar(14) NULL DEFAULT NULL,
@@ -4704,8 +4501,7 @@ CREATE TABLE adm.rpt_v_org_dimnsn_code (
   is_active char(2) NULL DEFAULT '1'
 );
 
-DROP TABLE IF EXISTS adm.rpt_v_qtr_dimnsn_code;
-CREATE TABLE adm.rpt_v_qtr_dimnsn_code (
+CREATE TABLE IF NOT EXISTS adm.rpt_v_qtr_dimnsn_code (
   fiscal_id int NOT NULL,
   fiscal_qtr smallint NULL DEFAULT NULL,
   fiscal_qtr_name varchar(16) NULL DEFAULT NULL,
@@ -4717,8 +4513,7 @@ CREATE TABLE adm.rpt_v_qtr_dimnsn_code (
   start_date timestamp(0) NOT NULL DEFAULT '1980-01-01 00:00:00'
 );
 
-DROP TABLE IF EXISTS adm.rpt_v_year_dimnsn_code;
-CREATE TABLE adm.rpt_v_year_dimnsn_code (
+CREATE TABLE IF NOT EXISTS adm.rpt_v_year_dimnsn_code (
   fiscal_id int NOT NULL,
   fiscal_year smallint NULL DEFAULT NULL,
   fiscal_year_name varchar(16) NULL DEFAULT NULL,
@@ -4726,26 +4521,22 @@ CREATE TABLE adm.rpt_v_year_dimnsn_code (
   start_date timestamp(0) NOT NULL DEFAULT '1980-01-01 00:00:00'
 );
 
-DROP TABLE IF EXISTS adm.sk_dim_dept_acct;
-CREATE TABLE adm.sk_dim_dept_acct (
+CREATE TABLE IF NOT EXISTS adm.sk_dim_dept_acct (
   dept_catagory_code varchar(3) NULL DEFAULT NULL,
   dept_catagory_name varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_dim_dept_catagory;
-CREATE TABLE adm.sk_dim_dept_catagory (
+CREATE TABLE IF NOT EXISTS adm.sk_dim_dept_catagory (
   dept_catagory_code varchar(3) NOT NULL DEFAULT '',
   dept_catagory_name varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_dim_g0107_item;
-CREATE TABLE adm.sk_dim_g0107_item (
+CREATE TABLE IF NOT EXISTS adm.sk_dim_g0107_item (
   item_code varchar(3) NULL DEFAULT NULL,
   item_name varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_mth_dffr_finorg_class_kpi;
-CREATE TABLE adm.sk_rpt_mth_dffr_finorg_class_kpi (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_mth_dffr_finorg_class_kpi (
   month_date char(10) NOT NULL,
   area_no_id varchar(8) NOT NULL,
   org_id char(14) NOT NULL,
@@ -4757,8 +4548,7 @@ CREATE TABLE adm.sk_rpt_mth_dffr_finorg_class_kpi (
   cr_bad_loan_bal decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_mth_dffr_finorg_subtotal_kpi;
-CREATE TABLE adm.sk_rpt_mth_dffr_finorg_subtotal_kpi (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_mth_dffr_finorg_subtotal_kpi (
   month_date char(8) NULL DEFAULT NULL,
   area_no_id varchar(8) NULL DEFAULT NULL,
   org_id varchar(14) NULL DEFAULT NULL,
@@ -4772,8 +4562,7 @@ CREATE TABLE adm.sk_rpt_mth_dffr_finorg_subtotal_kpi (
   year_profit decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_mth_fxsgzck_finorg_monitor;
-CREATE TABLE adm.sk_rpt_mth_fxsgzck_finorg_monitor (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_mth_fxsgzck_finorg_monitor (
   month_date char(10) NOT NULL,
   area_no_id char(8) NOT NULL,
   org_id char(14) NOT NULL,
@@ -4787,8 +4576,7 @@ CREATE TABLE adm.sk_rpt_mth_fxsgzck_finorg_monitor (
   bs_addup_profit_cury decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_mth_g0107;
-CREATE TABLE adm.sk_rpt_mth_g0107 (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_mth_g0107 (
   month_date char(8) NULL DEFAULT NULL,
   area_no_id varchar(8) NULL DEFAULT NULL,
   org_id varchar(14) NULL DEFAULT NULL,
@@ -4797,8 +4585,7 @@ CREATE TABLE adm.sk_rpt_mth_g0107 (
   loan_bal decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_mth_high_risk_bank_org;
-CREATE TABLE adm.sk_rpt_mth_high_risk_bank_org (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_mth_high_risk_bank_org (
   month_date char(10) NOT NULL,
   area_no_id varchar(8) NOT NULL,
   org_id char(14) NOT NULL,
@@ -4820,8 +4607,7 @@ CREATE TABLE adm.sk_rpt_mth_high_risk_bank_org (
   as_csr_fm decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_mth_insur_org_insured_dept;
-CREATE TABLE adm.sk_rpt_mth_insur_org_insured_dept (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_mth_insur_org_insured_dept (
   month_date char(10) NULL DEFAULT NULL,
   area_no_id char(8) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -4832,8 +4618,7 @@ CREATE TABLE adm.sk_rpt_mth_insur_org_insured_dept (
   total decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_mth_insur_org_oper_monitor;
-CREATE TABLE adm.sk_rpt_mth_insur_org_oper_monitor (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_mth_insur_org_oper_monitor (
   month_date char(10) NOT NULL,
   area_no_id varchar(8) NOT NULL,
   org_id char(14) NOT NULL,
@@ -4845,8 +4630,7 @@ CREATE TABLE adm.sk_rpt_mth_insur_org_oper_monitor (
   ad_save_dept decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_qtr_bank_finorg_basic_data;
-CREATE TABLE adm.sk_rpt_qtr_bank_finorg_basic_data (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_qtr_bank_finorg_basic_data (
   qtr_date char(10) NULL DEFAULT NULL,
   area_no_id varchar(8) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -4861,8 +4645,7 @@ CREATE TABLE adm.sk_rpt_qtr_bank_finorg_basic_data (
   cr_bad_bal decimal(30, 6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sk_rpt_qtr_insur_org_dept_acct;
-CREATE TABLE adm.sk_rpt_qtr_insur_org_dept_acct (
+CREATE TABLE IF NOT EXISTS adm.sk_rpt_qtr_insur_org_dept_acct (
   qtr_date char(10) NULL DEFAULT NULL,
   area_no_id char(8) NULL DEFAULT NULL,
   org_id char(14) NULL DEFAULT NULL,
@@ -4882,8 +4665,7 @@ CREATE TABLE adm.sk_rpt_qtr_insur_org_dept_acct (
   limit_more_total decimal(30, 5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sust_enterprise;
-CREATE TABLE adm.sust_enterprise (
+CREATE TABLE IF NOT EXISTS adm.sust_enterprise (
   enterprise_id varchar(120) NULL DEFAULT NULL,
   enterprise_name varchar(600) NULL DEFAULT NULL,
   enterprise_order varchar(30) NULL DEFAULT NULL,
@@ -4895,8 +4677,7 @@ CREATE TABLE adm.sust_enterprise (
   status varchar(6) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sust_enterprise_norm_plan;
-CREATE TABLE adm.sust_enterprise_norm_plan (
+CREATE TABLE IF NOT EXISTS adm.sust_enterprise_norm_plan (
   id varchar(40) NOT NULL,
   enterprise_id varchar(40) NULL DEFAULT NULL,
   norm_id varchar(40) NULL DEFAULT NULL,
@@ -4908,8 +4689,7 @@ CREATE TABLE adm.sust_enterprise_norm_plan (
   PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS adm.sust_main_indicators_of_institutions;
-CREATE TABLE adm.sust_main_indicators_of_institutions (
+CREATE TABLE IF NOT EXISTS adm.sust_main_indicators_of_institutions (
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
   table_nature varchar(50) NULL DEFAULT NULL,
@@ -4929,8 +4709,7 @@ CREATE TABLE adm.sust_main_indicators_of_institutions (
   personalmltermloan varchar(40) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sust_norm;
-CREATE TABLE adm.sust_norm (
+CREATE TABLE IF NOT EXISTS adm.sust_norm (
   norm_id varchar(40) NOT NULL,
   norm_name varchar(200) NULL DEFAULT NULL,
   enterprise varchar(40) NULL DEFAULT NULL,
@@ -4943,8 +4722,7 @@ CREATE TABLE adm.sust_norm (
   PRIMARY KEY (norm_id)
 );
 
-DROP TABLE IF EXISTS adm.sust_plan;
-CREATE TABLE adm.sust_plan (
+CREATE TABLE IF NOT EXISTS adm.sust_plan (
   plan_id int NULL DEFAULT NULL,
   indicators_id varchar(120) NULL DEFAULT NULL,
   indicators_name varchar(300) NULL DEFAULT NULL,
@@ -4956,8 +4734,7 @@ CREATE TABLE adm.sust_plan (
   last_update_user varchar(600) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sust_sk_funds_application;
-CREATE TABLE adm.sust_sk_funds_application (
+CREATE TABLE IF NOT EXISTS adm.sust_sk_funds_application (
   data_date char(8) NULL DEFAULT NULL,
   batch_date char(8) NULL DEFAULT NULL,
   y1101 varchar(10) NULL DEFAULT NULL,
@@ -4990,8 +4767,7 @@ CREATE TABLE adm.sust_sk_funds_application (
   y3104 int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sust_sk_funds_source;
-CREATE TABLE adm.sust_sk_funds_source (
+CREATE TABLE IF NOT EXISTS adm.sust_sk_funds_source (
   data_date varchar(8) NULL DEFAULT NULL,
   batch_date char(8) NULL DEFAULT NULL,
   l1101 varchar(10) NULL DEFAULT NULL,
@@ -5016,8 +4792,7 @@ CREATE TABLE adm.sust_sk_funds_source (
   l3103 int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sust_standard_norm;
-CREATE TABLE adm.sust_standard_norm (
+CREATE TABLE IF NOT EXISTS adm.sust_standard_norm (
   id int NULL DEFAULT NULL,
   norm_id varchar(40) NULL DEFAULT NULL,
   norm_name varchar(200) NULL DEFAULT NULL,
@@ -5027,14 +4802,12 @@ CREATE TABLE adm.sust_standard_norm (
   last_update_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.sust_standard_norm_view_copy1;
-CREATE TABLE adm.sust_standard_norm_view_copy1 (
+CREATE TABLE IF NOT EXISTS adm.sust_standard_norm_view_copy1 (
   norm_id varchar(40) NULL DEFAULT NULL,
   norm_name varchar(200) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template;
-CREATE TABLE adm.t_sys_template (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template (
   template_id varchar(50) NOT NULL,
   template_desc varchar(500) NULL DEFAULT NULL,
   template_tip varchar(50) NULL DEFAULT NULL,
@@ -5046,8 +4819,7 @@ CREATE TABLE adm.t_sys_template (
   is_change varchar(1) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_file;
-CREATE TABLE adm.t_sys_template_file (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_file (
   template_file_id varchar(50) NOT NULL,
   template_file_desc varchar(500) NULL DEFAULT NULL,
   template_file_identification varchar(100) NULL DEFAULT NULL,
@@ -5061,15 +4833,13 @@ CREATE TABLE adm.t_sys_template_file (
   PRIMARY KEY (template_file_id)
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_file_dept;
-CREATE TABLE adm.t_sys_template_file_dept (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_file_dept (
   template_file_id varchar(50) NULL DEFAULT NULL,
   department varchar(50) NULL DEFAULT NULL,
   biz_type_id varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_file_entity;
-CREATE TABLE adm.t_sys_template_file_entity (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_file_entity (
   entity_id varchar(50) NULL DEFAULT NULL,
   template_file_id varchar(50) NULL DEFAULT NULL,
   template_file_name varchar(500) NULL DEFAULT NULL,
@@ -5080,29 +4850,25 @@ CREATE TABLE adm.t_sys_template_file_entity (
   template_file_content longblob NULL
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_file_org;
-CREATE TABLE adm.t_sys_template_file_org (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_file_org (
   template_file_id varchar(50) NULL DEFAULT NULL,
   org_id varchar(50) NULL DEFAULT NULL,
   add_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_file_relation;
-CREATE TABLE adm.t_sys_template_file_relation (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_file_relation (
   template_id varchar(50) NOT NULL,
   template_file_id varchar(50) NOT NULL,
   sheet_id varchar(50) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_file_role;
-CREATE TABLE adm.t_sys_template_file_role (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_file_role (
   template_file_id varchar(50) NOT NULL,
   role_id varchar(50) NOT NULL,
   add_date timestamp(0) NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_file_sheet;
-CREATE TABLE adm.t_sys_template_file_sheet (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_file_sheet (
   sheet_id varchar(50) NULL DEFAULT NULL,
   sheet_rule varchar(500) NULL DEFAULT NULL,
   is_valid int NULL DEFAULT 1,
@@ -5111,15 +4877,13 @@ CREATE TABLE adm.t_sys_template_file_sheet (
   run_sql varchar(1000) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_sheet_relation;
-CREATE TABLE adm.t_sys_template_sheet_relation (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_sheet_relation (
   sheet_id varchar(50) NOT NULL,
   template_id varchar(50) NOT NULL,
   is_verify_area int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_table;
-CREATE TABLE adm.t_sys_template_table (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_table (
   table_name varchar(100) NOT NULL,
   template_id varchar(50) NOT NULL,
   table_type varchar(10) NULL DEFAULT NULL,
@@ -5137,8 +4901,7 @@ CREATE TABLE adm.t_sys_template_table (
   add_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_table_column;
-CREATE TABLE adm.t_sys_template_table_column (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_table_column (
   column_id varchar(50) NULL DEFAULT NULL,
   table_id varchar(100) NULL DEFAULT NULL,
   column_name varchar(100) NULL DEFAULT NULL,
@@ -5155,23 +4918,20 @@ CREATE TABLE adm.t_sys_template_table_column (
   add_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_table_row_exception;
-CREATE TABLE adm.t_sys_template_table_row_exception (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_table_row_exception (
   row_exception_id varchar(50) NULL DEFAULT NULL,
   column_id varchar(50) NULL DEFAULT NULL,
   row_num varchar(200) NULL DEFAULT NULL,
   cell varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_type;
-CREATE TABLE adm.t_sys_template_type (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_type (
   template_type_id varchar(50) NULL DEFAULT NULL,
   template_type_desc varchar(200) NULL DEFAULT NULL,
   add_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.t_sys_template_verify;
-CREATE TABLE adm.t_sys_template_verify (
+CREATE TABLE IF NOT EXISTS adm.t_sys_template_verify (
   verify_id varchar(50) NOT NULL,
   verify_name varchar(50) NULL DEFAULT NULL,
   template_id varchar(50) NOT NULL,
@@ -5186,8 +4946,7 @@ CREATE TABLE adm.t_sys_template_verify (
   if_show int NULL DEFAULT 1
 );
 
-DROP TABLE IF EXISTS adm.t_template_ods_dw_etl;
-CREATE TABLE adm.t_template_ods_dw_etl (
+CREATE TABLE IF NOT EXISTS adm.t_template_ods_dw_etl (
   v_id varchar(50) NOT NULL,
   v_acct_id varchar(50) NOT NULL,
   v_org_id varchar(50) NOT NULL,
@@ -5200,8 +4959,7 @@ CREATE TABLE adm.t_template_ods_dw_etl (
   v_template_file_id varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.total_business_anyarea_dtl;
-CREATE TABLE adm.total_business_anyarea_dtl (
+CREATE TABLE IF NOT EXISTS adm.total_business_anyarea_dtl (
   area_no varchar(8) NOT NULL,
   data_date char(8) NOT NULL,
   table_nature varchar(50) NULL DEFAULT NULL,
@@ -5219,8 +4977,7 @@ CREATE TABLE adm.total_business_anyarea_dtl (
   PRIMARY KEY (area_no, data_date, org_no, body_code, business_type)
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_function_income_daily;
-CREATE TABLE adm.trs_budget_function_income_daily (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_function_income_daily (
   d_reportdate varchar(10) NULL DEFAULT '',
   s_trecode char(10) NULL DEFAULT '',
   c_budgetlevel char(1) NULL DEFAULT '',
@@ -5239,8 +4996,7 @@ CREATE TABLE adm.trs_budget_function_income_daily (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_function_income_daily_20190328;
-CREATE TABLE adm.trs_budget_function_income_daily_20190328 (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_function_income_daily_20190328 (
   d_reportdate varchar(10) NULL DEFAULT '',
   s_trecode char(10) NULL DEFAULT '',
   c_budgetlevel char(1) NULL DEFAULT '',
@@ -5259,8 +5015,7 @@ CREATE TABLE adm.trs_budget_function_income_daily_20190328 (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_function_income_monthly;
-CREATE TABLE adm.trs_budget_function_income_monthly (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_function_income_monthly (
   d_reportdate varchar(7) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT '',
   c_budgetlevel char(1) NULL DEFAULT '',
@@ -5279,8 +5034,7 @@ CREATE TABLE adm.trs_budget_function_income_monthly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_function_income_yearly;
-CREATE TABLE adm.trs_budget_function_income_yearly (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_function_income_yearly (
   d_reportdate varchar(4) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT '',
   c_budgetlevel char(1) NULL DEFAULT '',
@@ -5299,8 +5053,7 @@ CREATE TABLE adm.trs_budget_function_income_yearly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_function_payout_daily;
-CREATE TABLE adm.trs_budget_function_payout_daily (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_function_payout_daily (
   d_reportdate varchar(10) NULL DEFAULT '',
   s_trecode char(10) NULL DEFAULT '',
   c_budgetlevel int NULL DEFAULT NULL,
@@ -5319,8 +5072,7 @@ CREATE TABLE adm.trs_budget_function_payout_daily (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_function_payout_monthly;
-CREATE TABLE adm.trs_budget_function_payout_monthly (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_function_payout_monthly (
   d_reportdate varchar(7) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT '',
   c_budgetlevel int NULL DEFAULT NULL,
@@ -5339,8 +5091,7 @@ CREATE TABLE adm.trs_budget_function_payout_monthly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_function_payout_yearly;
-CREATE TABLE adm.trs_budget_function_payout_yearly (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_function_payout_yearly (
   d_reportdate varchar(4) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT '',
   c_budgetlevel int NULL DEFAULT NULL,
@@ -5359,8 +5110,7 @@ CREATE TABLE adm.trs_budget_function_payout_yearly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_limit_income_daily;
-CREATE TABLE adm.trs_budget_limit_income_daily (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_limit_income_daily (
   industry varchar(50) NULL DEFAULT NULL,
   d_accept date NOT NULL,
   s_taxpaycode varchar(20) NULL DEFAULT NULL,
@@ -5375,8 +5125,7 @@ CREATE TABLE adm.trs_budget_limit_income_daily (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_limit_payout_daily;
-CREATE TABLE adm.trs_budget_limit_payout_daily (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_limit_payout_daily (
   d_accept date NOT NULL,
   s_trecode char(10) NOT NULL DEFAULT '',
   s_payeracct varchar(32) NOT NULL DEFAULT '',
@@ -5394,8 +5143,7 @@ CREATE TABLE adm.trs_budget_limit_payout_daily (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_summary_all_daily;
-CREATE TABLE adm.trs_budget_summary_all_daily (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_summary_all_daily (
   d_reportdate date NOT NULL,
   s_trecode char(10) NOT NULL DEFAULT '',
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -5409,8 +5157,7 @@ CREATE TABLE adm.trs_budget_summary_all_daily (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_summary_all_monthly;
-CREATE TABLE adm.trs_budget_summary_all_monthly (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_summary_all_monthly (
   d_reportdate varchar(7) NULL DEFAULT NULL,
   s_trecode char(10) NOT NULL DEFAULT '',
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -5424,8 +5171,7 @@ CREATE TABLE adm.trs_budget_summary_all_monthly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_budget_summary_all_yearly;
-CREATE TABLE adm.trs_budget_summary_all_yearly (
+CREATE TABLE IF NOT EXISTS adm.trs_budget_summary_all_yearly (
   d_reportdate varchar(11) NULL DEFAULT NULL,
   s_trecode char(10) NOT NULL DEFAULT '',
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -5437,8 +5183,7 @@ CREATE TABLE adm.trs_budget_summary_all_yearly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comeout_comprate;
-CREATE TABLE adm.trs_comeout_comprate (
+CREATE TABLE IF NOT EXISTS adm.trs_comeout_comprate (
   trecode char(10) NOT NULL,
   report_date varchar(10) NULL DEFAULT NULL,
   income_comp decimal(18, 2) NULL DEFAULT NULL,
@@ -5448,8 +5193,7 @@ CREATE TABLE adm.trs_comeout_comprate (
   batch_date char(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comprehensive_income_month;
-CREATE TABLE adm.trs_comprehensive_income_month (
+CREATE TABLE IF NOT EXISTS adm.trs_comprehensive_income_month (
   d_acct char(7) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(20) NULL DEFAULT NULL,
@@ -5463,8 +5207,7 @@ CREATE TABLE adm.trs_comprehensive_income_month (
   year_amt_ppt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comprehensive_income_month_incomemm;
-CREATE TABLE adm.trs_comprehensive_income_month_incomemm (
+CREATE TABLE IF NOT EXISTS adm.trs_comprehensive_income_month_incomemm (
   d_acct char(7) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(20) NULL DEFAULT NULL,
@@ -5478,8 +5221,7 @@ CREATE TABLE adm.trs_comprehensive_income_month_incomemm (
   year_amt_ppt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comprehensive_income_quarter;
-CREATE TABLE adm.trs_comprehensive_income_quarter (
+CREATE TABLE IF NOT EXISTS adm.trs_comprehensive_income_quarter (
   d_acct char(6) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(20) NULL DEFAULT NULL,
@@ -5493,8 +5235,7 @@ CREATE TABLE adm.trs_comprehensive_income_quarter (
   year_amt_ppt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comprehensive_income_quarter_incomeqq;
-CREATE TABLE adm.trs_comprehensive_income_quarter_incomeqq (
+CREATE TABLE IF NOT EXISTS adm.trs_comprehensive_income_quarter_incomeqq (
   d_acct char(6) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(20) NULL DEFAULT NULL,
@@ -5508,8 +5249,7 @@ CREATE TABLE adm.trs_comprehensive_income_quarter_incomeqq (
   year_amt_ppt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comprehensive_payout_month;
-CREATE TABLE adm.trs_comprehensive_payout_month (
+CREATE TABLE IF NOT EXISTS adm.trs_comprehensive_payout_month (
   d_acct char(20) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(20) NULL DEFAULT NULL,
@@ -5523,8 +5263,7 @@ CREATE TABLE adm.trs_comprehensive_payout_month (
   year_amt_ppt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comprehensive_payout_month_payoutmm;
-CREATE TABLE adm.trs_comprehensive_payout_month_payoutmm (
+CREATE TABLE IF NOT EXISTS adm.trs_comprehensive_payout_month_payoutmm (
   d_acct char(20) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(20) NULL DEFAULT NULL,
@@ -5538,8 +5277,7 @@ CREATE TABLE adm.trs_comprehensive_payout_month_payoutmm (
   year_amt_ppt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comprehensive_payout_quarter;
-CREATE TABLE adm.trs_comprehensive_payout_quarter (
+CREATE TABLE IF NOT EXISTS adm.trs_comprehensive_payout_quarter (
   d_acct char(6) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(20) NULL DEFAULT NULL,
@@ -5553,8 +5291,7 @@ CREATE TABLE adm.trs_comprehensive_payout_quarter (
   year_amt_ppt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_comprehensive_payout_quarter_payoutqq;
-CREATE TABLE adm.trs_comprehensive_payout_quarter_payoutqq (
+CREATE TABLE IF NOT EXISTS adm.trs_comprehensive_payout_quarter_payoutqq (
   d_acct char(6) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(20) NULL DEFAULT NULL,
@@ -5568,8 +5305,7 @@ CREATE TABLE adm.trs_comprehensive_payout_quarter_payoutqq (
   year_amt_ppt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_guoku_analysis_processing;
-CREATE TABLE adm.trs_guoku_analysis_processing (
+CREATE TABLE IF NOT EXISTS adm.trs_guoku_analysis_processing (
   id int NULL DEFAULT NULL,
   ana_type varchar(10) NULL DEFAULT NULL,
   sql_delete text NULL,
@@ -5586,8 +5322,7 @@ CREATE TABLE adm.trs_guoku_analysis_processing (
   add_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.trs_guoku_analysis_processing_20190328;
-CREATE TABLE adm.trs_guoku_analysis_processing_20190328 (
+CREATE TABLE IF NOT EXISTS adm.trs_guoku_analysis_processing_20190328 (
   id int NULL DEFAULT NULL,
   ana_type varchar(10) NULL DEFAULT NULL,
   sql_delete text NULL,
@@ -5604,8 +5339,7 @@ CREATE TABLE adm.trs_guoku_analysis_processing_20190328 (
   add_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.trs_guoku_analysis_processing_shenyang;
-CREATE TABLE adm.trs_guoku_analysis_processing_shenyang (
+CREATE TABLE IF NOT EXISTS adm.trs_guoku_analysis_processing_shenyang (
   id int NULL DEFAULT NULL,
   ana_type varchar(10) NULL DEFAULT NULL,
   sql_delete text NULL,
@@ -5622,8 +5356,7 @@ CREATE TABLE adm.trs_guoku_analysis_processing_shenyang (
   add_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.trs_guoku_kettle;
-CREATE TABLE adm.trs_guoku_kettle (
+CREATE TABLE IF NOT EXISTS adm.trs_guoku_kettle (
   id serial NOT NULL,
   sql_insert text NULL,
   sql_second text NULL,
@@ -5639,8 +5372,7 @@ CREATE TABLE adm.trs_guoku_kettle (
   PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS adm.trs_guoku_kettle_20190327;
-CREATE TABLE adm.trs_guoku_kettle_20190327 (
+CREATE TABLE IF NOT EXISTS adm.trs_guoku_kettle_20190327 (
   id serial NOT NULL,
   sql_insert text NULL,
   sql_second text NULL,
@@ -5656,8 +5388,7 @@ CREATE TABLE adm.trs_guoku_kettle_20190327 (
   PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS adm.trs_guoku_saiku_processing;
-CREATE TABLE adm.trs_guoku_saiku_processing (
+CREATE TABLE IF NOT EXISTS adm.trs_guoku_saiku_processing (
   id int NULL DEFAULT NULL,
   sql_delete text NULL,
   sql_insert text NULL,
@@ -5671,8 +5402,7 @@ CREATE TABLE adm.trs_guoku_saiku_processing (
   add_date timestamp(0) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS adm.trs_kyd_enterprise;
-CREATE TABLE adm.trs_kyd_enterprise (
+CREATE TABLE IF NOT EXISTS adm.trs_kyd_enterprise (
   d_acct varchar(10) NOT NULL,
   s_trecode varchar(30) NOT NULL,
   s_tredscr varchar(50) NULL DEFAULT NULL,
@@ -5717,8 +5447,7 @@ CREATE TABLE adm.trs_kyd_enterprise (
   mark char(1) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_kyd_enterprise_rank;
-CREATE TABLE adm.trs_kyd_enterprise_rank (
+CREATE TABLE IF NOT EXISTS adm.trs_kyd_enterprise_rank (
   d_acct varchar(10) NOT NULL,
   procode varchar(20) NULL DEFAULT NULL,
   proname varchar(255) NULL DEFAULT NULL,
@@ -5736,8 +5465,7 @@ CREATE TABLE adm.trs_kyd_enterprise_rank (
   s_tredscr varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_kyd_enterprise_rank_copy;
-CREATE TABLE adm.trs_kyd_enterprise_rank_copy (
+CREATE TABLE IF NOT EXISTS adm.trs_kyd_enterprise_rank_copy (
   d_acct varchar(10) NULL DEFAULT NULL,
   procode varchar(20) NULL DEFAULT NULL,
   proname varchar(50) NULL DEFAULT NULL,
@@ -5753,8 +5481,7 @@ CREATE TABLE adm.trs_kyd_enterprise_rank_copy (
   s_tredscr varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_kyd_industry;
-CREATE TABLE adm.trs_kyd_industry (
+CREATE TABLE IF NOT EXISTS adm.trs_kyd_industry (
   d_acct varchar(10) NOT NULL,
   s_trecode varchar(30) NOT NULL,
   s_tredscr varchar(50) NULL DEFAULT NULL,
@@ -5799,8 +5526,7 @@ CREATE TABLE adm.trs_kyd_industry (
   mark char(1) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_kyd_industry_comprehensive;
-CREATE TABLE adm.trs_kyd_industry_comprehensive (
+CREATE TABLE IF NOT EXISTS adm.trs_kyd_industry_comprehensive (
   d_acct varchar(10) NULL DEFAULT NULL,
   s_trecode char(10) NULL DEFAULT NULL,
   s_tredscr varchar(50) NULL DEFAULT NULL,
@@ -5815,15 +5541,13 @@ CREATE TABLE adm.trs_kyd_industry_comprehensive (
   f_amt decimal(18, 4) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_kyd_industry_mb;
-CREATE TABLE adm.trs_kyd_industry_mb (
+CREATE TABLE IF NOT EXISTS adm.trs_kyd_industry_mb (
   "key" varchar(255) NULL DEFAULT NULL,
   name varchar(255) NULL DEFAULT NULL,
   sort int NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_sk_acct_stock;
-CREATE TABLE adm.trs_sk_acct_stock (
+CREATE TABLE IF NOT EXISTS adm.trs_sk_acct_stock (
   reportdate date NULL DEFAULT NULL,
   d_month char(7) NULL DEFAULT NULL,
   d_year int NULL DEFAULT NULL,
@@ -5836,8 +5560,7 @@ CREATE TABLE adm.trs_sk_acct_stock (
   f_todaybalance decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_sk_agentbankpay_back_detail;
-CREATE TABLE adm.trs_sk_agentbankpay_back_detail (
+CREATE TABLE IF NOT EXISTS adm.trs_sk_agentbankpay_back_detail (
   s_entrustyrar char(4) NULL DEFAULT NULL,
   s_entrustmoth char(6) NULL DEFAULT NULL,
   s_entrustdate char(8) NULL DEFAULT NULL,
@@ -5850,8 +5573,7 @@ CREATE TABLE adm.trs_sk_agentbankpay_back_detail (
   f_amount varchar(1) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_sk_agentbankpay_detail;
-CREATE TABLE adm.trs_sk_agentbankpay_detail (
+CREATE TABLE IF NOT EXISTS adm.trs_sk_agentbankpay_detail (
   s_entrustyrar char(4) NULL DEFAULT NULL,
   s_entrustmoth char(6) NULL DEFAULT NULL,
   s_entrustdate char(8) NULL DEFAULT NULL,
@@ -5867,8 +5589,7 @@ CREATE TABLE adm.trs_sk_agentbankpay_detail (
   f_amount varchar(1) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_sk_subject_dwbk;
-CREATE TABLE adm.trs_sk_subject_dwbk (
+CREATE TABLE IF NOT EXISTS adm.trs_sk_subject_dwbk (
   reportdate date NULL DEFAULT NULL,
   d_month char(7) NULL DEFAULT NULL,
   d_year int NULL DEFAULT NULL,
@@ -5879,8 +5600,7 @@ CREATE TABLE adm.trs_sk_subject_dwbk (
   f_dayamt decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_sk_subject_income;
-CREATE TABLE adm.trs_sk_subject_income (
+CREATE TABLE IF NOT EXISTS adm.trs_sk_subject_income (
   reportdate date NULL DEFAULT NULL,
   d_month char(7) NULL DEFAULT NULL,
   d_year int NULL DEFAULT NULL,
@@ -5891,8 +5611,7 @@ CREATE TABLE adm.trs_sk_subject_income (
   f_dayamt decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_sk_subject_payout;
-CREATE TABLE adm.trs_sk_subject_payout (
+CREATE TABLE IF NOT EXISTS adm.trs_sk_subject_payout (
   reportdate date NULL DEFAULT NULL,
   d_month char(7) NULL DEFAULT NULL,
   d_year int NULL DEFAULT NULL,
@@ -5901,8 +5620,7 @@ CREATE TABLE adm.trs_sk_subject_payout (
   f_dayamt decimal(18, 2) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stat_agentbankpay_back_detail;
-CREATE TABLE adm.trs_stat_agentbankpay_back_detail (
+CREATE TABLE IF NOT EXISTS adm.trs_stat_agentbankpay_back_detail (
   s_seqno varchar(100) NULL DEFAULT NULL,
   s_id varchar(38) NULL DEFAULT NULL,
   s_admdivcode varchar(9) NULL DEFAULT NULL,
@@ -5958,8 +5676,7 @@ CREATE TABLE adm.trs_stat_agentbankpay_back_detail (
   PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS adm.trs_stat_agentbankpay_back_detail_bak;
-CREATE TABLE adm.trs_stat_agentbankpay_back_detail_bak (
+CREATE TABLE IF NOT EXISTS adm.trs_stat_agentbankpay_back_detail_bak (
   s_seqno varchar(20) NOT NULL,
   s_id varchar(38) NULL DEFAULT NULL,
   s_admdivcode varchar(9) NULL DEFAULT NULL,
@@ -6013,8 +5730,7 @@ CREATE TABLE adm.trs_stat_agentbankpay_back_detail_bak (
   s_handreason varchar(512) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stat_agentbankpay_detail;
-CREATE TABLE adm.trs_stat_agentbankpay_detail (
+CREATE TABLE IF NOT EXISTS adm.trs_stat_agentbankpay_detail (
   s_seqno varchar(100) NULL DEFAULT NULL,
   s_id varchar(38) NULL DEFAULT NULL,
   s_admdivcode varchar(9) NULL DEFAULT NULL,
@@ -6069,8 +5785,7 @@ CREATE TABLE adm.trs_stat_agentbankpay_detail (
   PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_change_daily;
-CREATE TABLE adm.trs_stock_change_daily (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_change_daily (
   d_reportdate date NOT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6084,8 +5799,7 @@ CREATE TABLE adm.trs_stock_change_daily (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_change_daily_20190328;
-CREATE TABLE adm.trs_stock_change_daily_20190328 (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_change_daily_20190328 (
   d_reportdate date NOT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6099,8 +5813,7 @@ CREATE TABLE adm.trs_stock_change_daily_20190328 (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_change_monthly;
-CREATE TABLE adm.trs_stock_change_monthly (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_change_monthly (
   d_reportdate varchar(7) NULL DEFAULT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6114,8 +5827,7 @@ CREATE TABLE adm.trs_stock_change_monthly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_change_yearly;
-CREATE TABLE adm.trs_stock_change_yearly (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_change_yearly (
   d_reportdate int NULL DEFAULT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6129,8 +5841,7 @@ CREATE TABLE adm.trs_stock_change_yearly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_influence_income_daily;
-CREATE TABLE adm.trs_stock_influence_income_daily (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_influence_income_daily (
   d_reportdate date NOT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6143,8 +5854,7 @@ CREATE TABLE adm.trs_stock_influence_income_daily (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_influence_income_monthly;
-CREATE TABLE adm.trs_stock_influence_income_monthly (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_influence_income_monthly (
   d_reportdate varchar(7) NULL DEFAULT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6157,8 +5867,7 @@ CREATE TABLE adm.trs_stock_influence_income_monthly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_influence_income_yearly;
-CREATE TABLE adm.trs_stock_influence_income_yearly (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_influence_income_yearly (
   d_reportdate int NULL DEFAULT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6169,8 +5878,7 @@ CREATE TABLE adm.trs_stock_influence_income_yearly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_influence_payout_daily;
-CREATE TABLE adm.trs_stock_influence_payout_daily (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_influence_payout_daily (
   d_reportdate date NOT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6183,8 +5891,7 @@ CREATE TABLE adm.trs_stock_influence_payout_daily (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_influence_payout_monthly;
-CREATE TABLE adm.trs_stock_influence_payout_monthly (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_influence_payout_monthly (
   d_reportdate varchar(7) NULL DEFAULT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6197,8 +5904,7 @@ CREATE TABLE adm.trs_stock_influence_payout_monthly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.trs_stock_influence_payout_yearly;
-CREATE TABLE adm.trs_stock_influence_payout_yearly (
+CREATE TABLE IF NOT EXISTS adm.trs_stock_influence_payout_yearly (
   d_reportdate int NULL DEFAULT NULL,
   s_trecode char(10) NOT NULL,
   guoku_dscr varchar(200) NULL DEFAULT NULL,
@@ -6209,8 +5915,7 @@ CREATE TABLE adm.trs_stock_influence_payout_yearly (
   update_date datetime(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_area_code;
-CREATE TABLE adm.v_area_code (
+CREATE TABLE IF NOT EXISTS adm.v_area_code (
   area_no_id_1 char(8) NULL DEFAULT NULL,
   area_dscr_1 varchar(512) NULL DEFAULT NULL,
   area_no_id_2 char(8) NULL DEFAULT NULL,
@@ -6221,20 +5926,17 @@ CREATE TABLE adm.v_area_code (
   lvl_ord char(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_agentbankclass;
-CREATE TABLE adm.v_cm_guoku_agentbankclass (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_agentbankclass (
   agentbankno varchar(50) NOT NULL,
   agentbankname varchar(200) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_autoauditstate;
-CREATE TABLE adm.v_cm_guoku_autoauditstate (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_autoauditstate (
   c_autoauditstate varchar(2) NOT NULL,
   c_autoauditstatedscr varchar(64) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_bdgorg;
-CREATE TABLE adm.v_cm_guoku_bdgorg (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_bdgorg (
   s_bookorgcode varchar(40) NOT NULL DEFAULT '',
   s_trecode varchar(10) NOT NULL DEFAULT '',
   s_bdgorgcode varchar(15) NOT NULL DEFAULT '',
@@ -6249,8 +5951,7 @@ CREATE TABLE adm.v_cm_guoku_bdgorg (
   createtime timestamp(0) NOT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_dimnsn;
-CREATE TABLE adm.v_cm_guoku_dimnsn (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_dimnsn (
   guoku_id varchar(50) NOT NULL,
   guoku_dscr varchar(100) NULL DEFAULT NULL,
   guoku_shuxing_id varchar(64) NULL DEFAULT NULL,
@@ -6281,20 +5982,17 @@ CREATE TABLE adm.v_cm_guoku_dimnsn (
   end_date varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_handauditstate;
-CREATE TABLE adm.v_cm_guoku_handauditstate (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_handauditstate (
   c_handauditstate varchar(2) NOT NULL,
   c_handauditstatedscr varchar(64) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_paymode;
-CREATE TABLE adm.v_cm_guoku_paymode (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_paymode (
   s_paymode varchar(1) NOT NULL,
   s_paymodedscr varchar(200) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_rcpt_dsb;
-CREATE TABLE adm.v_cm_guoku_rcpt_dsb (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_rcpt_dsb (
   subject_code_0 varchar(4) NOT NULL,
   subject_dscr_0 varchar(16) NOT NULL,
   subject_code_1 varchar(10) NOT NULL,
@@ -6312,8 +6010,7 @@ CREATE TABLE adm.v_cm_guoku_rcpt_dsb (
   data_src_org char(5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_rcpt_dsb_income;
-CREATE TABLE adm.v_cm_guoku_rcpt_dsb_income (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_rcpt_dsb_income (
   subject_code_0 varchar(4) NOT NULL,
   subject_dscr_0 varchar(16) NOT NULL,
   subject_code_1 varchar(10) NOT NULL,
@@ -6331,8 +6028,7 @@ CREATE TABLE adm.v_cm_guoku_rcpt_dsb_income (
   data_src_org char(5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_cm_guoku_rcpt_dsb_payout;
-CREATE TABLE adm.v_cm_guoku_rcpt_dsb_payout (
+CREATE TABLE IF NOT EXISTS adm.v_cm_guoku_rcpt_dsb_payout (
   subject_code_0 varchar(4) NOT NULL,
   subject_dscr_0 varchar(16) NOT NULL,
   subject_code_1 varchar(10) NOT NULL,
@@ -6350,8 +6046,7 @@ CREATE TABLE adm.v_cm_guoku_rcpt_dsb_payout (
   data_src_org char(5) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_dim_date;
-CREATE TABLE adm.v_dim_date (
+CREATE TABLE IF NOT EXISTS adm.v_dim_date (
   pk_date int NULL DEFAULT NULL,
   day varchar(10) NULL DEFAULT NULL,
   day_name varchar(20) NULL DEFAULT NULL,
@@ -6372,8 +6067,7 @@ CREATE TABLE adm.v_dim_date (
   workday_flag varchar(10) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_py_cx_area_code;
-CREATE TABLE adm.v_py_cx_area_code (
+CREATE TABLE IF NOT EXISTS adm.v_py_cx_area_code (
   area_no_id_2 char(6) NULL DEFAULT NULL,
   area_dscr_2 varchar(30) NULL DEFAULT NULL,
   area_no_id_3 char(6) NULL DEFAULT NULL,
@@ -6384,34 +6078,29 @@ CREATE TABLE adm.v_py_cx_area_code (
   area_dscr_5 varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_py_cx_org_city_code;
-CREATE TABLE adm.v_py_cx_org_city_code (
+CREATE TABLE IF NOT EXISTS adm.v_py_cx_org_city_code (
   org_id char(14) NULL DEFAULT NULL,
   org_dscr varchar(512) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_py_cx_org_code;
-CREATE TABLE adm.v_py_cx_org_code (
+CREATE TABLE IF NOT EXISTS adm.v_py_cx_org_code (
   org_id1 varchar(40) NULL DEFAULT NULL,
   org_name1 varchar(40) NULL DEFAULT NULL,
   org_id varchar(40) NULL DEFAULT NULL,
   org_name varchar(40) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_py_cx_state_code;
-CREATE TABLE adm.v_py_cx_state_code (
+CREATE TABLE IF NOT EXISTS adm.v_py_cx_state_code (
   state_code varchar(10) NULL DEFAULT NULL,
   state_name varchar(10) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_py_cx_trade_code;
-CREATE TABLE adm.v_py_cx_trade_code (
+CREATE TABLE IF NOT EXISTS adm.v_py_cx_trade_code (
   trade_code varchar(10) NULL DEFAULT NULL,
   trade_type varchar(10) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_py_cx_verity_table;
-CREATE TABLE adm.v_py_cx_verity_table (
+CREATE TABLE IF NOT EXISTS adm.v_py_cx_verity_table (
   table_name varchar(100) NOT NULL,
   start_row varchar(11) NULL DEFAULT NULL,
   template_id varchar(50) NOT NULL,
@@ -6435,8 +6124,7 @@ CREATE TABLE adm.v_py_cx_verity_table (
   where_ text NULL
 );
 
-DROP TABLE IF EXISTS adm.v_py_cx_verity_table_ods_data;
-CREATE TABLE adm.v_py_cx_verity_table_ods_data (
+CREATE TABLE IF NOT EXISTS adm.v_py_cx_verity_table_ods_data (
   area_no varchar(8) NULL DEFAULT NULL,
   data_date char(8) NULL DEFAULT NULL,
   org_no varchar(14) NULL DEFAULT NULL,
@@ -6455,8 +6143,7 @@ CREATE TABLE adm.v_py_cx_verity_table_ods_data (
   rows_id varchar(100) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_py_zf_dim_date;
-CREATE TABLE adm.v_py_zf_dim_date (
+CREATE TABLE IF NOT EXISTS adm.v_py_zf_dim_date (
   month varchar(10) NULL DEFAULT NULL,
   month_name varchar(20) NULL DEFAULT NULL,
   quarter varchar(10) NULL DEFAULT NULL,
@@ -6465,66 +6152,56 @@ CREATE TABLE adm.v_py_zf_dim_date (
   year_name varchar(20) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_biz_category;
-CREATE TABLE adm.v_sust_biz_category (
+CREATE TABLE IF NOT EXISTS adm.v_sust_biz_category (
   biz_code varchar(30) NULL DEFAULT NULL,
   biz_dscr varchar(50) NULL DEFAULT NULL,
   type varchar(3) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_cash_status;
-CREATE TABLE adm.v_sust_cash_status (
+CREATE TABLE IF NOT EXISTS adm.v_sust_cash_status (
   cs_code varchar(30) NULL DEFAULT NULL,
   cs_dscr varchar(50) NULL DEFAULT NULL,
   type varchar(3) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_currency_type;
-CREATE TABLE adm.v_sust_currency_type (
+CREATE TABLE IF NOT EXISTS adm.v_sust_currency_type (
   type_code varchar(30) NULL DEFAULT NULL,
   type_dscr varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_data_category;
-CREATE TABLE adm.v_sust_data_category (
+CREATE TABLE IF NOT EXISTS adm.v_sust_data_category (
   data_c_code varchar(30) NULL DEFAULT NULL,
   data_c_dscr varchar(50) NULL DEFAULT NULL,
   type varchar(3) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_enterprise_size;
-CREATE TABLE adm.v_sust_enterprise_size (
+CREATE TABLE IF NOT EXISTS adm.v_sust_enterprise_size (
   e_size_code varchar(30) NULL DEFAULT NULL,
   e_size_dscr varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_fixed_income;
-CREATE TABLE adm.v_sust_fixed_income (
+CREATE TABLE IF NOT EXISTS adm.v_sust_fixed_income (
   income_code varchar(30) NULL DEFAULT NULL,
   income_dscr varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_forward_buyback;
-CREATE TABLE adm.v_sust_forward_buyback (
+CREATE TABLE IF NOT EXISTS adm.v_sust_forward_buyback (
   fb_code varchar(30) NULL DEFAULT NULL,
   fb_dscr varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_guaranty_style;
-CREATE TABLE adm.v_sust_guaranty_style (
+CREATE TABLE IF NOT EXISTS adm.v_sust_guaranty_style (
   gs_code varchar(30) NULL DEFAULT NULL,
   gs_dscr varchar(50) NULL DEFAULT NULL,
   type varchar(3) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_industry;
-CREATE TABLE adm.v_sust_industry (
+CREATE TABLE IF NOT EXISTS adm.v_sust_industry (
   lev_1_id varchar(8) NULL DEFAULT NULL,
   lev_1_dscr varchar(64) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_investment_style;
-CREATE TABLE adm.v_sust_investment_style (
+CREATE TABLE IF NOT EXISTS adm.v_sust_investment_style (
   code_3 varchar(31) NULL DEFAULT NULL,
   name_3 varchar(50) NULL DEFAULT NULL,
   code_2 bigint NOT NULL DEFAULT 0,
@@ -6533,8 +6210,7 @@ CREATE TABLE adm.v_sust_investment_style (
   name_1 varchar(6) NOT NULL DEFAULT ''
 );
 
-DROP TABLE IF EXISTS adm.v_sust_investment_style_a02;
-CREATE TABLE adm.v_sust_investment_style_a02 (
+CREATE TABLE IF NOT EXISTS adm.v_sust_investment_style_a02 (
   code_3 varchar(31) NULL DEFAULT NULL,
   name_3 varchar(50) NULL DEFAULT NULL,
   code_2 bigint NOT NULL DEFAULT 0,
@@ -6543,42 +6219,36 @@ CREATE TABLE adm.v_sust_investment_style_a02 (
   name_1 varchar(4) NOT NULL DEFAULT ''
 );
 
-DROP TABLE IF EXISTS adm.v_sust_joint_investment;
-CREATE TABLE adm.v_sust_joint_investment (
+CREATE TABLE IF NOT EXISTS adm.v_sust_joint_investment (
   code varchar(30) NULL DEFAULT NULL,
   dscr varchar(50) NULL DEFAULT NULL,
   type varchar(3) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_ownership;
-CREATE TABLE adm.v_sust_ownership (
+CREATE TABLE IF NOT EXISTS adm.v_sust_ownership (
   os_code varchar(30) NULL DEFAULT NULL,
   os_dscr varchar(50) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_payment_status;
-CREATE TABLE adm.v_sust_payment_status (
+CREATE TABLE IF NOT EXISTS adm.v_sust_payment_status (
   status_code varchar(30) NULL DEFAULT NULL,
   status_dscr varchar(50) NULL DEFAULT NULL,
   type varchar(3) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_term_category;
-CREATE TABLE adm.v_sust_term_category (
+CREATE TABLE IF NOT EXISTS adm.v_sust_term_category (
   tc_code varchar(30) NULL DEFAULT NULL,
   tc_dscr varchar(50) NULL DEFAULT NULL,
   type varchar(3) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_sust_time_interval;
-CREATE TABLE adm.v_sust_time_interval (
+CREATE TABLE IF NOT EXISTS adm.v_sust_time_interval (
   ti_code varchar(30) NULL DEFAULT NULL,
   ti_dscr varchar(50) NULL DEFAULT NULL,
   type varchar(3) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_t_area_code;
-CREATE TABLE adm.v_t_area_code (
+CREATE TABLE IF NOT EXISTS adm.v_t_area_code (
   area_no_id_1 char(8) NULL DEFAULT NULL,
   area_dscr_1 varchar(512) NULL DEFAULT NULL,
   area_no_id_2 char(8) NULL DEFAULT NULL,
@@ -6593,8 +6263,7 @@ CREATE TABLE adm.v_t_area_code (
   end_date char(8) NULL DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS adm.v_t_org_biz_lvl;
-CREATE TABLE adm.v_t_org_biz_lvl (
+CREATE TABLE IF NOT EXISTS adm.v_t_org_biz_lvl (
   org_type_id_1 varchar(14) NULL DEFAULT NULL,
   org_type_dscr_1 varchar(512) NULL DEFAULT NULL,
   org_type_id_2 varchar(14) NULL DEFAULT NULL,

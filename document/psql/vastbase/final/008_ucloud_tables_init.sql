@@ -12,8 +12,7 @@
 CREATE SCHEMA IF NOT EXISTS ucloud;
 SET search_path TO ucloud, public;
 
-DROP TABLE IF EXISTS ucloud.api_alarm_summary;
-CREATE TABLE ucloud.api_alarm_summary (
+CREATE TABLE IF NOT EXISTS ucloud.api_alarm_summary (
     ID INT NOT NULL,
     index_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -31,8 +30,7 @@ CREATE TABLE ucloud.api_alarm_summary (
 COMMENT ON TABLE ucloud.api_alarm_summary IS '监测器告警汇总表';
 -- Secondary indexes from the MySQL exports are omitted in this compile package to keep the dry-run bounded; primary keys are retained.
 
-DROP TABLE IF EXISTS ucloud.api_alarm_summary_copy1;
-CREATE TABLE ucloud.api_alarm_summary_copy1 (
+CREATE TABLE IF NOT EXISTS ucloud.api_alarm_summary_copy1 (
     ID INT NOT NULL,
     index_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -49,8 +47,7 @@ CREATE TABLE ucloud.api_alarm_summary_copy1 (
 );
 COMMENT ON TABLE ucloud.api_alarm_summary_copy1 IS '监测器告警汇总表';
 
-DROP TABLE IF EXISTS ucloud.api_forecast_alarm_records;
-CREATE TABLE ucloud.api_forecast_alarm_records (
+CREATE TABLE IF NOT EXISTS ucloud.api_forecast_alarm_records (
     ID varchar(32) NOT NULL,
     index_id varchar(32) DEFAULT NULL,
     index_name varchar(200) DEFAULT NULL,
@@ -65,8 +62,7 @@ CREATE TABLE ucloud.api_forecast_alarm_records (
 );
 COMMENT ON TABLE ucloud.api_forecast_alarm_records IS '监测器告警预测记录';
 
-DROP TABLE IF EXISTS ucloud.api_interface_alarm_data;
-CREATE TABLE ucloud.api_interface_alarm_data (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_alarm_data (
     ID varchar(32) NOT NULL,
     index_code varchar(50) DEFAULT NULL,
     resource_name varchar(500) DEFAULT NULL,
@@ -80,8 +76,7 @@ CREATE TABLE ucloud.api_interface_alarm_data (
 );
 COMMENT ON TABLE ucloud.api_interface_alarm_data IS '优云监测器告警数据';
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202004;
-CREATE TABLE ucloud.api_interface_system_data202004 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202004 (
     id varchar(39) DEFAULT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -96,8 +91,7 @@ CREATE TABLE ucloud.api_interface_system_data202004 (
     ADD_DATE varchar(20) DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202005;
-CREATE TABLE ucloud.api_interface_system_data202005 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202005 (
     id varchar(39) DEFAULT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -112,8 +106,7 @@ CREATE TABLE ucloud.api_interface_system_data202005 (
     ADD_DATE varchar(20) DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202006;
-CREATE TABLE ucloud.api_interface_system_data202006 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202006 (
     id varchar(39) DEFAULT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -128,8 +121,7 @@ CREATE TABLE ucloud.api_interface_system_data202006 (
     ADD_DATE varchar(20) DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202007;
-CREATE TABLE ucloud.api_interface_system_data202007 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202007 (
     id varchar(39) DEFAULT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -144,8 +136,7 @@ CREATE TABLE ucloud.api_interface_system_data202007 (
     ADD_DATE varchar(20) DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202008;
-CREATE TABLE ucloud.api_interface_system_data202008 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202008 (
     id varchar(39) DEFAULT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -160,8 +151,7 @@ CREATE TABLE ucloud.api_interface_system_data202008 (
     ADD_DATE varchar(20) DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202009;
-CREATE TABLE ucloud.api_interface_system_data202009 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202009 (
     id varchar(39) DEFAULT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -176,8 +166,7 @@ CREATE TABLE ucloud.api_interface_system_data202009 (
     ADD_DATE varchar(20) DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202010;
-CREATE TABLE ucloud.api_interface_system_data202010 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202010 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -192,8 +181,7 @@ CREATE TABLE ucloud.api_interface_system_data202010 (
 );
 COMMENT ON TABLE ucloud.api_interface_system_data202010 IS '优云系统(202010)';
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202010_bak;
-CREATE TABLE ucloud.api_interface_system_data202010_bak (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202010_bak (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -208,8 +196,7 @@ CREATE TABLE ucloud.api_interface_system_data202010_bak (
     ADD_DATE varchar(20) DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202011;
-CREATE TABLE ucloud.api_interface_system_data202011 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202011 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -223,8 +210,7 @@ CREATE TABLE ucloud.api_interface_system_data202011 (
 );
 COMMENT ON TABLE ucloud.api_interface_system_data202011 IS '优云系统数据(202011)';
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202012;
-CREATE TABLE ucloud.api_interface_system_data202012 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202012 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -238,8 +224,7 @@ CREATE TABLE ucloud.api_interface_system_data202012 (
 );
 COMMENT ON TABLE ucloud.api_interface_system_data202012 IS '优云系统数据(202012)';
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202101;
-CREATE TABLE ucloud.api_interface_system_data202101 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202101 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -253,8 +238,7 @@ CREATE TABLE ucloud.api_interface_system_data202101 (
 );
 COMMENT ON TABLE ucloud.api_interface_system_data202101 IS '优云系统数据(202101)';
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202102;
-CREATE TABLE ucloud.api_interface_system_data202102 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202102 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -268,8 +252,7 @@ CREATE TABLE ucloud.api_interface_system_data202102 (
 );
 COMMENT ON TABLE ucloud.api_interface_system_data202102 IS '优云系统数据(202102)';
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202103;
-CREATE TABLE ucloud.api_interface_system_data202103 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202103 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -283,8 +266,7 @@ CREATE TABLE ucloud.api_interface_system_data202103 (
 );
 COMMENT ON TABLE ucloud.api_interface_system_data202103 IS '优云系统数据(202103)';
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202104;
-CREATE TABLE ucloud.api_interface_system_data202104 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202104 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -298,8 +280,7 @@ CREATE TABLE ucloud.api_interface_system_data202104 (
 );
 COMMENT ON TABLE ucloud.api_interface_system_data202104 IS '优云系统数据(202104)';
 
-DROP TABLE IF EXISTS ucloud.api_interface_system_data202309;
-CREATE TABLE ucloud.api_interface_system_data202309 (
+CREATE TABLE IF NOT EXISTS ucloud.api_interface_system_data202309 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
@@ -313,8 +294,7 @@ CREATE TABLE ucloud.api_interface_system_data202309 (
 );
 COMMENT ON TABLE ucloud.api_interface_system_data202309 IS '优云系统数据(202309)';
 
-DROP TABLE IF EXISTS ucloud.api_system_records;
-CREATE TABLE ucloud.api_system_records (
+CREATE TABLE IF NOT EXISTS ucloud.api_system_records (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     system_code varchar(32) DEFAULT NULL,
@@ -333,8 +313,7 @@ CREATE TABLE ucloud.api_system_records (
     PRIMARY KEY (ID)
 );
 
-DROP TABLE IF EXISTS ucloud.menu_bak;
-CREATE TABLE ucloud.menu_bak (
+CREATE TABLE IF NOT EXISTS ucloud.menu_bak (
     MENU_ID varchar(50) DEFAULT NULL,
     PARENT_MENU_ID varchar(32) DEFAULT NULL,
     MENU_NAME varchar(200) DEFAULT NULL,
@@ -346,14 +325,12 @@ CREATE TABLE ucloud.menu_bak (
     IS_PROJECT varchar(1) NULL DEFAULT '0'
 );
 
-DROP TABLE IF EXISTS ucloud.table_name;
-CREATE TABLE ucloud.table_name (
+CREATE TABLE IF NOT EXISTS ucloud.table_name (
     table_name varchar(100) DEFAULT NULL,
     pri_name varchar(100) DEFAULT NULL
 );
 
-DROP TABLE IF EXISTS ucloud.temp11;
-CREATE TABLE ucloud.temp11 (
+CREATE TABLE IF NOT EXISTS ucloud.temp11 (
     ID varchar(32) NOT NULL,
     system_id varchar(32) DEFAULT NULL,
     platform_id varchar(32) DEFAULT NULL,
