@@ -11,15 +11,53 @@ CREATE TABLE IF NOT EXISTS etl.edw_proc_trace_log (
     row_count BIGINT
 );
 
--- MySQL implicitly converts NOW() to CHAR(19). Vastbase keeps fractional
--- seconds when coercing NOW() to CHAR and raises "value too long". Store the
--- values as timestamps so existing CALL sites retain the same wall-clock time.
-ALTER TABLE etl.edw_proc_trace_log
-    ALTER COLUMN start_time TYPE TIMESTAMP USING start_time::timestamp;
-ALTER TABLE etl.edw_proc_trace_log
-    ALTER COLUMN end_time TYPE TIMESTAMP USING end_time::timestamp;
-ALTER TABLE etl.edw_proc_trace_log
-    ALTER COLUMN row_count TYPE BIGINT USING row_count::bigint;
+-- 仅当旧库仍是 CHAR/VARCHAR 等非时间类型时才迁移；已是 timestamp 则跳过，保证可重复执行。
+DO $migrate_trace$
+DECLARE
+    v_start_type TEXT;
+    v_end_type TEXT;
+    v_row_type TEXT;
+BEGIN
+    SELECT data_type INTO v_start_type
+      FROM information_schema.columns
+     WHERE table_schema = 'etl'
+       AND table_name = 'edw_proc_trace_log'
+       AND column_name = 'start_time';
+    SELECT data_type INTO v_end_type
+      FROM information_schema.columns
+     WHERE table_schema = 'etl'
+       AND table_name = 'edw_proc_trace_log'
+       AND column_name = 'end_time';
+    SELECT data_type INTO v_row_type
+      FROM information_schema.columns
+     WHERE table_schema = 'etl'
+       AND table_name = 'edw_proc_trace_log'
+       AND column_name = 'row_count';
+
+    IF v_start_type IS NOT NULL
+       AND v_start_type NOT IN ('timestamp without time zone', 'timestamp with time zone') THEN
+        EXECUTE 'ALTER TABLE etl.edw_proc_trace_log ALTER COLUMN start_time DROP DEFAULT';
+        EXECUTE 'ALTER TABLE etl.edw_proc_trace_log
+            ALTER COLUMN start_time TYPE TIMESTAMP
+            USING NULLIF(TRIM(start_time::text), '''')::timestamp';
+    END IF;
+
+    IF v_end_type IS NOT NULL
+       AND v_end_type NOT IN ('timestamp without time zone', 'timestamp with time zone') THEN
+        EXECUTE 'ALTER TABLE etl.edw_proc_trace_log ALTER COLUMN end_time DROP DEFAULT';
+        EXECUTE 'ALTER TABLE etl.edw_proc_trace_log
+            ALTER COLUMN end_time TYPE TIMESTAMP
+            USING NULLIF(TRIM(end_time::text), '''')::timestamp';
+    END IF;
+
+    IF v_row_type IS NOT NULL
+       AND v_row_type NOT IN ('bigint', 'int8') THEN
+        EXECUTE 'ALTER TABLE etl.edw_proc_trace_log
+            ALTER COLUMN row_count TYPE BIGINT
+            USING NULLIF(TRIM(row_count::text), '''')::bigint';
+    END IF;
+END
+$migrate_trace$;
 
 CREATE INDEX IF NOT EXISTS idx_edw_proc_trace_log_lookup
     ON etl.edw_proc_trace_log (data_date, proc_name, step_id);
@@ -35,10 +73,39 @@ CREATE TABLE IF NOT EXISTS etl.edw_proc_error_log (
     error_msg VARCHAR(2000)
 );
 
-ALTER TABLE etl.edw_proc_error_log
-    ALTER COLUMN start_time TYPE TIMESTAMP USING start_time::timestamp;
-ALTER TABLE etl.edw_proc_error_log
-    ALTER COLUMN end_time TYPE TIMESTAMP USING end_time::timestamp;
+DO $migrate_error$
+DECLARE
+    v_start_type TEXT;
+    v_end_type TEXT;
+BEGIN
+    SELECT data_type INTO v_start_type
+      FROM information_schema.columns
+     WHERE table_schema = 'etl'
+       AND table_name = 'edw_proc_error_log'
+       AND column_name = 'start_time';
+    SELECT data_type INTO v_end_type
+      FROM information_schema.columns
+     WHERE table_schema = 'etl'
+       AND table_name = 'edw_proc_error_log'
+       AND column_name = 'end_time';
+
+    IF v_start_type IS NOT NULL
+       AND v_start_type NOT IN ('timestamp without time zone', 'timestamp with time zone') THEN
+        EXECUTE 'ALTER TABLE etl.edw_proc_error_log ALTER COLUMN start_time DROP DEFAULT';
+        EXECUTE 'ALTER TABLE etl.edw_proc_error_log
+            ALTER COLUMN start_time TYPE TIMESTAMP
+            USING NULLIF(TRIM(start_time::text), '''')::timestamp';
+    END IF;
+
+    IF v_end_type IS NOT NULL
+       AND v_end_type NOT IN ('timestamp without time zone', 'timestamp with time zone') THEN
+        EXECUTE 'ALTER TABLE etl.edw_proc_error_log ALTER COLUMN end_time DROP DEFAULT';
+        EXECUTE 'ALTER TABLE etl.edw_proc_error_log
+            ALTER COLUMN end_time TYPE TIMESTAMP
+            USING NULLIF(TRIM(end_time::text), '''')::timestamp';
+    END IF;
+END
+$migrate_error$;
 
 CREATE INDEX IF NOT EXISTS idx_edw_proc_error_log_lookup
     ON etl.edw_proc_error_log (data_date, proc_name, step_id);
