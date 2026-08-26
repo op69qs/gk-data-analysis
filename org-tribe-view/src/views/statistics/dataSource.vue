@@ -88,6 +88,8 @@
     },
     data() {
       return {
+        // 本页自行加载数据，跳过 mixin 默认 created，避免 url.list 未配置时报错
+        disableMixinCreated: true,
         // 查询条件
         queryParam: {},
         model: {},

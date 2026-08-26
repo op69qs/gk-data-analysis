@@ -59,9 +59,10 @@ const err = (error) => {
         notification.error({message: '系统提示', description: '网络超时'});
         break;
       case 401:
-        notification.error({message: '系统提示', description: '未授权，请重新登录', duration: 4});
-        if (token) {
+        notification.error({message: '系统提示', description: (data && data.message) || '未授权，请重新登录', duration: 4});
+        if (pathname.indexOf('login') < 0 && pathname.indexOf('oauth/callback') < 0) {
           store.dispatch('Logout').then(() => {
+            Vue.ls.remove(ACCESS_TOKEN);
             setTimeout(() => {
               window.location.reload()
             }, 1500)

@@ -73,6 +73,11 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/indexLibrary", "anon");
 		filterChainDefinitionMap.put("/statistics/indexLibrary", "anon");
 		filterChainDefinitionMap.put("/statistics/schemeIndex", "anon");
+		// SPA 前端路由：浏览器直接访问/刷新时不带 X-Access-Token，需放行页面转发
+		filterChainDefinitionMap.put("/statistics/**", "anon");
+		filterChainDefinitionMap.put("/isystem/**", "anon");
+		filterChainDefinitionMap.put("/reporting/**", "anon");
+		filterChainDefinitionMap.put("/parameter/**", "anon");
 		filterChainDefinitionMap.put("/BigScreen", "anon");
 		filterChainDefinitionMap.put("/bigScreen/TemplateList", "anon");
 		filterChainDefinitionMap.put("/BigScreen/PageList", "anon");

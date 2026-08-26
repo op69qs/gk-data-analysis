@@ -51,13 +51,16 @@ export const JeecgListMixin = {
     }
   },
   created() {
+    if (this.disableMixinCreated) {
+      return
+    }
     this.loadData()
     //初始化字典配置 在自己页面定义
     this.initDictConfig()
   },
   methods: {
     loadData(arg) {
-      if (!this.url.list) {
+      if (!this.url || !this.url.list) {
         this.$message.error('请设置url.list属性!')
         return
       }

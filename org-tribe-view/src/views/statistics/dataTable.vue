@@ -8,7 +8,7 @@
                                     @change="getDatas"></a-input-search>
                     <a-row style="margin:10px 0;">
                         <a-button @click="handleAdd" type="primary">新增</a-button>
-                        <a-button style="margin-left: 8px;" :disabled="!TABLE_ID" @click="handleEdit">修改</a-button>
+                        <a-button style="margin-left: 8px;" :disabled="!TABLE_ID || !isInfo" @click="handleEdit">修改</a-button>
                     </a-row>
                     <!-- tableTree-->
                     <a-col :sm="24" style="height: 500px;overflow-y: auto;">
@@ -216,7 +216,7 @@
                 <div v-else style="text-align: center;padding:100px; color:#bfbfbf;">
                     <img src="~@/assets/noData.png" width="200"/>
                     <br/>
-                    请点击左侧数据表查看相关设置
+                    请点击左侧最末级数据表节点查看相关设置，再点击「修改」进行编辑
                 </div>
                 <data-table-modal ref="DataTableModal" @show="show"></data-table-modal>
             </a-card>
@@ -422,15 +422,24 @@
                 if (data.nodeType !== 'table') {
                     return;
                 }
-                const tableId = data.id;
+                this.loadTableDetail(data.id, false);
+            },
+            loadTableDetail(tableId, enterEdit) {
+                if (!tableId) {
+                    this.$message.warning('请先选择左侧数据表');
+                    return;
+                }
                 this.TABLE_ID = tableId;
+                this.loading = true;
                 getDataTableData({TABLE_ID: tableId}).then(res => {
                         if (this.TABLE_ID !== tableId) {
                             return
                         }
+                        this.loading = false;
                         if (res.result === 'success') {
                             if (!res.rows || res.rows.length === 0) {
                                 this.$message.warning('未查询到数据表配置');
+                                this.isInfo = false;
                                 return;
                             }
                             const tableData = res.rows[0];
@@ -486,89 +495,43 @@
                             })
 
                             this.TABLE_NAME = tableData.TABLE_NAME
-                            //this.isShow = true
-                            this.termsDataSource = res.columns;
-                            this.disabled = true;
-                            this.status = true;
-                            this.status1 = false;
+                            this.termsDataSource = res.columns || [];
+                            if (enterEdit) {
+                                this.disabled = false;
+                                this.status = false;
+                                this.status1 = true;
+                            } else {
+                                this.disabled = true;
+                                this.status = true;
+                                this.status1 = false;
+                            }
                         } else {
-                            //this.$message.error(res.msg);
+                            this.isInfo = false;
+                            this.$message.error(res.msg || '获取数据表信息失败');
+                        }
+                    }).catch(() => {
+                        if (this.TABLE_ID === tableId) {
+                            this.loading = false;
+                            this.isInfo = false;
+                            this.$message.error('获取数据表信息失败');
                         }
                     })
             },
             handleEdit() {
+                if (!this.TABLE_ID) {
+                    this.$message.warning('请先选择左侧数据表');
+                    return;
+                }
+                if (!this.isInfo) {
+                    this.loadTableDetail(this.TABLE_ID, true);
+                    return;
+                }
                 this.disabled = false;
                 this.status = false;
                 this.status1 = true;
             },
             back() {
-                const tableId = this.TABLE_ID;
-                this.status = true;
-                this.status1 = false;
-                getDataTableData({TABLE_ID: tableId}).then(res => {
-                    if (this.TABLE_ID !== tableId) {
-                        return
-                    }
-                    if (res.result === 'success') {
-                        if (!res.rows || res.rows.length === 0) {
-                            this.$message.warning('未查询到数据表配置');
-                            return;
-                        }
-                        const tableData = res.rows[0];
-                        const sourceId = tableData.SOURCE_ID;
-                        const databaseId = tableData.DATABASE_ID;
-                        const sourceName = tableData.DATASOURCE_NAME;
-                        const baseType = dataSourceType(sourceName);
-                        this.isInfo = true;
-                        this.queryParam = tableData
-                        this.BASE_TYPE = baseType;
-                        this.SCHEMA_NAME = tableData.SCHEMA_NAME || '';
-                        if(this.queryParam.FOR_SKIP){
-                            this.isJump = '0'
-                        }else{
-                            this.isJump = '1'
-                        }
-                        this.queryParam.SOURCE_ID = {
-                            value: sourceId,
-                            label: sourceName
-                        }
-                        this.BASE_ID = this.queryParam.SOURCE_ID;
-                        this.queryParam.DATABASE_ID = {
-                            value: databaseId,
-                            label: databaseTreeLabel(baseType, tableData.DBNAME, tableData.SCHEMA_NAME)
-                        }
-                        this.DATA_BASE_ID = this.queryParam.DATABASE_ID;
-                        this.DATA_BASE_NAME = tableData.DBNAME;
-                        this.databaseRequestSourceId = sourceId;
-                        this.DATABASE_ID_OPTION = [];
-                        this.TABLE_SIGN_OPTION = [];
-                        getDataBaseSelection({SOURCE_ID: sourceId}).then(ress => {
-                            if (this.TABLE_ID !== tableId || this.databaseRequestSourceId !== sourceId) {
-                                return
-                            }
-                            if (ress.result === 'success') {
-                                this.DATABASE_ID_OPTION = ress.rows;
-                            }
-                        })
-                        getDataTableSelection({
-                            SOURCE_ID: databaseId,
-                            BASE_TYPE: baseType,
-                            DATABASE: tableData.DBNAME,
-                            SCHEMA_NAME: this.SCHEMA_NAME
-                        }).then(ress => {
-                            if (this.TABLE_ID !== tableId) {
-                                return
-                            }
-                            if (ress.result === 'success') {
-                                this.TABLE_SIGN_OPTION = ress.rows;
-                            }
-                        })
-
-                        this.TABLE_NAME = tableData.TABLE_NAME
-                        this.termsDataSource = res.columns;
-                    }
-                })
-                this.disabled = true;
+                this.loadTableDetail(this.TABLE_ID, false);
             },
             handleChange(value, id, columnComment) {
                 const newData = [...this.termsDataSource];

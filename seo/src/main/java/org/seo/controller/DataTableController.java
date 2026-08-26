@@ -238,9 +238,9 @@ public class DataTableController extends BaseController {
 
         //查询数据源信息
         Map<String, Object> sourceMap = dataAuxiliaryService.getDataSourceInfo(tableDataMap).get(0);
-        pageData.put("BASE_TYPE", sourceMap.get("TYPE").toString());
-        pageData.put("DATABASE", sourceMap.get("DBNAME").toString());
-        pageData.put("SCHEMA_NAME", sourceMap.get("NAMESPACE").toString());
+        pageData.put("BASE_TYPE", sourceMap.get("TYPE") == null ? "" : sourceMap.get("TYPE").toString());
+        pageData.put("DATABASE", sourceMap.get("DBNAME") == null ? "" : sourceMap.get("DBNAME").toString());
+        pageData.put("SCHEMA_NAME", sourceMap.get("NAMESPACE") == null ? "" : sourceMap.get("NAMESPACE").toString());
         pageData.put("TABLE_SIGN", tableDataMap.get("TABLE_SIGN").toString());
         pageData.put("SOURCE_ID", tableDataMap.get("DATABASE_ID").toString());
 
