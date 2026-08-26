@@ -235,22 +235,44 @@ public class DataTableController extends BaseController {
             return null;
         }
         Map<String, Object> tableDataMap = dataList.get(0); //存放表数据集合
+        Object sourceId = firstPresent(tableDataMap, "SOURCE_ID", "source_id");
+        Object databaseId = firstPresent(tableDataMap, "DATABASE_ID", "database_id");
+        Object tableSign = firstPresent(tableDataMap, "TABLE_SIGN", "table_sign");
+        if (sourceId == null || databaseId == null || tableSign == null) {
+            throw new IllegalStateException("数据表配置缺少 SOURCE_ID/DATABASE_ID/TABLE_SIGN");
+        }
+        // 统一为大写键，供后续 MyBatis 参数与前端使用
+        tableDataMap.put("SOURCE_ID", sourceId);
+        tableDataMap.put("DATABASE_ID", databaseId);
+        tableDataMap.put("TABLE_SIGN", tableSign);
 
         //查询数据源信息
-        Map<String, Object> sourceMap = dataAuxiliaryService.getDataSourceInfo(tableDataMap).get(0);
-        pageData.put("BASE_TYPE", sourceMap.get("TYPE") == null ? "" : sourceMap.get("TYPE").toString());
-        pageData.put("DATABASE", sourceMap.get("DBNAME") == null ? "" : sourceMap.get("DBNAME").toString());
-        pageData.put("SCHEMA_NAME", sourceMap.get("NAMESPACE") == null ? "" : sourceMap.get("NAMESPACE").toString());
-        pageData.put("TABLE_SIGN", tableDataMap.get("TABLE_SIGN").toString());
-        pageData.put("SOURCE_ID", tableDataMap.get("DATABASE_ID").toString());
+        List<Map<String, Object>> sourceInfoList = dataAuxiliaryService.getDataSourceInfo(tableDataMap);
+        if (sourceInfoList == null || sourceInfoList.isEmpty()) {
+            throw new IllegalStateException("未找到数据源配置, SOURCE_ID=" + sourceId + ", DATABASE_ID=" + databaseId);
+        }
+        Map<String, Object> sourceMap = sourceInfoList.get(0);
+        pageData.put("BASE_TYPE", stringOrEmpty(firstPresent(sourceMap, "TYPE", "type")));
+        pageData.put("DATABASE", stringOrEmpty(firstPresent(sourceMap, "DBNAME", "dbname")));
+        pageData.put("SCHEMA_NAME", stringOrEmpty(firstPresent(sourceMap, "NAMESPACE", "namespace", "SCHEMA_NAME", "schema_name")));
+        pageData.put("TABLE_SIGN", tableSign.toString());
+        pageData.put("SOURCE_ID", databaseId.toString());
 
         //查询数据表字段的接口查询表字段注释接口，并原始数据表中的字段描述放入newColumnMap
         Map<String, Object> newColumnMap = new LinkedHashMap<>();
         List<Map<String, Object>> commentsList = dataAuxiliaryService.getDataTableComments(pageData);
+        if (commentsList == null) {
+            commentsList = new ArrayList<>();
+        }
         for (int i = 0; i < commentsList.size(); i++) {
             Map<String, Object> comments = commentsList.get(i);
-            if (!pageData.getString("TABLE_SIGN").equals(comments.get("columnName").toString())) {
-                newColumnMap.put(comments.get("columnName").toString(), (comments.get("columnComment") == null ? "" : comments.get("columnComment")));
+            Object columnName = firstPresent(comments, "columnName", "columnname", "COLUMNNAME");
+            if (columnName == null) {
+                continue;
+            }
+            if (!pageData.getString("TABLE_SIGN").equals(columnName.toString())) {
+                Object columnComment = firstPresent(comments, "columnComment", "columncomment", "COLUMNCOMMENT");
+                newColumnMap.put(columnName.toString(), columnComment == null ? "" : columnComment);
             }
         }
 
@@ -258,10 +280,14 @@ public class DataTableController extends BaseController {
         Map<String, Object> oldColumnMap = new HashMap<>(); //存放已保存的字段描述
         Map<String, Object> columnFlagMap = new HashMap<>(); //存放已保存的字段标识
         for (Map<String, Object> map : dataList) {
+            Object fieldSign = firstPresent(map, "FIELD_SIGN", "field_sign");
+            if (fieldSign == null) {
+                continue;
+            }
             //原始数据表是否还存在已保存的字段,若存在则保存循环的字段描述
-            if (newColumnMap.containsKey(map.get("FIELD_SIGN").toString())) {
-                oldColumnMap.put(map.get("FIELD_SIGN").toString(), map.get("FIELD_NAME"));
-                columnFlagMap.put(map.get("FIELD_SIGN").toString(), map.get("INPUT_TYPE"));
+            if (newColumnMap.containsKey(fieldSign.toString())) {
+                oldColumnMap.put(fieldSign.toString(), firstPresent(map, "FIELD_NAME", "field_name"));
+                columnFlagMap.put(fieldSign.toString(), firstPresent(map, "INPUT_TYPE", "input_type"));
             }
         }
 
@@ -287,9 +313,38 @@ public class DataTableController extends BaseController {
         tableDataMap.remove("FIELD_SIGN"); //字段名
         tableDataMap.remove("FIELD_NAME"); //字段注释
         tableDataMap.remove("INPUT_TYPE"); //字段标识
+        tableDataMap.remove("field_sign");
+        tableDataMap.remove("field_name");
+        tableDataMap.remove("input_type");
         dataList.add(tableDataMap);
 
         return columnList;
+    }
+
+    private static Object firstPresent(Map<String, Object> map, String... keys) {
+        if (map == null || keys == null) {
+            return null;
+        }
+        for (String key : keys) {
+            if (map.containsKey(key) && map.get(key) != null) {
+                return map.get(key);
+            }
+        }
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            if (entry.getKey() == null || entry.getValue() == null) {
+                continue;
+            }
+            for (String key : keys) {
+                if (entry.getKey().equalsIgnoreCase(key)) {
+                    return entry.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String stringOrEmpty(Object value) {
+        return value == null ? "" : value.toString();
     }
 
 }

@@ -163,7 +163,11 @@
 
     <!--    根据数据源主键查询数据源的信息-->
     <select id="getDataSourceInfo" resultType="hashmap">
-            SELECT a.ID AS "SOURE_ID",b.ID as "DATABASE_ID",a.TYPE,b.DBNAME,b.SCHEMA_NAME,
+            SELECT a.ID AS "SOURE_ID",
+                   b.ID AS "DATABASE_ID",
+                   a.TYPE AS "TYPE",
+                   b.DBNAME AS "DBNAME",
+                   b.SCHEMA_NAME AS "SCHEMA_NAME",
                    CASE WHEN a.TYPE = 'Vastbase' THEN b.SCHEMA_NAME ELSE b.DBNAME END AS "NAMESPACE"
             FROM seo.seo_datasource a
             LEFT JOIN seo.seo_datasource_database b ON a.ID = b.SOURCE_ID AND b.ID = #{params.DATABASE_ID}

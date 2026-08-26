@@ -62,9 +62,25 @@
     </select>
 
     <!--    查询数据源关系表数据-->
+    <!-- Vastbase/PG 对未加引号别名会返回小写键，前端与后续 getDataSourceInfo 依赖大写键，这里全部显式别名 -->
     <select id="getRelationData" resultType="hashmap">
-        SELECT r.*,CONCAT(a.DATASOURCE_NAME,'(', a.TYPE,')') AS "DATASOURCE_NAME",
-               b.DBNAME AS "DBNAME",b.SCHEMA_NAME AS "SCHEMA_NAME"
+        SELECT
+               r.SOURCE_ID AS "SOURCE_ID",
+               r.DATABASE_ID AS "DATABASE_ID",
+               r.TABLE_SIGN AS "TABLE_SIGN",
+               r.TABLE_NAME AS "TABLE_NAME",
+               r.TABLE_WORD AS "TABLE_WORD",
+               r.FIELD_SIGN AS "FIELD_SIGN",
+               r.FIELD_NAME AS "FIELD_NAME",
+               r.INPUT_TYPE AS "INPUT_TYPE",
+               r.TABLE_ID AS "TABLE_ID",
+               r.FIRST_CLASSIFY AS "FIRST_CLASSIFY",
+               r.SECOND_CLASSIFY AS "SECOND_CLASSIFY",
+               r.STATE AS "STATE",
+               r.FOR_SKIP AS "FOR_SKIP",
+               CONCAT(a.DATASOURCE_NAME, '(', a.TYPE, ')') AS "DATASOURCE_NAME",
+               b.DBNAME AS "DBNAME",
+               b.SCHEMA_NAME AS "SCHEMA_NAME"
         FROM edw.fm_trs_guoku_base_table r
         LEFT JOIN seo.seo_datasource a ON a.ID = r.SOURCE_ID
         LEFT JOIN seo.seo_datasource_database b ON b.ID = r.DATABASE_ID
