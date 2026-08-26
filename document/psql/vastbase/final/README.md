@@ -10,8 +10,10 @@ routine 导出）为唯一业务过程基线。筛选规则不是“迁移所有
 
 - MySQL Event：15 个，目标缺失 0、额外 0。
 - MySQL routine 总数：361 个；Event 可达闭包：76 个。
-- 目标 routine：闭包 76 个全部覆盖，另保留 2 个
-  `visual_screen` 编排适配器，共 77 个过程、1 个函数。
+- Event 闭包目标：76 个全部覆盖，另保留 2 个 `visual_screen` 编排适配器，
+  共 77 个过程、1 个函数。
+- 生产初始化链另包含 `dwbi-system-docking` 直接调用的 7 个 ucloud/upm
+  过程；它们不属于 Event 闭包。整包合计 84 个过程、1 个函数。
 - Event 调用与调度语义不一致 0；参数模式不一致 0；未解释的调用边差异 0；
   未解释的 DML 目标差异 0。
 - ADM 不再全量搬运：5 个 Event 最终只需要 13 个 ADM routine
@@ -33,7 +35,7 @@ routine 导出）为唯一业务过程基线。筛选规则不是“迁移所有
 ## 生产执行范围
 
 生产只执行 `000_run_all.sql`。入口全部使用相对 `\ir`，现场只需把本目录
-中的文件原样放在同一个目录，不依赖开发机路径。入口依次加载 18 个脚本：
+中的文件原样放在同一个目录，不依赖开发机路径。入口依次加载 19 个脚本：
 
 1. `001_etl_init.sql`：真实 ETL 过程跟踪/错误日志表及两个日志过程。
 2. `001a_etl_event_routines_init.sql`：两个 ETL Event 入口过程及运行日志表。
@@ -48,13 +50,20 @@ routine 导出）为唯一业务过程基线。筛选规则不是“迁移所有
 11. `009_upm_alarmlog_tables_init.sql`：UPM 告警日志表。
 12. `010_upm_system_data_tables_init.sql`：UPM 系统数据表。
 13. `011_upm_netperformance_tables_init.sql`：UPM 性能数据表。
-14. `013_adm_tables_init.sql`：331 张 ADM 表，已包含动态刷新日志表及索引。
-15. `014_adm_indexes_init.sql`：90 个 ADM 索引。
-16. `014a_adm_dependency_routines_init.sql`：ADM 闭包需要的 5 个 EDW 过程。
-17. `015_adm_routines_init.sql`：12 个 ADM 过程、1 个 ADM 函数。
-18. `016_adm_events_init.sql`：5 个 ADM Event。
+14. `012_ucloud_upm_procedures_init.sql`：`dwbi-system-docking` 使用的 5 个业务
+    入口过程及 2 个历史辅助过程。
+15. `013_adm_tables_init.sql`：331 张 ADM 表，已包含动态刷新日志表及索引。
+16. `014_adm_indexes_init.sql`：90 个 ADM 索引。
+17. `014a_adm_dependency_routines_init.sql`：ADM 闭包需要的 5 个 EDW 过程。
+18. `015_adm_routines_init.sql`：12 个 ADM 过程、1 个 ADM 函数。
+19. `016_adm_events_init.sql`：5 个 ADM Event。
 
-`012_ucloud_upm_procedures_init.sql` 已删除：其中过程不在本次 Event 闭包内。
+`012_ucloud_upm_procedures_init.sql` 不在 Event 可达闭包内，但属于应用直接调用链，
+因此作为显式生产扩展保留；其 5 个业务入口为
+`ucloud.ucloud_api_interface_alarm_data`、`ucloud.ucloud_api_interface_system_data`、
+`upm.upm_proc_api_alarm_summary_alarmlog`、
+`upm.upm_proc_api_alarm_summary_netper` 和
+`upm.upm_proc_api_alarm_summary_interface`。
 `017_dynamic_refresh_run_log_init.sql` 只供已有库增量升级；新库所需定义已经合并
 进 `013_adm_tables_init.sql`，因此不在总入口重复执行。
 
@@ -62,7 +71,7 @@ routine 导出）为唯一业务过程基线。筛选规则不是“迁移所有
 
 - 目标数据库为 Vastbase MySQL 兼容模式：`sql_compatibility = B`。
 - 执行账号有创建 schema、表、索引、过程、函数和 Event 的权限。
-- 18 个入口脚本和 `000_run_all.sql` 位于同一目录。
+- 19 个入口脚本和 `000_run_all.sql` 位于同一目录。
 - 生产执行前建议先全局关闭 Event 调度，脚本成功后再按变更窗口开启。
 
 ```bash
@@ -248,8 +257,8 @@ python3 ../../tools/audit_event_closure.py \
 
 命令返回 0 的条件包括：Event/routine 无缺失、无未登记的额外对象、Event 的调用、
 周期、起始时间、保留策略和启停状态一致、参数模式一致，且调用边和 DML 目标不存在
-未解释差异。`filter_event_closure_bundle.py` 是按闭包重新裁剪脚本的机械工具，不是
-生产执行入口。
+未解释差异。ucloud/upm 的 7 个应用直调过程已作为生产扩展显式登记，不计为未登记
+对象。`filter_event_closure_bundle.py` 是按闭包重新裁剪脚本的机械工具，不是生产执行入口。
 
 ## 已完成验证
 
@@ -257,9 +266,9 @@ python3 ../../tools/audit_event_closure.py \
   未解释差异 0，审计退出码 0。
 - 环境：`cui02-t` 的 `g100` Vastbase 容器；源业务库未改动，行为测试使用独立克隆
   `gk_event_validation_20260730a`。
-- 最新生产入口 dry-run：同一连接执行
-  `BEGIN -> \ir 000_run_all.sql -> ROLLBACK`，`ON_ERROR_STOP=1`；18/18 脚本完成，
-  `ERROR/FATAL/PANIC` 为 0，最终正常 `ROLLBACK`（2026-07-30）。
+- 2026-07-30 生产入口 dry-run：同一连接执行
+  `BEGIN -> \ir 000_run_all.sql -> ROLLBACK`，`ON_ERROR_STOP=1`；当时的 18/18
+  Event 闭包脚本完成，`ERROR/FATAL/PANIC` 为 0，最终正常 `ROLLBACK`。
 - 行为回归：15/15 Event PASS，断言失败 0；详细日志位于测试容器
   `/tmp/gk_event_validation_20260730a.verify_final/`。
 - 静态闭包审计再次退出 0：Event 缺失 0、routine 缺失 0、未解释调用边/DML 差异 0。
