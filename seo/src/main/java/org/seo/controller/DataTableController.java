@@ -15,11 +15,15 @@ import org.seo.util.IndexTreeNode;
 import org.seo.util.PageData;
 import org.seo.util.oConvertUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import java.util.*;
 
@@ -34,6 +38,52 @@ public class DataTableController extends BaseController {
 
     @Autowired
     private DataAuxiliaryService dataAuxiliaryService;
+
+    @Autowired
+    private ApplicationContext applicationContext;
+
+    @Autowired
+    private RequestMappingHandlerMapping requestMappingHandlerMapping;
+
+    /**
+     * 现场诊断：确认 DataSourceController 是否已注册（排查 getDataSource 404）
+     */
+    @ApiOperation(value = "诊断 DataSource/DataTable 接口映射")
+    @PostMapping(value = "/diagnoseMappings")
+    public Map<String, Object> diagnoseMappings() {
+        Map<String, Object> jsonMap = new HashMap<>();
+        boolean dataSourceBeanPresent = applicationContext.containsBean("dataSourceController");
+        jsonMap.put("dataSourceControllerBean", dataSourceBeanPresent);
+        try {
+            applicationContext.getBean("dataSourceController");
+            jsonMap.put("dataSourceControllerBeanLoadable", true);
+        } catch (Exception e) {
+            jsonMap.put("dataSourceControllerBeanLoadable", false);
+            jsonMap.put("dataSourceControllerBeanError", e.getClass().getSimpleName() + ": " + e.getMessage());
+        }
+
+        List<String> dataSourceMappings = new ArrayList<>();
+        List<String> dataTableMappings = new ArrayList<>();
+        for (Map.Entry<RequestMappingInfo, HandlerMethod> entry
+                : requestMappingHandlerMapping.getHandlerMethods().entrySet()) {
+            String simpleName = entry.getValue().getBeanType().getSimpleName();
+            String line = simpleName + "#" + entry.getValue().getMethod().getName()
+                    + " -> " + entry.getKey();
+            if (simpleName.contains("DataSourceController")) {
+                dataSourceMappings.add(line);
+            } else if (simpleName.contains("DataTableController")) {
+                dataTableMappings.add(line);
+            }
+        }
+        Collections.sort(dataSourceMappings);
+        Collections.sort(dataTableMappings);
+        jsonMap.put("dataSourceMappingCount", dataSourceMappings.size());
+        jsonMap.put("dataSourceMappings", dataSourceMappings);
+        jsonMap.put("dataTableMappingCount", dataTableMappings.size());
+        jsonMap.put("dataTableMappings", dataTableMappings);
+        jsonMap.put("result", "success");
+        return jsonMap;
+    }
 
     /**
      * 查询数据表Tree
