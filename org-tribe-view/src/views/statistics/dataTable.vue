@@ -46,12 +46,12 @@
                             <a-button type="primary" @click="handleSubmit">保存</a-button>
                         </a-col>
                     </a-row>
-                    <a-form layout="inline" :form="form">
+                    <a-form layout="inline" :key="formRenderKey">
                         <a-row :gutter="24">
                             <a-col :md="12" :sm="12">
                                 <a-form-item style="width:100%;margin-bottom:12px;" label="一级分类" :labelCol="{span: 7}"
                                              :wrapperCol="{span: 17}" required>
-                                    <a-select :disabled="disabled" v-model="queryParam.FIRST_CLASSIFY"
+                                    <a-select :disabled="formReadonly" v-model="queryParam.FIRST_CLASSIFY"
                                               placeholder="请选择一级分类"
                                               @change="headerChange">
                                         <a-select-option :value="d.id" v-for="d in FIRST_CLASSIFY_OPTION" :key="d.id">
@@ -64,7 +64,7 @@
                                 <a-form-item style="width:100%;margin-bottom:12px;" label="二级分类" :labelCol="{span: 7}"
                                              :wrapperCol="{span: 17}" required>
                                     <el-select
-                                            :disabled="disabled"
+                                            :disabled="formReadonly"
                                             style="width: 100%;"
                                             clearable
                                             v-model="queryParam.SECOND_CLASSIFY"
@@ -84,7 +84,7 @@
                                 <a-form-item style="width:100%;margin-bottom:12px;" :label="label.name"
                                              :labelCol="{span: 7}"
                                              :wrapperCol="{span: 17}" required>
-                                    <a-select disabled @select="findatabase" v-model="queryParam.SOURCE_ID"
+                                    <a-select :disabled="true" @select="findatabase" v-model="queryParam.SOURCE_ID"
                                               placeholder="请选择数据源"
                                               labelInValue>
                                         <a-select-option :value="d.id" v-for="d in SOURCE_ID_OPTION" :key="d.id">
@@ -97,7 +97,7 @@
                                 <a-form-item style="width:100%;margin-bottom:12px;" :label="label.name1"
                                              :labelCol="{span: 7}"
                                              :wrapperCol="{span: 17}" required>
-                                    <a-select disabled @select="findtablesign" v-model="queryParam.DATABASE_ID"
+                                    <a-select :disabled="true" @select="findtablesign" v-model="queryParam.DATABASE_ID"
                                               placeholder="请选择数据库"
                                               labelInValue>
                                         <a-select-option :value="d.id" v-for="d in DATABASE_ID_OPTION" :key="d.id">
@@ -109,7 +109,7 @@
                             <a-col v-if="isVastbase" :md="12" :sm="12">
                                 <a-form-item style="width:100%;margin-bottom:12px;" label="Schema"
                                              :labelCol="{span: 7}" :wrapperCol="{span: 17}" required>
-                                    <a-input v-model="SCHEMA_NAME" placeholder="由数据源维护配置" disabled/>
+                                    <a-input v-model="SCHEMA_NAME" placeholder="由数据源维护配置" :disabled="true"/>
                                 </a-form-item>
                             </a-col>
                             <a-col :md="24" :sm="24">
@@ -117,7 +117,7 @@
                                              :label="label.name2"
                                              :labelCol="{span: 3}"
                                              :wrapperCol="{span: 20}" required>
-                                    <a-select disabled @select="findcomments" v-model="queryParam.TABLE_SIGN"
+                                    <a-select :disabled="true" @select="findcomments" v-model="queryParam.TABLE_SIGN"
                                               placeholder="请选择数据表"
                                               showSearch>
                                         <a-select-option :value="d.id" v-for="d in TABLE_SIGN_OPTION" :key="d.id">
@@ -132,7 +132,7 @@
                                              :labelCol="{span: 3}"
                                              :wrapperCol="{span: 21}" required>
                                     <a-input
-                                            :disabled="disabled"
+                                            :disabled="formReadonly"
                                             placeholder="请输入表描述"
                                             v-model="TABLE_NAME"
                                     ></a-input>
@@ -144,7 +144,7 @@
                                              :labelCol="{span: 3}"
                                              :wrapperCol="{span: 21}" required>
                                     <a-input
-                                            :disabled="disabled"
+                                            :disabled="formReadonly"
                                             placeholder="请输入表用途"
                                             v-model="queryParam.TABLE_WORD"
                                     ></a-input>
@@ -154,7 +154,7 @@
                                 <a-form-item style="width:100%;margin-bottom:12px;margin-left: -1%" :label="label.name5"
                                              :labelCol="{span: 7}"
                                              :wrapperCol="{span: 17}" required>
-                                    <a-select :disabled="disabled" v-model="queryParam.STATE" placeholder="请选择状态"
+                                    <a-select :disabled="formReadonly" v-model="queryParam.STATE" placeholder="请选择状态"
                                               allowClear>
                                         <a-select-option :value="d.id" v-for="d in STATE_OPTION" :key="d.id">
                                             {{d.label}}
@@ -166,7 +166,7 @@
                                 <a-form-item style="width:100%;margin-bottom:12px;margin-left: -1%" label="是否跳转"
                                              :labelCol="{span: 7}"
                                              :wrapperCol="{span: 17}" required>
-                                    <a-select :disabled="disabled" v-model="isJump" placeholder="请选择是否跳转"
+                                    <a-select :disabled="formReadonly" v-model="isJump" placeholder="请选择是否跳转"
                                               allowClear>
                                         <a-select-option value="0">是</a-select-option>
                                         <a-select-option value="1">否</a-select-option>
@@ -177,7 +177,7 @@
                                 <a-form-item style="width:100%;margin-bottom:12px;margin-left: -1%" label="附件主键"
                                              :labelCol="{span: 7}"
                                              :wrapperCol="{span: 17}" required>
-                                    <a-select :disabled="disabled" v-model="queryParam.FOR_SKIP" placeholder="请选择附件主键"
+                                    <a-select :disabled="formReadonly" v-model="queryParam.FOR_SKIP" placeholder="请选择附件主键"
                                               allowClear>
                                        <a-select-option :value="d.columnName" v-for="d in termsDataSource" :key="d.columnName">
                                            {{d.columnName}}
@@ -202,13 +202,13 @@
                             :loading="loading">
 
                <span slot="DBTIT" slot-scope="text, record">
-                  <a-select @select="e => handleChange(e,record.columnName,'DBTIT')" :disabled="disabled"
+                  <a-select @select="e => handleChange(e,record.columnName,'DBTIT')" :disabled="formReadonly"
                             style="width:100%;" v-model="record.DBTIT" placeholder="请选择特殊标识" allowClear>
                       <a-select-option :value="d.id" v-for="d in DBTIT_OPTION" :key="d.id">{{d.label}}</a-select-option>
                   </a-select>
                </span>
                         <span slot="columnComment" slot-scope="text, record, index">
-                  <a-input :disabled="disabled" :value="text"
+                  <a-input :disabled="formReadonly" :value="text"
                            @change="e => handleChange(e.target.value,record.columnName,'columnComment')"/>
                </span>
                     </a-table>
@@ -287,15 +287,14 @@
                 treeData: [],
                 expandedRowKeys: [],
                 loading: false,
-                disabled: true,
-                form: this.$form.createForm(this),
+                // true=只读；点「修改」后为 false。定位类字段另用 :disabled="true" 永久锁定
+                formReadonly: true,
+                formRenderKey: 0,
                 FIRST_CLASSIFY_OPTION: [],
                 SOURCE_ID_OPTION: [],
                 DATABASE_ID_OPTION: [],
                 TABLE_SIGN_OPTION: [],
                 isInfo: false,
-                loading: false,
-                FIRST_CLASSIFY_OPTION: [],
                 STATE_OPTION: [
                     {id: '0', label: '启用'},
                     {id: '1', label: '停用'}
@@ -497,13 +496,9 @@
                             this.TABLE_NAME = tableData.TABLE_NAME
                             this.termsDataSource = res.columns || [];
                             if (enterEdit) {
-                                this.disabled = false;
-                                this.status = false;
-                                this.status1 = true;
+                                this.enterEditMode();
                             } else {
-                                this.disabled = true;
-                                this.status = true;
-                                this.status1 = false;
+                                this.exitEditMode();
                             }
                         } else {
                             this.isInfo = false;
@@ -517,6 +512,18 @@
                         }
                     })
             },
+            enterEditMode() {
+                this.formReadonly = false;
+                this.status = false;
+                this.status1 = true;
+                this.formRenderKey += 1;
+            },
+            exitEditMode() {
+                this.formReadonly = true;
+                this.status = true;
+                this.status1 = false;
+                this.formRenderKey += 1;
+            },
             handleEdit() {
                 if (!this.TABLE_ID) {
                     this.$message.warning('请先选择左侧数据表');
@@ -526,9 +533,7 @@
                     this.loadTableDetail(this.TABLE_ID, true);
                     return;
                 }
-                this.disabled = false;
-                this.status = false;
-                this.status1 = true;
+                this.enterEditMode();
             },
             back() {
                 this.loadTableDetail(this.TABLE_ID, false);
@@ -561,9 +566,7 @@
                 }).then(res => {
                     if (res.result === 'success') {
                         this.$message.success(res.msg);
-                        this.disabled = true;
-                        this.status = true;
-                        this.status1 = false;
+                        this.exitEditMode();
                         getDataSourceTree({tableName: this.queryParam.filterText || undefined}).then(treeRes => {
                             if (treeRes.result === 'success') {
                                 this.treeData = treeRes.rows;
@@ -589,14 +592,7 @@
 </script>
 
 <style scoped>
-    #add2 .ant-col-3 {
-        width: 14% !important;
-    }
-
-    #add2 .ant-col-21 {
-        width: 86% !important;
-    }
-
+    /* 避免强制改写栅格宽度导致表单项互相遮挡、看起来像 disabled */
     #add3 .ant-card-body {
         padding: 12px !important;
     }
