@@ -125,14 +125,46 @@ is_selected() {
 
 resolve_jar() {
   local pattern="$1"
-  local match
+  local matches count
 
-  match=$(compgen -G "${APP_DIR}/${pattern}" | head -n 1 || true)
-  if [[ -z "$match" ]]; then
+  matches=$(compgen -G "${APP_DIR}/${pattern}" || true)
+  if [[ -z "$matches" ]]; then
+    echo "[ERROR] Missing jar: ${APP_DIR}/${pattern}" >&2
     return 1
   fi
 
-  printf '%s\n' "$match"
+  count=$(printf '%s\n' "$matches" | wc -l | tr -d ' ')
+  if (( count > 1 )); then
+    # 取字母序第一个会静默启动旧构建，这里直接失败，逼出残留 jar
+    echo "[ERROR] Multiple jars match ${APP_DIR}/${pattern}, remove the stale ones:" >&2
+    printf '%s\n' "$matches" | sed 's/^/  /' >&2
+    return 1
+  fi
+
+  printf '%s\n' "$matches"
+}
+
+# classpath 模式用主类识别进程，fatjar 模式用 jar 路径识别
+process_signature() {
+  local pattern="$1"
+  local main_class="$2"
+  local launch_mode="$3"
+
+  if [[ "$launch_mode" == "fatjar" ]]; then
+    compgen -G "${APP_DIR}/${pattern}" | head -n 1 || true
+  else
+    printf '%s\n' "$main_class"
+  fi
+}
+
+find_pids() {
+  local signature="$1"
+
+  if [[ -z "$signature" ]]; then
+    return 0
+  fi
+
+  pgrep -f "$signature" 2>/dev/null || true
 }
 
 module_env_suffix() {
@@ -169,6 +201,7 @@ pid_file() {
 
 get_pid() {
   local module="$1"
+  local signature="${2:-}"
   local file pid
 
   file=$(pid_file "$module")
@@ -181,12 +214,20 @@ get_pid() {
     rm -f "$file"
   fi
 
+  # pid 文件丢失或过期时仍要能找到进程，否则 stop 会漏杀、旧进程继续占端口
+  pid=$(find_pids "$signature" | head -n 1)
+  if [[ -n "$pid" ]]; then
+    printf '%s\n' "$pid"
+    return 0
+  fi
+
   return 1
 }
 
 status_module() {
   local module="$1"
-  if pid=$(get_pid "$module"); then
+  local signature="${2:-}"
+  if pid=$(get_pid "$module" "$signature"); then
     echo "[RUNNING] ${module} pid=${pid}"
   else
     echo "[STOPPED] ${module}"
@@ -200,17 +241,15 @@ start_module() {
   local launch_mode="$4"
   local extra_mode="${5:-}"
   local xmx_override="${6:-}"
-  local jar_path log_dir stdout_log stderr_log pid config_dir classpath xmx_info configured_heap xmx_source
+  local jar_path log_dir stdout_log stderr_log pid config_dir classpath xmx_info configured_heap xmx_source signature
 
-  if pid=$(get_pid "$module"); then
+  signature=$(process_signature "$pattern" "$main_class" "$launch_mode")
+  if pid=$(get_pid "$module" "$signature"); then
     echo "[SKIP] ${module} already running, pid=${pid}"
     return 0
   fi
 
-  jar_path=$(resolve_jar "$pattern") || {
-    echo "[ERROR] Missing jar for ${module}: ${pattern}" >&2
-    return 1
-  }
+  jar_path=$(resolve_jar "$pattern") || return 1
 
   config_dir="${CONFIG_DIR}/${module}"
   if [[ ! -d "$config_dir" ]]; then
@@ -266,6 +305,16 @@ start_module() {
 
   pid=$!
   printf '%s\n' "$pid" > "$(pid_file "$module")"
+
+  # nohup 会立刻返回，启动失败要等几秒才暴露，不确认就会留下“已启动”的假象
+  sleep 5
+  if ! kill -0 "$pid" >/dev/null 2>&1; then
+    rm -f "$(pid_file "$module")"
+    echo "[ERROR] ${module} exited right after start, last lines of ${stderr_log}:" >&2
+    tail -n 20 "$stderr_log" >&2 2>/dev/null || true
+    return 1
+  fi
+
   if [[ -n "$configured_heap" ]]; then
     echo "[OK] ${module} started, pid=${pid}, Xmx=${configured_heap} (${xmx_source})"
   else
@@ -275,28 +324,40 @@ start_module() {
 
 stop_module() {
   local module="$1"
-  local pid file
+  local signature="${2:-}"
+  local pid file leftover
 
   file=$(pid_file "$module")
-  if ! pid=$(get_pid "$module"); then
+  if pid=$(get_pid "$module" "$signature"); then
+    echo "[STOP] ${module}, pid=${pid}"
+    kill "$pid" >/dev/null 2>&1 || true
+
+    for _ in 1 2 3 4 5 6 7 8 9 10; do
+      if ! kill -0 "$pid" >/dev/null 2>&1; then
+        break
+      fi
+      sleep 1
+    done
+
+    kill -9 "$pid" >/dev/null 2>&1 || true
+  else
     echo "[SKIP] ${module} is not running"
-    return 0
   fi
 
-  echo "[STOP] ${module}, pid=${pid}"
-  kill "$pid" >/dev/null 2>&1 || true
-
-  for _ in 1 2 3 4 5 6 7 8 9 10; do
-    if ! kill -0 "$pid" >/dev/null 2>&1; then
-      rm -f "$file"
-      echo "[OK] ${module} stopped"
-      return 0
-    fi
-    sleep 1
-  done
-
-  kill -9 "$pid" >/dev/null 2>&1 || true
   rm -f "$file"
+
+  # 同一模块可能残留多个进程，不清干净会让新进程因端口占用启动失败
+  leftover=$(find_pids "$signature")
+  if [[ -n "$leftover" ]]; then
+    echo "[STOP] ${module} leftover pids: $(printf '%s' "$leftover" | tr '\n' ' ')"
+    printf '%s\n' "$leftover" | xargs kill >/dev/null 2>&1 || true
+    sleep 3
+    leftover=$(find_pids "$signature")
+    if [[ -n "$leftover" ]]; then
+      printf '%s\n' "$leftover" | xargs kill -9 >/dev/null 2>&1 || true
+    fi
+  fi
+
   echo "[OK] ${module} stopped"
 }
 
@@ -326,12 +387,14 @@ main() {
     targets=(all)
   fi
 
-  local module pattern main_class launch_mode extra_mode
+  local module pattern main_class launch_mode extra_mode signature
   while IFS='|' read -r module pattern main_class launch_mode extra_mode; do
     [[ -z "$module" ]] && continue
     if ! is_selected "$module" "${targets[@]}"; then
       continue
     fi
+
+    signature=$(process_signature "$pattern" "$main_class" "$launch_mode")
 
     case "$action" in
       start)
@@ -339,15 +402,15 @@ main() {
         start_module "$module" "$pattern" "$main_class" "$launch_mode" "$extra_mode" "$xmx_override"
         ;;
       stop)
-        stop_module "$module"
+        stop_module "$module" "$signature"
         ;;
       restart)
         require_java_version
-        stop_module "$module"
+        stop_module "$module" "$signature"
         start_module "$module" "$pattern" "$main_class" "$launch_mode" "$extra_mode" "$xmx_override"
         ;;
       status)
-        status_module "$module"
+        status_module "$module" "$signature"
         ;;
       *)
         usage
