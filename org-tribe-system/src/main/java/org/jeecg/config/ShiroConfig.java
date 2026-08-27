@@ -76,7 +76,7 @@ public class ShiroConfig {
 		// SPA 前端路由：浏览器直接访问/刷新时不带 X-Access-Token，需放行页面转发
 		filterChainDefinitionMap.put("/statistics/**", "anon");
 		filterChainDefinitionMap.put("/isystem/**", "anon");
-		filterChainDefinitionMap.put("/reporting/**", "anon");
+		// /reporting/** 同时承载批次、文件和监控 REST 接口，必须落到末尾的 jwt 规则
 		filterChainDefinitionMap.put("/parameter/**", "anon");
 		filterChainDefinitionMap.put("/BigScreen", "anon");
 		filterChainDefinitionMap.put("/bigScreen/TemplateList", "anon");
