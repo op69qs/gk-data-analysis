@@ -391,7 +391,7 @@ public class ComprehensiveQueryController extends BaseController {
                              @RequestParam(value = "DATA_TYPE", required = false) String[] dataType,
                              @RequestParam(value = "DIMENSION_COLUMN", required = false) String DIMENSION_COLUMN,
                              @RequestParam(value = "DIMENSION_ID", required = false) String DIMENSION_ID,
-                             @RequestParam(value = "guokuId", required = false) String guokuId) {
+                             @RequestParam(value = "guokuId", required = false) String ignoredGuokuId) {
         Map<String, Object> jsonMap = new HashMap<>();
         try {
             PageData pd = new PageData();
@@ -400,12 +400,17 @@ public class ComprehensiveQueryController extends BaseController {
                 jsonMap.put("msg", "表名不能为空");
                 return jsonMap;
             }
+            String subjectCode = ComprehensiveQueryDataScopeSql.requirePortalSubjectCode(
+                    getRequest().getHeader("X-Analysis-Subject-Code"));
             String[] tables = table.split("▲");
             pd.put("ID", tables[0]);
             Map<String, String> type = getType(pd);
             table = type.get("DBNAME") + "." + tables[1];
-            String sql = createSelectSql(table, column, order, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT, WHERE_TYPE, pageNo, pageSize, type.get("TYPE"), tables[0], DIMENSION_COLUMN, DIMENSION_ID, guokuId);
-            String countSql = createCountSql(table, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT, WHERE_TYPE, type.get("TYPE"));
+            String sql = createSelectSql(table, column, order, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT,
+                    WHERE_TYPE, pageNo, pageSize, type.get("TYPE"), tables[0], DIMENSION_COLUMN,
+                    DIMENSION_ID, subjectCode);
+            String countSql = createCountSql(table, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT, WHERE_TYPE,
+                    type.get("TYPE"), tables[0], DIMENSION_COLUMN, DIMENSION_ID, subjectCode);
             log.info("##############################" + sql + "##############################");
             pd.put("sql", sql);
             pd.put("countSql", countSql);
@@ -414,7 +419,7 @@ public class ComprehensiveQueryController extends BaseController {
             jsonMap.put("total", comprehensiveQueryService.countSql(pd, tables[0]));
             jsonMap.put("result", "success");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("综合查询执行失败: {}", e.getMessage());
             jsonMap.put("result", "false");
             jsonMap.put("msg", e.getMessage());
         }
@@ -483,24 +488,11 @@ public class ComprehensiveQueryController extends BaseController {
                                    String DATABASE_ID,
                                    String DIMENSION_COLUMN,
                                    String DIMENSION_ID,
-                                   String guokuId) {
+                                   String subjectCode) {
         PageData pd = new PageData();
         String sql = "select ";
 
         String[] tables = table.split(",");
-        String guoku = "";
-        for (String t : tables) {
-            PageData queryPd = new PageData();
-            queryPd.put("TABLE_SIGN", t.substring(t.indexOf(".") + 1));
-            queryPd.put("DATABASE_ID", DATABASE_ID);
-            List<Map<String, Object>> columns = comprehensiveQueryService.getColumn(queryPd);
-            for (Map<String, Object> c : columns) {
-                String INPUT_TYPE = c.get("FIELD_SIGN").toString().substring(c.get("FIELD_SIGN").toString().indexOf("▲") + 1);
-                if (null != INPUT_TYPE && INPUT_TYPE.equals("T")) {
-                    guoku = c.get("FIELD_SIGN").toString().substring(0, c.get("FIELD_SIGN").toString().indexOf("▲"));
-                }
-            }
-        }
 
         if (null != column && !column.equals("")) {
             String[] columns = column.split(",");
@@ -524,12 +516,7 @@ public class ComprehensiveQueryController extends BaseController {
             sql += newColumn.substring(0, newColumn.length() - 1);
         }
         sql += " from " + table;
-        if (null != DIMENSION_COLUMN && !DIMENSION_COLUMN.equals("")) {
-            sql += " inner join (select code from ods.seo_dimension_sub where main_id = '" + DIMENSION_ID + "')b on " + pd.get("TABLE_SIGN") + "." + DIMENSION_COLUMN + " = b.code";
-        }
-        if (!guoku.equals("")) {
-            sql += " inner join (select CID from seo.cm_guoku_dimnsn where PID = '" + guokuId + "')c on " + guoku + " = c.CID";
-        }
+        sql += createQueryJoinSql(table, DATABASE_ID, DIMENSION_COLUMN, DIMENSION_ID, subjectCode);
         sql += " where 1=1 ";
 
         sql = addWhereSql(sql, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT, WHERE_TYPE, type);
@@ -556,11 +543,66 @@ public class ComprehensiveQueryController extends BaseController {
                                   String[] WHERE_RIGHT,
                                   String[] WHERE_TYPE,
                                   String type) {
-        PageData pd = new PageData();
         String countSql = "select count(1) ";
         countSql += " from " + table + " where 1=1 ";
+        return addWhereSql(countSql, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT, WHERE_TYPE, type);
+    }
+
+    private String createCountSql(String table,
+                                  String[] WHERE_LEFT,
+                                  String[] WHERE_MIDDLE,
+                                  String[] WHERE_RIGHT,
+                                  String[] WHERE_TYPE,
+                                  String type,
+                                  String DATABASE_ID,
+                                  String DIMENSION_COLUMN,
+                                  String DIMENSION_ID,
+                                  String subjectCode) {
+        String countSql = "select count(1) ";
+        countSql += " from " + table;
+        countSql += createQueryJoinSql(table, DATABASE_ID, DIMENSION_COLUMN, DIMENSION_ID, subjectCode);
+        countSql += " where 1=1 ";
         String sql = addWhereSql(countSql, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT, WHERE_TYPE, type);
         return sql;
+    }
+
+    private String createQueryJoinSql(String table,
+                                      String DATABASE_ID,
+                                      String DIMENSION_COLUMN,
+                                      String DIMENSION_ID,
+                                      String subjectCode) {
+        String[] tables = table.split(",");
+        String lastTableSign = "";
+        String treasuryColumn = "";
+        for (String currentTable : tables) {
+            lastTableSign = currentTable.substring(currentTable.indexOf(".") + 1);
+            PageData queryPd = new PageData();
+            queryPd.put("TABLE_SIGN", lastTableSign);
+            queryPd.put("DATABASE_ID", DATABASE_ID);
+            List<Map<String, Object>> columns = comprehensiveQueryService.getColumn(queryPd);
+            for (Map<String, Object> currentColumn : columns) {
+                String fieldSign = currentColumn.get("FIELD_SIGN").toString();
+                String inputType = fieldSign.substring(fieldSign.indexOf("▲") + 1);
+                if ("T".equals(inputType)) {
+                    treasuryColumn = fieldSign.substring(0, fieldSign.indexOf("▲"));
+                }
+            }
+        }
+
+        String joinSql = "";
+        if (null != DIMENSION_COLUMN && !DIMENSION_COLUMN.equals("")) {
+            joinSql += " inner join (select code from ods.seo_dimension_sub where main_id = '"
+                    + DIMENSION_ID + "')b on " + lastTableSign + "." + DIMENSION_COLUMN + " = b.code";
+        }
+        if (!treasuryColumn.equals("")) {
+            if (subjectCode != null && !subjectCode.trim().equals("")) {
+                joinSql += ComprehensiveQueryDataScopeSql.portalTreasuryJoin(treasuryColumn, subjectCode);
+            } else {
+                joinSql += " inner join (select CID from seo.cm_guoku_dimnsn where PID = '')c on "
+                        + treasuryColumn + " = c.CID";
+            }
+        }
+        return joinSql;
     }
 
     private String addSchemeTable(String SCHEME_ID, String TABLE_NAME, String TABLE_DESC, String TABLE_USE) {
@@ -1169,7 +1211,11 @@ public class ComprehensiveQueryController extends BaseController {
         pd.put("ID", tables[0]);
         Map<String, String> type = getType(pd);
         table = type.get("DBNAME") + "." + tables[1];
-        String sql = createSelectSql(table, column, order, whereLeft, whereMiddle, whereRight, whereType, null, null, type.get("TYPE"), tables[0], pd.getString("DIMENSION_COLUMN"), pd.getString("DIMENSION_ID"), "");
+        String subjectCode = ComprehensiveQueryDataScopeSql.requirePortalSubjectCode(
+                getRequest().getHeader("X-Analysis-Subject-Code"));
+        String sql = createSelectSql(table, column, order, whereLeft, whereMiddle, whereRight,
+                whereType, null, null, type.get("TYPE"), tables[0], pd.getString("DIMENSION_COLUMN"),
+                pd.getString("DIMENSION_ID"), subjectCode);
 
         String countSql = "select count(1) from ( " + sql + " ) zz";
         pd.put("countSql", countSql);

@@ -12,15 +12,18 @@ import org.jeecg.modules.system.service.ISysUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.netflix.zuul.filters.support.FilterConstants;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UrlPathHelper;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
- * Supplies indicatorsLib with identity values derived after Shiro authentication.
+ * Supplies analysis services with identity values derived after Shiro authentication.
  * Client-provided values with the same names are overwritten here.
  */
 @Component
 public class IndicatorIdentityZuulFilter extends ZuulFilter {
+
+    private static final UrlPathHelper URL_PATH_HELPER = new UrlPathHelper();
 
     public static final String USER_ID_HEADER = "X-Analysis-User-Id";
     public static final String SUBJECT_CODE_HEADER = "X-Analysis-Subject-Code";
@@ -45,10 +48,20 @@ public class IndicatorIdentityZuulFilter extends ZuulFilter {
     @Override
     public boolean shouldFilter() {
         HttpServletRequest request = RequestContext.getCurrentContext().getRequest();
-        String uri = request == null ? null : request.getRequestURI();
-        return uri != null && (uri.equals("/indicatorsLib")
-                || uri.startsWith("/indicatorsLib/")
-                || uri.equals("/seo/seoController/executeSqlFromFont"));
+        String path = request == null ? null : normalizeMvcPath(request);
+        return path != null && (path.equals("/indicatorsLib")
+                || path.startsWith("/indicatorsLib/")
+                || path.equals("/seo/seoController/executeSqlFromFont")
+                || path.equals("/seo/seoController/executeSql")
+                || path.equals("/seo/seoController/download"));
+    }
+
+    private String normalizeMvcPath(HttpServletRequest request) {
+        String path = URL_PATH_HELPER.getPathWithinApplication(request);
+        while (path.length() > 1 && path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
+        return path;
     }
 
     @Override

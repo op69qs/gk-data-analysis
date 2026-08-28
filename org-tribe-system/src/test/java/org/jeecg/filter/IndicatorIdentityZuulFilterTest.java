@@ -11,6 +11,8 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -59,6 +61,33 @@ public class IndicatorIdentityZuulFilterTest {
 
         assertEquals("local-id", context.getZuulRequestHeaders().get("x-analysis-user-id"));
         assertEquals("GK-001", context.getZuulRequestHeaders().get("x-analysis-guoku-id"));
+    }
+
+    @Test
+    public void manualComprehensiveQueryReceivesAuthenticatedIdentity() {
+        assertTrue(shouldFilter("/seo/seoController/executeSql"));
+        assertTrue(shouldFilter("/seo/seoController/executeSql/"));
+        assertTrue(shouldFilter("/seo/seoController/executeSql;v=1"));
+        assertTrue(shouldFilter("/seo;v=1/seoController/executeSql"));
+    }
+
+    @Test
+    public void comprehensiveQueryDownloadReceivesAuthenticatedIdentity() {
+        assertTrue(shouldFilter("/seo/seoController/download"));
+        assertTrue(shouldFilter("/seo/seoController/download/"));
+        assertTrue(shouldFilter("/seo/seoController/download;v=1"));
+        assertFalse(shouldFilter("/seo/seoController/downloadPreview"));
+    }
+
+    private boolean shouldFilter(String uri) {
+        RequestContext context = RequestContext.getCurrentContext();
+        context.clear();
+        context.setRequest(new MockHttpServletRequest("POST", uri));
+        try {
+            return filter.shouldFilter();
+        } finally {
+            context.clear();
+        }
     }
 
     private LoginUser loginUser(String id, String username) {
