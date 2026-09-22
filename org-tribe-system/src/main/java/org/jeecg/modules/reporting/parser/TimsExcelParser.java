@@ -90,7 +90,8 @@ public class TimsExcelParser {
         record.setDAcct(parseDate(row.getCell(layout.date), dAcctText));
         record.setTreCode(required(display(row, layout.treCode, formatter, evaluator), "国库代码"));
         record.setTreasuryName(required(display(row, layout.treasuryName, formatter, evaluator), "国库简称"));
-        if (record.getTreasuryName().contains("N")) {
+        // 原 JAR 库存对 NNNNNNNNNN 原值入库、不拦截；收入/支出仍拒绝国库名称含 N（历史校验）
+        if (type != TimsBusinessType.STOCK && record.getTreasuryName().contains("N")) {
             throw new RowValueException("国库简称", record.getTreasuryName(),
                     "上传文件异常：包含【" + record.getTreasuryName() + "】的国库名称");
         }

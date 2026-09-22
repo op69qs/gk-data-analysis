@@ -88,6 +88,22 @@ public class TimsExcelParserTest {
     }
 
     @Test
+    public void stockKeepsLiteralNnnnnnnnnnTreasuryCodeAndName() throws Exception {
+        Path file = workbook("库存N脱敏.xls",
+                new String[]{"日期", "所属国库代码", "所属国库名称", "预算级次", "借方发生额", "贷方发生额", "余额"},
+                new String[]{"202511", "NNNNNNNNNN", "NNNNNNNNNN", "2", "10", "3", "7"});
+
+        TimsExcelParseResult result = new TimsExcelParser().parse(file, TimsBusinessType.STOCK);
+
+        assertTrue(result.getErrors().isEmpty());
+        assertEquals(1, result.getRecords().size());
+        TimsReportRecord row = result.getRecords().get(0);
+        assertEquals("NNNNNNNNNN", row.getTreCode());
+        assertEquals("NNNNNNNNNN", row.getTreasuryName());
+        assertEquals(new BigDecimal("10.00"), row.getDebitAmount());
+    }
+
+    @Test
     public void insufficientFixedColumnsAndBadAmountProduceTraceableErrors() throws Exception {
         Path badHeader = workbook("缺少固定列.xls",
                 new String[]{"错误日期", "国库代码"},

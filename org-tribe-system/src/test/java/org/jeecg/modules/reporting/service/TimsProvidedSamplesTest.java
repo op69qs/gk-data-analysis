@@ -34,8 +34,8 @@ public class TimsProvidedSamplesTest {
         Map<String, Sample> samples = new LinkedHashMap<>();
         samples.put("收入.zip", new Sample(TimsBusinessType.INCOME, 4, 0));
         samples.put("支出.zip", new Sample(TimsBusinessType.PAYOUT, 2, 0));
-        // One stock row deliberately contains an N-only redacted treasury name; the JAR rule must reject it.
-        samples.put("库存.zip", new Sample(TimsBusinessType.STOCK, 3, 1));
+        // 原 JAR 库存对 NNNNNNNNNN 原值入库，不按非法行拦截（Book9.xls / stg.trs_tmis_stock 已证实）
+        samples.put("库存.zip", new Sample(TimsBusinessType.STOCK, 3, 0));
 
         SafeZipExtractor extractor = new SafeZipExtractor(2000, 500L * 1024 * 1024, 100L * 1024 * 1024);
         for (Map.Entry<String, Sample> entry : samples.entrySet()) {
@@ -56,8 +56,8 @@ public class TimsProvidedSamplesTest {
                 assertEquals(entry.getValue().excelCount, result.getFileCount());
                 assertTrue(entry.getKey() + " must contain data rows", result.getRowCount() > 0);
                 if (entry.getValue().type == TimsBusinessType.STOCK) {
-                    assertTrue(result.getErrors().get(0).getRawValue().matches("N+"));
                     final boolean[] exactDateSeen = {false};
+                    final boolean[] literalNSeen = {false};
                     try (Stream<Path> paths = Files.walk(extractRoot)) {
                         for (Path file : paths.filter(Files::isRegularFile)
                                 .filter(path -> path.getFileName().toString().endsWith(".xls"))
@@ -67,10 +67,16 @@ public class TimsProvidedSamplesTest {
                                         && row.getDAcctText().matches("\\d{4}-\\d{2}-\\d{2}")) {
                                     exactDateSeen[0] = true;
                                 }
+                                if ("NNNNNNNNNN".equals(row.getTreCode())
+                                        || (row.getTreasuryName() != null
+                                        && row.getTreasuryName().matches("N+"))) {
+                                    literalNSeen[0] = true;
+                                }
                             });
                         }
                     }
                     assertTrue("库存原始具体日期必须保留", exactDateSeen[0]);
+                    assertTrue("库存 NNNNNNNNNN / 纯 N 国库名应作为有效行解析", literalNSeen[0]);
                 }
             }
         }
