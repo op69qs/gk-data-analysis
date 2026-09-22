@@ -37,11 +37,29 @@ public class ReportArchiveService {
                 properties.getMaxSingleEntryBytes());
     }
 
+    /** Backward-compatible ZIP-only entry used by older callers/tests. */
     public ArchiveResult archiveAndExtract(MultipartFile file,
                                            String sourceDomain,
                                            String accountingPeriod,
                                            String batchId) throws IOException {
-        String originalFileName = validateUpload(file);
+        return archiveAndExtract(file, sourceDomain, accountingPeriod, batchId, null);
+    }
+
+    /**
+     * Archives the upload and produces an extract tree for PARSE.
+     * FLASH_INCOME additionally accepts a bare .xls / .xlsx (DIS-compatible);
+     * other business types still require ZIP.
+     */
+    public ArchiveResult archiveAndExtract(MultipartFile file,
+                                           String sourceDomain,
+                                           String accountingPeriod,
+                                           String batchId,
+                                           String businessType) throws IOException {
+        String originalFileName = validateUpload(file, businessType);
+        String lowerName = originalFileName.toLowerCase(Locale.ROOT);
+        boolean flashExcel = isFlashIncome(businessType)
+                && (lowerName.endsWith(".xls") || lowerName.endsWith(".xlsx"));
+
         String safeSourceDomain = safeSegment(sourceDomain, "sourceDomain").toLowerCase(Locale.ROOT);
         String safePeriod = safeSegment(accountingPeriod, "accountingPeriod");
         String safeBatchId = safeSegment(batchId, "batchId");
@@ -57,6 +75,46 @@ public class ReportArchiveService {
         Files.createDirectories(archiveDirectory);
         Files.createDirectories(extractRoot);
 
+        if (flashExcel) {
+            return archiveSingleExcel(file, originalFileName, archiveDirectory, extractRoot);
+        }
+        return archiveZip(file, originalFileName, archiveDirectory, extractRoot);
+    }
+
+    private ArchiveResult archiveSingleExcel(MultipartFile file,
+                                             String originalFileName,
+                                             Path archiveDirectory,
+                                             Path extractRoot) throws IOException {
+        String extension = extensionOf(originalFileName);
+        Path archivePath = archiveDirectory.resolve("source." + extension);
+        Path temporaryPath = archiveDirectory.resolve("source." + extension + ".part");
+        ArchiveCopy archiveCopy = copyAndDigest(file, temporaryPath);
+        try {
+            moveAtomically(temporaryPath, archivePath);
+        } catch (RuntimeException | IOException exception) {
+            Files.deleteIfExists(temporaryPath);
+            throw exception;
+        }
+
+        String safeExtractName = sanitizeFileName(originalFileName);
+        if (!safeExtractName.toLowerCase(Locale.ROOT).endsWith("." + extension)) {
+            safeExtractName = "flash_income." + extension;
+        }
+        Path extractedFile = extractRoot.resolve(safeExtractName).normalize();
+        if (!extractedFile.startsWith(extractRoot)) {
+            throw new IOException("Extracted excel path escapes batch directory");
+        }
+        Files.copy(archivePath, extractedFile, StandardCopyOption.REPLACE_EXISTING);
+        return new ArchiveResult(originalFileName, archivePath, extractRoot,
+                archiveCopy.fileSize, archiveCopy.sha256,
+                Collections.singletonList(extractedFile),
+                contentTypeForExtension(extension), extension);
+    }
+
+    private ArchiveResult archiveZip(MultipartFile file,
+                                     String originalFileName,
+                                     Path archiveDirectory,
+                                     Path extractRoot) throws IOException {
         Path archivePath = archiveDirectory.resolve("source.zip");
         Path temporaryPath = archiveDirectory.resolve("source.zip.part");
         ArchiveCopy archiveCopy = copyAndDigest(file, temporaryPath);
@@ -64,9 +122,7 @@ public class ReportArchiveService {
             if (!hasZipSignature(temporaryPath)) {
                 throw new IllegalArgumentException("上传内容不是有效的 ZIP 文件");
             }
-            Files.move(temporaryPath, archivePath, StandardCopyOption.ATOMIC_MOVE);
-        } catch (java.nio.file.AtomicMoveNotSupportedException exception) {
-            Files.move(temporaryPath, archivePath);
+            moveAtomically(temporaryPath, archivePath);
         } catch (RuntimeException | IOException exception) {
             Files.deleteIfExists(temporaryPath);
             throw exception;
@@ -83,21 +139,43 @@ public class ReportArchiveService {
                     "EXTRACT", archivePath, exception.getMessage(), exception);
         }
         return new ArchiveResult(originalFileName, archivePath, extractRoot,
-                archiveCopy.fileSize, archiveCopy.sha256, extractedFiles);
+                archiveCopy.fileSize, archiveCopy.sha256, extractedFiles,
+                "application/zip", "zip");
     }
 
-    private String validateUpload(MultipartFile file) {
+    private void moveAtomically(Path temporaryPath, Path archivePath) throws IOException {
+        try {
+            Files.move(temporaryPath, archivePath, StandardCopyOption.ATOMIC_MOVE);
+        } catch (java.nio.file.AtomicMoveNotSupportedException exception) {
+            Files.move(temporaryPath, archivePath);
+        }
+    }
+
+    private String validateUpload(MultipartFile file, String businessType) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("请选择 ZIP 上报文件");
+            throw new IllegalArgumentException(isFlashIncome(businessType)
+                    ? "请选择 Excel 或 ZIP 上报文件"
+                    : "请选择 ZIP 上报文件");
         }
         String originalFileName = baseName(file.getOriginalFilename());
-        if (!originalFileName.toLowerCase(Locale.ROOT).endsWith(".zip")) {
+        String lower = originalFileName.toLowerCase(Locale.ROOT);
+        boolean zip = lower.endsWith(".zip");
+        boolean excel = lower.endsWith(".xls") || lower.endsWith(".xlsx");
+        if (isFlashIncome(businessType)) {
+            if (!zip && !excel) {
+                throw new IllegalArgumentException("快报收入仅支持 .xls / .xlsx 或 ZIP");
+            }
+        } else if (!zip) {
             throw new IllegalArgumentException("上报文件必须是 ZIP 格式");
         }
         if (file.getSize() > properties.getMaxUploadBytes()) {
-            throw new IllegalArgumentException("ZIP 文件超过允许的上传大小");
+            throw new IllegalArgumentException("上报文件超过允许的上传大小");
         }
         return originalFileName;
+    }
+
+    private boolean isFlashIncome(String businessType) {
+        return businessType != null && "FLASH_INCOME".equalsIgnoreCase(businessType.trim());
     }
 
     private ArchiveCopy copyAndDigest(MultipartFile file, Path temporaryPath) throws IOException {
@@ -117,7 +195,7 @@ public class ReportArchiveService {
             while ((read = input.read(buffer)) != -1) {
                 total += read;
                 if (total > properties.getMaxUploadBytes()) {
-                    throw new IllegalArgumentException("ZIP 文件超过允许的上传大小");
+                    throw new IllegalArgumentException("上报文件超过允许的上传大小");
                 }
                 digest.update(buffer, 0, read);
                 output.write(buffer, 0, read);
@@ -150,6 +228,30 @@ public class ReportArchiveService {
         int separator = normalized.lastIndexOf('/');
         String value = separator >= 0 ? normalized.substring(separator + 1) : normalized;
         return value.replaceAll("[\\p{Cntrl}]", "").trim();
+    }
+
+    private String sanitizeFileName(String fileName) {
+        String base = baseName(fileName);
+        String cleaned = base.replaceAll("[\\\\/:*?\"<>|]", "_").trim();
+        return cleaned.isEmpty() ? "upload.bin" : cleaned;
+    }
+
+    private String extensionOf(String fileName) {
+        int dot = fileName.lastIndexOf('.');
+        if (dot < 0 || dot == fileName.length() - 1) {
+            return "bin";
+        }
+        return fileName.substring(dot + 1).toLowerCase(Locale.ROOT);
+    }
+
+    private String contentTypeForExtension(String extension) {
+        if ("xlsx".equals(extension)) {
+            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+        }
+        if ("xls".equals(extension)) {
+            return "application/vnd.ms-excel";
+        }
+        return "application/octet-stream";
     }
 
     private String safeSegment(String value, String fieldName) {
@@ -185,19 +287,25 @@ public class ReportArchiveService {
         private final long fileSize;
         private final String sha256;
         private final List<Path> extractedFiles;
+        private final String contentType;
+        private final String fileExtension;
 
         private ArchiveResult(String originalFileName,
                               Path archivePath,
                               Path extractRoot,
                               long fileSize,
                               String sha256,
-                              List<Path> extractedFiles) {
+                              List<Path> extractedFiles,
+                              String contentType,
+                              String fileExtension) {
             this.originalFileName = originalFileName;
             this.archivePath = archivePath;
             this.extractRoot = extractRoot;
             this.fileSize = fileSize;
             this.sha256 = sha256;
             this.extractedFiles = Collections.unmodifiableList(extractedFiles);
+            this.contentType = contentType;
+            this.fileExtension = fileExtension;
         }
     }
 }

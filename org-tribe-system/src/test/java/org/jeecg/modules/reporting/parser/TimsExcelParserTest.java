@@ -123,6 +123,26 @@ public class TimsExcelParserTest {
         assertTrue(amountResult.getErrors().get(0).getMessage().contains("本期"));
     }
 
+    @Test
+    public void parsesFlashIncomeSixColumnLayoutWithoutRowDate() throws Exception {
+        Path file = workbook("快报_收入数据.xls",
+                new String[]{"国库代码", "国库简称", "科目代码", "科目名称", "本期执行数", "年累计"},
+                new String[]{"2200000000", "重庆市分库", "101", "税收收入", "12.5", "100"});
+
+        TimsExcelParseResult result = new TimsExcelParser().parse(file, TimsBusinessType.FLASH_INCOME);
+
+        assertTrue(result.getErrors().isEmpty());
+        assertEquals(1, result.getRecords().size());
+        TimsReportRecord row = result.getRecords().get(0);
+        assertEquals("2200000000", row.getTreCode());
+        assertEquals("重庆市分库", row.getTreasuryName());
+        assertEquals("101", row.getSubjectCode());
+        assertEquals("税收收入", row.getSubjectName());
+        assertEquals(new BigDecimal("12.50"), row.getCurrentAmount());
+        assertEquals(new BigDecimal("100.00"), row.getYearAmount());
+        assertEquals(null, row.getDAcct());
+    }
+
     private Path workbook(String name, String[] headers, String[] values) throws Exception {
         Path path = temporaryFolder.newFile(name).toPath();
         Workbook workbook = new HSSFWorkbook();

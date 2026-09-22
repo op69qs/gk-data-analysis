@@ -53,7 +53,10 @@ public class TimsReportPreparationService {
                     continue;
                 }
                 TimsExcelParseResult parsed = parser.parse(file, type, row -> {
-                    if (!YearMonth.from(row.getDAcct()).equals(period)) {
+                    if (type == TimsBusinessType.FLASH_INCOME) {
+                        row.setDAcct(period.atDay(1));
+                        row.setDAcctText(period.toString().replace("-", ""));
+                    } else if (!YearMonth.from(row.getDAcct()).equals(period)) {
                         stat.errorRowCount++;
                         errors.add(new TimsExcelParseError(row.getFileName(), row.getSheetName(), row.getRowNumber(),
                                 "日期", row.getDAcctText(), "文件账期与本次上报账期 " + period + " 不一致"));
@@ -105,7 +108,9 @@ public class TimsReportPreparationService {
 
     private boolean hasRecognizableTypeConflict(Path file, TimsBusinessType expected) {
         String name = file.getFileName().toString();
-        TimsBusinessType actual = name.contains("收入") ? TimsBusinessType.INCOME
+        // 「快报_收入」同时含快报与收入，必须先判定快报
+        TimsBusinessType actual = name.contains("快报") ? TimsBusinessType.FLASH_INCOME
+                : name.contains("收入") ? TimsBusinessType.INCOME
                 : name.contains("支出") ? TimsBusinessType.PAYOUT
                 : name.contains("库存") ? TimsBusinessType.STOCK : null;
         return actual != null && actual != expected;

@@ -18,4 +18,9 @@ public interface TimsReportMapper {
     int insertStgStock(@Param("rows") List<TimsReportRecord> rows,
                        @Param("periodKey") String periodKey, @Param("batchDate") String batchDate);
     long countStgStock(@Param("periodKey") String periodKey);
+
+    int deleteStgFlashIncome(@Param("periodKey") String periodKey);
+    int insertStgFlashIncome(@Param("rows") List<TimsReportRecord> rows,
+                             @Param("periodKey") String periodKey, @Param("batchDate") String batchDate);
+    long countStgFlashIncome(@Param("periodKey") String periodKey);
 }

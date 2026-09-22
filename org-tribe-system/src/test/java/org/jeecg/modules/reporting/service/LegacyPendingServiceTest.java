@@ -51,8 +51,30 @@ public class LegacyPendingServiceTest {
         ArgumentCaptor<LegacyTimsPending> captor = ArgumentCaptor.forClass(LegacyTimsPending.class);
         verify(mapper).insertTimsPending(captor.capture());
         assertEquals("2200000000", captor.getValue().getTreCode());
+        assertEquals("1", captor.getValue().getBizType());
         assertEquals("/reports/tims/2026-07/batch-1/archive/source.zip", captor.getValue().getFilePath());
         assertEquals("/reports/tims/2026-07/batch-1/extracted", captor.getValue().getZipFilePath());
+    }
+
+    @Test
+    public void registersFlashIncomeAsTimsBizTypeFour() {
+        LegacyPendingMapper mapper = mock(LegacyPendingMapper.class);
+        LegacyPendingService service = new LegacyPendingService(mapper);
+        ReportBatch batch = new ReportBatch();
+        batch.setId("batch-flash");
+        batch.setSourceDomain("TIMS");
+        batch.setBusinessType("FLASH_INCOME");
+        batch.setOriginalFileName("快报_收入数据.zip");
+        ReportFile archive = new ReportFile();
+        archive.setFileRole("ARCHIVE");
+        archive.setStoragePath("/reports/tims/2026-07/batch-flash/archive/source.zip");
+
+        service.create(batch, Collections.singletonList(archive), "u1");
+
+        ArgumentCaptor<LegacyTimsPending> captor = ArgumentCaptor.forClass(LegacyTimsPending.class);
+        verify(mapper).insertTimsPending(captor.capture());
+        assertEquals("4", captor.getValue().getBizType());
+        assertEquals("快报_收入数据.zip", captor.getValue().getFileName());
     }
 
     @Test

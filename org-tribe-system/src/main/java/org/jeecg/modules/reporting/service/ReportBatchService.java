@@ -112,7 +112,7 @@ public class ReportBatchService {
 
         try {
             ArchiveResult archive = archiveService.archiveAndExtract(
-                    file, validated.sourceDomain, validated.archivePeriod, batchId);
+                    file, validated.sourceDomain, validated.archivePeriod, batchId, validated.businessType);
             PersistedFiles persistedFiles = persistFiles(batch, archive, username, now);
             String archiveFileId = persistedFiles.archiveFileId;
             persistCompletedTask(batchId, "ARCHIVE", 10, 1, archive.getOriginalFileName(),
@@ -191,8 +191,8 @@ public class ReportBatchService {
         zipFile.setArchiveName(archive.getArchivePath().getFileName().toString());
         zipFile.setRelativePath("archive/" + archive.getArchivePath().getFileName());
         zipFile.setStoragePath(archive.getArchivePath().toString());
-        zipFile.setContentType("application/zip");
-        zipFile.setFileExtension("zip");
+        zipFile.setContentType(archive.getContentType() == null ? "application/zip" : archive.getContentType());
+        zipFile.setFileExtension(archive.getFileExtension() == null ? "zip" : archive.getFileExtension());
         zipFile.setFileSize(archive.getFileSize());
         zipFile.setSha256(archive.getSha256());
         zipFile.setArchiveStatus(STATUS_SUCCEEDED);
@@ -349,8 +349,8 @@ public class ReportBatchService {
         String businessType = upper(command.getBusinessType());
         if ("TIMS".equals(sourceDomain)) {
             if (!"INCOME".equals(businessType) && !"PAYOUT".equals(businessType)
-                    && !"STOCK".equals(businessType)) {
-                throw new IllegalArgumentException("TIMS 类型只能是收入、支出或库存");
+                    && !"STOCK".equals(businessType) && !"FLASH_INCOME".equals(businessType)) {
+                throw new IllegalArgumentException("TIMS 类型只能是收入、支出、库存或快报收入");
             }
             YearMonth period = parsePeriod(command.getAccountingPeriod());
             return new ValidatedCommand(sourceDomain, businessType, period.toString(),

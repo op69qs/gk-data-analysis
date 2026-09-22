@@ -175,6 +175,7 @@ public class LegacyPendingService {
         if ("INCOME".equals(value)) return "1";
         if ("PAYOUT".equals(value)) return "2";
         if ("STOCK".equals(value)) return "3";
+        if ("FLASH_INCOME".equals(value)) return "4";
         throw new IllegalArgumentException("TIMS 业务类型不合法：" + type);
     }
 }

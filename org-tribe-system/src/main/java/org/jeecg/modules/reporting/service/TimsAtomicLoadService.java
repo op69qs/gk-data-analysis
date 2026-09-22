@@ -84,6 +84,7 @@ public class TimsAtomicLoadService {
             case INCOME: mapper.deleteStgIncome(periodKey); break;
             case PAYOUT: mapper.deleteStgPayout(periodKey); break;
             case STOCK: mapper.deleteStgStock(periodKey); break;
+            case FLASH_INCOME: mapper.deleteStgFlashIncome(periodKey); break;
             default: throw new IllegalArgumentException("不支持的 TIMS 业务类型：" + type);
         }
     }
@@ -94,6 +95,7 @@ public class TimsAtomicLoadService {
             case INCOME: return mapper.insertStgIncome(rows, periodKey, batchDate);
             case PAYOUT: return mapper.insertStgPayout(rows, periodKey, batchDate);
             case STOCK: return mapper.insertStgStock(rows, periodKey, batchDate);
+            case FLASH_INCOME: return mapper.insertStgFlashIncome(rows, periodKey, batchDate);
             default: throw new IllegalArgumentException("不支持的 TIMS 业务类型：" + type);
         }
     }
@@ -103,6 +105,7 @@ public class TimsAtomicLoadService {
             case INCOME: return mapper.countStgIncome(periodKey);
             case PAYOUT: return mapper.countStgPayout(periodKey);
             case STOCK: return mapper.countStgStock(periodKey);
+            case FLASH_INCOME: return mapper.countStgFlashIncome(periodKey);
             default: throw new IllegalArgumentException("不支持的 TIMS 业务类型：" + type);
         }
     }

@@ -74,6 +74,21 @@ public class TimsAtomicLoadServiceTest {
         assertTrue(completed.get());
     }
 
+    @Test
+    public void flashIncomeDeletesAndInsertsProvincesTarget() throws Exception {
+        TimsReportMapper mapper = mock(TimsReportMapper.class);
+        when(mapper.insertStgFlashIncome(anyList(), eq("202607"), eq("20260923")))
+                .thenAnswer(invocation -> ((List<?>) invocation.getArgument(0)).size());
+        when(mapper.countStgFlashIncome("202607")).thenReturn(1L);
+
+        long committed = new TimsAtomicLoadService(mapper, 10)
+                .load(prepared(1), TimsBusinessType.FLASH_INCOME, YearMonth.of(2026, 7), "20260923");
+
+        assertEquals(1L, committed);
+        verify(mapper).deleteStgFlashIncome("202607");
+        verify(mapper).insertStgFlashIncome(anyList(), eq("202607"), eq("20260923"));
+    }
+
     private TimsPreparationResult prepared(int count) throws Exception {
         Path work = temporaryFolder.newFolder().toPath();
         TimsSpool spool;

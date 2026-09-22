@@ -50,11 +50,46 @@ public class ReportArchiveServiceTest {
                 "file", "收入.xls", "application/vnd.ms-excel", "not a zip".getBytes(StandardCharsets.UTF_8));
 
         try {
-            service.archiveAndExtract(file, "TIMS", "2026-07", "batch-2");
+            service.archiveAndExtract(file, "TIMS", "2026-07", "batch-2", "INCOME");
             fail("Expected non-ZIP upload to be rejected");
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().contains("ZIP"));
         }
+    }
+
+    @Test
+    public void flashIncomeAcceptsBareExcelWithoutZip() throws Exception {
+        ReportingProperties properties = properties();
+        ReportArchiveService service = new ReportArchiveService(properties);
+        byte[] excelBytes = "fake-xls-content".getBytes(StandardCharsets.UTF_8);
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "快报_收入数据.xls", "application/vnd.ms-excel", excelBytes);
+
+        ArchiveResult result = service.archiveAndExtract(
+                file, "TIMS", "2026-07", "batch-flash", "FLASH_INCOME");
+
+        assertEquals("快报_收入数据.xls", result.getOriginalFileName());
+        assertEquals("source.xls", result.getArchivePath().getFileName().toString());
+        assertEquals("xls", result.getFileExtension());
+        assertEquals(1, result.getExtractedFiles().size());
+        assertEquals("快报_收入数据.xls", result.getExtractedFiles().get(0).getFileName().toString());
+        assertTrue(Files.isRegularFile(result.getExtractedFiles().get(0)));
+        assertEquals(excelBytes.length, Files.size(result.getExtractedFiles().get(0)));
+    }
+
+    @Test
+    public void flashIncomeStillAcceptsZip() throws Exception {
+        ReportingProperties properties = properties();
+        ReportArchiveService service = new ReportArchiveService(properties);
+        MockMultipartFile file = new MockMultipartFile(
+                "file", "快报.zip", "application/zip", zipBytes("快报_收入数据.xls", "row"));
+
+        ArchiveResult result = service.archiveAndExtract(
+                file, "TIMS", "2026-07", "batch-flash-zip", "FLASH_INCOME");
+
+        assertEquals("source.zip", result.getArchivePath().getFileName().toString());
+        assertEquals("zip", result.getFileExtension());
+        assertEquals(1, result.getExtractedFiles().size());
     }
 
     @Test

@@ -13,6 +13,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +70,44 @@ public class TimsReportPreparationServiceTest {
         assertFalse(result.getErrors().isEmpty());
         assertEquals(0L, Files.list(work).count());
         result.close();
+    }
+
+    @Test
+    public void flashIncomeUsesFormPeriodAndRejectsWhenSelectedAsIncome() throws Exception {
+        Path extracted = temporaryFolder.newFolder("flash").toPath();
+        flashWorkbook(extracted.resolve("快报_收入数据.xls"));
+        Path work = temporaryFolder.newFolder("flash-work").toPath();
+
+        try (TimsPreparationResult ok = new TimsReportPreparationService()
+                .prepare(extracted, work, TimsBusinessType.FLASH_INCOME, YearMonth.of(2026, 7))) {
+            assertTrue(ok.getErrors().isEmpty());
+            assertEquals(1L, ok.getRowCount());
+            List<TimsReportRecord> rows = new ArrayList<>();
+            ok.getSpool().readBatches(10, rows::addAll);
+            assertEquals(LocalDate.of(2026, 7, 1), rows.get(0).getDAcct());
+            assertEquals("202607", rows.get(0).getDAcctText());
+        }
+
+        TimsPreparationResult conflict = new TimsReportPreparationService()
+                .prepare(extracted, temporaryFolder.newFolder("flash-conflict").toPath(),
+                        TimsBusinessType.INCOME, YearMonth.of(2026, 7));
+        assertFalse(conflict.getErrors().isEmpty());
+        assertTrue(conflict.getErrors().get(0).getMessage().contains("不一致"));
+        conflict.close();
+    }
+
+    private void flashWorkbook(Path path) throws Exception {
+        Workbook workbook = new HSSFWorkbook();
+        try (FileOutputStream output = new FileOutputStream(path.toFile())) {
+            Sheet sheet = workbook.createSheet("收入数据");
+            Row header = sheet.createRow(0);
+            String[] headers = {"国库代码", "国库简称", "科目代码", "科目名称", "本期执行数", "年累计"};
+            for (int i = 0; i < headers.length; i++) header.createCell(i).setCellValue(headers[i]);
+            Row row = sheet.createRow(1);
+            String[] values = {"2200000000", "重庆市分库", "101", "税收收入", "10", "20"};
+            for (int i = 0; i < values.length; i++) row.createCell(i).setCellValue(values[i]);
+            workbook.write(output);
+        }
     }
 
     private void workbook(Path path, String treasuryCode) throws Exception {

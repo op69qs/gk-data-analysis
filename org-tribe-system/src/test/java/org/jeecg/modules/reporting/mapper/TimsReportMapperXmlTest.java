@@ -18,7 +18,8 @@ public class TimsReportMapperXmlTest {
         String xml = readResource("org/jeecg/modules/reporting/mapper/xml/TimsReportMapper.xml").toLowerCase();
         for (String table : Arrays.asList(
                 "stg.trs_tmis_budget_income",
-                "stg.trs_tmis_budget_payout", "stg.trs_tmis_stock")) {
+                "stg.trs_tmis_budget_payout", "stg.trs_tmis_stock",
+                "stg.trs_tmis_budget_income_provinces")) {
             assertTrue("缺少 JAR 目标表：" + table, xml.contains(table));
         }
         assertFalse(xml.contains("agent_key_file.tims_file_income"));
@@ -31,6 +32,8 @@ public class TimsReportMapperXmlTest {
         assertTrue(xml.contains("countstgincome"));
         assertTrue(xml.contains("countstgpayout"));
         assertTrue(xml.contains("countstgstock"));
+        assertTrue(xml.contains("countstgflashincome"));
+        assertTrue(xml.contains("insertstgflashincome"));
         assertFalse(xml.contains("${"));
         assertFalse(xml.contains("`"));
     }

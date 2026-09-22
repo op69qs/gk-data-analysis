@@ -85,6 +85,24 @@ public class TimsExcelParser {
                                       String fileName, String sheetName, DataFormatter formatter,
                                       FormulaEvaluator evaluator) {
         TimsReportRecord record = new TimsReportRecord();
+        record.setFileName(fileName);
+        record.setSheetName(sheetName);
+        record.setRowNumber(row.getRowNum() + 1L);
+
+        if (type == TimsBusinessType.FLASH_INCOME) {
+            record.setTreCode(required(display(row, layout.treCode, formatter, evaluator), "国库代码"));
+            record.setTreasuryName(required(display(row, layout.treasuryName, formatter, evaluator), "国库简称"));
+            if (record.getTreasuryName().contains("N")) {
+                throw new RowValueException("国库简称", record.getTreasuryName(),
+                        "上传文件异常：包含【" + record.getTreasuryName() + "】的国库名称");
+            }
+            record.setSubjectCode(required(display(row, layout.subjectCode, formatter, evaluator), "科目代码"));
+            record.setSubjectName(required(display(row, layout.subjectName, formatter, evaluator), "科目名称"));
+            record.setCurrentAmount(decimal(display(row, layout.currentAmount, formatter, evaluator), "本期执行数"));
+            record.setYearAmount(decimal(display(row, layout.yearAmount, formatter, evaluator), "年累计"));
+            return record;
+        }
+
         String dAcctText = required(display(row, layout.date, formatter, evaluator), "日期");
         record.setDAcctText(dAcctText);
         record.setDAcct(parseDate(row.getCell(layout.date), dAcctText));
@@ -96,9 +114,6 @@ public class TimsExcelParser {
                     "上传文件异常：包含【" + record.getTreasuryName() + "】的国库名称");
         }
         record.setLevel(required(display(row, layout.level, formatter, evaluator), "预算级次"));
-        record.setFileName(fileName);
-        record.setSheetName(sheetName);
-        record.setRowNumber(row.getRowNum() + 1L);
 
         if (type == TimsBusinessType.INCOME || type == TimsBusinessType.PAYOUT) {
             if (layout.taxOrg >= 0) record.setTaxOrgCode(display(row, layout.taxOrg, formatter, evaluator));
@@ -207,6 +222,15 @@ public class TimsExcelParser {
 
         static ColumnLayout fixed(TimsBusinessType type) {
             ColumnLayout layout = new ColumnLayout();
+            if (type == TimsBusinessType.FLASH_INCOME) {
+                layout.treCode = 0;
+                layout.treasuryName = 1;
+                layout.subjectCode = 2;
+                layout.subjectName = 3;
+                layout.currentAmount = 4;
+                layout.yearAmount = 5;
+                return layout;
+            }
             layout.date = 0;
             layout.treCode = 1;
             layout.treasuryName = 2;

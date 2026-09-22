@@ -19,6 +19,14 @@ export function downloadReportFile(fileId) {
   return axios({ url: `/reporting/files/${fileId}/download`, method: 'get', responseType: 'blob' })
 }
 
+export function downloadReportTemplate(businessType) {
+  return axios({
+    url: `/reporting/templates/${businessType}`,
+    method: 'get',
+    responseType: 'blob'
+  })
+}
+
 export const queryKeyMonitoring = params => getAction('/reporting/monitoring/key', params)
 export const queryTimsMonitoring = params => getAction('/reporting/monitoring/tims', params)
 export const queryTreasuryOptions = () => getAction('/reporting/monitoring/treasuries')

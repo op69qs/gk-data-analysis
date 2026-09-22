@@ -99,7 +99,12 @@ export default {
       catch (error) { this.$message.error(error.message || '删除失败') }
     },
     dateOnly(value) { return value ? String(value).slice(0, 10) : '—' },
-    typeLabel(value) { return { ALL: '全部', INCOME: '收入', PAYOUT: '支出', STOCK: '库存', BACK: '退库' }[value] || value },
+    typeLabel(value) {
+      return {
+        ALL: '全部', INCOME: '收入', PAYOUT: '支出', STOCK: '库存', BACK: '退库',
+        FLASH_INCOME: '快报收入'
+      }[value] || value
+    },
     stageLabel(value) { return { ARCHIVE: '归档', EXTRACT: '解压', PARSE: '解析', LOAD: '入库', PROCESS: '加工' }[value] || value },
     statusLabel(value) { return { QUEUED: '等待', PROCESSING: '执行中', SUCCEEDED: '成功', PARTIALLY_SUCCEEDED: '部分完成', FAILED: '失败' }[value] || value },
     statusColor(value) { return { QUEUED: 'orange', PROCESSING: 'blue', SUCCEEDED: 'green', PARTIALLY_SUCCEEDED: 'orange', FAILED: 'red' }[value] || 'default' }

@@ -82,7 +82,8 @@
     <select id="queryTimsMonitoring" resultType="java.util.LinkedHashMap">
         select a.biz_date, tc.tre_code, tc.tre_name, a.id, a.file_name, a.biz_type,
                case when a.biz_type = '1' then '收入' when a.biz_type = '2' then '支出'
-                    when a.biz_type = '3' then '库存' end biz_type_desc,
+                    when a.biz_type = '3' then '库存' when a.biz_type = '4' then '快报收入'
+                    else a.biz_type end biz_type_desc,
                coalesce(a.data_count, 0) data_count, coalesce(a.file_exception, '') file_exception,
                a.file_path, a.state,
                case when a.state = '0' then '已处理' when a.state = '1' then '未处理' end state_dscr,
