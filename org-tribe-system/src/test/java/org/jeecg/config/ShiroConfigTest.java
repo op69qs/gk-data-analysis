@@ -12,6 +12,19 @@ import static org.junit.Assert.assertEquals;
 public class ShiroConfigTest {
 
     @Test
+    public void retiredSelfServiceApisAreNotAnonymous() {
+        Map<String, String> chains = new ShiroConfig()
+                .shiroFilter(new DefaultSecurityManager()).getFilterChainDefinitionMap();
+        for (String endpoint : new String[]{"register", "checkOnlyUser", "querySysUser",
+                "phoneVerification", "passwordChange"}) {
+            assertEquals(endpoint, "jwt", matchingChain(chains, "/sys/user/" + endpoint));
+        }
+        assertEquals("anon", matchingChain(chains, "/sys/login"));
+        assertEquals("anon", matchingChain(chains, "/sys/oauth/callback"));
+        assertEquals("jwt", matchingChain(chains, "/sys/user/updatePassword"));
+    }
+
+    @Test
     public void reportingApisUseJwtInsteadOfSpaAnonymousWildcard() {
         ShiroFilterFactoryBean factory = new ShiroConfig()
                 .shiroFilter(new DefaultSecurityManager());

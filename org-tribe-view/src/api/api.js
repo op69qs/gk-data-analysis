@@ -22,8 +22,6 @@ const getUserList = (params) => getAction("/sys/user/list", params);
 // const deleteUser = (params)=>deleteAction("/sys/user/delete",params);
 // const deleteUserList = (params)=>deleteAction("/sys/user/deleteBatch",params);
 const frozenBatch = (params) => putAction("/sys/user/frozenBatch", params);
-//验证用户是否存在
-const checkOnlyUser = (params) => getAction("/sys/user/checkOnlyUser", params);
 //改变密码
 const changPassword = (params) => putAction("/sys/user/changPassword", params);
 
@@ -100,7 +98,6 @@ export {
   getUserList,
   queryall,
   frozenBatch,
-  checkOnlyUser,
   changPassword,
   getPermissionList,
   addPermission,
@@ -134,6 +131,5 @@ export {
   duplicateCheck,
   queryTreeListForRole,
 }
-
 
 

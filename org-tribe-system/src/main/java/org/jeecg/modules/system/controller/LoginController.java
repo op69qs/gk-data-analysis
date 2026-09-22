@@ -209,10 +209,17 @@ public class LoginController {
 	 * @return
 	 */
 	@PostMapping(value = "/sms")
-	public Result<String> sms(@RequestBody JSONObject jsonObject) {
+	public Result<String> sms(@RequestBody JSONObject jsonObject, HttpServletResponse response) {
 		Result<String> result = new Result<String>();
-		String mobile = jsonObject.get("mobile").toString();
-		String smsmode=jsonObject.get("smsmode").toString();
+		// 现场仅保留登录短信，注册和找回密码已停用。先拒绝，再访问缓存或发送短信。
+		if (!CommonConstant.SMS_TPL_TYPE_0.equals(jsonObject.getString("smsmode"))) {
+			response.setStatus(HttpServletResponse.SC_GONE);
+			result.setCode(HttpServletResponse.SC_GONE);
+			result.setSuccess(false);
+			result.setMessage("本地注册和找回密码已关闭，请联系管理员");
+			return result;
+		}
+		String mobile = jsonObject.getString("mobile");
 		log.info(mobile);	
 		Object object = redisUtil.get(mobile);
 		if (object != null) {
@@ -226,35 +233,12 @@ public class LoginController {
 		JSONObject obj = new JSONObject();
     	obj.put("code", captcha);
 		try {
-			boolean b = false;
-			//注册模板
-			if (CommonConstant.SMS_TPL_TYPE_1.equals(smsmode)) {
-				SysUser sysUser = sysUserService.getUserByPhone(mobile);
-				if(sysUser!=null) {
-					result.error500(" 手机号已经注册，请直接登录！");
-					sysBaseAPI.addLog("手机号已经注册，请直接登录！", CommonConstant.LOG_TYPE_1, null);
-					return result;
-				}
-				b = DySmsHelper.sendSms(mobile, obj, DySmsEnum.REGISTER_TEMPLATE_CODE);
-			}else {
-				//登录模式，校验用户有效性
-				SysUser sysUser = sysUserService.getUserByPhone(mobile);
-				result = sysUserService.checkUserIsEffective(sysUser);
-				if(!result.isSuccess()) {
-					return result;
-				}
-				
-				/**
-				 * smsmode 短信模板方式  0 .登录模板、1.注册模板、2.忘记密码模板
-				 */
-				if (CommonConstant.SMS_TPL_TYPE_0.equals(smsmode)) {
-					//登录模板
-					b = DySmsHelper.sendSms(mobile, obj, DySmsEnum.LOGIN_TEMPLATE_CODE);
-				} else if(CommonConstant.SMS_TPL_TYPE_2.equals(smsmode)) {
-					//忘记密码模板
-					b = DySmsHelper.sendSms(mobile, obj, DySmsEnum.FORGET_PASSWORD_TEMPLATE_CODE);
-				}
+			SysUser sysUser = sysUserService.getUserByPhone(mobile);
+			result = sysUserService.checkUserIsEffective(sysUser);
+			if (!result.isSuccess()) {
+				return result;
 			}
+			boolean b = DySmsHelper.sendSms(mobile, obj, DySmsEnum.LOGIN_TEMPLATE_CODE);
 
 			if (b == false) {
 				result.setMessage("短信验证码发送失败,请稍后重试");
