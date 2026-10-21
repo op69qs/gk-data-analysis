@@ -4,7 +4,7 @@
   >
     <h1 class="addTitle">{{ viewTitle }}</h1>
     <a-spin :spinning="editLoading">
-      <a-form :form="form" :label-col="{ span: 4 }" :wrapper-col="{ span: 17 }" @submit="handleSubmit">
+      <a-form :form="form" :label-col="{ span: 4 }" :wrapper-col="{ span: 17 }" @submit="handleSubmit($event, '1')">
         <a-form-item :label="nameLabel">
           <a-input
             v-decorator="['name', validatorRules.name]"
@@ -103,7 +103,7 @@
         <a-form-item :wrapper-col="{ span: 14, offset: 9 }" :style="{ textAlign: 'right' }">
           <a-button :style="{ marginRight: '8px' }" @click="$router.push({ path: '/vis/bigscreen/pages' })">取消</a-button>
           <a-button :style="{ marginRight: '8px' }" type="primary" html-type="submit">保存</a-button>
-          <a-button type="primary" @click="handleSubmit">发布</a-button>
+          <a-button type="primary" @click="handleSubmit($event, '0')">发布</a-button>
         </a-form-item>
       </a-form>
     </a-spin>
@@ -128,7 +128,7 @@ import {mapGetters} from "vuex"
 import { GridLayout, GridItem } from 'vue-grid-layout'
 import domtoimage from 'dom-to-image'
 import AddTemplateDrawer from './modules/AddTemplateDrawer'
-import { addPageInfo, editPageInfo, getPageSubAll } from '@/api/visScreen'
+import { addPageInfo, editPageInfo, getPageList, getPageSubAll } from '@/api/visScreen'
 import { Chrome } from 'vue-color'
 let defaultProps = {
   hex: '#0d2941',
@@ -146,9 +146,11 @@ export default {
     return {
       defaultImg: require('@/assets/default.png'), // 默认占位图
       coverImgUrl: '', // 背景照片链接
-      colors: defaultProps,
+      colors: { ...defaultProps },
       colorClick: false,
       type: '', // 新增或修改界面
+      pageId: '',
+      editorRequest: 0,
       viewTitle: '新增界面',
       formLayout: 'horizontal',
       form: this.$form.createForm(this, { name: 'coordinated' }),
@@ -218,68 +220,88 @@ export default {
     },
   },
   watch: {
-    // layout: {
-    //     deep: true, // 深度监听设置为 true
-    //     handler: function(newV,oldV){
-    //         console.log('watch中：', newV)
-    //     }
-    // }
+    $route(to) {
+      if (to.name === 'VisPageEditorEntry') this.initializeEditor()
+      else this.editorRequest++
+    },
   },
   created() {
-    let that = this
     window.addEventListener('click', this.setColorPicker, true)
-    // 修改模板赋值
-    this.type = this.$route.params.type;
-    if (this.type == 'edit') {
-      this.viewTitle = '修改界面'
-      this.form.resetFields()
-      this.handleEdit()
-    } else {
-      this.viewTitle = '新增界面'
-    }
+    this.initializeEditor()
   },
   mounted() {
     // this.$refs.modalForm.visible = true;
   },
   methods: {
     ...mapGetters(["userInfo"]),
-    handleEdit(){
-      // console.log(this.$route.params.itemData)
-      let model = Object.assign({}, this.$route.params.itemData)
-      let id = this.$route.params.itemData.id;
-      this.$nextTick(() => {
+    initializeEditor() {
+      this.editorRequest++
+      this.form.resetFields()
+      this.pageId = ''
+      this.layout = []
+      this.modelShow = false
+      this.coverImgUrl = ''
+      this.colors = { ...defaultProps }
+      this.backgroundValue = 1
+      this.titleName = ''
+      this.titleValue = 0
+      this.titleImgSrc = true
+      this.titleModel = this.colorClick = false
+      this.defaultData = {}
+      this.addLoading = this.editLoading = false
+      if (this.$refs.modalForm) this.$refs.modalForm.visible = false
+      this.type = this.$route.query.type || this.$route.params.type || 'add'
+      this.viewTitle = this.type === 'edit' ? '修改界面' : '新增界面'
+      if (this.type === 'edit') return this.handleEdit()
+    },
+    async handleEdit(){
+      const request = ++this.editorRequest
+      this.editLoading = true
+      try {
+        let model = this.$route.params.itemData
+        const id = this.$route.query.id || (model && model.id)
+        if (!id) throw new Error('缺少页面编号，请从页面管理重新进入')
+        if (!model || model.id !== id) {
+          const res = await getPageList({ id, pageNo: 1, pageSize: 1 })
+          if (request !== this.editorRequest) return
+          if (res.result !== 'success' || !Array.isArray(res.rows) || !res.rows.length) {
+            throw new Error(res.msg || '页面不存在或已删除')
+          }
+          model = res.rows[0]
+        }
+        this.pageId = id
+        await this.$nextTick()
+        if (request !== this.editorRequest) return
         // 设置初始值
         this.form.setFieldsValue(pick(model, 'name', 'template'))
         this.coverImgUrl = model.content ? model.content : ''
         this.titleImgSrc = model.title_background == 0 ? true : false
+        this.titleValue = this.titleImgSrc ? 0 : 1
         this.backgroundValue = parseInt(model.background_type);
-        defaultProps.hex = model.colour
-        this.colors = defaultProps
+        this.colors = { ...defaultProps, hex: model.colour || defaultProps.hex }
         this.modelShow = true
         this.titleName = model.name
         
-      })
-      this.editLoading = true;
-      getPageSubAll({page_id:id}).then(res => {
-        this.editLoading = false;
-        if(res.result =='success') {
-          let dataList = res.rows;
-          dataList.forEach((item)=>{
-            item.x = parseInt(item.x);
-            item.y = parseInt(item.y);
-            item.w = parseInt(item.w);
-            item.h = parseInt(item.h);
-            item.i = parseInt(item.i);
-            item.sort = parseInt(item.sort)
-          })
-          this.layout=dataList
+        const res = await getPageSubAll({ page_id: id })
+        if (request !== this.editorRequest) return
+        if (res.result !== 'success' || !Array.isArray(res.rows)) {
+          throw new Error(res.msg || '页面模块加载失败')
         }
-      })
+        this.layout = res.rows.map(item => ({
+          ...item, x: Number(item.x), y: Number(item.y), w: Number(item.w), h: Number(item.h), i: String(item.i),
+        }))
+      } catch (error) {
+        if (request !== this.editorRequest) return
+        this.$message.error(error.message || '页面加载失败，请重试')
+        this.$router.push({ path: '/vis/bigscreen/pages' })
+      } finally {
+        if (request === this.editorRequest) this.editLoading = false
+      }
     },
-    handleSubmit(e) {
-      let that = this;
+    handleSubmit(e, state = '1') {
       // 确认提交
       e.preventDefault()
+      if (this.addLoading || this.editLoading) return
       this.form.validateFields((err, values) => {
         if (!err) {
           if (this.backgroundValue == 0 && this.coverImgUrl == '') {
@@ -295,24 +317,14 @@ export default {
           postData.add_user  = this.userInfo().id; // 创建人id
           postData.content = this.coverImgUrl; // 背景图片file
           postData.colour = this.bgc; // 背景颜色
-          postData.state = e.type=='submit' ? '1' : '0' // 0 表示发布1表示未发布
-          let page_sub = this.layout;
-          page_sub.forEach((item)=>{
-              delete item.moved
-          })
+          postData.state = state // 0 表示发布1表示未发布
+          let page_sub = this.layout.map(item => {
+            const copy = { ...item }
+            delete copy.moved
+            return copy
+          });
           postData.page_sub = page_sub; // 对象(页面包含的图库信息)
           this.toImage(postData); // 截取图片，图片截取成功发送请求
-        }
-      })
-    },
-    handleEditSubmit(editData){
-      editPageInfo(editData).then(res => {
-        if(res.result =='success') {
-          this.$message.success(res.msg);
-          this.$router.push({path: '/vis/bigscreen/pages'});
-          this.clearSetting();
-        }else{
-          this.$message.warning(res.msg);
         }
       })
     },
@@ -424,41 +436,34 @@ export default {
       }
       return Object.values(dataItem)
     },
-    toImage(itemData) {
-      let postData = itemData
-      let that = this
-      // 生成截图
-      domtoimage
-        // .toPng(this.$refs.imageWrapper)
-        .toPng(this.$refs.imageWrapper.$el)
-        .then((dataUrl) => {
-          this.imgUrl = dataUrl
-          this.resizable = true
-          const time = setTimeout(() => {
-            postData.thumbnail = that.imgUrl; // 缩略图base64
-            if(that.$route.params.itemData) {
-              postData.id = that.$route.params.itemData.id;
-              that.handleEditSubmit(postData)
-            } else {
-              let obj;
-              obj = addPageInfo(postData);
-              obj.then((res) => {
-                if (res.result =='success') {
-                  that.$message.success(res.msg);
-                  that.$router.push({path: '/vis/bigscreen/pages'});
-                  that.clearSetting();
-                } else {
-                  that.$message.warning(res.msg);
-                }
-              }).finally(() => {
-                that.addLoading = false;
-              })
-            }
-          }, 100)
-        })
-        .catch((error) => {
-          console.error('oops, something went wrong!', error)
-        })
+    async toImage(postData) {
+      const request = this.editorRequest
+      const wasResizable = this.resizable
+      try {
+        await this.$nextTick()
+        const wrapper = this.$refs.imageWrapper
+        if (!wrapper) throw new Error('请选择界面模板')
+        postData.thumbnail = await domtoimage.toPng(wrapper.$el)
+        if (request !== this.editorRequest) return
+        const id = this.pageId || this.$route.query.id || (this.$route.params.itemData && this.$route.params.itemData.id)
+        if (id) postData.id = id
+        const res = await (id ? editPageInfo(postData) : addPageInfo(postData))
+        if (request !== this.editorRequest) return
+        if (res.result !== 'success') {
+          this.$message.warning(res.msg || '保存失败，请重试')
+          return
+        }
+        this.$message.success(res.msg)
+        this.$router.push({ path: '/vis/bigscreen/pages' })
+        this.clearSetting()
+      } catch (error) {
+        if (request === this.editorRequest) this.$message.error('页面提交失败，请检查图片及网络后重试')
+      } finally {
+        if (request === this.editorRequest) {
+          this.resizable = wasResizable
+          this.addLoading = false
+        }
+      }
     },
     gridClick(item) {
       // 模板模块选择
@@ -495,11 +500,7 @@ export default {
       // 模态框回调函数
       let dataItem = val
       this.$refs.modalForm.visible = false
-      this.layout.forEach((item, i) => {
-        if (item.i == this.index) {
-          item = Object.assign(item, dataItem)
-        }
-      })
+      this.layout = this.layout.map(item => item.i == this.index ? { ...item, ...dataItem } : item)
       this.defaultData = {}
     },
     clearSetting() {
@@ -534,7 +535,7 @@ export default {
       // 当拾色器展示时候点击其他地方进行隐藏
       let that = this
       let colorDox = document.getElementById('colorPicker')
-      if (colorDox.contains(e.target)) {
+      if (colorDox && colorDox.contains(e.target)) {
         that.colorClick = true
       } else {
         that.colorClick = false
@@ -542,6 +543,7 @@ export default {
     },
     handleChange(info) {
       // 上传背景图片
+      if (!info.file || !info.file.type.startsWith('image/') || info.file.size > 5242880) return
       this.getBase64(info.file, (imageUrl) => {
         this.coverImgUrl = imageUrl
       })

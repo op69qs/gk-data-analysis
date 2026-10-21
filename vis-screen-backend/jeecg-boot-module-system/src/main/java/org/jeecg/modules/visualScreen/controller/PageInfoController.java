@@ -16,6 +16,9 @@ import org.jeecg.modules.visualScreen.service.PageWhereService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -61,7 +64,7 @@ public class PageInfoController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "操作失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
@@ -79,17 +82,21 @@ public class PageInfoController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "操作失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ApiOperation("新增")
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> add(@RequestBody(required = false) PageInfo pageInfo) {
         Map<String, Object> result = new HashMap<>();
         PageData pd = new PageData();
         try {
+            if (pageInfo == null || !StringUtils.hasText(pageInfo.getName()) || !StringUtils.hasText(pageInfo.getTemplate())) {
+                throw new IllegalArgumentException("页面名称和模板不能为空");
+            }
             pd.put("name", pageInfo.getName());
             if (checkRepeat(pd)) {
                 result.put("msg", "添加失败,该页面已存在");
@@ -115,6 +122,7 @@ public class PageInfoController extends BaseController {
             result.put("msg", "添加成功");
             result.put("result", "success");
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             e.printStackTrace();
             result.put("msg", "添加失败");
             result.put("result", "failed");
@@ -135,10 +143,14 @@ public class PageInfoController extends BaseController {
 
     @RequestMapping(value = "/edit", method = RequestMethod.POST)
     @ApiOperation("修改")
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> edit(@RequestBody(required = false) PageInfo pageInfo) {
         Map<String, Object> result = new HashMap<>();
         PageData pd = new PageData();
         try {
+            if (pageInfo == null || !StringUtils.hasText(pageInfo.getId()) || !StringUtils.hasText(pageInfo.getName()) || !StringUtils.hasText(pageInfo.getTemplate())) {
+                throw new IllegalArgumentException("页面编号、名称和模板不能为空");
+            }
             pd.put("id", pageInfo.getId());
             pd.put("name", pageInfo.getName());
             if (checkRepeat(pd)) {
@@ -162,14 +174,14 @@ public class PageInfoController extends BaseController {
             pageWhereService.del(delPd);
 
             addSub(pageInfo);
-
+            result.put("msg", "修改成功");
+            result.put("result", "success");
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             e.printStackTrace();
             result.put("msg", "修改失败");
             result.put("result", "failed");
         }
-        result.put("msg", "修改成功");
-        result.put("result", "success");
         return result;
     }
 
@@ -179,42 +191,47 @@ public class PageInfoController extends BaseController {
         Map<String, Object> result = new HashMap<>();
         try {
             PageData pd = this.getPageData(param);
+            if (!StringUtils.hasText(pd.getString("id")) || !("0".equals(pd.getString("state")) || "1".equals(pd.getString("state")))) {
+                throw new IllegalArgumentException("页面编号或发布状态无效");
+            }
             pageInfoService.edit(pd);
             result.put("msg", "修改成功");
             result.put("result", "success");
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "修改失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
 
     @RequestMapping(value = "/del", method = RequestMethod.POST)
     @ApiOperation("删除")
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> del(@RequestBody(required = false) JSONObject param) {
         Map<String, Object> result = new HashMap<>();
-        PageData pd = this.getPageData(param);
         PageData delPd = new PageData();
         try {
-            String id = pd.get("id") + "";
-            if (null != id && !"".equals(id)) {
-                String[] ids = id.split(",");
-                for (String i : ids) {
-                    pd.put("id", i);
-                    pageInfoService.del(pd);
-                    delPd.put("page_id", i);
-                    pageSubService.del(delPd);
-                    pageWhereService.del(delPd);
-                }
+            PageData pd = this.getPageData(param);
+            String id = pd.getString("id");
+            if (!StringUtils.hasText(id)) throw new IllegalArgumentException("页面编号不能为空");
+            String[] ids = id.split(",");
+            for (String i : ids) {
+                if (!StringUtils.hasText(i)) throw new IllegalArgumentException("页面编号不能为空");
+                pd.put("id", i);
+                pageInfoService.del(pd);
+                delPd.put("page_id", i);
+                pageSubService.del(delPd);
+                pageWhereService.del(delPd);
             }
+            result.put("msg", "操作成功");
+            result.put("result", "success");
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             e.printStackTrace();
             result.put("msg", "操作失败");
             result.put("result", "failed");
         }
-        result.put("msg", "操作成功");
-        result.put("result", "success");
         return result;
     }
 

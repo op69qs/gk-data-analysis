@@ -45,6 +45,7 @@
               </div>
             </li>
           </ul>
+          <a-pagination :current="galleryPage" :page-size="12" :total="galleryTotal" @change="changeGalleryPage" />
           <h2 style="font-size: 18px; margin-bottom: 1rem">设置图表逻辑</h2>
           <div class="chartSetClass" v-if="itemSet.time_type">
             <h2 class="required">单位</h2>
@@ -143,7 +144,7 @@
           </div>
           <div
             class="chartSetClass m1"
-            v-if="itemSet.dimension_type ? itemSet.dimension_type.indexOf('b') >= 0 : false"
+            v-if="hasDimension('b')"
           >
             <h2 class="required">核算主体</h2>
             <a-tree-select
@@ -160,7 +161,7 @@
           </div>
           <div
             class="chartSetClass m1"
-            v-if="itemSet.dimension_type ? itemSet.dimension_type.indexOf('a') >= 0 : false"
+            v-if="hasDimension('a')"
           >
             <h2 class="required">所属地区</h2>
             <a-tree-select
@@ -177,7 +178,7 @@
           </div>
           <div
             class="chartSetClass m1"
-            v-if="itemSet.dimension_type ? itemSet.dimension_type.indexOf('g') >= 0 : false"
+            v-if="hasDimension('g')"
           >
             <h2 class="required">所属国库</h2>
             <a-tree-select
@@ -194,7 +195,7 @@
           </div>
           <div
             class="chartSetClass m1"
-            v-if="itemSet.dimension_type ? itemSet.dimension_type.indexOf('s') >= 0 : false"
+            v-if="hasDimension('s')"
           >
             <h2 class="required">科目类&#12288;</h2>
             <a-tree-select
@@ -211,7 +212,7 @@
           </div>
           <div
             class="chartSetClass m1"
-            v-if="itemSet.dimension_type ? itemSet.dimension_type.indexOf('ts') >= 0 : false"
+            v-if="hasDimension('ts')"
           >
             <h2 class="required">T科目类&#8194;</h2>
             <a-tree-select
@@ -270,6 +271,10 @@ export default {
       kemuTreeData: [], //科目数据
       subjectTreeData: [],//T科目数据
       dataSource1: [],
+      galleryPage: 1,
+      galleryTotal: 0,
+      galleryRequest: 0,
+      selectionRequest: 0,
       confirmLoading: false,
       currentImg: false, // 当前选择图片
       imgSrcList: null, // 选择图片的列表
@@ -290,7 +295,7 @@ export default {
     }
   },
   props: {
-    defaultData: { type: Object, default: {} },
+    defaultData: { type: Object, default: () => ({}) },
   },
   computed: {},
   watch: {
@@ -298,16 +303,14 @@ export default {
       // console.log(value)
     },
     defaultData(value) {
-      if(this.dataSource1.length > 0 && value.gallery_id!='null'&& this.defaultData.gallery_id != null) {
+      if(value.gallery_id && value.gallery_id !== 'null') {
         this.setCurrentData(value)
       }
     },
-    dataSource1(value) {
-      if(value.length > 0 && this.defaultData.gallery_id != null&& this.defaultData.gallery_id != 'null') {
-        this.setCurrentData(this.defaultData)
-      }
-    }
-
+    visible(value) {
+      if (value) this.searchQuery()
+      else this.clearSetting()
+    },
   },
   mounted() {
     this.loadTree()
@@ -315,7 +318,13 @@ export default {
   created() {},
   methods: {
     moment,
+    hasDimension(type) {
+      // "ts" is a single dimension; it must not also match ordinary "s".
+      const dimensions = String(this.itemSet.dimension_type || '').match(/ts|[abgs]/g) || []
+      return dimensions.indexOf(type) >= 0
+    },
     changeList(id, item) {
+      this.selectionRequest++
       // 选中模板图片
       if (this.currentImg == id) {
         this.currentImg = !this.currentImg
@@ -343,17 +352,17 @@ export default {
           this.itemSet.dimension_type = item.dimension_type ? item.dimension_type : false
           this.itemSet.dacct_radio = item.dacct_radio // 是否为top10
         } else {
-          setTimeout(() => {
+          this.$nextTick(() => {
             this.textTitle = item.title
-            this.$refs.editor.firstChild.innerHTML = item.content;
+            if (this.$refs.editor) this.$refs.editor.innerHTML = item.content || '';
             this.htmlContent = item.content;
-          }, 100);
+          });
         }
         this.$forceUpdate()
       }
     },
     changeText(val) {
-      this.htmlContent = val.target.firstChild.innerHTML
+      this.htmlContent = val.target.innerHTML
     },
     handleOk() {
       // 确认
@@ -362,23 +371,23 @@ export default {
         that.$message.warning('请选择模块图片！')
       } else {
         if (this.itemSet.dimension_type) {
-          if (!this.queryParam.accounting && this.itemSet.dimension_type.indexOf('b') >= 0) {
+          if (!this.queryParam.accounting && this.hasDimension('b')) {
             that.$message.warning('请选择核算主体！')
             return
           }
-          if (!this.queryParam.areaid && this.itemSet.dimension_type.indexOf('a') >= 0) {
+          if (!this.queryParam.areaid && this.hasDimension('a')) {
             that.$message.warning('请选择所属地区！')
             return
           }
-          if (!this.queryParam.guokuid && this.itemSet.dimension_type.indexOf('g') >= 0) {
+          if (!this.queryParam.guokuid && this.hasDimension('g')) {
             that.$message.warning('请选择所属国库！')
             return
           }
-          if (!this.queryParam.subject_code && this.itemSet.dimension_type.indexOf('s') >= 0) {
+          if (!this.queryParam.subject_code && this.hasDimension('s')) {
             that.$message.warning('请选择科目类！')
             return
           }
-          if (!this.queryParam.tsubject_code && this.itemSet.dimension_type.indexOf('ts') >= 0) {
+          if (!this.queryParam.tsubject_code && this.hasDimension('ts')) {
             that.$message.warning('请选择T科目类！')
             return
           }
@@ -395,7 +404,7 @@ export default {
             if (this.queryParam.timeType == 2) {
               //时间区域
               if (this.queryParam.time_type == 'd' || this.queryParam.time_type == 'm') {
-                if (this.timeData == '') {
+                if (!Array.isArray(this.timeData) || this.timeData.length !== 2 || !this.timeData.every(Boolean)) {
                   that.$message.warning('请选择时间！')
                   return
                 }
@@ -420,7 +429,7 @@ export default {
                   }
                 }
               }
-            } else if (this.queryParam.timeType == 1) {
+            } else if (this.queryParam.timeType == 1 || this.queryParam.timeType == 4) {
               // 至今
               if (this.startTimeData == '' || this.startTimeData == undefined) {
                 that.$message.warning('请选择时间！')
@@ -443,8 +452,8 @@ export default {
         }
         dataItem.gallery_id = this.currentImg
         // console.log('this.textTitle'+this.textTitle)
-        dataItem.title = this.textTitle!='' ? this.textTitle : this.imgSrcList.title
-        dataItem.content = this.htmlContent!='' ? this.htmlContent :this.imgSrcList.content
+        dataItem.title = this.imgSrcList.type === 'h' ? this.textTitle : this.imgSrcList.title
+        dataItem.content = this.imgSrcList.type === 'h' ? this.htmlContent : this.imgSrcList.content
         dataItem.type = this.imgSrcList.type
         dataItem.option = this.imgSrcList.option
         dataItem.query_path = this.imgSrcList.query_path || this.imgSrcList.interface
@@ -466,12 +475,12 @@ export default {
           let searchData = this.setpageWhere('a', 'area_code', this.queryParam.areaid)
           dataItem.pageWhere.push(searchData)
         }
-        if (this.queryParam.subject_code && this.itemSet.dimension_type.indexOf('s') >= 0) {
+        if (this.queryParam.subject_code && this.hasDimension('s')) {
           // 科目不为空
           let searchData = this.setpageWhere('s', 'subject_code', this.queryParam.subject_code)
           dataItem.pageWhere.push(searchData)
         }
-        if (this.queryParam.tsubject_code && this.itemSet.dimension_type.indexOf('ts') >= 0) {
+        if (this.queryParam.tsubject_code && this.hasDimension('ts')) {
           // t科目不为空
           let searchData = this.setpageWhere('ts', 'subject_code', this.queryParam.tsubject_code)
           dataItem.pageWhere.push(searchData)
@@ -500,9 +509,6 @@ export default {
         }
         // console.log(dataItem);
         this.$emit('ok', dataItem)
-        const time = setTimeout(() => {
-          this.clearSetting()
-        }, 500)
       }
     },
     setpageWhere(type, key, data) {
@@ -516,6 +522,7 @@ export default {
     },
     clearSetting() {
       // 清空设置
+      this.selectionRequest++
       this.currentImg = false
       this.imgSrcList = null
       this.timeData = undefined
@@ -524,6 +531,7 @@ export default {
       this.htmlContent = ''
       this.itemSet = {}
       this.queryParam = {}
+      this.startquarter = this.endquarter = this.startYear = this.endYear = ''
       // this.searchParam = {}
     },
     cycleChange(value) {
@@ -586,26 +594,37 @@ export default {
     },
     getGalleryList() {
       // 图库接口
-      let data = this.searchParam
-      data.state = 0
+      const data = { ...this.searchParam, state: '0', pageNo: this.galleryPage, pageSize: 12 }
+      const request = ++this.galleryRequest
       this.confirmLoading = true
-      getGalleryList(data).then((res) => {
-        this.confirmLoading = false
-        if (res.result === 'success') {
-          
-          this.dataSource1 = res.rows;
+      return getGalleryList(data).then((res) => {
+        if (request !== this.galleryRequest) return
+        if (res.result === 'success' && Array.isArray(res.rows)) {
+          this.dataSource1 = res.rows
+          this.galleryTotal = Number(res.total) || 0
         } else {
-          this.$message.error(res.msg)
+          this.dataSource1 = []
+          this.galleryTotal = 0
+          this.$message.error(res.msg || '图库加载失败')
         }
+      }).catch(() => {
+        if (request === this.galleryRequest) this.$message.error('图库加载失败，请重试')
+      }).finally(() => {
+        if (request === this.galleryRequest) this.confirmLoading = false
       })
+    },
+    changeGalleryPage(page) {
+      this.galleryPage = page
+      return this.getGalleryList()
     },
     searchQuery() {
       // 查询图库
-      this.getGalleryList()
+      this.galleryPage = 1
+      return this.getGalleryList()
     },
     searchReset() {
       this.searchParam = {}
-      this.getGalleryList()
+      return this.searchQuery()
     },
     loadTree() {
       // 地区树、国库树、核算树请求
@@ -653,17 +672,27 @@ export default {
         }
       })
     },
-    setCurrentData(value) { // 模板数据回显
+    async setCurrentData(value) { // 模板数据回显
+      const request = ++this.selectionRequest
       if (value.gallery_id) {
-        this.currentImg = value.gallery_id
-        this.dataSource1.forEach((item) => {
-          if (item.id == value.gallery_id) {
-            this.imgSrcList = item
-            this.itemSet.time_type = item.time_type // 时间类型
-            this.itemSet.dacct_radio = item.dacct_radio // 是否为top10
-            this.itemSet.dimension_type = item.dimension_type // 有哪些选择条件
+        let selected = this.dataSource1.find(item => item.id == value.gallery_id)
+        if (!selected) {
+          try {
+            const res = await getGalleryList({ id: value.gallery_id, pageNo: 1, pageSize: 1 })
+            if (request !== this.selectionRequest) return
+            selected = res.result === 'success' && Array.isArray(res.rows) ? res.rows[0] : null
+          } catch (e) {
+            if (request === this.selectionRequest) this.$message.error('模块信息加载失败，请重试')
+            return
           }
-        })
+        }
+        if (!selected) {
+          this.$message.warning('原图库已不存在，请重新选择图表')
+          return
+        }
+        this.currentImg = value.gallery_id
+        this.imgSrcList = selected
+        this.itemSet = { time_type: selected.time_type, dacct_radio: selected.dacct_radio, dimension_type: selected.dimension_type }
         if(this.imgSrcList.type !='h'){
           // console.log(value.pageWhere)
           this.timeData = undefined
@@ -707,11 +736,11 @@ export default {
             })
           }
         } else {
-          setTimeout(() => {
-            this.$refs.editor.firstChild.innerHTML = value.content;
+          this.$nextTick(() => {
+            if (this.$refs.editor) this.$refs.editor.innerHTML = value.content || '';
             this.textTitle = value.title;
             this.htmlContent = value.content;
-          }, 100);
+          });
         }
         
       }

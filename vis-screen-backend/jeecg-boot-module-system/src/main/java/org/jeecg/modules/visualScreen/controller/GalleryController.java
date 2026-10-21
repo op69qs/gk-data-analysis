@@ -9,6 +9,7 @@ import org.jeecg.modules.util.PageData;
 import org.jeecg.modules.visualScreen.service.GalleryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -32,10 +33,12 @@ public class GalleryController extends BaseController {
     public Map<String, Object> getPage(@RequestBody(required = false) JSONObject param) {
         Map<String, Object> result = new HashMap<>();
         try {
-            PageData pd = this.getPageData(param);
-            Integer pageNo = (Integer.parseInt(pd.getString("pageNo")) - 1) * Integer.parseInt(pd.getString("pageSize"));
-            pd.put("page", pageNo);
-            pd.put("rows", Integer.parseInt(pd.getString("pageSize")));
+            PageData pd = param == null ? new PageData() : this.getPageData(param);
+            int pageNo = StringUtils.hasText(pd.getString("pageNo")) ? Integer.parseInt(pd.getString("pageNo")) : 1;
+            int pageSize = StringUtils.hasText(pd.getString("pageSize")) ? Integer.parseInt(pd.getString("pageSize")) : 12;
+            if (pageNo < 1 || pageSize < 1) throw new IllegalArgumentException("分页参数无效");
+            pd.put("page", (pageNo - 1) * pageSize);
+            pd.put("rows", pageSize);
             List<Map<String, Object>> data = galleryService.getPage(pd);
             Integer count = galleryService.getCount(pd);
             result.put("total", count);//total键 存放总记录数，必须的
@@ -45,7 +48,7 @@ public class GalleryController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", e.getMessage());
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }

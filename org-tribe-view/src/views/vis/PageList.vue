@@ -52,7 +52,7 @@
                 <a-col :span="8" v-for="item in dataSource" :key="item.id">
                     <a-card hoverable>
                         <img slot="cover" :alt="item.name" :src="item.thumbnail" class="i_wh"/>
-                        <template slot="actions" :slot-scope="{item}">
+                        <template slot="actions">
                             <div class="editTitle">
                                 <span @click="onTabChange('edit',item.id)"><a-icon key="edit" type="edit"/> 编辑</span>
                                 <span @click="onTabChange('delete',item.id)"><a-icon key="delete" type="delete" />删除</span>
@@ -67,6 +67,8 @@
                 </a-col>
             </a-row>
         </a-spin>
+        <a-pagination :current="ipagination.current" :page-size="ipagination.pageSize"
+                      :total="ipagination.total" @change="changePage" style="margin-top: 24px; text-align: right" />
     </a-card>
 </template>
 
@@ -74,7 +76,6 @@
     import {ListMixin} from '@/mixins/ListMixin'
     import { postAction } from '@/api/manage'
     import { editPageState, getPageList } from '@/api/visScreen'
-    import { visPreviewDebug } from '@/utils/visPreviewDebug'
     export default {
         name: "PageList",
         mixins: [ListMixin],
@@ -87,62 +88,19 @@
                 },
                 loading: false,
                 dataSource:[],
-                isAchiveBottom: false
+                listRequest: 0
             }
         },
-        created() {
-            //滚动加载
-            this.handleWindowScroll = () => {
-                //变量scrollTop是滚动条滚动时，距离顶部的距离
-                let scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-                //变量windowHeight是可视区的高度
-                let windowHeight = document.documentElement.clientHeight || document.body.clientHeight;
-                //变量scrollHeight是滚动条的总高度
-                let scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
-                //滚动条到底部的条件(距底部20px时触发加载)
-                if (scrollTop + windowHeight >= scrollHeight - 20 && this.dataSource.length !== this.ipagination.total) {
-                    visPreviewDebug('PageList window scroll triggers loadData', {
-                        route: this.$route && this.$route.fullPath,
-                        scrollTop: scrollTop,
-                        windowHeight: windowHeight,
-                        scrollHeight: scrollHeight,
-                        dataSourceLength: this.dataSource.length,
-                        total: this.ipagination.total,
-                        current: this.ipagination.current
-                    });
-                    //延时触发数据加载
-                    setTimeout(() => {
-                        this.ipagination.current++;
-                        this.loadData();
-                    }, 500);
-                    
-                }
-            };
-            window.onscroll = this.handleWindowScroll;
-        },
-        beforeDestroy() {
-            if (window.onscroll === this.handleWindowScroll) {
-                window.onscroll = null;
-            }
-        },
-        deactivated() {
-            if (window.onscroll === this.handleWindowScroll) {
-                window.onscroll = null;
-            }
+        activated() {
+            if (!this.loading) this.loadData()
         },
         methods:{
             addChange(){
-                this.$router.push({name: 'VisPageEditorEntry', params: {type: 'add'}})
+                this.$router.push({name: 'VisPageEditorEntry', query: {type: 'add'}})
             },
             onTabChange(type,id){
-                let dataItem = "";
-                this.dataSource.forEach((item)=>{
-                    if(item.id == id) {
-                        dataItem = item;
-                    }
-                })
                 if(type == "edit"){
-                    this.$router.push({name: 'VisPageEditorEntry', params: {itemData: dataItem,type: type}})
+                    this.$router.push({name: 'VisPageEditorEntry', query: {id, type}})
                 } else if(type == 'delete'){
                     this.showDeleteConfirm(id)
                 } else {
@@ -150,7 +108,7 @@
                         id: id,
                         state: 0
                     }
-                    editPageState(params).then(res => {
+                    return editPageState(params).then(res => {
                         // console.log(res)
                         if (res.result === 'success') {
                             this.$message.success(res.msg);
@@ -158,7 +116,7 @@
                         }else{
                             this.$message.warning(res.msg);
                         }
-                    });
+                    }).catch(() => this.$message.error('发布失败，请重试'));
                 }
             },
             showDeleteConfirm(id) { // 删除弹框
@@ -171,48 +129,46 @@
                     onOk() {
                         // that.handleDelete({id:id})
                         let params = {id:id}
-                        postAction(that.url.delete, params).then((res) => {
+                        return postAction(that.url.delete, params).then((res) => {
                             if (res.result === 'success') {
                                 that.$message.success(res.msg);
                                 that.loadData(1);
                             } else {
                                 that.$message.warning(res.msg);
                             }
-                        });
+                        }).catch(() => that.$message.error('删除失败，请重试'));
                     },
                     onCancel() {
                         console.log('Cancel');
                     },
                 });
             },
+            changePage(page) {
+                this.ipagination.current = page
+                return this.loadData()
+            },
             loadData(arg) {
-                visPreviewDebug('PageList loadData called', {
-                    route: this.$route && this.$route.fullPath,
-                    arg: arg,
-                    current: this.ipagination.current,
-                    pageSize: this.ipagination.pageSize
-                });
                 //加载数据 若传入参数1则加载第一页的内容
                 if (arg === 1) {
                     this.ipagination.current = 1;
                 }
                 let params = this.getQueryParams();//查询条件
+                const request = ++this.listRequest
                 this.loading = true;
-                getPageList(params).then((res) => {
-                    if (res.result === 'success') {
-                        if(this.ipagination.current == 1) {
-                            this.dataSource = res.rows;
-                        }else {
-                            this.dataSource.push(...res.rows);
-                        }
-                        this.ipagination.total = res.total;
+                return getPageList(params).then((res) => {
+                    if (request !== this.listRequest) return
+                    if (res.result === 'success' && Array.isArray(res.rows)) {
+                        this.dataSource = res.rows;
+                        this.ipagination.total = Number(res.total) || 0;
+                    } else {
+                        this.dataSource = []
+                        this.ipagination.total = 0
+                        this.$message.warning(res.msg || '页面加载失败')
                     }
-                    if (res.code === 510) {
-                        this.$message.warning(res.msg)
-                    }
-                    this.loading = false;
-                }).catch(err => {
-                    this.loading = false;
+                }).catch(() => {
+                    if (request === this.listRequest) this.$message.error('页面加载失败，请重试')
+                }).finally(() => {
+                    if (request === this.listRequest) this.loading = false
                 })
             },
         }

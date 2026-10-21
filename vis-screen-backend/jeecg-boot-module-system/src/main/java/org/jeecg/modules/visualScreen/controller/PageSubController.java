@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class PageSubController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "操作失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
@@ -91,6 +92,7 @@ public class PageSubController extends BaseController {
                     }
                     queryPd.put("gallery_id", tmp.get("gallery_id"));
                     queryPd.put("page_id", tmp.get("page_id"));
+                    queryPd.put("sub_id", tmp.get("id"));
                     List<Map<String, Object>> whereData = pageWhereService.getAll(queryPd);
                     if (null != whereData && whereData.size() > 0) {
                         List<PageWhere> pws = new ArrayList<>();
@@ -107,14 +109,14 @@ public class PageSubController extends BaseController {
                 }
                 result.put("rows", pss);//rows键 存放每页记录 list
             } else {
-                result.put("rows", "{}");//rows键 存放每页记录 list
+                result.put("rows", Collections.emptyList());
             }
             result.put("msg", "查询成功");
             result.put("result", "success");
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "操作失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
