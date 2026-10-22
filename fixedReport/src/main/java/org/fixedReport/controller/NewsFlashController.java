@@ -199,11 +199,15 @@ public class NewsFlashController extends BaseController {
         Map<String, Object> rows = new HashMap<>();
         try {
             PageData pd = this.getPageData(param);
+            log.info("开始生成月度快报，REPORT_ID={}，ACCOUNT_PERIOD={}",
+                    pd.getString("REPORT_ID"), pd.getString("ACCOUNT_PERIOD"));
             List<Map<String, Object>> textList = newsFlashService.getTextAndParams(pd);
             List<Map<String, Object>> tableParamsList = newsFlashService.getTableParams(pd);
             List<Map<String, Object>> tableParamsList2 = newsFlashService.getTableParams2(pd);
             List<Map<String, Object>> tableParamsList3 = newsFlashService.getTableParams3(pd);
             if (textList.isEmpty()) {
+                log.warn("月度快报生成中止：当前账期缺少快报文字数据，REPORT_ID={}，ACCOUNT_PERIOD={}",
+                        pd.getString("REPORT_ID"), pd.getString("ACCOUNT_PERIOD"));
                 res.put("result", "fail");
                 res.put("rows", "当前账期缺少快报文字数据，无法生成上半部分文字内容");
                 return res;
@@ -239,10 +243,16 @@ public class NewsFlashController extends BaseController {
             rows.put("REPORT_TYPE_ID", pd.getString("REPORT_TYPE_ID"));
             newsFlashService.insertFact(rows);
             reportService.updateEntityReport(rows);
+            log.info("月度快报生成完成，REPORT_ID={}，ACCOUNT_PERIOD={}",
+                    pd.getString("REPORT_ID"), pd.getString("ACCOUNT_PERIOD"));
             res.put("result", "success");
             res.put("rows", rows);
         }catch (Exception e){
-            e.printStackTrace();
+            // 原 e.printStackTrace() 打到 stderr，现场 tail console.log 看不到堆栈，
+            // 表现为“日志只有两行、报告一直生成中”，故改用 log.error 输出。
+            log.error("月度快报生成失败，REPORT_ID={}，ACCOUNT_PERIOD={}",
+                    param == null ? null : param.getString("REPORT_ID"),
+                    param == null ? null : param.getString("ACCOUNT_PERIOD"), e);
             res.put("result", "fail");
             res.put("rows", e.getMessage());
         }

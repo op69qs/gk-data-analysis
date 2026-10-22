@@ -184,6 +184,21 @@ export default {
     }
   },
   methods: {
+    // 生成接口原为“发后不理”：失败时前端无任何提示，列表只显示一直“生成中”。
+    // 这里统一接住结果，失败时把后端返回的原因展示出来，完成后再刷新一次列表。
+    trackGeneration(genPromise) {
+      genPromise
+        .then(genRes => {
+          if (!genRes || genRes.result !== 'success') {
+            this.$message.error('报告内容生成失败：' + ((genRes && genRes.rows) || '请查看后台日志'))
+          }
+          this.$emit('ok')
+        })
+        .catch(() => {
+          this.$message.error('报告内容生成请求失败，请查看后台日志')
+          this.$emit('ok')
+        })
+    },
     //  限制月的方法
     disabledMonth(current) {
       // console.log(current, 'ccccc') //current是月份的最后一个月
@@ -295,32 +310,23 @@ export default {
                 console.log(res)
                 // debugger
                 if (formData.REPORT_TYPE_ID === '1') {
-                  console.log(this)
-                  // debugger
                   //生成月度报告数据
-                  addMonthlyReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData))
-                  console.log(formData, 'fffffffffffdddddddddddddddd')
+                  this.trackGeneration(addMonthlyReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData)))
                   this.handleClose()
                   this.$emit('ok')
                 } else if (formData.REPORT_TYPE_ID === '2') {
                   // 生成月度快报数据
-                  addNewsFlashReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData))
-                  console.log(formData, 'fffffffffffdddddddddddddddd')
-                  //生成月度快报数据
+                  this.trackGeneration(addNewsFlashReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData)))
                   this.handleClose()
                   this.$emit('ok')
                 } else if (formData.REPORT_TYPE_ID === '3') {
                   // 生成季度报告数据
-                  addQuarterReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData))
-                  console.log(formData, 'fffffffffffdddddddddddddddd')
-                  //生成季度报告数据
+                  this.trackGeneration(addQuarterReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData)))
                   this.handleClose()
                   this.$emit('ok')
                 }else{
-                  // 生成季度报告数据
-                  addQuarterQuickReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData))
-                  console.log(formData, 'fffffffffffdddddddddddddddd')
-                  //生成季度报告数据
+                  // 生成季度快报数据
+                  this.trackGeneration(addQuarterQuickReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData)))
                   this.handleClose()
                   this.$emit('ok')
                 }

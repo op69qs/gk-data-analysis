@@ -2311,53 +2311,36 @@ FROM
           ELSE SUBSTR(COALESCE(left_rows.PROJECT,''),1,2)  END  AS PROJECT,
           COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS T010101_RATE,
           COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS T010101_RANK,
-          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.COL_101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS "101_TATE",
-          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.COL_101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS "101_RANK",
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.c_101_tate*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/') AS "101_TATE",
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((left_rows.c_101_rank))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/') AS "101_RANK",
           CASE WHEN COALESCE(right_rows.PROJECT,'') = '内蒙古'  THEN  COALESCE(right_rows.PROJECT,'')
               WHEN COALESCE(right_rows.PROJECT,'') = '黑龙江'  THEN  COALESCE(right_rows.PROJECT,'')
           ELSE SUBSTR(COALESCE(right_rows.PROJECT,''),1,2)  END    AS PROJECT_1,
           COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.T010101_RATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')  AS T010101_RATE_1,
           COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.T010101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')  AS T010101_RANK_1,
-          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.COL_101_TATE*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS "101_TATE_1",
-          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.COL_101_RANK))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')      AS "101_RANK_1"
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.c_101_tate*100))::text, '') AS NUMERIC), 2), 'FM999,999,999,999,999,999,999,999,990.00'),',','|'),''),'/')      AS "101_TATE_1",
+          COALESCE(CONCAT(REPLACE(TO_CHAR(ROUND(CAST(NULLIF(((right_rows.c_101_rank))::text, '') AS NUMERIC), 0), 'FM999,999,999,999,999,999,999,999,990'),',','|'),''),'/')      AS "101_RANK_1"
           FROM
           (
-          SELECT  DATA_DATE,project,
-          T010101_RATE,
-          T010101_RANK,
-          COL_101_TATE,
-          COL_101_RANK, ROW_NUMBER() OVER (ORDER BY ROWS_ID) AS ROWS_ID FROM (
-          SELECT   DATA_DATE,
+          SELECT  src.DATA_DATE,src.project,
           src.T010101_RATE,
           src.T010101_RANK,
-          src.c_101_tate AS COL_101_TATE,
-          src.c_101_rank AS COL_101_RANK,
-          src.PROJECT,
-          src.ROWS_ID  FROM
+          src.c_101_tate,
+          src.c_101_rank, ROW_NUMBER() OVER (ORDER BY src.ROWS_ID) AS ROWS_ID FROM
           edw.TRS_BUDGET_INCOME_COMPARE src
           WHERE src.ROWS_ID  &lt;  34
           AND RTRIM(src.DATA_DATE) =REPLACE('${params.ACCOUNT_PERIOD}','-','')
-          ) left_src
           ) left_rows
           LEFT JOIN
           (
-          SELECT  DATA_DATE,project,
-          T010101_RATE,
-          T010101_RANK,
-          COL_101_TATE,
-          COL_101_RANK, ROW_NUMBER() OVER (ORDER BY ROWS_ID) AS ROWS_ID FROM (
-          SELECT   DATA_DATE,
+          SELECT  src.DATA_DATE,src.project,
           src.T010101_RATE,
           src.T010101_RANK,
-          src.c_101_tate AS COL_101_TATE,
-          src.c_101_rank AS COL_101_RANK,
-          src.PROJECT,
-          src.ROWS_ID  FROM
+          src.c_101_tate,
+          src.c_101_rank, ROW_NUMBER() OVER (ORDER BY src.ROWS_ID) AS ROWS_ID FROM
           edw.TRS_BUDGET_INCOME_COMPARE src
           WHERE src.ROWS_ID &gt; 33
           AND RTRIM(src.DATA_DATE) =replace('${params.ACCOUNT_PERIOD}','-','')
-          ) right_src
-
           ) right_rows
           ON  left_rows.rows_id = right_rows.rows_id
 
