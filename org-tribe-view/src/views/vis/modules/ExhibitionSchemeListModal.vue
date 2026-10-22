@@ -10,7 +10,11 @@
             wrapClassName="ant-modal-cust-warp"
             style="top:5%;height: 85%;overflow-y: hidden">
 
-        <a-spin :spinning="confirmLoading">
+        <a-spin :spinning="confirmLoading" tip="正在保存方案，请稍候...">
+            <a-alert v-if="loadError" :message="loadError" type="error" show-icon style="margin-bottom: 16px" />
+            <a-button v-if="loadError" @click="retryLoad" icon="reload">重新加载</a-button>
+            <a-alert v-if="hasUnavailablePages" message="方案包含已删除的页面，已保留原有顺序；可在选择框中移除这些页面。"
+                     type="warning" show-icon style="margin-bottom: 16px" />
             <a-form :form="form">
 
                 <a-form-item
@@ -25,6 +29,7 @@
                         :wrapperCol="wrapperCol"
                         label="选择展示页面">
                     <a-select placeholder="选择展示页面" v-decorator="[ 'level', validatorRules.level]" mode="multiple"
+                              :loading="optionsLoading" :disabled="optionsLoading || !!loadError"
                               :maxTagTextLength="6" :maxTagCount="3" @change="handleChange">
                         <a-select-option v-for="d in pageOptions" :key="d.id">{{d.name}}</a-select-option>
                     </a-select>
@@ -36,7 +41,7 @@
                         :wrapperCol="wrapperCol"
                         label="选择切换顺序">
                     <draggable v-model="page" handle=".i_s" animation="100">
-                        <div v-for="item in page" class="d_w">
+                            <div v-for="item in page" :key="item.id" class="d_w">
                             <img :src="item.thumbnail" :alt="item.name"
                                  :key="item.id" class="i_s"/>
                             <div>{{item.name | handleText}}</div>
@@ -87,11 +92,14 @@
                     sm: {span: 16},
                 },
                 confirmLoading: false,
+                optionsLoading: false,
+                loadError: '',
+                dialogRequest: 0,
                 form: this.$form.createForm(this),
                 validatorRules: {
                     name: {
                         rules: [
-                            {required: true, message: '请输入角色名称!'},
+                            {required: true, message: '请输入方案名称!'},
                             {min: 2, max: 30, message: '长度在 2 到 30 个字符', trigger: 'blur'}
                         ]
                     },
@@ -117,6 +125,11 @@
             }
         },
         components: {Draggable},
+        computed: {
+            hasUnavailablePages() {
+                return this.page.some(item => item.unavailable);
+            }
+        },
         filters: {
             handleText(value) {
                 if (!value) return ''
@@ -126,76 +139,91 @@
                 return value
             }
         },
-        mounted(){
-            this.getListData()
-        },
         methods: {
             ...mapGetters(["userInfo"]),
             add() {
-                this.edit({});
+                return this.edit({});
             },
-            edit(record) {
-                this.confirmLoading = true;
+            async edit(record) {
+                const request = ++this.dialogRequest;
+                this.confirmLoading = false;
+                this.optionsLoading = true;
+                this.loadError = '';
+                this.pageOptions = [];
+                this.page = [];
                 this.form.resetFields();
                 this.model = Object.assign({}, record);
-                if(record.rotation_interval!=null){
-                    this.validatorRules.rotation_interval.initialValue = record.rotation_interval
-                }
-                this.model.rotation_interval = parseInt(this.model.rotation_interval)
+                this.model.rotation_interval = parseInt(record.rotation_interval, 10) || 5000;
+                this.validatorRules.rotation_interval.initialValue = this.model.rotation_interval;
                 this.visible = true;
-                //编辑页面获取回显值
-                if(this.model.id){
-                    getSchemeRel({scheme_id:this.model.id}).then((res)=>{
-                        this.confirmLoading = false;
-                        if(res.result='success') {
-                            let data = res.rows;
-                            let level = [];
-                            data.forEach((item)=>{
-                                level.push(item.page_id)
-                            })
-                            this.model.level = level;
-                            this.page = []
-                            // this.handleChange(this.model.level);
-                            level.forEach((item)=>{
-                                this.pageOptions.forEach((jitem)=>{
-                                    if(item == jitem.id) {
-                                        this.page.push(jitem)
-                                    }
-                                })
-                            })
-                            // this.pageOptions.filter(item => e.indexOf(item.id) !== -1)
-                            this.form.setFieldsValue(pick(this.model, 'name', 'level'))
+                await this.$nextTick();
+                if (request !== this.dialogRequest) return;
+                this.form.setFieldsValue(pick(this.model, 'name'));
+                try {
+                    const [options, relations] = await Promise.all([
+                        this.getListData(),
+                        record.id ? getSchemeRel({scheme_id: record.id}) : Promise.resolve({result: 'success', rows: []})
+                    ]);
+                    if (request !== this.dialogRequest) return;
+                    if (!relations || relations.result !== 'success' || !Array.isArray(relations.rows)) {
+                        throw new Error('方案页面关系加载失败');
+                    }
+                    const missing = relations.rows.filter(item => !options.some(page => page.id === item.page_id));
+                    const restored = await Promise.all(missing.map(async item => {
+                        const res = await getPageList({id: item.page_id, pageNo: 1, pageSize: 1});
+                        if (!res || res.result !== 'success' || !Array.isArray(res.rows)) {
+                            throw new Error('关联页面加载失败');
                         }
-                    })
+                        return res.rows.find(page => page.id === item.page_id) || {
+                            id: item.page_id,
+                            name: `页面已删除（${String(item.page_id).slice(0, 8)}）`,
+                            thumbnail: item.thumbnail,
+                            unavailable: true
+                        };
+                    }));
+                    if (request !== this.dialogRequest) return;
+                    this.pageOptions = options.concat(restored);
+                    this.model.level = relations.rows.map(item => item.page_id);
+                    this.handleChange(this.model.level);
+                    this.form.setFieldsValue(pick(this.model, 'level'));
+                } catch (error) {
+                    if (request !== this.dialogRequest) return;
+                    this.loadError = '方案页面加载失败，请重新加载后再保存';
+                    this.$message.error(this.loadError);
+                } finally {
+                    if (request === this.dialogRequest) this.optionsLoading = false;
                 }
-                // if (this.model.id) {
-                //     this.roleDisabled = true;
-                // } else {
-                //     this.roleDisabled = false;
-                // }
-                // this.$nextTick(() => {
-                //     // this.form.setFieldsValue(pick(this.model, 'name', 'status', 'id'))
-                //     console.log(this.model.level)
-                //     this.form.setFieldsValue(pick(this.model, 'name', 'level'))
-                // });
-
+            },
+            retryLoad() {
+                return this.edit({...this.model, name: this.form.getFieldValue('name')});
             },
             close() {
+                this.dialogRequest++;
+                this.confirmLoading = false;
+                this.optionsLoading = false;
                 this.$emit('close');
                 this.visible = false;
             },
             handleOk() {
-                const that = this;
+                if (this.confirmLoading || this.optionsLoading) return;
+                if (this.loadError) {
+                    this.$message.warning(this.loadError);
+                    return;
+                }
                 // 触发表单验证
-                this.form.validateFields((err, values) => {
+                return this.form.validateFields(async (err, values) => {
                     if (!err) {
-                        that.confirmLoading = true;
-                        let formData = Object.assign(this.model, values);
+                        if (!values.level || this.page.length !== values.level.length) {
+                            this.$message.warning('所选页面已不可用，请重新选择');
+                            return;
+                        }
+                        const request = this.dialogRequest;
+                        this.confirmLoading = true;
+                        let formData = Object.assign({}, this.model, values);
                         delete formData.level
-                        // that.confirmLoading = false;
                         formData.add_user = this.userInfo().id; // 创建人id
                         formData.schemeRel = []
-                        that.page.forEach((item,index)=>{
+                        this.page.forEach((item,index)=>{
                             let source = {
                                 page_id: item.id, //所选中的页面id
                                 thumbnail: item.thumbnail, // 选中页面的缩略图
@@ -203,25 +231,21 @@
                             }
                             formData.schemeRel.push(source)
                         })
-                        let obj;
-                        if (!this.model.id) {
-                            obj = addSchemeInfo(formData);
-                        } else {
-                            formData.scheme_id = this.model.id
-                            obj = editSchemeInfo(formData);
-                        }
-                        obj.then((res) => {
-                            if (res.result=='success') {
-                                that.$message.success(res.msg);
-                                that.$emit('ok');
+                        try {
+                            const res = await (this.model.id ? editSchemeInfo(formData) : addSchemeInfo(formData));
+                            if (request !== this.dialogRequest) return;
+                            if (res && res.result === 'success') {
+                                this.$message.success(res.msg);
+                                this.$emit('ok');
+                                this.close();
                             } else {
-                                that.$message.warning(res.msg);
+                                this.$message.warning((res && res.msg) || '方案保存失败，请重试');
                             }
-                        }).finally(() => {
-                            that.confirmLoading = false;
-                            that.close();
-                        })
-                        this.handleCancel();
+                        } catch (error) {
+                            if (request === this.dialogRequest) this.$message.error('方案保存失败，请重试');
+                        } finally {
+                            if (request === this.dialogRequest) this.confirmLoading = false;
+                        }
                     }
                 })
             },
@@ -244,23 +268,19 @@
                 // this.page = pageData.reverse();
                 
             },
-            getListData () {
-                let postData = this.postData
-                getPageList(postData).then(res => {
-                   if(res.result=='success') {
-                       if(this.postData.pageNo == 1) {
-                            this.pageOptions = res.rows;
-                        }else {
-                            this.pageOptions.push(...res.rows);
-                        }
-                        if(res.total > this.pageOptions.length) { // 当展示页面数据未全部获取时再次自动请求
-                            this.postData.pageNo ++
-                            this.getListData()
-                        }
-                   }else{
-                        this.pageOptions = []
-                   }
-                })
+            async getListData () {
+                const options = [];
+                let pageNo = 1;
+                while (true) {
+                    const res = await getPageList({...this.postData, pageNo});
+                    if (!res || res.result !== 'success' || !Array.isArray(res.rows)) {
+                        throw new Error('展示页面加载失败');
+                    }
+                    options.push(...res.rows);
+                    if (options.length >= Number(res.total)) return options;
+                    if (!res.rows.length) throw new Error('展示页面分页数据不完整');
+                    pageNo++;
+                }
             }
 
         }
