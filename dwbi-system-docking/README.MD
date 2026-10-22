@@ -7,5 +7,10 @@
     1).@EnableScheduling //开启定时器
     2).@MapperScan({"xxxx自己项目扫码包","org.dockingProjects.mapper"})
     3).@ComponentScan({"xxxx自己项目扫码包","org.dockingProjects"})
-    
+
 4、需要将次项目的application.yml单独配置，在引入的项目如添加路径
+
+5、交付包用 service.sh 启动时会加载 `lib/common/*`。若 common 里有
+   `shiro-spring-boot-starter`，而本模块无 Shiro Realm，会出现
+   `NoRealmBeanConfiguredException`。`application.yml` 已排除 Shiro 自动配置；
+   现场改配置时请保留 `spring.autoconfigure.exclude` 中相关三项。

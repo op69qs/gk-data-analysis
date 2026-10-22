@@ -7,6 +7,13 @@ server:
 spring:
   application:
     name: systemDocking
+  # deploy 时 classpath 会附带 lib/common；其中可能含 shiro-spring-boot-starter，
+  # 本模块无 Realm，需排除自动配置，否则 NoRealmBeanConfiguredException 启动失败。
+  autoconfigure:
+    exclude:
+      - org.apache.shiro.spring.boot.autoconfigure.ShiroAutoConfiguration
+      - org.apache.shiro.spring.boot.autoconfigure.ShiroBeanAutoConfiguration
+      - org.apache.shiro.spring.boot.autoconfigure.ShiroAnnotationProcessorAutoConfiguration
   # vastbase
   datasource:
 #    type: com.alibaba.druid.pool.DruidDataSource
