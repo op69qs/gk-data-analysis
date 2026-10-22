@@ -221,7 +221,7 @@ export default {
   },
   watch: {
     $route(to) {
-      if (to.name === 'VisPageEditorEntry') this.initializeEditor()
+      if (to.path === '/vis/bigscreen/pages/editor' || to.name === 'VisPageEditorEntry') this.initializeEditor()
       else this.editorRequest++
     },
   },

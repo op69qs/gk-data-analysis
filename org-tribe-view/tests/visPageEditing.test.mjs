@@ -203,3 +203,33 @@ test('opening add after edit clears the previous page id before saving', async (
   assert.equal(saved[0].operation, 'add')
   assert.equal(saved[0].id, undefined)
 })
+
+test('database menu route name reinitializes the cached page editor', async () => {
+  const vm = mount('PageEditorEntry.vue', {
+    getPageList: async () => ({ result: 'success', rows: [{ id: 'page-from-menu', name: '真实菜单页面', template: '6', title_background: '1', background_type: '1' }] }),
+    getPageSubAll: async () => ({ result: 'success', rows: [] }),
+  }, { name: 'pages', path: '/vis/bigscreen/pages', params: {}, query: {} })
+  vm.pageId = 'previous-page'
+  vm.$route = {
+    name: 'VisPageEditor', path: '/vis/bigscreen/pages/editor',
+    params: {}, query: { id: 'page-from-menu', type: 'edit' },
+  }
+  await Vue.nextTick()
+  await flush()
+  assert.equal(vm.pageId, 'page-from-menu')
+  assert.equal(vm.titleName, '真实菜单页面')
+})
+
+test('hidden module dialog does not download the gallery before it is opened', async () => {
+  let galleryRequests = 0
+  const emptyTree = async () => ({ result: 'success', rows: [] })
+  const bindings = {
+    getGalleryList: async () => { galleryRequests++; return { result: 'success', rows: [], total: 0 } },
+    getAreaTree: emptyTree, getBusinessTypeList: emptyTree, getGuokuTree: emptyTree,
+    getKeMuTreeName: emptyTree, getOrgTree: emptyTree, getSubjectTree: emptyTree,
+  }
+  const vm = mount('modules/AddTemplateDrawer.vue', bindings)
+  component('modules/AddTemplateDrawer.vue', bindings).mounted.call(vm)
+  await flush()
+  assert.equal(galleryRequests, 0)
+})

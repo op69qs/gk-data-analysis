@@ -1,7 +1,7 @@
 <template>
   <a-modal v-model="visible" @ok="handleOk" @cancel="clearSetting" :title="title" width="80%">
     <div :style="{ width: '100%', padding: '0px 16px', background: '#fff' }">
-      <a-spin :spinning="confirmLoading">
+      <a-spin :spinning="confirmLoading" tip="正在加载图库，请稍候...">
         <div class="circle">
           <div class="table-page-search-wrapper">
             <a-form layout="inline" @keyup.enter.native="searchQuery">
@@ -33,6 +33,10 @@
             </a-form>
           </div>
           <h2 style="font-size: 18px">选择图表</h2>
+          <a-alert v-if="galleryError" :message="galleryError" type="error" show-icon style="margin-bottom: 12px" />
+          <a-button v-if="galleryError" @click="getGalleryList" icon="reload">重新加载图库</a-button>
+          <a-empty v-if="!confirmLoading && !galleryError && !dataSource1.length"
+                   description="没有找到可用图库，请调整查询条件或点击重置" />
           <ul class="circle-ul">
             <li v-for="item of dataSource1" :key="item.id" class="circle-li">
               <div v-on:click="changeList(item.id, item)" value="change!" class="circle-img" v-if="item.id">
@@ -273,6 +277,7 @@ export default {
       dataSource1: [],
       galleryPage: 1,
       galleryTotal: 0,
+      galleryError: '',
       galleryRequest: 0,
       selectionRequest: 0,
       confirmLoading: false,
@@ -596,6 +601,7 @@ export default {
       // 图库接口
       const data = { ...this.searchParam, state: '0', pageNo: this.galleryPage, pageSize: 12 }
       const request = ++this.galleryRequest
+      this.galleryError = ''
       this.confirmLoading = true
       return getGalleryList(data).then((res) => {
         if (request !== this.galleryRequest) return
@@ -605,10 +611,14 @@ export default {
         } else {
           this.dataSource1 = []
           this.galleryTotal = 0
-          this.$message.error(res.msg || '图库加载失败')
+          this.galleryError = '图库加载失败，请重试；若仍无法加载，请联系管理员检查服务'
+          this.$message.error(this.galleryError)
         }
       }).catch(() => {
-        if (request === this.galleryRequest) this.$message.error('图库加载失败，请重试')
+        if (request === this.galleryRequest) {
+          this.galleryError = '图库请求失败，请检查网络后重新加载'
+          this.$message.error(this.galleryError)
+        }
       }).finally(() => {
         if (request === this.galleryRequest) this.confirmLoading = false
       })
@@ -628,7 +638,6 @@ export default {
     },
     loadTree() {
       // 地区树、国库树、核算树请求
-      this.getGalleryList()
       var that = this
       let data = {}
       //国库

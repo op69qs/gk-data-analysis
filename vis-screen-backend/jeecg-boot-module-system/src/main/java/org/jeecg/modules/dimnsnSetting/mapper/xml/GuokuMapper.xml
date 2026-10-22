@@ -375,7 +375,7 @@
         WHEN a.guoku_pid = ''
         THEN a.guoku_id
         ELSE a.guoku_pid
-        END AS pId
+        END AS "pId"
         FROM
         dmcode.`cm_guoku_dimnsn` a
         WHERE 1 = 1
@@ -403,7 +403,7 @@
           SELECT
             a.`AREA_NO_ID` AS id,
             a.`AREA_DSCR` AS name,
-            a.`area_no_pid` AS pId
+            a.`area_no_pid` AS "pId"
         FROM
             dmcode.`cm_guoku_area_code` a
     </select>
@@ -668,7 +668,7 @@
         THEN SUBJECT_code_2
         WHEN LEVEL = 4
         THEN SUBJECT_code_3
-        END pId,
+        END AS "pId",
         LEVEL
         FROM
         edw.cm_guoku_rcpt_dsb
@@ -681,14 +681,14 @@
         	SELECT DISTINCT
 	  a.`FUN_CLASS_CODE_1` id,
 	  a.`FUN_CLASS_DSCR_1` AS name,
-	  '' pId
+	  '' AS "pId"
 	FROM
 	  edw.cm_guoku_functional_type a
 	UNION
 	SELECT DISTINCT
 	  a.`FUN_CLASS_CODE_2` id,
 	  a.`FUN_CLASS_DSCR_2` AS name,
-	  a.`FUN_CLASS_CODE_1` AS pId
+	  a.`FUN_CLASS_CODE_1` AS "pId"
 	FROM
 	  edw.cm_guoku_functional_type a
 	WHERE a.`FUN_CLASS_CODE_2` NOT IN
@@ -700,7 +700,7 @@
 	  SELECT DISTINCT
 	    a.`FUN_CLASS_CODE_3` id,
 	    a.`FUN_CLASS_DSCR_3` AS name,
-	    a.`FUN_CLASS_CODE_2` AS pId
+	    a.`FUN_CLASS_CODE_2` AS "pId"
 	  FROM
 	    edw.cm_guoku_functional_type a
 	  WHERE a.`FUN_CLASS_CODE_3` NOT IN

@@ -52,3 +52,31 @@ java -cp 'vis-screen-backend/jeecg-boot-module-system/target/classes:vis-screen-
 6. 文本模块输入多段内容，标题背景设为无，保存并刷新后设置保持。
 7. 保存为未发布、编辑器发布及列表发布的状态正确；删除取消不影响记录，确认后只删除选定页面。
 8. 在测试环境模拟请求失败，界面提示失败、提交遮罩消失、可重试；后端事务回滚需要现场数据库集成验收。
+
+## 客户反馈后的二次排查（2026-10-21）
+
+客户反馈前后端均已更新，页面编辑仍未解决。上轮模拟接口验收不足以证明现场问题解决。本轮使用配置中可访问的数据库及原 Controller、Service、Mapper 进行只读联调，包含视频同名的“国库部分业务凭证展示”页面；该数据库不是客户现场环境。
+
+本轮确认并修正：
+
+- 数据库菜单的编辑路由名是 `VisPageEditor`，静态入口名是 `VisPageEditorEntry`。原缓存重置只判断后者，现按规范路径识别编辑页，兼容实际菜单及历史导航。
+- 国库、地区、科目树 SQL 的 `pId` 别名未引用，JDBC 实际返回 `pid`，但组树代码读取 `pId`。已在 vis 模块引用别名，保持现有接口字段契约。真实数据库两个回归测试修改前均失败，修改后通过。
+- 真实图库首屏 12 条返回约 7 MB，联调中耗时约 14 秒；隐藏弹窗此前还会预先下载整页图库。现仅在打开时请求图库，并增加明确的加载、空结果、失败及重试提示。这里的耗时是本次联调环境观测，不能替代现场网络测量。
+
+真实只读数据库测试需显式启用，默认不会连接数据库；连接强制只读，结束时回滚：
+
+```bash
+java -Dvis.editor.readonly.integration=true \
+  -Dvis.editor.config=/absolute/path/to/application-dev.yml \
+  -cp 'vis-screen-backend/jeecg-boot-module-system/target/classes:vis-screen-backend/jeecg-boot-module-system/target/test-classes:vis-screen-backend/jeecg-boot-module-system/target/lib/*' \
+  org.junit.runner.JUnitCore org.jeecg.modules.visualScreen.controller.VisEditorReadOnlyIntegrationTest
+```
+
+交付时需确认主服务 JAR 内 `static/index.html` 与本次前端构建完全一致；只更新 vis-screen JAR 不会替换主服务承载的前端。若现场使用独立 Web 服务器托管前端，还需更新其静态目录。现场保存、发布与多表回滚仍需实际部署验收。
+
+本轮验证结果：
+
+- 前端 11 个测试文件通过，页面编辑回归增至 16 项；vis 后端原 66 项回归及新增 2 项真实只读数据库测试通过。
+- 真实浏览器运行生产构建，使用数据库实际菜单路由及视频同名页面：加载原有 5 个模块，隐藏弹窗不请求图库；双击模块后加载真实图库，查询并替换图表，选择日期及地区条件后预览更新。地区树为 1 个根节点、42 个子节点，页面无 JavaScript 异常。登录壳使用本地测试身份，业务查询调用原 Controller、Service、Mapper；未执行保存、发布或其他数据库写入。
+- Node 14 前端构建、Java 8 主服务和 vis 服务打包通过。逐文件核对主服务 JAR 内全部 57 个前端文件与本次构建一致，并核对 vis JAR 内维度 Mapper 与修改后的源文件一致。前端仍有原有 CSS 顺序及资源体积构建告警。
+- 增量更新包包含主服务 JAR、vis 服务 JAR、独立托管用的前端目录及校验清单；保留现场原有配置、依赖与部署方式。现场保存、发布、删除和事务回滚仍待部署后的实际验收，本轮只读联调不替代该验收。
