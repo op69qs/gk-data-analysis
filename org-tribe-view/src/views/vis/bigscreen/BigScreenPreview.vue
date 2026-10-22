@@ -10,7 +10,7 @@
       ref="carouselFull"
     >
       <el-carousel-item v-for="(item, index) in levelData" :key="index">
-        <big-screentab :layoutData="item" :screenHeight="screenHeight" :fatherMethod="fatherMethod"></big-screentab>
+        <big-screentab :layoutData="item" :screenHeight="screenHeight" :fatherMethod="loadingCallback"></big-screentab>
       </el-carousel-item>
     </el-carousel>
     <div class="bigLoading" v-if="isShow">
@@ -30,6 +30,11 @@
           </template>
         </a-progress>
       </div>
+    </div>
+    <div v-if="loadError" class="preview-error">
+      <a-alert type="error" show-icon :message="loadError" />
+      <a-button @click="getData" icon="reload">重新加载</a-button>
+      <a-button @click="$router.push({ path: '/vis/bigscreen/schemes' })">返回方案管理</a-button>
     </div>
   </div>
 </template>
@@ -55,6 +60,10 @@ export default {
       circle: false,
       interval: 5000,
       isShow: true,
+      loadError: '',
+      previewRequest: 0,
+      progressTimer: null,
+      loadingCallback: null,
       levelData: [],
       currentNum: 0, // 当前已请求成功接口数
       totalNum: 0, // 总接口数
@@ -72,7 +81,11 @@ export default {
     }
   },
   watch: {
+    '$route.fullPath'() {
+      this.getData()
+    },
     currentNum(val) {
+      if (this.totalNum <= 0) return
       let precent = parseInt((this.currentNum / this.totalNum) * 100)
       this.percentNum = precent
       visPreviewDebug('progress changed', {
@@ -86,8 +99,10 @@ export default {
       if (this.currentNum >= this.totalNum) {
         this.percentNum = 100
         visPreviewDebug('loading complete, hide mask scheduled')
-        setTimeout(() => {
-          this.isShow = false
+        clearTimeout(this.progressTimer)
+        const request = this.previewRequest
+        this.progressTimer = setTimeout(() => {
+          if (request === this.previewRequest) this.isShow = false
           // this.mouserChange()
           // this.newchange()
         }, 1000)
@@ -165,6 +180,17 @@ export default {
     },
     getData() {
       // 页面数据
+      const request = ++this.previewRequest
+      this.loadingCallback = () => {
+        if (request === this.previewRequest) this.fatherMethod()
+      }
+      clearTimeout(this.progressTimer)
+      this.isShow = true
+      this.loadError = ''
+      this.levelData = []
+      this.totalNum = 0
+      this.currentNum = 0
+      this.percentNum = 0
       let id = this.$route.query.info || this.$route.query.schemeId
       this.autoSetting =  this.$route.query.autoSetting == 1 ? true :false
       this.interval = resolveVisCarouselInterval(this.$route.query.interval)
@@ -174,7 +200,13 @@ export default {
         autoSetting: this.autoSetting,
         interval: this.interval
       })
-      getSchemeAllPage({ scheme_id: id }).then((res) => {
+      if (!id) {
+        this.loadError = '请从方案管理选择一个方案后预览'
+        this.isShow = false
+        return Promise.resolve()
+      }
+      return getSchemeAllPage({ scheme_id: id }).then((res) => {
+        if (request !== this.previewRequest) return
         visPreviewDebug('getSchemeAllPage response', {
           result: res && res.result,
           count: res && res.count,
@@ -182,10 +214,11 @@ export default {
           rowsLength: res && res.rows && res.rows.length,
           res: res
         })
-        if (res.result == 'success') {
+        const pages = res && (res.data || res.rows)
+        if (res && res.result === 'success' && Array.isArray(pages)) {
           this.currentNum = 0
           this.percentNum = 0
-          this.levelData = res.data || res.rows || []
+          this.levelData = pages
           // console.log(res)
           this.totalNum = this.getLoadingItemCount(this.levelData)
           visPreviewDebug('loading total resolved', {
@@ -193,7 +226,15 @@ export default {
             levelData: this.levelData
           })
           if (this.totalNum == 0) this.isShow = false
+          if (!pages.length) this.loadError = '当前方案暂无可预览页面'
+        } else {
+          throw new Error('方案预览加载失败')
         }
+      }).catch(() => {
+        if (request !== this.previewRequest) return
+        this.levelData = []
+        this.isShow = false
+        this.loadError = '方案预览加载失败，请重新加载'
       })
     },
     getLoadingItemCount(levelData) {
@@ -392,6 +433,8 @@ export default {
     document.querySelector('body').setAttribute('style', 'overflow:auto') // 创建前去掉浏览器导航条
   },
   beforeDestroy() {
+    this.previewRequest++
+    clearTimeout(this.progressTimer)
     // document.removeEventListener('mousemove',this.mouserHandle)
     window.removeEventListener('keydown', this.logNavigationKeyCapture, true)
     window.removeEventListener('keyup', this.logNavigationKeyCapture, true)
@@ -410,6 +453,14 @@ export default {
   width: 100%;
   height: 100%;
   position: relative;
+}
+.preview-error {
+  position: fixed;
+  top: 30%;
+  left: 20%;
+  right: 20%;
+  padding: 24px;
+  background: #fff;
 }
 .bigLoading {
   position: absolute;

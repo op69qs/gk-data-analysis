@@ -52,6 +52,10 @@
                 </a-row>
             </a-tab-pane>
         </a-tabs>
+        <div v-if="loading" style="padding: 16px; text-align: center">正在加载图库，请稍候...</div>
+        <a-alert v-if="loadError" :message="loadError" type="error" show-icon />
+        <a-button v-if="loadError" @click="loadData(retryPage)" icon="reload">重新加载</a-button>
+        <a-empty v-if="!loading && !loadError && !dataSource.length" description="暂无可用图库" />
         <GalleryListModal ref="modalForm" @ok="modalListOk"></GalleryListModal>
     </a-card>
 </template>
@@ -70,6 +74,9 @@
                 datacc: [],
                 dataSource1: [],
                 loading: false,
+                galleryRequest: 0,
+                loadError: '',
+                retryPage: 1,
                 url: {
                     list: '/vis/api/gallery/getPage'
                 },
@@ -81,32 +88,42 @@
                 if (res.result === 'success') {
                     this.dataSource1 = res.rows;
                 }
-            });
-            
-            window.onscroll = () => {
-                this.datacc = this.dataSource;
-                //变量scrollTop是滚动条滚动时，距离顶部的距离
-                let scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-                //变量windowHeight是可视区的高度
-                let windowHeight = document.documentElement.clientHeight || document.body.clientHeight;
-                //变量scrollHeight是滚动条的总高度
-                let scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
-                //滚动条到底部的条件(距底部20px时触发加载)
-                if (scrollTop + windowHeight >= scrollHeight - 20 && this.dataSource.length !== this.ipagination.total) {
-                    // 延时触发数据加载
-                    setTimeout(() => {
-                        this.ipagination.current++;
-                        this.loadData();
-                    }, 500);
-                }
-            };
+            }).catch(() => this.$message.error('图库分类加载失败，请刷新重试'));
+        },
+        mounted() {
+            window.addEventListener('scroll', this.handleScroll, true);
+        },
+        activated() {
+            window.addEventListener('scroll', this.handleScroll, true);
+        },
+        deactivated() {
+            window.removeEventListener('scroll', this.handleScroll, true);
+        },
+        beforeDestroy() {
+            this.galleryRequest++;
+            window.removeEventListener('scroll', this.handleScroll, true);
         },
         methods: {
+            handleScroll(event) {
+                if (this.loading || this.loadError || this.dataSource.length >= this.ipagination.total) return;
+                const root = document.documentElement;
+                const body = document.body;
+                const target = event && event.target;
+                const container = target && target !== document && target !== window && target !== root && target !== body
+                    ? target : null;
+                if (container && (!container.contains || !container.contains(this.$el))) return;
+                const scrollTop = container ? container.scrollTop : root.scrollTop || body.scrollTop;
+                const windowHeight = container ? container.clientHeight : root.clientHeight || body.clientHeight;
+                const scrollHeight = container ? container.scrollHeight : root.scrollHeight || body.scrollHeight;
+                if (scrollTop + windowHeight >= scrollHeight - 20) {
+                    return this.loadData(this.ipagination.current + 1);
+                }
+            },
             isImageGalleryItem(item) {
                 if (!item) {
                     return false
                 }
-                return ['b', 't', 'bar', 'line', 'pie', 'barAndLine']
+                return ['p', 'b', 't', 'bar', 'line', 'pie', 'barAndLine']
                     .indexOf(item.type) !== -1
             },
             getCoverSrc(item) {
@@ -119,26 +136,25 @@
                 return resolveVisMediaUrl(item.content)
             },
             loadData(arg) {
-                //加载数据 若传入参数1则加载第一页的内容
-                if (arg === 1) {
-                    this.ipagination.current = 1;
-                }
-                let params = this.getQueryParams();//查询条件
+                const pageNo = typeof arg === 'number' ? arg : this.ipagination.current;
+                const request = ++this.galleryRequest;
+                const params = {...this.getQueryParams(), pageNo, state: '0'};
+                this.retryPage = pageNo;
+                this.loadError = '';
                 this.loading = true;
-                params.state=0; // 可用图库
-                getGalleryList(params).then((res) => {
-                    if (res.result === 'success') {
-                        if(this.ipagination.current==1)this.dataSource = []
-                        this.dataSource.push(...res.rows);
-                        this.ipagination.total = res.total;
+                return getGalleryList(params).then((res) => {
+                    if (request !== this.galleryRequest) return;
+                    if (!res || res.result !== 'success' || !Array.isArray(res.rows)) {
+                        throw new Error('图库加载失败');
                     }
-                    if (res.code === 510) {
-                        this.$message.warning(res.msg)
-                    }
-                    this.loading = false;
-                }).catch(err => {
-                    this.loading = false;
-                })
+                    this.dataSource = pageNo === 1 ? res.rows : this.dataSource.concat(res.rows);
+                    this.ipagination.current = pageNo;
+                    this.ipagination.total = Number(res.total) || 0;
+                }).catch(() => {
+                    if (request === this.galleryRequest) this.loadError = '图库加载失败，请重新加载';
+                }).finally(() => {
+                    if (request === this.galleryRequest) this.loading = false;
+                });
             },
             callback(key) {
                 this.dataSource = [];

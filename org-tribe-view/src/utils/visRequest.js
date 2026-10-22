@@ -6,10 +6,19 @@ export function normalizeVisRequestUrl(url) {
     return url
   }
   const stripped = url.replace(/^\/+/, '')
-  if (/^(queryData|queryTableData|queryMapData)\//.test(stripped)) {
+  if (/^(queryData|queryTableData|queryMapData|IndexBarLine|IndexPie)\//.test(stripped)) {
     return '/vis/api/' + stripped
   }
   return url
+}
+
+export function buildVisQueryPayload(item) {
+  const payload = { id: item.id }
+  if (/^\/vis\/api\/(IndexBarLine|IndexPie)\//.test(normalizeVisRequestUrl(item.query_path))) {
+    payload.gallery_id = item.gallery_id
+    payload.sub_id = item.id
+  }
+  return payload
 }
 
 export function normalizeVisTableRow(row) {

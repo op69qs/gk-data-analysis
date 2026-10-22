@@ -163,3 +163,36 @@ test('a related page outside the selectable list is restored by id', async () =>
   assert.equal(vm.page[0].name, '旧页面')
   assert.equal(vm.hasUnavailablePages, false)
 })
+
+test('scheme async form validation submits only once for pending confirmations', async () => {
+  const pending = deferred()
+  let calls = 0
+  const { vm, form, fields } = mount({ addSchemeInfo: () => { calls++; return pending.promise } })
+  await vm.add()
+  form.setFieldsValue({ name: '测试方案', level: ['page-1'] })
+  vm.handleChange(['page-1'])
+  const callbacks = []
+  form.validateFields = callback => callbacks.push(callback)
+  vm.handleOk()
+  vm.handleOk()
+  const saving = callbacks[0](null, { ...fields })
+  callbacks[1](null, { ...fields })
+  assert.equal(calls, 1)
+  pending.resolve({ result: 'success' })
+  await saving
+})
+
+test('old scheme validation cannot save values into a newly opened scheme', async () => {
+  const writes = []
+  const { vm, form } = mount({ editSchemeInfo: async data => { writes.push(data); return { result: 'success' } } })
+  await vm.edit({ id: 'old', name: '旧方案' })
+  const callbacks = []
+  form.validateFields = callback => callbacks.push(callback)
+  vm.handleOk()
+  vm.close()
+  await vm.edit({ id: 'new', name: '新方案' })
+  vm.handleChange(['page-1'])
+  await callbacks[0](null, { name: '旧方案修改', level: ['page-1'] })
+  assert.equal(writes.length, 0)
+  assert.equal(vm.visible, true)
+})

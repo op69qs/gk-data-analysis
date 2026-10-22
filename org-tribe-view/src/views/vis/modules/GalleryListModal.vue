@@ -62,6 +62,7 @@
                     sm: {span: 16},
                 },
                 confirmLoading: false,
+                saveRequest: 0,
                 form: this.$form.createForm(this),
                 validatorRules: {
                     title: {
@@ -77,9 +78,11 @@
                 this.edit({});
             },
             edit(record) {
+                this.saveRequest++;
+                this.confirmLoading = false;
+                this.inputHtml = record.type === 'h' ? record.content || '' : '';
                 this.form.resetFields();
                 this.model = Object.assign({}, record);
-                console.log(this.model)
                 this.visible = true;
                 this.$nextTick(() => {
                     if(this.model.type == 'h'){
@@ -90,39 +93,42 @@
 
             },
             close() {
+                this.saveRequest++;
+                this.confirmLoading = false;
                 this.$emit('close');
                 this.visible = false;
             },
             handleOk() {
-                const that = this;
+                if (this.confirmLoading) return;
+                const request = this.saveRequest;
                 // 触发表单验证
-                this.form.validateFields((err, values) => {
-                    if (!err) {
+                return this.form.validateFields(async (err, values) => {
+                    if (!err && !this.confirmLoading && request === this.saveRequest) {
                         if(this.model.type == 'h' && this.inputHtml == ''){
                             this.$message.warning("内容不能为空");
                             return
                         }
                         let formData = Object.assign({},values);
                         formData.id = this.model.id;
-                        if(this.inputHtml) {
-                            this.model.content = this.inputHtml;
+                        if(this.model.type === 'h') {
                             formData.content = this.inputHtml;
                         }
-                        let obj;
-                        obj = editGallery(formData)
-                        obj.then((res) => {
-                            if (res.result=='success') {
-                                that.$message.success(res.msg);
-                                that.$emit('ok');
+                        this.confirmLoading = true;
+                        try {
+                            const res = await editGallery(formData);
+                            if (request !== this.saveRequest) return;
+                            if (res && res.result === 'success') {
+                                this.$message.success(res.msg);
+                                this.$emit('ok');
+                                this.close();
                             } else {
-                                that.$message.warning(res.msg);
+                                this.$message.warning((res && res.msg) || '图库保存失败，请重试');
                             }
-                        }).finally(() => {
-                            that.confirmLoading = false;
-                            that.close();
-                        })
-                        console.log(formData)
-                        this.handleCancel();
+                        } catch (error) {
+                            if (request === this.saveRequest) this.$message.error('图库保存失败，请重试');
+                        } finally {
+                            if (request === this.saveRequest) this.confirmLoading = false;
+                        }
                     }
                 })
             },

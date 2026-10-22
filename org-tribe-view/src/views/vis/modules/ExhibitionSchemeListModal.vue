@@ -206,18 +206,18 @@
             },
             handleOk() {
                 if (this.confirmLoading || this.optionsLoading) return;
+                const request = this.dialogRequest;
                 if (this.loadError) {
                     this.$message.warning(this.loadError);
                     return;
                 }
                 // 触发表单验证
                 return this.form.validateFields(async (err, values) => {
-                    if (!err) {
+                    if (!err && !this.confirmLoading && request === this.dialogRequest) {
                         if (!values.level || this.page.length !== values.level.length) {
                             this.$message.warning('所选页面已不可用，请重新选择');
                             return;
                         }
-                        const request = this.dialogRequest;
                         this.confirmLoading = true;
                         let formData = Object.assign({}, this.model, values);
                         delete formData.level

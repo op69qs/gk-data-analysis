@@ -62,7 +62,7 @@
               <div v-else class="noDataClass">暂无图片</div>
             </div>
             <div
-              v-if="item.option == 'china' || (typeof(item.option)== 'string' && item.option.indexOf('CQ') !=-1)"
+              v-if="!item.loadError && (item.option == 'china' || (typeof(item.option)== 'string' && item.option.indexOf('CQ') !=-1))"
               class="geoBox"
             >
             <!-- <div
@@ -97,18 +97,19 @@
             <BScharts
               :options="item.options"
               :theme="item.theme"
-              v-if="item.title != 'null' && item.type == 'b' && item.nodata != true"
+              v-if="!item.loadError && item.title != 'null' && item.type == 'b' && item.nodata != true"
               ref="bschart"
             ></BScharts>
             <div
               class="noDataClass"
               v-if="
-                item.nodata == true &&
+                !item.loadError && item.nodata == true &&
                 item.type == 'b'
               "
             >
               暂无数据
             </div>
+            <div v-if="item.loadError" class="noDataClass" role="alert">{{ item.loadError }}</div>
           </div>
         </div>
       </grid-item>
@@ -121,7 +122,7 @@ import moment from 'moment'
 import { GridLayout, GridItem } from 'vue-grid-layout'
 import { postAction } from '@/api/manage'
 import { visPreviewDebug } from '@/utils/visPreviewDebug'
-import { normalizeVisRequestUrl as buildVisRequestUrl } from '@/utils/visRequest'
+import { normalizeVisRequestUrl as buildVisRequestUrl, buildVisQueryPayload } from '@/utils/visRequest'
 import BScharts from './BScharts.vue'
 import BSGeo from './geoCharts.vue' // 地图echart
 import BSTable from './BSTable.vue'
@@ -311,6 +312,7 @@ export default {
       // 单个请求接口
       let that = this
       let completed = false
+      item.loadError = ''
       const markComplete = () => {
         if (!completed) {
           completed = true
@@ -326,10 +328,7 @@ export default {
       let moneyType = that.filteredUnit(item.unit) // 金额类型
       if (item.query_path && item.page_id != null && item.query_path != null && item.query_path != 'null') {
         let url = this.normalizeVisRequestUrl(item.query_path)
-        let param = {
-          id: item.id,
-          // page_id: item.page_id,
-        }
+        const param = buildVisQueryPayload(item)
         visPreviewDebug('chart request start', {
           id: item.id,
           title: item.title,
@@ -586,6 +585,8 @@ export default {
             }
             this.$forceUpdate();
           } else {
+            item.loadError = res && res.msg ? '图表加载失败：' + res.msg : '图表加载失败，请稍后重试'
+            this.$forceUpdate()
             markComplete()
           }
         }).catch(() => {
@@ -594,6 +595,8 @@ export default {
             title: item.title,
             query_path: url
           })
+          item.loadError = '图表加载失败，请稍后重试'
+          this.$forceUpdate()
           markComplete()
         })
       } else {
