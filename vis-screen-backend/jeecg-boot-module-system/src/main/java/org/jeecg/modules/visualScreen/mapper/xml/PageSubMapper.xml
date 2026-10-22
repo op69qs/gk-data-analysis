@@ -37,7 +37,7 @@
         a.title,
         a.type,
         a.option,
-        COALESCE(NULLIF(a.query_path, ''), NULLIF(a.query_path, 'null'), g.query_path) AS query_path,
+        COALESCE(NULLIF(NULLIF(a.query_path, ''), 'null'), g.query_path) AS query_path,
         a.unit
         FROM visual_screen.vs_page_info_sub a
         LEFT JOIN visual_screen.vs_gallery_info g ON a.gallery_id = g.id

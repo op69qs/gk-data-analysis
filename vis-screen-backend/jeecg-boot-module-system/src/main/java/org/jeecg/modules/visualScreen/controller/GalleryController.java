@@ -9,6 +9,8 @@ import org.jeecg.modules.util.PageData;
 import org.jeecg.modules.visualScreen.service.GalleryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,7 +68,7 @@ public class GalleryController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", e.getMessage());
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
@@ -92,40 +94,46 @@ public class GalleryController extends BaseController {
     @ApiOperation("修改")
     public Map<String, Object> edit(@RequestBody(required = false) JSONObject param) {
         Map<String, Object> result = new HashMap<>();
-        PageData pd = this.getPageData(param);
         try {
+            PageData pd = this.getPageData(param);
+            if (!StringUtils.hasText(pd.getString("id"))) throw new IllegalArgumentException("图库编号不能为空");
             galleryService.edit(pd);
+            result.put("msg", "修改成功");
+            result.put("result", "success");
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "修改失败");
             result.put("result", "failed");
         }
-        result.put("msg", "修改成功");
-        result.put("result", "success");
         return result;
     }
 
     @RequestMapping(value = "/del", method = RequestMethod.POST)
     @ApiOperation("删除")
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> del(@RequestBody(required = false) JSONObject param) {
         Map<String, Object> result = new HashMap<>();
-        PageData pd = this.getPageData(param);
         try {
-            String id = pd.get("id") + "";
-            if (null != id && !"".equals(id)) {
-                String[] ids = id.split(",");
-                for (String i : ids) {
-                    pd.put("id", i);
-                    galleryService.del(pd);
-                }
+            PageData pd = this.getPageData(param);
+            String id = pd.getString("id");
+            if (!StringUtils.hasText(id)) throw new IllegalArgumentException("图库编号不能为空");
+            String[] ids = id.split(",");
+            if (ids.length == 0) throw new IllegalArgumentException("图库编号不能为空");
+            for (String i : ids) {
+                if (!StringUtils.hasText(i)) throw new IllegalArgumentException("图库编号不能为空");
             }
+            for (String i : ids) {
+                pd.put("id", i);
+                galleryService.del(pd);
+            }
+            result.put("msg", "操作成功");
+            result.put("result", "success");
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             e.printStackTrace();
             result.put("msg", "操作失败");
             result.put("result", "failed");
         }
-        result.put("msg", "操作成功");
-        result.put("result", "success");
         return result;
     }
 

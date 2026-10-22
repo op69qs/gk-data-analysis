@@ -16,6 +16,9 @@ import org.jeecg.modules.visualScreen.service.PageSubService;
 import org.jeecg.modules.visualScreen.service.SchemeInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -57,7 +60,7 @@ public class SchemeInfoController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "操作失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
@@ -75,7 +78,7 @@ public class SchemeInfoController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "操作失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
@@ -86,6 +89,9 @@ public class SchemeInfoController extends BaseController {
         Map<String, Object> result = new HashMap<>();
         try {
             PageData pd = this.getPageData(param);
+            if (!StringUtils.hasText(pd.getString("scheme_id"))) {
+                throw new IllegalArgumentException("方案编号不能为空");
+            }
             List<Map<String, Object>> data = schemeInfoService.getAllRel(pd);
             result.put("rows", data);
             result.put("msg", "查询成功");
@@ -93,17 +99,21 @@ public class SchemeInfoController extends BaseController {
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "操作失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ApiOperation("新增")
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> add(@RequestBody(required = false) SchemeInfo schemeInfo) {
         Map<String, Object> result = new HashMap<>();
         PageData pd = new PageData();
         try {
+            if (schemeInfo == null || !StringUtils.hasText(schemeInfo.getName())) {
+                throw new IllegalArgumentException("方案名称不能为空");
+            }
             pd.put("name", schemeInfo.getName());
             if (checkRepeat(pd)) {
                 result.put("msg", "添加失败,该方案已存在");
@@ -124,6 +134,7 @@ public class SchemeInfoController extends BaseController {
             result.put("msg", "添加成功");
             result.put("result", "success");
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             e.printStackTrace();
             result.put("msg", "添加失败");
             result.put("result", "failed");
@@ -144,10 +155,15 @@ public class SchemeInfoController extends BaseController {
 
     @RequestMapping(value = "/edit", method = RequestMethod.POST)
     @ApiOperation("修改")
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> edit(@RequestBody(required = false) SchemeInfo schemeInfo) {
         Map<String, Object> result = new HashMap<>();
         PageData pd = new PageData();
         try {
+            if (schemeInfo == null || !StringUtils.hasText(schemeInfo.getId())
+                    || !StringUtils.hasText(schemeInfo.getName())) {
+                throw new IllegalArgumentException("方案编号和名称不能为空");
+            }
             pd.put("id", schemeInfo.getId());
             pd.put("name", schemeInfo.getName());
             if (checkRepeat(pd)) {
@@ -164,41 +180,46 @@ public class SchemeInfoController extends BaseController {
             schemeInfoService.delRel(delPd);
 
             addRel(schemeInfo);
-
+            result.put("msg", "修改成功");
+            result.put("result", "success");
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             e.printStackTrace();
             result.put("msg", "修改失败");
             result.put("result", "failed");
         }
-        result.put("msg", "修改成功");
-        result.put("result", "success");
         return result;
     }
 
     @RequestMapping(value = "/del", method = RequestMethod.POST)
     @ApiOperation("删除")
+    @Transactional(rollbackFor = Exception.class)
     public Map<String, Object> del(@RequestBody(required = false) JSONObject param) {
         Map<String, Object> result = new HashMap<>();
-        PageData pd = this.getPageData(param);
         PageData delPd = new PageData();
         try {
-            String id = pd.get("id") + "";
-            if (null != id && !"".equals(id)) {
-                String[] ids = id.split(",");
-                for (String i : ids) {
-                    pd.put("id", i);
-                    schemeInfoService.del(pd);
-                    delPd.put("scheme_id", i);
-                    schemeInfoService.delRel(delPd);
-                }
+            PageData pd = this.getPageData(param);
+            String id = pd.getString("id");
+            if (!StringUtils.hasText(id)) throw new IllegalArgumentException("方案编号不能为空");
+            String[] ids = id.split(",");
+            if (ids.length == 0) throw new IllegalArgumentException("方案编号不能为空");
+            for (String i : ids) {
+                if (!StringUtils.hasText(i)) throw new IllegalArgumentException("方案编号不能为空");
             }
+            for (String i : ids) {
+                pd.put("id", i);
+                schemeInfoService.del(pd);
+                delPd.put("scheme_id", i);
+                schemeInfoService.delRel(delPd);
+            }
+            result.put("msg", "操作成功");
+            result.put("result", "success");
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             e.printStackTrace();
             result.put("msg", "操作失败");
             result.put("result", "failed");
         }
-        result.put("msg", "操作成功");
-        result.put("result", "success");
         return result;
     }
 
@@ -222,11 +243,14 @@ public class SchemeInfoController extends BaseController {
         Map<String, Object> result = new HashMap<>();
         try {
             PageData pd = this.getPageData(param);
+            if (!StringUtils.hasText(pd.getString("scheme_id"))) {
+                throw new IllegalArgumentException("方案编号不能为空");
+            }
             List<Map<String, Object>> data = schemeInfoService.getAllRel(pd);
+            List<PageInfo> pageInfos = new ArrayList<>();
+            int count = 0;
             if (null != data && data.size() > 0) {
-                List<PageInfo> pageInfos = new ArrayList<>();
                 PageData queryPd = new PageData();
-                int count = 0;
                 for (Map<String, Object> d : data) {
                     queryPd.put("id", d.get("page_id"));
                     PageInfo pi = pageInfoService.getPageInfo(queryPd);
@@ -244,15 +268,15 @@ public class SchemeInfoController extends BaseController {
                         pageInfos.add(pi);
                     }
                 }
-                result.put("data", pageInfos);
-                result.put("count", count);
             }
+            result.put("data", pageInfos);
+            result.put("count", count);
             result.put("msg", "查询成功");
             result.put("result", "success");
         } catch (Exception e) {
             e.printStackTrace();
             result.put("msg", "操作失败");
-            result.put("result", "success");
+            result.put("result", "failed");
         }
         return result;
     }
