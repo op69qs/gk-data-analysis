@@ -359,14 +359,6 @@
                     this.$message.warning('请选择计算指标的时间！');
                     return
                 }
-              if (!this.DIMENSION_ID) {
-                this.$message.warning('请选择维度！');
-                return
-              }
-              if (!this.DIMENSION_COLUMN ) {
-                this.$message.warning('请选择与维度关联的字段！');
-                return
-              }
                 // if (this.listData.length > 0 && this.listData[0].dataSource.length > 0) {
                 this.listData.map(item => {
                     item.dataSource.map(item1 => {
@@ -453,14 +445,6 @@
                             return
                         }
 
-                    }
-                    if (!this.DIMENSION_ID) {
-                      this.$message.warning('请选择选择计算指标的维度！');
-                      return
-                    }
-                    if (!this.DIMENSION_COLUMN ) {
-                      this.$message.warning('请选择维度！');
-                      return
                     }
                     this.visibleModal = false;
                     this.oldData = JSON.parse(JSON.stringify({
