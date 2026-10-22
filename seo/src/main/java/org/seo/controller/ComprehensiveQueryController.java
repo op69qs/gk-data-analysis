@@ -516,8 +516,8 @@ public class ComprehensiveQueryController extends BaseController {
             sql += newColumn.substring(0, newColumn.length() - 1);
         }
         sql += " from " + table;
-        sql += createQueryJoinSql(table, DATABASE_ID, DIMENSION_COLUMN, DIMENSION_ID, subjectCode);
         sql += " where 1=1 ";
+        sql += createQueryFilterSql(table, DATABASE_ID, DIMENSION_COLUMN, DIMENSION_ID, subjectCode);
 
         sql = addWhereSql(sql, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT, WHERE_TYPE, type);
         if (null != order && !order.equals("")) {
@@ -560,13 +560,19 @@ public class ComprehensiveQueryController extends BaseController {
                                   String subjectCode) {
         String countSql = "select count(1) ";
         countSql += " from " + table;
-        countSql += createQueryJoinSql(table, DATABASE_ID, DIMENSION_COLUMN, DIMENSION_ID, subjectCode);
         countSql += " where 1=1 ";
+        countSql += createQueryFilterSql(table, DATABASE_ID, DIMENSION_COLUMN, DIMENSION_ID, subjectCode);
         String sql = addWhereSql(countSql, WHERE_LEFT, WHERE_MIDDLE, WHERE_RIGHT, WHERE_TYPE, type);
         return sql;
     }
 
-    private String createQueryJoinSql(String table,
+    /**
+     * 维度与国库范围都改用 IN 子查询过滤，不再拼 JOIN。
+     * 维度字段与国库字段常为同一列（如 S_ORGCODE），两个 JOIN 的 ON 同时引用该列时，
+     * ClickHouse 20.8 会报 Code 48「Cannot rewrite JOINs. Alias ... used in ON section
+     * depends on another alias」。
+     */
+    private String createQueryFilterSql(String table,
                                       String DATABASE_ID,
                                       String DIMENSION_COLUMN,
                                       String DIMENSION_ID,
@@ -589,20 +595,38 @@ public class ComprehensiveQueryController extends BaseController {
             }
         }
 
-        String joinSql = "";
-        if (null != DIMENSION_COLUMN && !DIMENSION_COLUMN.equals("")) {
-            joinSql += " inner join (select code from ods.seo_dimension_sub where main_id = '"
-                    + DIMENSION_ID + "')b on " + lastTableSign + "." + DIMENSION_COLUMN + " = b.code";
+        String filterSql = "";
+        // 前端 FormData.append 会把未选/清空维度时的 JS undefined 序列化为字符串
+        // "undefined"（维度改为非必选后出现），必须视同未传，否则会拼出
+        // tv_fin_income_detail.undefined 这类不存在的列，ClickHouse 报 Code 47。
+        if (isDimensionPresent(DIMENSION_COLUMN, DIMENSION_ID)) {
+            filterSql += " and " + lastTableSign + "." + DIMENSION_COLUMN.trim()
+                    + " in (select code from ods.seo_dimension_sub where main_id = '"
+                    + DIMENSION_ID.trim() + "')";
         }
         if (!treasuryColumn.equals("")) {
             if (subjectCode != null && !subjectCode.trim().equals("")) {
-                joinSql += ComprehensiveQueryDataScopeSql.portalTreasuryJoin(treasuryColumn, subjectCode);
+                filterSql += ComprehensiveQueryDataScopeSql.portalTreasuryInFilter(treasuryColumn, subjectCode);
             } else {
-                joinSql += " inner join (select CID from seo.cm_guoku_dimnsn where PID = '')c on "
-                        + treasuryColumn + " = c.CID";
+                filterSql += " and " + treasuryColumn
+                        + " in (select CID from seo.cm_guoku_dimnsn where PID = '')";
             }
         }
-        return joinSql;
+        return filterSql;
+    }
+
+    private static boolean isDimensionPresent(String dimensionColumn, String dimensionId) {
+        return isPresentValue(dimensionColumn) && isPresentValue(dimensionId);
+    }
+
+    private static boolean isPresentValue(String value) {
+        if (value == null) {
+            return false;
+        }
+        String trimmed = value.trim();
+        return !trimmed.isEmpty()
+                && !"undefined".equalsIgnoreCase(trimmed)
+                && !"null".equalsIgnoreCase(trimmed);
     }
 
     private String addSchemeTable(String SCHEME_ID, String TABLE_NAME, String TABLE_DESC, String TABLE_USE) {

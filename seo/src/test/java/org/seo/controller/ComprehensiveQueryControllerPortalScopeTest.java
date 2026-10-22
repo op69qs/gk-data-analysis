@@ -193,9 +193,73 @@ public class ComprehensiveQueryControllerPortalScopeTest {
         }
     }
 
+    @Test
+    public void dimensionAndPortalScopeUseInFiltersWithoutJoins() {
+        portalRequest("BOOK-001");
+        AtomicReference<String> rowSql = new AtomicReference<>();
+        AtomicReference<String> countSql = new AtomicReference<>();
+        when(service.executeSql(any(PageData.class), eq("database-1"))).thenAnswer(invocation -> {
+            rowSql.set(((PageData) invocation.getArgument(0)).getString("sql"));
+            return Collections.<Map<String, Object>>emptyList();
+        });
+        when(service.countSql(any(PageData.class), eq("database-1"))).thenAnswer(invocation -> {
+            countSql.set(((PageData) invocation.getArgument(0)).getString("countSql"));
+            return 0;
+        });
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> result = (Map<String, Object>) controller.executeSql(
+                "database-1▲trs_comprehensive_payout_month_payoutmm",
+                null, null, null, null, null, null,
+                1, 100, "portal-user", null, null, null,
+                "S_TRECODE", "dim-1", null);
+
+        assertEquals("success", result.get("result"));
+        for (String sql : new String[]{rowSql.get(), countSql.get()}) {
+            assertTrue(sql.contains("trs_comprehensive_payout_month_payoutmm.S_TRECODE"
+                    + " in (select code from ods.seo_dimension_sub where main_id = 'dim-1')"));
+            assertPortalScope(sql);
+            // ClickHouse 20.8: 两个 JOIN 的 ON 同引一列会报 Code 48 Cannot rewrite JOINs
+            assertFalse(sql.contains("scope_rows"));
+            assertFalse(sql.contains(")b on"));
+            assertFalse(sql.contains(") scope_rows on"));
+        }
+    }
+
+    @Test
+    public void undefinedDimensionIsIgnoredInsteadOfQueryingUndefinedColumn() {
+        portalRequest("BOOK-001");
+        AtomicReference<String> rowSql = new AtomicReference<>();
+        AtomicReference<String> countSql = new AtomicReference<>();
+        when(service.executeSql(any(PageData.class), eq("database-1"))).thenAnswer(invocation -> {
+            rowSql.set(((PageData) invocation.getArgument(0)).getString("sql"));
+            return Collections.<Map<String, Object>>emptyList();
+        });
+        when(service.countSql(any(PageData.class), eq("database-1"))).thenAnswer(invocation -> {
+            countSql.set(((PageData) invocation.getArgument(0)).getString("countSql"));
+            return 0;
+        });
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> result = (Map<String, Object>) controller.executeSql(
+                "database-1▲trs_comprehensive_payout_month_payoutmm",
+                null, null, null, null, null, null,
+                1, 100, "portal-user", null, null, null,
+                "undefined", "undefined", null);
+
+        assertEquals("success", result.get("result"));
+        for (String sql : new String[]{rowSql.get(), countSql.get()}) {
+            assertFalse(sql.contains("undefined"));
+            assertFalse(sql.contains("seo_dimension_sub"));
+            assertPortalScope(sql);
+        }
+    }
+
     private void assertPortalScope(String sql) {
-        assertTrue(sql.contains("scope.PID = root.GUOKU_ID"));
-        assertTrue(sql.contains("root.BOOKORGCODE = 'BOOK-001'"));
-        assertTrue(sql.contains("trs_comprehensive_payout_month_payoutmm.S_TRECODE = scope_rows.CID"));
+        assertTrue(sql.contains("scope.PID = root.guoku_id"));
+        assertTrue(sql.contains("root.bookorgcode = 'BOOK-001'"));
+        assertTrue(sql.contains(
+                "trs_comprehensive_payout_month_payoutmm.S_TRECODE in (select distinct scope.CID"));
+        assertFalse(sql.contains("scope_rows"));
     }
 }

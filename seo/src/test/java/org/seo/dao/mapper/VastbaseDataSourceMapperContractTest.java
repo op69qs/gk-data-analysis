@@ -106,6 +106,22 @@ public class VastbaseDataSourceMapperContractTest {
     }
 
     @Test
+    public void clickhouseMetadataLookupPrefersColumnCommentWithLegacyFallback() throws Exception {
+        Map<String, Object> values = values();
+        values.put("BASE_TYPE", "Clickhouse");
+        values.put("DATABASE", "ods");
+        values.put("TABLE_SIGN", "te_agentbankback_detail_query_vb");
+
+        String sql = normalize(boundSql(
+                "mybatis/seo/DataAuxiliaryMapper.xml",
+                "org.seo.dao.mapper.DataAuxiliaryMapper.getDataTableComments",
+                values).getSql());
+
+        assertTrue(sql.contains("WHEN comment IS NOT NULL AND comment != '' THEN comment"));
+        assertTrue(sql.contains("WHEN default_expression IS NULL OR default_expression = '' THEN name"));
+    }
+
+    @Test
     public void databaseLabelsMatchOnsiteDbNameSemantics() throws Exception {
         String databaseSelectionSql = normalize(boundSql(
                 "mybatis/seo/DataAuxiliaryMapper.xml",

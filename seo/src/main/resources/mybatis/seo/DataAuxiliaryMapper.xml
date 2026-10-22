@@ -114,12 +114,10 @@
             SELECT
             name AS "columnName",
             CASE
-            WHEN default_expression IS NULL THEN
-            columnName
-            WHEN default_expression = '' THEN
-            columnName
-            ELSE
-            default_expression end AS "columnComment"
+            WHEN comment IS NOT NULL AND comment != '' THEN comment
+            WHEN default_expression IS NULL OR default_expression = '' THEN name
+            ELSE default_expression
+            END AS "columnComment"
             FROM
             system.columns WHERE database = #{params.DATABASE} AND table = #{params.TABLE_SIGN}
         </if>
