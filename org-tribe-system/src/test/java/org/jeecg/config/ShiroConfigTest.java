@@ -25,6 +25,19 @@ public class ShiroConfigTest {
     }
 
     @Test
+    public void spaPageRoutesAreAnonymousForBrowserRefresh() {
+        Map<String, String> chains = new ShiroConfig()
+                .shiroFilter(new DefaultSecurityManager()).getFilterChainDefinitionMap();
+
+        // 浏览器刷新时直接请求页面文档，不带 X-Access-Token，必须放行到 index.html
+        assertEquals("anon", matchingChain(chains, "/intelligenceReport/reportManagement"));
+        assertEquals("anon", matchingChain(chains, "/statistics/integratedQuery"));
+        // 页面放行不得顺带放开后端接口
+        assertEquals("jwt", matchingChain(chains, "/sys/permission/getUserPermissionByToken"));
+        assertEquals("jwt", matchingChain(chains, "/fixedReport/newsFlash/getReportAll"));
+    }
+
+    @Test
     public void reportingApisUseJwtInsteadOfSpaAnonymousWildcard() {
         ShiroFilterFactoryBean factory = new ShiroConfig()
                 .shiroFilter(new DefaultSecurityManager());

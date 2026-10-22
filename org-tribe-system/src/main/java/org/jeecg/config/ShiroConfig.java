@@ -70,6 +70,10 @@ public class ShiroConfig {
 		filterChainDefinitionMap.put("/statistics/schemeIndex", "anon");
 		// SPA 前端路由：浏览器直接访问/刷新时不带 X-Access-Token，需放行页面转发
 		filterChainDefinitionMap.put("/statistics/**", "anon");
+		// 智能报告（报告管理/生成）页面同为 SPA 路由，漏放行时刷新会直接返回“token为空”
+		filterChainDefinitionMap.put("/intelligenceReport/**", "anon");
+		filterChainDefinitionMap.put("/system/**", "anon");
+		filterChainDefinitionMap.put("/report/**", "anon");
 		filterChainDefinitionMap.put("/isystem/**", "anon");
 		// /reporting/** 同时承载批次、文件和监控 REST 接口，必须落到末尾的 jwt 规则
 		filterChainDefinitionMap.put("/parameter/**", "anon");
