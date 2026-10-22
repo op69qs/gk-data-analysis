@@ -159,6 +159,11 @@ public class IndexPieController extends BaseController {
             }
 
             Map<String, String> scheme = indexSchemeService.getSchemeInfoById(pageData);
+            if (scheme == null) {
+                result.put("result", "failed");
+                result.put("msg", "指标方案不存在或已删除，请重新选择图表");
+                return result;
+            }
             String indexColumns = scheme.get("SCHEME_COLUMS");
             if (StringUtils.isEmpty(indexColumns)) { return null; }
             String[] columns = indexColumns.split(",");

@@ -473,6 +473,45 @@ public class IndexChartControllerTest {
     }
 
     @Test
+    public void deletedBarLineSourceSchemeReturnsAnActionablePreviewFailure() {
+        JSONObject condition = baseRequest("bar");
+        when(galleryService.getAll(any(PageData.class))).thenReturn(Collections.singletonList(
+                row("condition", condition.toJSONString(), "unused", "")));
+        when(pageWhereService.getAll(any(PageData.class))).thenReturn(Collections.singletonList(
+                row("where_value", "2026-01-01,2026-01-31", "unused", "")));
+        when(indexSchemeService.getSchemeInfoById(any(PageData.class))).thenReturn(null);
+        JSONObject request = new JSONObject();
+        request.put("gallery_id", "gallery-existing");
+        request.put("sub_id", "sub-existing");
+
+        Map<String, Object> response = barLineController.getIndexBarLineData(request);
+
+        assertEquals("failed", response.get("result"));
+        assertEquals("指标方案不存在或已删除，请重新选择图表", response.get("msg"));
+        verify(indexSchemeService, never()).execSchemeSql(any(PageData.class));
+    }
+
+    @Test
+    public void deletedPieSourceSchemeReturnsAnActionablePreviewFailure() {
+        JSONObject condition = baseRequest("pie");
+        condition.put("direction", "Y");
+        when(galleryService.getAll(any(PageData.class))).thenReturn(Collections.singletonList(
+                row("condition", condition.toJSONString(), "unused", "")));
+        when(pageWhereService.getAll(any(PageData.class))).thenReturn(Collections.singletonList(
+                row("where_value", "2026-01-01,2026-01-31", "unused", "")));
+        when(indexSchemeService.getSchemeInfoById(any(PageData.class))).thenReturn(null);
+        JSONObject request = new JSONObject();
+        request.put("gallery_id", "gallery-existing");
+        request.put("sub_id", "sub-existing");
+
+        Map<String, Object> response = pieController.getIndexPieData(request);
+
+        assertEquals("failed", response.get("result"));
+        assertEquals("指标方案不存在或已删除，请重新选择图表", response.get("msg"));
+        verify(indexSchemeService, never()).execSchemeSql(any(PageData.class));
+    }
+
+    @Test
     public void emptySchemeColumnsReturnsNullLikeProduction() {
         when(indexSchemeService.getSchemeInfoById(any(PageData.class)))
                 .thenReturn(Collections.<String, String>emptyMap());
