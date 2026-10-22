@@ -557,8 +557,8 @@
                    (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000410 a
@@ -573,8 +573,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE *100,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000013 a
@@ -592,8 +592,8 @@
            (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000409 a
@@ -608,8 +608,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100 ,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100 ,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000398 a
@@ -624,8 +624,8 @@
 			 (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000008 a
@@ -640,8 +640,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE *100,2)) AS text),'') MIN_VAL,
             '4' as id
           FROM
             indicators_lib.lib_indicators_000013 a
@@ -659,8 +659,8 @@
            (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100 ,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100 ,2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000342 a
@@ -675,8 +675,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100 ,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100 ,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000347 a
@@ -692,8 +692,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100 ,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100 ,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100 ,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100 ,2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000345 a
@@ -711,8 +711,8 @@
            (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000250 a
@@ -727,8 +727,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000007 a
@@ -743,8 +743,8 @@
 			 (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE   *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE   *100,2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000245 a
@@ -762,8 +762,8 @@
              (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000293 a
@@ -778,8 +778,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000297 a
@@ -794,8 +794,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000291 a
@@ -813,8 +813,8 @@
       (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000351 a
@@ -829,8 +829,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000354 a
@@ -845,8 +845,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000305 a
@@ -864,8 +864,8 @@
          (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000365 a
@@ -880,8 +880,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000119 a
@@ -896,8 +896,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000241 a
@@ -915,8 +915,8 @@
          (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000365 a
@@ -931,8 +931,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000119 a
@@ -947,8 +947,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000241 a
@@ -966,8 +966,8 @@
          (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000365 a
@@ -983,8 +983,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ','),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ','),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000119 a
@@ -1000,8 +1000,8 @@
 			(SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ','),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ','),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE  *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE  *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE  *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE  *100,2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000241 a

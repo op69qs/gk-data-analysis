@@ -7,6 +7,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.fixedReport.BaseController;
+import org.fixedReport.util.ReportGenerationStatus;
 import org.fixedReport.service.NewsFlashService;
 import org.fixedReport.service.QuarterReportService;
 import org.fixedReport.service.ReportService;
@@ -74,6 +75,9 @@ public class QuarterReportController extends BaseController {
         try {
             PageData pd = this.getPageData(param);
             List<Map<String, Object>> textList = quarterReportService.getTextAndParams(pd);
+            if (textList.isEmpty()) {
+                throw new IllegalStateException("当前账期缺少季度报告文字数据，无法生成报告");
+            }
             List<Map<String, Object>> tableParamsList = quarterReportService.getTableParams(pd);
             List<Map<String, Object>> tableParamsList2 = quarterReportService.getTableParams2(pd);
             List<Map<String, Object>> tableParamsList3 = quarterReportService.getTableParams3(pd);
@@ -443,7 +447,8 @@ public class QuarterReportController extends BaseController {
                 res.put("result", "success");
                 res.put("rows", rows);
             }catch (Exception e){
-                e.printStackTrace();
+                log.error("季度报告生成失败，REPORT_ID={}", param == null ? null : param.getString("REPORT_ID"), e);
+            ReportGenerationStatus.markFailed(reportService, param);
                 res.put("result", "fail");
                 res.put("rows", e.getMessage());
             }

@@ -3,7 +3,7 @@
   <a-modal
     title="添加项目"
     :maskClosable="false"
-    v-model="visibleModal"
+    :visible="visibleModal"
     width="50%"
     @ok="handleOk"
     @cancel="handleClose"
@@ -146,6 +146,7 @@ export default {
       yearOpen: false,
       visibleModal: false,
       confirmLoading: false,
+      pendingGeneration: null,
       form: this.$form.createForm(this),
       labelCol: {
         xs: { span: 23 },
@@ -184,20 +185,42 @@ export default {
     }
   },
   methods: {
-    // 生成接口原为“发后不理”：失败时前端无任何提示，列表只显示一直“生成中”。
-    // 这里统一接住结果，失败时把后端返回的原因展示出来，完成后再刷新一次列表。
-    trackGeneration(genPromise) {
-      genPromise
-        .then(genRes => {
-          if (!genRes || genRes.result !== 'success') {
-            this.$message.error('报告内容生成失败：' + ((genRes && genRes.rows) || '请查看后台日志'))
+    async submitReport(formData) {
+      if (this.confirmLoading) return
+      this.confirmLoading = true
+      const signature = JSON.stringify(formData)
+      try {
+        let reportId
+        if (this.pendingGeneration && this.pendingGeneration.signature === signature) {
+          reportId = this.pendingGeneration.reportId
+        } else {
+          const created = await addEntityReport(formData)
+          if (!created || created.result !== 'success' || !created.REPORT_ID) {
+            throw new Error((created && created.msg) || '报告新增失败，请重试')
           }
-          this.$emit('ok')
-        })
-        .catch(() => {
-          this.$message.error('报告内容生成请求失败，请查看后台日志')
-          this.$emit('ok')
-        })
+          reportId = created.REPORT_ID
+          this.pendingGeneration = { signature, reportId }
+        }
+        const generators = {
+          '1': addMonthlyReport,
+          '2': addNewsFlashReport,
+          '3': addQuarterReport,
+          '4': addQuarterQuickReport
+        }
+        const generated = await generators[formData.REPORT_TYPE_ID](Object.assign({}, formData, { REPORT_ID: reportId }))
+        if (!generated || generated.result !== 'success') {
+          throw new Error((generated && (generated.rows || generated.msg)) || '报告内容生成失败，请查看后台日志')
+        }
+        this.confirmLoading = false
+        this.handleClose()
+        this.$message.success('报告已生成')
+        this.$emit('ok')
+      } catch (error) {
+        this.$message.error(error.message || '报告请求失败，请重试')
+        this.$emit('ok')
+      } finally {
+        this.confirmLoading = false
+      }
     },
     //  限制月的方法
     disabledMonth(current) {
@@ -227,6 +250,7 @@ export default {
     },
     //确认
     handleOk() {
+      if (this.confirmLoading) return
       // 触发表单验证
       this.form.validateFields((err, values) => {
         if (!err) {
@@ -272,7 +296,6 @@ export default {
           formData.ADD_USERID = this.$sessionStorage.ls.get('Login_Userinfo').id
           formData.REPORT_TYPE_ID = values.REPORT_TYPE_ID.key //报告类型id
           formData.REPORT_TYPE_DESC = values.REPORT_TYPE_ID.label //报告类型描述
-          this.confirmLoading = true
           console.log(formData, 'fffffffff')
 
           // debugger
@@ -303,44 +326,13 @@ export default {
             ] // 对应注释描述
           }
           console.log(formData, 'fffffffffddddddd')
-          addEntityReport(formData)
-            .then(res => {
-              this.confirmLoading = false
-              if (res.result === 'success') {
-                console.log(res)
-                // debugger
-                if (formData.REPORT_TYPE_ID === '1') {
-                  //生成月度报告数据
-                  this.trackGeneration(addMonthlyReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData)))
-                  this.handleClose()
-                  this.$emit('ok')
-                } else if (formData.REPORT_TYPE_ID === '2') {
-                  // 生成月度快报数据
-                  this.trackGeneration(addNewsFlashReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData)))
-                  this.handleClose()
-                  this.$emit('ok')
-                } else if (formData.REPORT_TYPE_ID === '3') {
-                  // 生成季度报告数据
-                  this.trackGeneration(addQuarterReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData)))
-                  this.handleClose()
-                  this.$emit('ok')
-                }else{
-                  // 生成季度快报数据
-                  this.trackGeneration(addQuarterQuickReport(Object.assign({ REPORT_ID: res.REPORT_ID }, formData)))
-                  this.handleClose()
-                  this.$emit('ok')
-                }
-              }
-              this.$message[res.result === 'success' ? 'success' : 'warning'](res.msg)
-            })
-
-            .catch(err => {
-              this.confirmLoading = false
-            })
+          this.submitReport(formData)
         }
       })
     },
     handleClose() {
+      if (this.confirmLoading) return
+      this.pendingGeneration = null
       this.visibleModal = false
       this.areaValidateStatus = ''
       this.model = {}

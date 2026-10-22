@@ -9,9 +9,9 @@
   >
     <template v-if="model.REPORT_TYPE_ID === '3'">
       <template v-if="model.HTML_REPORT">
-        <div id="HTML_REPORT2" v-html="model.HTML_REPORT" :contenteditable="isEdit" :key="id"></div>
+        <div ref="reportContent" id="HTML_REPORT2" v-html="model.HTML_REPORT" :contenteditable="isEdit" :key="id"></div>
       </template>
-      <div
+      <div ref="reportContent"
         v-else
         :contenteditable="isEdit"
         id="HTML_REPORT"
@@ -1642,20 +1642,21 @@ export default {
     },
     //保存
     async handleOk() {
-      // console.log(this.model.HTML_REPORT ? this.model.HTML_REPORT : document.getElementById('HTML_REPORT').innerHTML)
-      console.log(this.model.REPORT_ID)
-      // debugger
-      let params = {
-        HTML_REPORT: this.model.HTML_REPORT ? document.getElementById('HTML_REPORT2').innerHTML : document.getElementById('HTML_REPORT').innerHTML,
-        REPORT_ID: this.model.REPORT_ID,
-      }
-      const res = await editEntityReport(params)
-      if (res.result === 'success') {
-        console.log(res)
+      try {
+        const saved = await editEntityReport({
+          HTML_REPORT: this.$refs.reportContent.innerHTML,
+          REPORT_ID: this.model.REPORT_ID
+        })
+        if (!saved || saved.result !== 'success') {
+          this.$message.error('报告保存失败：' + ((saved && saved.msg) || '请重试'))
+          return
+        }
+        this.$message.success(saved.msg || '已保存')
         this.handleClose()
         this.$emit('ok')
+      } catch (error) {
+        this.$message.error('报告保存失败：' + (error.message || '请重试'))
       }
-      this.$message[res.result === 'success' ? 'success' : 'warning']
     },
     handleClose() {
       this.isEdit = false
@@ -1685,12 +1686,22 @@ export default {
       if (!this.model.HTML_REPORT) {
         // 调用保存文档的方法
         let params = {
-          HTML_REPORT: document.getElementById('HTML_REPORT').innerHTML,
+          HTML_REPORT: this.$refs.reportContent.innerHTML,
           REPORT_ID: this.model.REPORT_ID,
         }
         console.log(params)
         // debugger
-        await editEntityReport(params)
+        let saved
+        try {
+          saved = await editEntityReport(params)
+        } catch (error) {
+          this.$message.error('报告保存失败：' + (error.message || '请重试'))
+          return
+        }
+        if (!saved || saved.result !== 'success') {
+          this.$message.error('报告保存失败：' + ((saved && saved.msg) || '请重试'))
+          return
+        }
         // debugger
         window.open(
           `${window._CONFIG['domianURL']}/fixedReport/qurReport/downLoadCheckList?guoku_id=${

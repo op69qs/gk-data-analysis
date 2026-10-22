@@ -7,6 +7,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.fixedReport.BaseController;
+import org.fixedReport.util.ReportGenerationStatus;
 import org.fixedReport.model.TreeNodeArea;
 import org.fixedReport.service.*;
 import org.fixedReport.util.*;
@@ -295,6 +296,9 @@ public class ReportController extends BaseController {
         try {
             PageData pd = this.getPageData(param);
             List<Map<String, Object>> textList = reportService.getTextAndParams(pd);
+            if (textList.isEmpty()) {
+                throw new IllegalStateException("当前账期缺少月度报告文字数据，无法生成报告");
+            }
             List<Map<String, Object>> tableParamsList = reportService.getTableParams(pd);
             List<Map<String, Object>> tableParamsList2 = reportService.getTableParams2(pd);
             List<Map<String, Object>> tableParamsList3 = reportService.getTableParams3(pd);
@@ -563,7 +567,8 @@ public class ReportController extends BaseController {
             res.put("result", "success");
             res.put("rows", rows);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("月度报告生成失败，REPORT_ID={}", param == null ? null : param.getString("REPORT_ID"), e);
+            ReportGenerationStatus.markFailed(reportService, param);
             res.put("result", "fail");
             res.put("rows", e.getMessage());
         }

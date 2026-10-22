@@ -1896,7 +1896,7 @@
           FROM
           (
           SELECT
-                (@i := @i + 1) AS i,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -1911,9 +1911,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i =1) as 'map11'
                , (SELECT
@@ -1921,7 +1919,7 @@
           FROM
           (
           SELECT
-                (@i2 := @i2 + 1) AS i2,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i2,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -1936,9 +1934,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i2 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i2 =10) as 'map12'
  ,  (SELECT
@@ -1946,7 +1942,7 @@
           FROM
           (
           SELECT
-                (@i3 := @i3 + 1) AS i3,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i3,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -1961,9 +1957,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i3 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i3 =20) as 'map13'
                , (SELECT
@@ -1971,7 +1965,7 @@
           FROM
           (
           SELECT
-                (@i4 := @i4 + 1) AS i4,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i4,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -1986,9 +1980,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i4 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i4 =30) as 'map14'
                    , (SELECT
@@ -1996,7 +1988,7 @@
           FROM
           (
           SELECT
-                (@i5 := @i5 + 1) AS i5,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i5,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -2011,9 +2003,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i5 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i5 =39) as 'map15'
           ,  (SELECT
@@ -2021,7 +2011,7 @@
           FROM
           (
           SELECT
-                (@i6 := @i6 + 1) AS i6,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i6,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -2036,9 +2026,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i6 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i6 =1) as 'map21'
                , (SELECT
@@ -2046,7 +2034,7 @@
           FROM
           (
           SELECT
-                (@i7 := @i7 + 1) AS i7,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i7,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -2061,9 +2049,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i7 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i7 =10) as 'map22'
  ,  (SELECT
@@ -2071,7 +2057,7 @@
           FROM
           (
           SELECT
-                (@i8 := @i8 + 1) AS i8,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i8,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -2086,9 +2072,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i8 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i8 =20) as 'map23'
                , (SELECT
@@ -2096,7 +2080,7 @@
           FROM
           (
           SELECT
-                (@i9 := @i9 + 1) AS i9,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i9,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -2111,9 +2095,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i9 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i9 =30) as 'map24'
                    , (SELECT
@@ -2121,7 +2103,7 @@
           FROM
           (
           SELECT
-                (@i0 := @i0 + 1) AS i0,
+                ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i0,
                 d.INDEX_VALUE
                 FROM
                 (SELECT
@@ -2136,9 +2118,7 @@
                 AND b.DIMENSION_FLAG = '2'
                 AND area_no_id   NOT  IN ('500999','500000','500996')
                 AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-                ORDER BY INDEX_VALUE  ) d,
-                (SELECT
-                @i0 := 0) AS it
+                ORDER BY INDEX_VALUE  ) d
                 ) v
                 WHERE v.i0 =39) as 'map25'
 		 from  report.news_flash_quarter_report_text a
@@ -2152,8 +2132,8 @@
                    (SELECT
             COALESCE(string_agg(ROUND(COALESCE(INDEX_VALUE,0)/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MIN_VAL,
             '1' as id
           FROM
             indicators_lib.lib_indicators_000218 a
@@ -2168,8 +2148,8 @@
                      (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE/${params.AMT_UNIT},2)) AS text),'') MIN_VAL,
             '2' as id
           FROM
             indicators_lib.lib_indicators_000459 a
@@ -2185,8 +2165,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE *100,2)) AS text),'') MIN_VAL,
             '3' as id
           FROM
             indicators_lib.lib_indicators_000219 a
@@ -2202,8 +2182,8 @@
           (SELECT
             COALESCE(string_agg(ROUND(INDEX_VALUE * 100,2)::text, ',' ORDER BY ACCOUNT_PERIOD),'') VAL  ,
             COALESCE(string_agg(REPLACE(ACCOUNT_PERIOD,'-',''), ',' ORDER BY ACCOUNT_PERIOD),'') ACCOUNT_PERIOD,
-            COALESCE(MAX(ROUND(INDEX_VALUE *100,2))::text,'') MAX_VAL,
-            COALESCE(MIN(ROUND(INDEX_VALUE *100,2))::text,'') MIN_VAL,
+            COALESCE(CAST(MAX(ROUND(INDEX_VALUE *100,2)) AS text),'') MAX_VAL,
+            COALESCE(CAST(MIN(ROUND(INDEX_VALUE *100,2)) AS text),'') MIN_VAL,
             '4' as id
           FROM
             indicators_lib.lib_indicators_000461 a
@@ -2278,7 +2258,7 @@
  <!-- 获取生成报告的图形参数信息 -->
  <select id="getGraphParams3" resultType="java.util.HashMap">
        SELECT
-        (@i := @i + 1) AS i,
+        ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i,
          COALESCE(d.INDEX_VALUE,0) value,
        case when COALESCE(d.area_dscr,'') ='万盛经济技术开发区'
         then '万盛区'
@@ -2298,15 +2278,14 @@
         AND b.DIMENSION_FLAG = '2'
         AND area_no_id   NOT  IN ('500999','500000','500996')
         AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        ORDER BY INDEX_VALUE  ) d,
-        (SELECT
-        @i := 0) AS it
+        ORDER BY INDEX_VALUE  ) d
+        ORDER BY i
     </select>
 
  <!-- 获取生成报告的图形参数信息 -->
  <select id="getGraphParams4" resultType="java.util.HashMap">
      SELECT
-        (@i := @i + 1) AS i,
+        ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE) AS i,
           COALESCE(d.INDEX_VALUE,0) value,
         case when COALESCE(d.area_dscr,'') ='万盛经济技术开发区'
         then '万盛区'
@@ -2326,16 +2305,15 @@
         AND b.DIMENSION_FLAG = '2'
         AND area_no_id   NOT  IN ('500999','500000','500996')
         AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        ORDER BY INDEX_VALUE  ) d,
-        (SELECT
-        @i := 0) AS it
+        ORDER BY INDEX_VALUE  ) d
         where area_no_id   in ('500106','500107','500103','500104','500108','500105')
+        ORDER BY i
     </select>
 
  <!-- 获取生成报告的图形参数信息 -->
  <select id="getGraphParams5" resultType="java.util.HashMap">
                  SELECT
-        (@i := @i + 1) AS i,
+        ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE DESC) AS i,
         COALESCE(d.INDEX_VALUE,0) value,
         case when COALESCE(d.area_dscr,'') ='万盛经济技术开发区'
         then '万盛区'
@@ -2355,15 +2333,14 @@
         AND b.DIMENSION_FLAG = '2'
         AND area_no_id   NOT  IN ('500999','500000','500996')
         AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        ORDER BY INDEX_VALUE DESC) d,
-        (SELECT
-        @i := 0) AS it
+        ORDER BY INDEX_VALUE DESC) d
+        ORDER BY i
     </select>
 
  <!-- 获取生成报告的图形参数信息 -->
  <select id="getGraphParams6" resultType="java.util.HashMap">
                SELECT
-        (@i := @i + 1) AS i,
+        ROW_NUMBER() OVER (ORDER BY d.INDEX_VALUE DESC) AS i,
          COALESCE(d.INDEX_VALUE,0) value,
         case when COALESCE(d.area_dscr,'') ='万盛经济技术开发区'
         then '万盛区'
@@ -2383,10 +2360,9 @@
         AND b.DIMENSION_FLAG = '2'
         AND area_no_id   NOT  IN ('500999','500000','500996')
         AND ACCOUNT_PERIOD = '${params.ACCOUNT_PERIOD}'
-        ORDER BY INDEX_VALUE DESC) d,
-        (SELECT
-        @i := 0) AS it
+        ORDER BY INDEX_VALUE DESC) d
         where area_no_id   in ('500106','500107','500103','500104','500108','500105')
+        ORDER BY i
     </select>
 
 </mapper>

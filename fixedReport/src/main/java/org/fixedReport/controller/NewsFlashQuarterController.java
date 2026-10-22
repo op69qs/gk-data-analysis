@@ -9,6 +9,7 @@ import io.swagger.models.auth.In;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.ArrayUtils;
 import org.fixedReport.BaseController;
+import org.fixedReport.util.ReportGenerationStatus;
 import org.fixedReport.service.NewsFlashQuarterService;
 import org.fixedReport.service.ReportService;
 import org.fixedReport.util.*;
@@ -73,6 +74,9 @@ public class NewsFlashQuarterController extends BaseController {
             PageData pd = this.getPageData(param);
             pd.put("monthDate",pd.get("ACCOUNT_PERIOD").toString().substring(5,6).equals("2") ? "-06":pd.get("ACCOUNT_PERIOD").toString().substring(5,6).equals("1")?"-03":pd.get("ACCOUNT_PERIOD").toString().substring(5,6).equals("3")?"-09":"-12");
             List<Map<String, Object>> textList = newsFlashQuarterService.getTextAndParams(pd);
+            if (textList.isEmpty()) {
+                throw new IllegalStateException("当前账期缺少季度快报文字数据，无法生成报告");
+            }
             List<Map<String, Object>> tableParamsList = newsFlashQuarterService.getTableParams(pd);
             List<Map<String, Object>> tableParamsList2 = newsFlashQuarterService.getTableParams2(pd);
             List<Map<String, Object>> tableParamsList3 = newsFlashQuarterService.getTableParams3(pd);
@@ -224,7 +228,8 @@ public class NewsFlashQuarterController extends BaseController {
                 res.put("result", "success");
                 res.put("rows", rows);
         }catch (Exception e){
-            e.printStackTrace();
+            log.error("季度快报生成失败，REPORT_ID={}", param == null ? null : param.getString("REPORT_ID"), e);
+            ReportGenerationStatus.markFailed(reportService, param);
             res.put("result", "fail");
             res.put("rows", e.getMessage());
         }
