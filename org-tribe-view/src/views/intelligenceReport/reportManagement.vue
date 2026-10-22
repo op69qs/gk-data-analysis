@@ -29,6 +29,7 @@
               <a-select placeholder="请选择状态" v-model="queryParam.STATUS" allowClear>
                 <a-select-option value="0">生成中</a-select-option>
                 <a-select-option value="1">已生成</a-select-option>
+                <a-select-option value="2">生成失败</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
@@ -63,6 +64,7 @@
         <template slot="STATUS" slot-scope="text, record">
           <span v-if="text === '0'" style="color:red;">生成中</span>
           <span v-else-if="text === '1'">已生成</span>
+          <span v-else-if="text === '2'" style="color:red;">生成失败</span>
         </template>
         <template slot="action" slot-scope="text, record">
           <template>

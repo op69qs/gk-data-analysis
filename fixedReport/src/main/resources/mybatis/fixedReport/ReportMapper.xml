@@ -1109,7 +1109,12 @@
         )
     </insert>
     <update id="updateEntityReport">
-         update report.t_sys_report_guoku set STATUS='1' where REPORT_ID='${params.REPORT_ID}'
+         update report.t_sys_report_guoku set STATUS=
+         <choose>
+             <when test="params.STATUS != null">#{params.STATUS}</when>
+             <otherwise>'1'</otherwise>
+         </choose>
+         where REPORT_ID=#{params.REPORT_ID}
     </update>
 
     <select id="getHtmlReport" resultType="java.util.Map">

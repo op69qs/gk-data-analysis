@@ -210,6 +210,7 @@ public class NewsFlashController extends BaseController {
                         pd.getString("REPORT_ID"), pd.getString("ACCOUNT_PERIOD"));
                 res.put("result", "fail");
                 res.put("rows", "当前账期缺少快报文字数据，无法生成上半部分文字内容");
+                markGenerationFailed(param);
                 return res;
             }
             if(textList.size()>0){
@@ -255,8 +256,24 @@ public class NewsFlashController extends BaseController {
                     param == null ? null : param.getString("ACCOUNT_PERIOD"), e);
             res.put("result", "fail");
             res.put("rows", e.getMessage());
+            markGenerationFailed(param);
         }
         return res;
+    }
+
+    private void markGenerationFailed(JSONObject param) {
+        if (param == null || StringUtils.isBlank(param.getString("REPORT_ID"))) {
+            return;
+        }
+        Map<String, Object> failedReport = new HashMap<>();
+        failedReport.put("REPORT_ID", param.getString("REPORT_ID"));
+        failedReport.put("STATUS", "2");
+        try {
+            reportService.updateEntityReport(failedReport);
+        } catch (Exception statusFailure) {
+            // Preserve the generation error even if its failure status cannot be saved.
+            log.error("月度快报失败状态保存失败，REPORT_ID={}", param.getString("REPORT_ID"), statusFailure);
+        }
     }
     /**
      * 获取结构化月度报告

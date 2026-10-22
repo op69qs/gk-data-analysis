@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.fixedReport.service.NewsFlashService;
 import org.fixedReport.service.ReportService;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Collections;
@@ -14,10 +15,73 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class NewsFlashControllerTest {
+
+    @Test
+    public void generationSqlFailureMarksReportFailedAndPreservesOriginalError() {
+        NewsFlashController controller = new NewsFlashController();
+        ReportService reportService = mock(ReportService.class);
+        NewsFlashService newsFlashService = mock(NewsFlashService.class);
+        ReflectionTestUtils.setField(controller, "reportService", reportService);
+        ReflectionTestUtils.setField(controller, "newsFlashService", newsFlashService);
+        when(newsFlashService.getTableParams2(any()))
+                .thenThrow(new IllegalStateException("invalid monthly scalar SQL"));
+        JSONObject request = generationRequest();
+
+        Map<String, Object> response = controller.addMonthlyReport(request);
+
+        assertEquals("fail", response.get("result"));
+        assertEquals("invalid monthly scalar SQL", response.get("rows"));
+        ArgumentCaptor<Map> state = ArgumentCaptor.forClass(Map.class);
+        verify(reportService).updateEntityReport(state.capture());
+        assertEquals("monthly-test", state.getValue().get("REPORT_ID"));
+        assertEquals("2", state.getValue().get("STATUS"));
+    }
+
+    @Test
+    public void missingMonthlyTextMarksReportFailed() {
+        NewsFlashController controller = new NewsFlashController();
+        ReportService reportService = mock(ReportService.class);
+        NewsFlashService newsFlashService = mock(NewsFlashService.class);
+        ReflectionTestUtils.setField(controller, "reportService", reportService);
+        ReflectionTestUtils.setField(controller, "newsFlashService", newsFlashService);
+
+        Map<String, Object> response = controller.addMonthlyReport(generationRequest());
+
+        assertEquals("fail", response.get("result"));
+        ArgumentCaptor<Map> state = ArgumentCaptor.forClass(Map.class);
+        verify(reportService).updateEntityReport(state.capture());
+        assertEquals("2", state.getValue().get("STATUS"));
+    }
+
+    @Test
+    public void failureStatusWriteErrorDoesNotReplaceGenerationError() {
+        NewsFlashController controller = new NewsFlashController();
+        ReportService reportService = mock(ReportService.class);
+        NewsFlashService newsFlashService = mock(NewsFlashService.class);
+        ReflectionTestUtils.setField(controller, "reportService", reportService);
+        ReflectionTestUtils.setField(controller, "newsFlashService", newsFlashService);
+        when(newsFlashService.getTableParams2(any()))
+                .thenThrow(new IllegalStateException("original monthly SQL error"));
+        doThrow(new IllegalStateException("cannot update state"))
+                .when(reportService).updateEntityReport(any());
+
+        Map<String, Object> response = controller.addMonthlyReport(generationRequest());
+
+        assertEquals("fail", response.get("result"));
+        assertEquals("original monthly SQL error", response.get("rows"));
+    }
+
+    private static JSONObject generationRequest() {
+        JSONObject request = new JSONObject();
+        request.put("REPORT_ID", "monthly-test");
+        request.put("ACCOUNT_PERIOD", "2026-06");
+        return request;
+    }
 
     @Test
     public void monthlyReportUsesLiveTable3EvenWhenSnapshotExists() {
