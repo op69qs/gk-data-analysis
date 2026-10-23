@@ -72,6 +72,14 @@ public class NewsFlashSqlCompatibilityTest {
         }
     }
 
+    @Test
+    public void getTableParams3UsesQuotedPhysicalColumnNames() throws Exception {
+        String sql = boundSql("getTableParams3", "2026-06");
+        assertTrue(sql.contains("\"101_TATE\""));
+        assertTrue(sql.contains("\"101_RANK\""));
+        assertTrue("must not use mistaken c_101_* aliases", !sql.contains("c_101_tate") && !sql.contains("c_101_rank"));
+    }
+
     /** Optional repository-database check; never creates reports or business records. */
     @Test
     public void monthlyFlashGenerationQueriesPlanAndExecuteInReadOnlyTransaction() throws Exception {
